@@ -2658,16 +2658,12 @@ class BoreBillSaaSApp {
         if (idInp) idInp.value = item.id;
 
         const dateInp = document.getElementById('rpmDateInput');
-        if (dateInp && !dateInp.value) {
-            dateInp.value = new Date().toISOString().split('T')[0];
-        } else if (dateInp) {
+        if (dateInp) {
             dateInp.value = new Date().toISOString().split('T')[0];
         }
 
         const amtInp = document.getElementById('rpmAmountInput');
         if (amtInp) amtInp.value = '';
-        const noteInp = document.getElementById('rpmNoteInput');
-        if (noteInp) noteInp.value = '';
 
         this.renderRecordPaymentModalContent(item);
         overlay.style.display = 'flex';
@@ -2705,7 +2701,7 @@ class BoreBillSaaSApp {
         if (fullBtn) {
             if (hasDue) {
                 fullBtn.style.display = 'inline-flex';
-                fullBtn.textContent = `Pay Full Due (${this.formatINR(pending)})`;
+                fullBtn.textContent = `Full Due: ${this.formatINR(pending)}`;
             } else {
                 fullBtn.style.display = 'none';
             }
@@ -2714,7 +2710,7 @@ class BoreBillSaaSApp {
         const entries = this.getBillPaymentEntries(item);
         const countBadge = document.getElementById('rpmHistoryCountBadge');
         if (countBadge) {
-            countBadge.textContent = `${entries.length} ${entries.length === 1 ? 'Entry' : 'Entries'}`;
+            countBadge.textContent = String(entries.length);
         }
 
         const listEl = document.getElementById('rpmHistoryList');
@@ -2722,8 +2718,8 @@ class BoreBillSaaSApp {
 
         if (entries.length === 0) {
             listEl.innerHTML = `
-                <div style="text-align:center; padding: 18px 12px; color:#64748b; font-size:0.78rem; font-weight:600;">
-                    No payments recorded yet for this bill. Enter date &amp; amount above to record payment.
+                <div class="rpm-empty-msg">
+                    No payments recorded yet. Select date &amp; enter amount above.
                 </div>
             `;
             return;
@@ -2731,16 +2727,13 @@ class BoreBillSaaSApp {
 
         listEl.innerHTML = entries.map((p, idx) => `
             <div class="rpm-hist-item">
-                <div class="rpm-hi-left">
-                    <div class="rpm-hi-date">
-                        <span>#${idx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
-                        <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
-                    </div>
-                    ${p.note ? `<div class="rpm-hi-note">${this.escapeHtml(p.note)}</div>` : ''}
+                <div class="rpm-hi-date">
+                    <span class="rpm-hi-idx">${idx + 1}.</span>
+                    <span>📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
                 </div>
                 <div class="rpm-hi-right">
-                    <span class="rpm-hi-amt">+ ${this.formatINR(p.amount)}</span>
-                    <button type="button" class="rpm-hi-del-btn" data-payid="${p.id}" title="Remove this payment entry">✕</button>
+                    <span class="rpm-hi-amt">${this.formatINR(p.amount)}</span>
+                    <button type="button" class="rpm-hi-del-btn" data-payid="${p.id}" title="Remove">✕</button>
                 </div>
             </div>
         `).join('');
@@ -2761,30 +2754,22 @@ class BoreBillSaaSApp {
         const amtInput = document.getElementById('rpmAmountInput');
         const rawAmt = Math.round(parseFloat(amtInput?.value) || 0);
         if (rawAmt <= 0) {
-            this.showToast('⚠️ Please enter a valid payment amount (₹)');
+            this.showToast('⚠️ Enter payment amount (₹)');
             amtInput?.focus();
             return;
         }
-
-        const activeModeBtn = document.querySelector('#rpmModePills .rpm-mode-pill.active');
-        const modeVal = activeModeBtn?.dataset.mode || 'Cash';
-        const noteVal = (document.getElementById('rpmNoteInput')?.value || '').trim();
 
         const entries = this.ensureBillPaymentsArray(item);
         entries.push({
             id: 'pay_' + Date.now() + '_' + Math.floor(Math.random() * 100),
             date: dateVal,
-            amount: rawAmt,
-            mode: modeVal,
-            note: noteVal
+            amount: rawAmt
         });
 
         this.syncBillPaymentSnapshot(item);
         this.saveToStorage('borebill_history', this.history);
 
         if (amtInput) amtInput.value = '';
-        const noteInp = document.getElementById('rpmNoteInput');
-        if (noteInp) noteInp.value = '';
 
         this.renderRecordPaymentModalContent(item);
         this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
@@ -2802,7 +2787,7 @@ class BoreBillSaaSApp {
             this.calculateAndRender();
         }
 
-        this.showToast(`✅ Recorded ${this.formatINR(rawAmt)} on ${this.formatPaymentDateDisplay(dateVal)}!`);
+        this.showToast(`✅ Added ${this.formatINR(rawAmt)} (${this.formatPaymentDateDisplay(dateVal)})`);
     }
 
     deleteBillPaymentEntry(billId, payId) {
@@ -3005,24 +2990,20 @@ class BoreBillSaaSApp {
                 ${isInvoice ? `
                 <div class="cbc-pay-history-box">
                     <div class="cphb-head">
-                        <span>💳 Date-wise Payment History (${payEntries.length})</span>
+                        <span>💳 Payments (${payEntries.length})</span>
                         <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''}" id="bdmInlineRecordPayBtn">
-                            ${hasDue ? '＋ Record Payment' : '💳 Edit Payments'}
+                            ${hasDue ? '＋ Add Payment' : 'Edit Payments'}
                         </button>
                     </div>
                     <div class="cphb-rows">
                         ${payEntries.length > 0
                             ? payEntries.map((p, idx) => `
                                 <div class="cphb-row">
-                                    <span class="cphb-r-left">
-                                        <span>#${idx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
-                                        <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
-                                        ${p.note ? `<small style="color:#64748b;">(${this.escapeHtml(p.note)})</small>` : ''}
-                                    </span>
-                                    <span class="cphb-r-amt">+ ${this.formatINR(p.amount)}</span>
+                                    <span class="cphb-r-left">${idx + 1}. 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                                    <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
                                 </div>
                             `).join('')
-                            : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet. Tap "＋ Record Payment" to add date &amp; amount.</div>`
+                            : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet.</div>`
                         }
                     </div>
                 </div>
@@ -3063,7 +3044,7 @@ class BoreBillSaaSApp {
             <div class="bdm-foot-left">
                 ${isInvoice ? `
                     <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''}" id="bdmFootRecordPayBtn">
-                        💳 ${hasDue ? 'Record Payment' : 'Payments'}
+                        ${hasDue ? '＋ Payment' : 'Payments'}
                     </button>
                 ` : ''}
                 <button type="button" class="btn-wa-xs" id="bdmFootWaBtn">💬 WhatsApp</button>
@@ -3669,24 +3650,20 @@ class BoreBillSaaSApp {
                     ${isInvoice ? `
                     <div class="cbc-pay-history-box">
                         <div class="cphb-head">
-                            <span>💳 Date-wise Payment History (${payEntries.length})</span>
+                            <span>💳 Payments (${payEntries.length})</span>
                             <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} cdm-bore-pay-btn" data-id="${item.id}">
-                                ${hasDue ? '＋ Record Payment' : '💳 Edit Payments'}
+                                ${hasDue ? '＋ Add Payment' : 'Edit Payments'}
                             </button>
                         </div>
                         <div class="cphb-rows">
                             ${payEntries.length > 0
                                 ? payEntries.map((p, pIdx) => `
                                     <div class="cphb-row">
-                                        <span class="cphb-r-left">
-                                            <span>#${pIdx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
-                                            <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
-                                            ${p.note ? `<small style="color:#64748b;">(${this.escapeHtml(p.note)})</small>` : ''}
-                                        </span>
-                                        <span class="cphb-r-amt">+ ${this.formatINR(p.amount)}</span>
+                                        <span class="cphb-r-left">${pIdx + 1}. 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                                        <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
                                     </div>
                                 `).join('')
-                                : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet. Tap "＋ Record Payment" to add date &amp; amount.</div>`
+                                : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet.</div>`
                             }
                         </div>
                     </div>
@@ -3727,7 +3704,7 @@ class BoreBillSaaSApp {
                         <div class="cbc-foot-btns">
                             ${isInvoice ? `
                                 <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} cdm-bore-pay-btn" data-id="${item.id}">
-                                    💳 ${hasDue ? 'Record Payment' : 'Payments'}
+                                    ${hasDue ? '＋ Payment' : 'Payments'}
                                 </button>
                             ` : ''}
                             <button type="button" class="btn-wa-xs cdm-bore-wa-btn" data-id="${item.id}">💬 WA Bill</button>
@@ -4267,32 +4244,7 @@ class BoreBillSaaSApp {
             });
         }
 
-        // 2. Render Redesigned Default Rate Selector Strip on Tab 4 (Rates)
-        const defBarEl = document.getElementById('defaultRateSelectorBar');
-        if (defBarEl) {
-            defBarEl.innerHTML = `
-                <div class="drsb-top">
-                    <span class="drsb-label">✓ Default Rate for New Bills</span>
-                    <span class="drsb-hint">Tap to switch default</span>
-                </div>
-                <div class="drsb-pills">
-                    ${this.rateProfiles.map((p, idx) => `
-                        <button type="button" class="drsb-pill ${p.isDefault ? 'is-default' : ''}" data-defid="${p.id}">
-                            <span class="drsb-radio-dot"></span>
-                            <span>${idx + 1}. ${this.escapeHtml(p.name)} (₹${p.rates?.baseDrillingRate || 90})</span>
-                        </button>
-                    `).join('')}
-                </div>
-            `;
-
-            defBarEl.querySelectorAll('.drsb-pill').forEach(pill => {
-                pill.addEventListener('click', () => {
-                    this.setDefaultRateProfile(pill.dataset.defid);
-                });
-            });
-        }
-
-        // 3. Render Clean Numbered (1, 2, 3...) Minimal Rate List on Tab 4 (Tap any row to open full details modal)
+        // 2. Render Clean Numbered (1, 2, 3...) Minimal Rate List on Tab 4 with well-spaced Default & Apply buttons
         const listEl = document.getElementById('savedRateProfilesList');
         if (!listEl) return;
 
@@ -4302,7 +4254,6 @@ class BoreBillSaaSApp {
             const isActive = p.id === this.activeRateProfileId;
             const isEditing = studioVisible && p.id === editingId;
             const slabs = this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90);
-            const baseRangeText = (slabs[0]?.rangeStr || '001-300 ft').replace(/^0+/, '');
 
             return `
                 <div class="rate-clean-row ${isActive ? 'is-active-rate' : ''} ${isEditing ? 'is-editing-card' : ''}" data-rateid="${p.id}">
@@ -4311,19 +4262,19 @@ class BoreBillSaaSApp {
                         <div class="rcr-info">
                             <div class="rcr-title-line">
                                 <span class="rcr-name">${this.escapeHtml(p.name)}</span>
-                                ${p.isDefault ? `<span class="rcr-tag default-tag">✓ Default</span>` : ''}
-                                ${isActive ? `<span class="rcr-tag applied-tag">● Applied</span>` : ''}
                             </div>
                             <div class="rcr-sub">
-                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> (${baseRangeText}) • 7" Casing: <strong>₹${r.pvc7Rate}/ft</strong> • ${slabs.length} Slabs
+                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> • 7" Pipe: <strong>₹${r.pvc7Rate}/ft</strong> • ${slabs.length} Slabs
                             </div>
                         </div>
                     </div>
                     <div class="rcr-right">
-                        <button type="button" class="rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Current Default Rate' : 'Set as Default Rate'}">
-                            ${p.isDefault ? '● Default' : '○ Set Default'}
+                        <button type="button" class="rcr-action-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Default Rate' : 'Set as Default Rate'}">
+                            ${p.isDefault ? '★ Default' : 'Set Default'}
                         </button>
-                        <span class="rcr-open-arrow" title="View Full Rate Details">›</span>
+                        <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" data-applybtn="${p.id}" title="${isActive ? 'Applied in Bill' : 'Apply Rate to Bill'}">
+                            ${isActive ? '✓ Applied' : 'Apply'}
+                        </button>
                     </div>
                 </div>
             `;
@@ -4337,6 +4288,14 @@ class BoreBillSaaSApp {
                 if (prof && !prof.isDefault) {
                     this.setDefaultRateProfile(targetId);
                 }
+            });
+        });
+
+        listEl.querySelectorAll('.rcr-apply-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetId = btn.dataset.applybtn;
+                this.applyRateProfileToBill(targetId, true);
             });
         });
 
@@ -4381,23 +4340,21 @@ class BoreBillSaaSApp {
         if (subEl) subEl.textContent = `Base ₹${r.baseDrillingRate}/ft (${baseRangeText}) • ${slabs.length} Slabs (1–${maxEndDepth} ft)`;
 
         bodyEl.innerHTML = `
-            <!-- Default Rate Toggle Banner inside Modal -->
-            <div class="rdm-default-switch-banner ${p.isDefault ? 'is-default-active' : ''}">
-                <div class="rdsb-left">
-                    <span class="rdsb-title">${p.isDefault ? '✓ This is your Default Rate' : 'Default Rate Setting'}</span>
-                    <span class="rdsb-sub">${p.isDefault ? 'Automatically loaded when starting a new bill' : 'Tap button to make this the default rate for new bills'}</span>
-                </div>
-                ${p.isDefault
-                    ? `<span class="rcr-tag default-tag" style="padding:5px 10px; font-size:0.72rem;">● Default Active</span>`
-                    : `<button type="button" class="btn-brand-sm" id="rdmMakeDefaultBtn">Set as Default</button>`
-                }
+            <!-- Clean Status & Quick Actions Bar inside Modal -->
+            <div class="rdm-status-bar">
+                <button type="button" class="rcr-action-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" id="rdmMakeDefaultBtn">
+                    ${p.isDefault ? '★ Default Rate' : 'Set Default'}
+                </button>
+                <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" id="rdmInlineApplyBtn">
+                    ${isActive ? '✓ Applied in Bill' : 'Apply to Bill'}
+                </button>
             </div>
 
             <!-- Core Drilling & Casing Pipe Rates -->
             <div class="cdm-clean-card" style="margin-bottom: 10px;">
                 <div class="cdm-cc-head">
                     <span>⚙️ Drilling, Casing Pipe &amp; Labour Rates</span>
-                    <span class="cdm-sec-pill">${isActive ? '● Applied in Bill' : `Rate #${num}`}</span>
+                    <span class="cdm-sec-pill">Rate #${num}</span>
                 </div>
                 <div class="cbc-clean-rows">
                     <div class="cbc-row">
@@ -4471,13 +4428,20 @@ class BoreBillSaaSApp {
             </div>
             <div class="bdm-foot-right">
                 <button type="button" class="btn-brand-sm" id="rdmFootApplyBtn">
-                    ${isActive ? '✓ Applied in Bill' : '⚡ Apply to Bill'}
+                    ${isActive ? '✓ Applied' : 'Apply to Bill'}
                 </button>
             </div>
         `;
 
         document.getElementById('rdmMakeDefaultBtn')?.addEventListener('click', () => {
-            this.setDefaultRateProfile(p.id);
+            if (!p.isDefault) {
+                this.setDefaultRateProfile(p.id);
+                this.openRateDetailModal(p.id);
+            }
+        });
+
+        document.getElementById('rdmInlineApplyBtn')?.addEventListener('click', () => {
+            this.applyRateProfileToBill(p.id, true);
             this.openRateDetailModal(p.id);
         });
 
@@ -5992,17 +5956,17 @@ class BoreBillSaaSApp {
                 <div class="khata-actions">
                     <span class="khata-Quick-stats">
                         ${isInvoice
-                            ? `Paid: ${this.formatINR(paidAmt)}${payEntries.length > 0 ? ` (${payEntries.length} ${payEntries.length === 1 ? 'entry' : 'entries'})` : ''} • Tap card for details`
+                            ? `Paid: <strong>${this.formatINR(paidAmt)}</strong>${payEntries.length > 0 ? ` (${payEntries.length})` : ''}`
                             : `Base: ₹${snap.baseDrillingRate}/ft • Casing: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft`
                         }
                     </span>
                     <div class="khata-btn-group">
                         ${isInvoice
-                            ? `<button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} hist-record-pay-btn" data-id="${item.id}" title="Record Payment with Date">💳 ${hasDue ? 'Record Payment' : 'Payments'}</button>`
+                            ? `<button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} hist-record-pay-btn" data-id="${item.id}" title="Record Payment">${hasDue ? '＋ Payment' : 'Payments'}</button>`
                             : ''
                         }
                         <button type="button" class="btn-wa-xs hist-wa-btn" data-id="${item.id}" title="Preview & Send on WhatsApp">💬 WA</button>
-                        <button type="button" class="btn-brand-sm hist-detail-btn" data-id="${item.id}">${isInvoice ? '👁️ Details' : '👁️ View'}</button>
+                        <button type="button" class="btn-brand-sm hist-detail-btn" data-id="${item.id}">Details</button>
                         <button type="button" class="btn-danger-xs hist-del-btn" data-id="${item.id}">✕</button>
                     </div>
                 </div>

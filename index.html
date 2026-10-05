@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=50">
+    <link rel="stylesheet" href="styles.css?v=51">
 </head>
 <body>
     <!-- ==================== TOP APP SHELL HEADER ==================== -->
@@ -1036,20 +1036,15 @@
 
             <!-- 1. Saved Rate Cards Deck (Clean Numbered 1, 2, 3 List) -->
             <div class="ui-card">
-                <div class="page-head-row">
+                <div class="page-head-row" style="margin-bottom: 10px;">
                     <div>
                         <h2 class="page-title"><i data-lucide="layers" class="icon-sm text-brand"></i> <span data-i18n="savedRateProfilesTitle">Rate List</span></h2>
-                        <p class="page-sub">Tap any rate (1, 2, 3...) to open full slab &amp; casing details</p>
+                        <p class="page-sub">Tap any rate row to view full details</p>
                     </div>
                     <button type="button" class="btn-brand-sm" id="createNewRateProfileBtn">
                         <i data-lucide="plus" class="icon-xs"></i>
                         <span data-i18n="newRateProfileBtnLabel">New Rate</span>
                     </button>
-                </div>
-
-                <!-- Redesigned Default Rate Selector Strip -->
-                <div class="default-rate-selector-bar" id="defaultRateSelectorBar">
-                    <!-- Populated dynamically by app.js -->
                 </div>
 
                 <div class="rate-deck-list" id="savedRateProfilesList">
@@ -1856,7 +1851,7 @@
         </div>
     </div>
 
-    <!-- ==================== RECORD PAYMENT (DATE & MULTIPLE INSTALLMENTS) MODAL ==================== -->
+    <!-- ==================== RECORD PAYMENT (SIMPLE DATE & AMOUNT) MODAL ==================== -->
     <div class="cust-popup-backdrop" id="recordPaymentModalOverlay" style="display: none;">
         <div class="cust-popup-dialog record-payment-modal" role="dialog" aria-modal="true" aria-labelledby="rpmTitle">
             <div class="cust-popup-head cdm-head">
@@ -1873,61 +1868,49 @@
             <div class="cdm-scroll-body rpm-body">
                 <input type="hidden" id="rpmBillIdInput" value="">
 
-                <!-- 3-Column Bill Payment Status Strip -->
+                <!-- 1. Clean 3-Column Bill Summary -->
                 <div class="cdm-pay-trio rpm-pay-trio">
                     <div class="cdm-pt-item">
-                        <span class="cdm-pt-lbl">Total Bill</span>
+                        <span class="cdm-pt-lbl">Bill Total</span>
                         <strong class="cdm-pt-val" id="rpmTotalBillVal">₹0</strong>
                     </div>
                     <div class="cdm-pt-item is-paid">
-                        <span class="cdm-pt-lbl">Total Paid</span>
+                        <span class="cdm-pt-lbl">Paid</span>
                         <strong class="cdm-pt-val text-green" id="rpmTotalPaidVal">₹0</strong>
                     </div>
                     <div class="cdm-pt-item is-due" id="rpmDueBox">
-                        <span class="cdm-pt-lbl">Balance Due</span>
+                        <span class="cdm-pt-lbl">Balance</span>
                         <strong class="cdm-pt-val text-danger" id="rpmBalanceDueVal">₹0</strong>
                     </div>
                 </div>
 
-                <!-- Add New Payment Entry Card -->
+                <!-- 2. Minimal Date + Amount Entry Box -->
                 <div class="rpm-form-card" id="rpmAddPaymentFormCard">
                     <div class="rpm-form-head">
-                        <span>➕ Add Payment Received</span>
-                        <button type="button" class="rpm-full-fill-chip" id="rpmFillFullBalanceBtn">Pay Full Balance</button>
+                        <span>Add Payment</span>
+                        <button type="button" class="rpm-full-fill-chip" id="rpmFillFullBalanceBtn">Full Due</button>
                     </div>
                     <div class="rpm-grid-2">
                         <div class="field-group">
-                            <label for="rpmDateInput">📅 Payment Date *</label>
+                            <label for="rpmDateInput">Date</label>
                             <input type="date" id="rpmDateInput">
                         </div>
                         <div class="field-group">
-                            <label for="rpmAmountInput">💰 Amount Received (₹) *</label>
-                            <input type="number" id="rpmAmountInput" placeholder="Enter amount..." min="1" step="any" inputmode="numeric">
+                            <label for="rpmAmountInput">Amount (₹)</label>
+                            <input type="number" id="rpmAmountInput" placeholder="₹ 0" min="1" step="any" inputmode="numeric">
                         </div>
-                    </div>
-                    <div class="rpm-mode-row">
-                        <span class="rpm-mode-lbl">Mode:</span>
-                        <div class="rpm-mode-pills" id="rpmModePills">
-                            <button type="button" class="rpm-mode-pill active" data-mode="Cash">💵 Cash</button>
-                            <button type="button" class="rpm-mode-pill" data-mode="UPI / GPay">📱 UPI / GPay</button>
-                            <button type="button" class="rpm-mode-pill" data-mode="Bank">🏦 Bank</button>
-                            <button type="button" class="rpm-mode-pill" data-mode="Cheque">🧾 Cheque</button>
-                        </div>
-                    </div>
-                    <div class="field-group" style="margin-top: 8px;">
-                        <input type="text" id="rpmNoteInput" placeholder="Optional note (e.g. Received by GPay / 2nd installment)..." autocomplete="off">
                     </div>
                     <button type="button" class="btn-brand-full rpm-save-btn" id="rpmSavePaymentBtn">
-                        <i data-lucide="check-circle-2" class="icon-xs"></i>
-                        <span>Save Payment Record</span>
+                        <i data-lucide="plus" class="icon-xs"></i>
+                        <span>Add Payment</span>
                     </button>
                 </div>
 
-                <!-- Date-wise Payment History List -->
+                <!-- 3. Clean Date-wise Payment List -->
                 <div class="rpm-history-section">
                     <div class="rpm-hist-head">
-                        <span>📋 Payment History (Date-wise)</span>
-                        <span class="cdm-sec-pill" id="rpmHistoryCountBadge">0 Entries</span>
+                        <span>Received Payments</span>
+                        <span class="cdm-sec-pill" id="rpmHistoryCountBadge">0</span>
                     </div>
                     <div class="rpm-history-list" id="rpmHistoryList">
                         <!-- Populated dynamically by app.js -->
@@ -1990,6 +1973,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=50"></script>
+    <script src="app.js?v=51"></script>
 </body>
 </html>
