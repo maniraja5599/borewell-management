@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=46">
+    <link rel="stylesheet" href="styles.css?v=47">
 </head>
 <body>
     <!-- ==================== TOP APP SHELL HEADER ==================== -->
@@ -292,7 +292,7 @@
 
                             <div class="site-input-wrap site-input-lg" id="serviceSiteInputWrap">
                                 <span class="site-input-left-ico">📍</span>
-                                <input type="text" id="custLocation" placeholder="Search old places or type new site..." autocomplete="off" enterkeyhint="done">
+                                <input type="text" id="custLocation" placeholder="Search old places or type new site..." autocomplete="off" enterkeyhint="next">
                                 <button type="button" class="site-clear-inline-btn" id="clearSiteLocationBtn" title="Clear Site" style="display: none;">✕</button>
                             </div>
 
@@ -335,7 +335,7 @@
                         </div>
                     </div>
 
-                    <!-- Main Big Drilling Depth Input (Clean, No Clutter, Keyboard Next -> 7" PVC) -->
+                    <!-- Main Big Drilling Depth Input (Clean, No Clutter, Keyboard Next -> Base Rate -> 7" PVC -> 10" PVC) -->
                     <div class="simple-big-input-wrap hero">
                         <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next">
                         <span class="sbi-unit">ft</span>
@@ -347,7 +347,7 @@
                             <label for="baseDrillingRate">1–300ft:</label>
                             <div class="srbb-input-box">
                                 <span>₹</span>
-                                <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" tabindex="-1">
+                                <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" enterkeyhint="next">
                                 <small>/ft</small>
                             </div>
                         </div>
@@ -1856,6 +1856,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=46"></script>
+    <script src="app.js?v=47"></script>
 </body>
 </html>

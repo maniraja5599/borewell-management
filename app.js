@@ -271,9 +271,10 @@ class BoreBillSaaSApp {
         };
 
         this.state = this.loadFromStorage('borebill_last_session', this.defaultSession);
-        // Always default to Final Bill ('INVOICE') view unless viewing a specific saved Quotation
+        // Always default to Final Bill ('INVOICE') view and GST OFF unless viewing a specific saved bill
         if (!this.state.loadedHistoryBillId) {
             this.state.docType = 'INVOICE';
+            this.state.gstEnabled = false;
         } else if (this.state.docType !== 'QUOTATION') {
             this.state.docType = 'INVOICE';
         }
@@ -642,6 +643,9 @@ class BoreBillSaaSApp {
             pickerPanel.style.display = hasCust ? 'none' : 'block';
         }
 
+        if (!this.loadedHistoryBillId) {
+            s.gstEnabled = false;
+        }
         const gstToggle = document.getElementById('gstEnabledToggle');
         if (gstToggle) gstToggle.checked = Boolean(s.gstEnabled);
         const gstRow = document.getElementById('custGstInlineRow');
@@ -2127,12 +2131,15 @@ class BoreBillSaaSApp {
             this.showToast(`📍 Site: ${cleanSite}`);
         }
 
-        // Smoothly focus Total Drilling Depth if empty so user can enter depth right away
+        // Smoothly focus Drilling Depth (#oldBoreDepth if Re-Bore & empty, otherwise #totalDepth) right after Site is selected
+        const isRepair = this.state.drillingType === 'repair';
+        const oldBoreInput = document.getElementById('oldBoreDepth');
         const depthInput = document.getElementById('totalDepth');
-        if (cleanSite && depthInput && !depthInput.value) {
+        const nextTarget = (isRepair && oldBoreInput && !oldBoreInput.value) ? oldBoreInput : depthInput;
+        if (cleanSite && nextTarget && !nextTarget.value) {
             setTimeout(() => {
-                depthInput.focus();
-            }, 90);
+                nextTarget.focus();
+            }, 80);
         }
     }
 
@@ -3421,6 +3428,14 @@ class BoreBillSaaSApp {
         this.renderQuickCustomerPicker(document.getElementById('quickCustSearchInput')?.value || '');
         if (locInput && !cleanInitialSite) {
             setTimeout(() => locInput.focus(), 80);
+        } else if (cleanInitialSite) {
+            const isRepair = this.state.drillingType === 'repair';
+            const oldBoreInput = document.getElementById('oldBoreDepth');
+            const depthInput = document.getElementById('totalDepth');
+            const nextTarget = (isRepair && oldBoreInput && !oldBoreInput.value) ? oldBoreInput : depthInput;
+            if (nextTarget && !nextTarget.value) {
+                setTimeout(() => nextTarget.focus(), 80);
+            }
         }
     }
 
@@ -5516,6 +5531,11 @@ class BoreBillSaaSApp {
         this.isSavedBillReadOnly = false;
         this.isBillPreviewOpen = false;
         this.isBillSavedAndReadyToShare = false;
+        this.state.gstEnabled = false;
+        const gstToggle = document.getElementById('gstEnabledToggle');
+        if (gstToggle) gstToggle.checked = false;
+        const custGstRow = document.getElementById('custGstInlineRow');
+        if (custGstRow) custGstRow.style.display = 'none';
         const dateInput = document.getElementById('billDateInput');
         if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
@@ -5851,12 +5871,8 @@ class BoreBillSaaSApp {
         // Step 1B: Same as Place vs Different Site Quick Mode Pills
         document.getElementById('siteModeSameBtn')?.addEventListener('click', () => {
             const activeCust = this.findActiveBillCustomer();
-            const locInput = document.getElementById('custLocation');
-            if (locInput && activeCust?.village) {
-                locInput.value = activeCust.village;
-                this.calculateAndRender();
-                this.renderCustomerSiteSuggestions();
-                this.showToast(`🏠 Service Site set to "${activeCust.village}"`);
+            if (activeCust?.village) {
+                this.applySelectedServiceSite(activeCust.village, { closeDropdown: true, toast: true });
             }
         });
 
@@ -6096,12 +6112,17 @@ class BoreBillSaaSApp {
             });
         }
 
-        // Keyboard "Next" Sequential Flow: Drilling Depth (#totalDepth) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length)
+        // Keyboard "Next" / "Enter" Sequential Flow:
+        // Old Bore (#oldBoreDepth) -> Drilling Depth (#totalDepth) -> Base Rate (#baseDrillingRate, e.g. 90) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length) -> Done
+        // (Skips Bore Bata #billBoreBataInput and PVC Pipe Prices #pvc7RateInput / #pvc10RateInput!)
+        const oldBoreDepthEl = document.getElementById('oldBoreDepth');
         const totalDepthEl = document.getElementById('totalDepth');
+        const baseRateEl = document.getElementById('baseDrillingRate');
         const pvc7LenEl = document.getElementById('pvc7Length');
         const pvc10LenEl = document.getElementById('pvc10Length');
+        const seqFlowInputIds = ['custLocation', 'oldBoreDepth', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'];
 
-        [totalDepthEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
+        [oldBoreDepthEl, totalDepthEl, baseRateEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
             if (!inp) return;
             inp.addEventListener('focus', () => {
                 const card = inp.closest('.casing-box') || inp.closest('.simple-work-card') || inp;
@@ -6111,17 +6132,42 @@ class BoreBillSaaSApp {
             inp.addEventListener('blur', () => {
                 setTimeout(() => {
                     const activeId = document.activeElement?.id || '';
-                    if (!['custLocation', 'totalDepth', 'pvc7Length', 'pvc10Length'].includes(activeId)) {
+                    if (!seqFlowInputIds.includes(activeId)) {
                         document.body.classList.remove('keyboard-open');
                     }
                 }, 180);
             });
         });
 
+        oldBoreDepthEl?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
+                if (totalDepthEl) {
+                    totalDepthEl.focus();
+                }
+            }
+        });
+
         totalDepthEl?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
+                if (baseRateEl) {
+                    baseRateEl.focus();
+                    try { baseRateEl.select(); } catch (err) { /* ignore */ }
+                }
+            }
+        });
+
+        baseRateEl?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
+                const casingSec = document.getElementById('progCasingSection');
+                if (casingSec && casingSec.style.display === 'none') {
+                    casingSec.style.display = 'block';
+                }
                 if (pvc7LenEl) {
                     pvc7LenEl.focus();
                 }
@@ -6153,7 +6199,7 @@ class BoreBillSaaSApp {
                 if (!activeEl) return;
                 if (activeEl.id === 'custLocation') {
                     this.scrollServiceSiteAboveKeyboard();
-                } else if (['totalDepth', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
+                } else if (['oldBoreDepth', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
                     const card = activeEl.closest('.casing-box') || activeEl.closest('.simple-work-card') || activeEl;
                     this.scrollElementAboveKeyboard(card);
                 }
@@ -6782,6 +6828,11 @@ class BoreBillSaaSApp {
             document.getElementById('advancePaidAmount').value = '';
             const custGstEl = document.getElementById('custGstInput');
             if (custGstEl) custGstEl.value = '';
+            const gstToggle = document.getElementById('gstEnabledToggle');
+            if (gstToggle) gstToggle.checked = false;
+            const custGstRow = document.getElementById('custGstInlineRow');
+            if (custGstRow) custGstRow.style.display = 'none';
+            this.state.gstEnabled = false;
             const noteEl = document.getElementById('billCustomNoteInput');
             if (noteEl) noteEl.value = '';
             const notesDrawer = document.getElementById('billNotesDrawer');
