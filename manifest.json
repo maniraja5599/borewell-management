@@ -1,0 +1,20 @@
+{
+  "name": "BoreBill Pro — Borewell Billing SaaS",
+  "short_name": "BoreBill Pro",
+  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Khata App",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0f172a",
+  "theme_color": "#15803d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

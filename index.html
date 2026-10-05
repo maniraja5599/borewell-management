@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="emerald">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BoreBill Pro — Borewell Billing & Customer CRM SaaS</title>
+    <meta name="description" content="Enterprise Mobile-First Borewell Billing, Depth Slab Cost Calculator & Customer Khata CRM.">
+    <meta name="theme-color" content="#15803d" id="metaThemeColor">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BoreBill Pro">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons (Official Modern SaaS Vector Icon Library) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
+    <link rel="stylesheet" href="styles.css?v=46">
+</head>
+<body>
+    <!-- ==================== TOP APP SHELL HEADER ==================== -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand-identity" id="openBrandTabBtn" title="Tap to customize Company Brand & Logo">
+                <div class="brand-logo-wrap" id="headerLogoWrap">
+                    <img id="headerLogoImg" src="" alt="Logo" style="display: none;">
+                    <span id="headerLogoFallback" class="logo-fallback-icon">
+                        <i data-lucide="truck"></i>
+                    </span>
+                </div>
+                <div class="brand-titles">
+                    <h1 id="headerCompanyName" class="company-name">SRI ANJANEYA BOREWELLS</h1>
+                    <p id="headerCompanyTagline" class="company-tagline">ஆழமான நம்பிக்கை! • Deep Trust</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button type="button" class="pwa-install-btn" id="installPwaBtn" style="display: none;" title="Install BoreBill Pro App">
+                    <i data-lucide="download" class="icon-xs"></i>
+                    <span>App</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== STICKY LIVE SUMMARY BAR (TAB 1) ==================== -->
+    <div class="sticky-live-bar" id="stickyLiveBar">
+        <div class="live-bar-inner">
+            <div class="live-bar-top">
+                <div class="live-bar-left">
+                    <div class="live-doc-indicator">
+                        <span class="live-doc-tag" id="stickyDocTypeTag">FINAL BILL</span>
+                        <span class="live-bar-label" data-i18n="netPayableLabel">NET TOTAL</span>
+                        <span class="live-avg-pill" id="liveSummaryPerFt">₹0/ft avg</span>
+                    </div>
+                </div>
+                <div class="live-bar-right">
+                    <div class="live-bar-amount" id="liveTotalBannerAmount">₹0</div>
+                    <span class="live-bar-balance" id="liveBalanceBadge" style="display: none;">Bal: ₹0</span>
+                </div>
+            </div>
+            <div class="live-bar-details-grid">
+                <div class="live-detail-pill" id="stickyDrillPill">
+                    <span class="ld-left">
+                        <i data-lucide="arrow-down-to-line" class="icon-xs"></i>
+                        <span id="liveSummaryDepthBadge">Depth: 0 ft (6.5")</span>
+                    </span>
+                    <strong class="ld-val" id="liveStickyDrillCost">₹0</strong>
+                </div>
+                <div class="live-detail-pill" id="stickyPipePill">
+                    <span class="ld-left">
+                        <i data-lucide="cylinder" class="icon-xs"></i>
+                        <span id="liveStickyPipeText">7": 0ft • 10": 0ft</span>
+                    </span>
+                    <strong class="ld-val" id="liveStickyPipeCost">₹0</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN WORKSPACE CONTAINER ==================== -->
+    <main class="app-main">
+
+        <!-- ====================================================================
+             TAB 1: NEW BILL / SLAB CALCULATOR
+             ==================================================================== -->
+        <section class="tab-panel active" id="tab-bill">
+            <!-- Saved Bill View-Only / Edit Mode Banner (Visible only when a saved bill is opened) -->
+            <div class="saved-bill-mode-banner" id="savedBillModeBanner" style="display: none;">
+                <div class="sbmb-top">
+                    <div class="sbmb-info">
+                        <span class="sbmb-badge" id="savedBillModeBadge">👁️ Final View Only</span>
+                        <strong class="sbmb-title" id="savedBillModeTitle">#AB-101 • Customer</strong>
+                    </div>
+                    <div class="sbmb-actions">
+                        <button type="button" class="btn-secondary-sm" id="backToSavedBillsBtn">
+                            <i data-lucide="arrow-left" class="icon-xs"></i>
+                            <span>Bills</span>
+                        </button>
+                        <button type="button" class="btn-brand-sm" id="toggleSavedBillEditBtn">
+                            <i data-lucide="pencil" class="icon-xs"></i>
+                            <span id="toggleSavedBillEditText">Edit Bill</span>
+                        </button>
+                        <button type="button" class="btn-secondary-sm" id="startFreshNewBillBtn" title="Start a New Bill">
+                            <i data-lucide="file-plus-2" class="icon-xs"></i>
+                            <span>New</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable Calculator Forms Container (Hidden when viewing a Saved Bill in Final View mode) -->
+            <div id="billEditorFormsContainer">
+            <!-- 1. Compact Control Strip: Doc Type (Quotation | Final Bill) + Work Type + Bore Size -->
+            <div class="ui-card control-strip-card">
+                <div class="top-mode-bar">
+                    <!-- 2 Choosable Pills: Final Bill (Default) vs Quotation -->
+                    <div class="seg-pill-group" id="docTypePills">
+                        <button type="button" class="seg-pill doc-pill active" data-doc="INVOICE">
+                            <i data-lucide="receipt" class="icon-xs"></i>
+                            <span data-i18n="pillFinalBill">Final Bill</span>
+                        </button>
+                        <button type="button" class="seg-pill doc-pill" data-doc="QUOTATION">
+                            <i data-lucide="file-text" class="icon-xs"></i>
+                            <span data-i18n="pillQuotation">Quotation</span>
+                        </button>
+                    </div>
+
+                    <!-- Drilling Mode: New Bore vs Re-Bore -->
+                    <div class="seg-pill-group dark-seg" id="drillingTypeToggle">
+                        <button type="button" class="seg-pill mini-seg-btn active" data-type="new">
+                            <i data-lucide="sparkles" class="icon-xs"></i>
+                            <span data-i18n="newBore">New Bore</span>
+                        </button>
+                        <button type="button" class="seg-pill mini-seg-btn" data-type="repair">
+                            <i data-lucide="refresh-cw" class="icon-xs"></i>
+                            <span data-i18n="reBore">Re-Bore</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bore Diameter Selector Bar + Quick Fresh Bill Button -->
+                <div class="dia-selector-bar">
+                    <span class="mini-label" data-i18n="boreSize">Bore Dia:</span>
+                    <div class="dia-pills" id="boreDiaPills">
+                        <button type="button" class="dia-pill" data-dia='4.75"'>4.75"</button>
+                        <button type="button" class="dia-pill active" data-dia='6.5"'>6.5"</button>
+                        <button type="button" class="dia-pill" data-dia='8"'>8"</button>
+                        <button type="button" class="dia-pill" data-dia='10"'>10"</button>
+                        <button type="button" class="dia-pill" data-dia='12"'>12"</button>
+                    </div>
+                </div>
+
+                <!-- Live Doc Number & Fresh Bill Quick Bar -->
+                <div class="control-doc-meta-bar">
+                    <div class="cdm-left">
+                        <span class="saved-status-pill" id="autoSeqHintBadge">Auto #AB-101</span>
+                        <span class="cdm-date-txt" id="controlLiveDateBadge">Today</span>
+                    </div>
+                    <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
+                        <i data-lucide="sparkles" class="icon-xs"></i>
+                        <span>Fresh Bill</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hidden legacy wizard elements for compatibility -->
+            <div class="bill-wizard-stepper" id="billWizardStepperBar" style="display: none;">
+                <button type="button" class="wiz-step-btn active" id="wizStepBtn1" data-step="1">
+                    <span class="wiz-step-badge" id="wizStepBadge1">1</span>
+                    <div class="wiz-step-info">
+                        <strong class="wiz-step-title">Customer & Site</strong>
+                        <small class="wiz-step-sub" id="wizStepSub1">Pick & Site</small>
+                    </div>
+                </button>
+                <button type="button" class="wiz-step-btn" id="wizStepBtn2" data-step="2">
+                    <span class="wiz-step-badge" id="wizStepBadge2">2</span>
+                    <div class="wiz-step-info">
+                        <strong class="wiz-step-title">Borewell & Bill</strong>
+                        <small class="wiz-step-sub" id="wizStepSub2">Depth, Pipes & Save</small>
+                    </div>
+                </button>
+            </div>
+
+            <!-- ==================== SINGLE-PAGE PROGRESSIVE BILL FLOW ==================== -->
+            <div class="wiz-step-panel" id="wizStepPanel1">
+                <!-- STAGE 1: CUSTOMER SELECTION & SERVICE SITE -->
+                <div class="ui-card customer-smart-card" id="customerCard">
+                    <!-- Hidden inputs for Customer Name, Phone, Bill No & Date -->
+                    <input type="hidden" id="custName" value="">
+                    <input type="hidden" id="custPhone" value="">
+                    <input type="hidden" id="billNoInput" value="AB-101">
+                    <input type="hidden" id="billDateInput" value="">
+
+                    <!-- Smart Customer Picker Area (Search + Filter Chips + 1-Click Cards + +Add Customer) -->
+                    <div class="wiz-customer-picker-box" id="quickCustPickerPanel">
+                        <div class="wiz-cp-top-row">
+                            <span class="wiz-cp-step-tag">1. SELECT OR ADD CUSTOMER</span>
+                            <div class="wiz-cp-top-right">
+                                <span class="wiz-cp-count" id="wizCustCountBadge">0 Saved</span>
+                                <button type="button" class="icon-close-btn" id="closeQuickCustPickerBtn" style="display: none;" title="Hide List">
+                                    <i data-lucide="x" class="icon-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Unified Search Bar + + Add Customer Button -->
+                        <div class="wiz-search-add-row">
+                            <div class="wiz-search-input-wrap">
+                                <i data-lucide="search" class="icon-xs search-ico"></i>
+                                <input type="search" id="quickCustSearchInput" placeholder="Search Name, 10-digit Mobile or Place..." autocomplete="off">
+                            </div>
+                            <button type="button" class="btn-chip-primary wiz-add-cust-btn" id="headerAddCustPopupBtn" title="Add New Customer">
+                                <i data-lucide="user-plus" class="icon-xs"></i>
+                                <span>＋ Add Customer</span>
+                            </button>
+                            <button type="button" id="pickerAddCustPopupBtn" style="display:none;"></button>
+                        </div>
+
+                        <!-- Smart Filter Pills (All / Recent / Village Places) -->
+                        <div class="wiz-cust-filter-pills" id="wizCustFilterPills">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+
+                        <!-- 1-Click Customer Cards Grid -->
+                        <div class="quick-cust-list wiz-cust-grid" id="quickCustList">
+                            <!-- Injected by app.js -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Customer + Service Site (Compact Name + Mobile + Location once selected) -->
+                    <div class="wiz-selected-cust-card" id="selectedCustomerSummaryBar" style="display: none;">
+                        <!-- 1. Compact Customer + Selected Location Row -->
+                        <div class="wiz-scc-top">
+                            <div class="wiz-scc-identity" id="customerHeaderInfoArea">
+                                <div class="wiz-scc-avatar" id="custCardIconBadge">CU</div>
+                                <div class="wiz-scc-titles">
+                                    <div class="wiz-scc-name-row">
+                                        <h3 id="custCardMainHeading">Customer</h3>
+                                        <span class="cust-opt-tag filled" id="custStatusTag" style="display:none;">✓</span>
+                                        <span class="wiz-scc-bills-tag" id="selCustBillsBadge" style="display: none;">0 Bills</span>
+                                    </div>
+                                    <div class="wiz-scc-sub-inline">
+                                        <span class="wiz-scc-meta" id="customerPreviewSub">📞 Mobile</span>
+                                        <button type="button" class="wiz-scc-loc-pill" id="selectedSiteCompactBtn" title="Tap to change Service Site" style="display: none;">
+                                            📍 <span id="selectedSiteCompactText">Site</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wiz-scc-actions">
+                                <button type="button" class="btn-chip-outline" id="editSelectedCustomerBtn" title="Edit Customer" style="display: none;">
+                                    <i data-lucide="pencil" class="icon-xs"></i>
+                                    <span>Edit</span>
+                                </button>
+                                <button type="button" id="openCustomerPickerBtn" style="display: none;"></button>
+                                <button type="button" class="cust-quick-clear-btn" id="quickClearCustomerChip" title="Remove Customer">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Smart Service Site Search & Select Box (Auto-hides as soon as Site is selected!) -->
+                        <div class="wiz-scc-site-box" id="serviceSiteSection" style="display: none;">
+                            <div class="wiz-site-simple-header">
+                                <label for="custLocation">📍 Service Site Location</label>
+                                <span class="site-status-pill" id="serviceSiteStatusPill">Select or Type Site</span>
+                            </div>
+
+                            <!-- Quick 1-Tap Chips for Customer's Place & Past Sites -->
+                            <div class="wiz-sss-chips" id="custSiteSugChips">
+                                <!-- Injected by app.js: [🏠 Customer Place] [📍 Past Site] -->
+                            </div>
+
+                            <span id="custNativePlaceBadge" style="display: none;"></span>
+                            <span id="custSiteSuggestionsBox" style="display: none;"></span>
+                            <span id="custSiteSugTitle" style="display: none;"></span>
+                            <button type="button" id="siteModeSameBtn" style="display: none;"></button>
+                            <button type="button" id="siteModeDiffBtn" style="display: none;"></button>
+
+                            <div class="site-input-wrap site-input-lg" id="serviceSiteInputWrap">
+                                <span class="site-input-left-ico">📍</span>
+                                <input type="text" id="custLocation" placeholder="Search old places or type new site..." autocomplete="off" enterkeyhint="done">
+                                <button type="button" class="site-clear-inline-btn" id="clearSiteLocationBtn" title="Clear Site" style="display: none;">✕</button>
+                            </div>
+
+                            <!-- Smart Search & Select Old Places Dropdown -->
+                            <div class="smart-site-dropdown" id="smartSiteDropdownList" style="display: none;">
+                                <!-- Populated dynamically by app.js with matching Customer Place, Past Sites & Old Places -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 2: SIMPLE BOREWELL DRILLING DEPTH (Opens after Customer + Service Site selected) -->
+                <div class="ui-card prog-reveal-card simple-work-card" id="progDrillingSection" style="display: none;">
+                    <!-- Hidden legacy elements preserved for JS compatibility -->
+                    <span id="activeRateProfileBadge" style="display: none;"></span>
+                    <button type="button" id="resetCalcInputsBtn" style="display: none;"></button>
+                    <span id="liveActiveSlabTag" style="display: none;"></span>
+                    <div id="billRateProfilePills" style="display: none;"></div>
+                    <div id="wizLiveSlabBreakdownBox" style="display: none;">
+                        <strong id="wizLiveSlabTotalTxt">₹0</strong>
+                        <div id="wizLiveSlabPills"></div>
+                    </div>
+
+                    <div class="simple-card-head">
+                        <label for="totalDepth" class="simple-card-title">
+                            <span>2. Borewell Drilling Depth</span>
+                        </label>
+                        <strong class="simple-card-amount" id="liveInlineDrillingCostBadge">₹0</strong>
+                    </div>
+
+                    <!-- Old Bore Flushing Row (Only in Re-Bore Mode) -->
+                    <div class="simple-rebore-box" id="oldBoreRow" style="display: none;">
+                        <div class="srb-left">
+                            <label for="oldBoreDepth">Old Bore Flushing (ft)</label>
+                            <small>@ <strong id="hintOldBoreRate">₹40</strong>/ft</small>
+                        </div>
+                        <div class="simple-big-input-wrap compact">
+                            <input type="number" id="oldBoreDepth" value="" placeholder="0" min="1" max="2200" inputmode="numeric" enterkeyhint="next">
+                            <span class="sbi-unit">ft</span>
+                        </div>
+                    </div>
+
+                    <!-- Main Big Drilling Depth Input (Clean, No Clutter, Keyboard Next -> 7" PVC) -->
+                    <div class="simple-big-input-wrap hero">
+                        <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next">
+                        <span class="sbi-unit">ft</span>
+                    </div>
+
+                    <!-- Compact Rate, Fixed ₹2000 Bata & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
+                    <div class="simple-rate-bata-bar" id="drillingRateBataWrap">
+                        <div class="srbb-item">
+                            <label for="baseDrillingRate">1–300ft:</label>
+                            <div class="srbb-input-box">
+                                <span>₹</span>
+                                <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" tabindex="-1">
+                                <small>/ft</small>
+                            </div>
+                        </div>
+                        <div class="srbb-divider"></div>
+                        <div class="srbb-item">
+                            <label for="billBoreBataInput">Bata:</label>
+                            <div class="srbb-input-box">
+                                <span>₹</span>
+                                <input type="number" id="billBoreBataInput" value="2000" min="0" inputmode="numeric" tabindex="-1">
+                            </div>
+                        </div>
+                        <button type="button" class="smart-slab-dd-trigger" id="smartSlabDropdownBtn" tabindex="-1" title="View or Change Slab Rates">
+                            <span id="smartSlabDropdownBtnText">📊 Slab Rate</span>
+                            <span class="ss-dd-arrow" id="smartSlabDropdownArrow">▾</span>
+                        </button>
+                    </div>
+
+                    <!-- Compact Smart Slab Rate Dropdown Panel (Opens right below Drilling Depth when tapped) -->
+                    <div class="smart-slab-dropdown-panel" id="smartSlabDropdownPanel" style="display: none;">
+                        <div class="ssdp-head">
+                            <div class="ssdp-rate-cards" id="inlineSlabRateCardPills">
+                                <!-- Injected by app.js: Saved Rate Cards -->
+                            </div>
+                            <div class="ssdp-actions">
+                                <button type="button" class="ssdp-mini-btn" id="toggleAllSlabsInDropdownBtn">All 19 Slabs</button>
+                                <button type="button" class="ssdp-mini-btn reset" id="resetInlineSlabsBtn" title="Reset Slab Rates to Default">↺ Reset</button>
+                            </div>
+                        </div>
+                        <div class="ssdp-rows-list" id="inlineSmartSlabRowsList">
+                            <!-- Populated dynamically by app.js with editable slab rates -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAGE 3: SIMPLE PVC CASING PIPES (Auto-opens as soon as Drilling Depth is entered) -->
+                <div class="ui-card prog-reveal-card simple-work-card" id="progCasingSection" style="display: none;">
+                    <div class="simple-card-head">
+                        <span class="simple-card-title">3. PVC Casing Pipes</span>
+                        <strong class="simple-card-amount" id="liveInlineCasingTotalBadge">₹0</strong>
+                    </div>
+
+                    <div class="simple-pvc-grid">
+                        <!-- 1st PVC Box (7" PVC - Focused on Next from Drilling Depth) -->
+                        <div class="simple-pvc-card casing-box">
+                            <div class="spvc-top">
+                                <label for="pvc7Length" id="labelPvc7Name">7" PVC Pipe</label>
+                                <span id="hintPvc7Rate" style="display:none;">₹400</span>
+                                <strong id="liveInlinePvc7Cost" class="spvc-cost">₹0</strong>
+                            </div>
+                            <div class="simple-big-input-wrap pvc">
+                                <input type="number" id="pvc7Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="next">
+                                <span class="sbi-unit">ft</span>
+                            </div>
+                            <div class="spvc-rate-row">
+                                <span class="spvc-rate-lbl">Rate:</span>
+                                <div class="spvc-rate-input-box">
+                                    <span>₹</span>
+                                    <input type="number" id="pvc7RateInput" value="400" min="1" inputmode="numeric" tabindex="-1" aria-label="7 inch PVC Pipe Rate">
+                                    <small>/ft</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2nd PVC Box (10" PVC - Focused on Next from 7" PVC) -->
+                        <div class="simple-pvc-card casing-box">
+                            <div class="spvc-top">
+                                <label for="pvc10Length" id="labelPvc10Name">10" PVC Pipe</label>
+                                <span id="hintPvc10Rate" style="display:none;">₹700</span>
+                                <strong id="liveInlinePvc10Cost" class="spvc-cost">₹0</strong>
+                            </div>
+                            <div class="simple-big-input-wrap pvc">
+                                <input type="number" id="pvc10Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="done">
+                                <span class="sbi-unit">ft</span>
+                            </div>
+                            <div class="spvc-rate-row">
+                                <span class="spvc-rate-lbl">Rate:</span>
+                                <div class="spvc-rate-input-box">
+                                    <span>₹</span>
+                                    <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch PVC Pipe Rate">
+                                    <small>/ft</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Minimal Extras / Optional Notes & GST Bar -->
+                    <div class="simple-extras-bar">
+                        <button type="button" id="inlinePriceSettingsToggleBtn" style="display: none;"></button>
+                        <button type="button" class="simple-extra-btn" id="extraChargesToggleBtn" tabindex="-1">
+                            <i data-lucide="plus-circle" class="icon-xs"></i>
+                            <span>Extras / Advance</span>
+                            <span class="tool-active-dot" id="extrasActiveBadge" style="display: none;">●</span>
+                        </button>
+
+                        <button type="button" class="simple-extra-btn note-btn" id="billNotesToggleBtn" tabindex="-1">
+                            <i data-lucide="file-pen-line" class="icon-xs"></i>
+                            <span id="billNotesToggleBtnText">+ Note / Remark</span>
+                            <span class="tool-active-dot" id="notesActiveBadge" style="display: none;">●</span>
+                        </button>
+
+                        <label class="gst-switch-pill" for="gstEnabledToggle">
+                            <span>GST (<span id="gstPillPercent">18</span>%)</span>
+                            <input type="checkbox" id="gstEnabledToggle" tabindex="-1">
+                            <span class="switch-track"></span>
+                        </label>
+                    </div>
+
+                    <!-- Optional Customer GSTIN Input (Opens automatically when GST 18% is turned ON) -->
+                    <div class="cust-gst-inline-row" id="custGstInlineRow" style="display: none;">
+                        <label for="custGstInput" class="cgir-label">🧾 Client GST (Optional):</label>
+                        <div class="cgir-input-wrap">
+                            <input type="text" id="custGstInput" placeholder="Enter Customer GST No (if any)..." maxlength="15" autocapitalize="characters" autocomplete="off" spellcheck="false">
+                            <button type="button" class="cgir-clear-btn" id="clearCustGstBtn" style="display: none;" title="Clear GST">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Drawer 1: Quick Rates -->
+                    <div class="inline-sheet" id="inlinePriceDrawer" style="display: none;">
+                        <div class="sheet-head">
+                            <h4><i data-lucide="settings-2" class="icon-xs"></i> <span data-i18n="quickRateSettings">Quick Rate Settings</span></h4>
+                            <button type="button" class="icon-close-btn" id="closeInlinePriceDrawer"><i data-lucide="x" class="icon-xs"></i></button>
+                        </div>
+                        <div class="form-row-3">
+                            <div class="field-group">
+                                <label for="quickPvc7Rate">7" PVC (₹/ft)</label>
+                                <input type="number" id="quickPvc7Rate" value="400" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="quickPvc10Rate">10" PVC (₹/ft)</label>
+                                <input type="number" id="quickPvc10Rate" value="700" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="quickBoreBata">Bore Bata (₹)</label>
+                                <input type="number" id="quickBoreBata" value="2000" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="quickOldBoreRate">Flushing (₹/ft)</label>
+                                <input type="number" id="quickOldBoreRate" value="40" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="quickSlabBuffer">Buffer (ft)</label>
+                                <input type="number" id="quickSlabBuffer" value="5" min="0" max="50" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="quickGstPercent">GST (%)</label>
+                                <input type="number" id="quickGstPercent" value="18" step="0.5" inputmode="decimal">
+                            </div>
+                        </div>
+                        <div class="sheet-foot">
+                            <button type="button" class="btn-secondary-sm" id="openFullSlabEditorBtn">
+                                <i data-lucide="bar-chart-3" class="icon-xs"></i>
+                                <span data-i18n="editAllSlabs">Edit 19 Slabs</span>
+                            </button>
+                            <button type="button" class="btn-brand-sm" id="saveQuickRatesBtn">
+                                <i data-lucide="check" class="icon-xs"></i>
+                                <span data-i18n="saveRates">Apply Rates</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Drawer 2: Extra Charges, Discount & Advance (With Saved Reusable Extras) -->
+                    <div class="inline-sheet" id="extraChargesDrawer" style="display: none;">
+                        <div class="sheet-head">
+                            <h4><i data-lucide="wallet" class="icon-xs"></i> <span data-i18n="extraChargesAndPayment">Extras, Discount & Advance</span></h4>
+                            <button type="button" class="icon-close-btn" id="closeExtraChargesDrawer"><i data-lucide="x" class="icon-xs"></i></button>
+                        </div>
+
+                        <!-- 1-Tap Saved & Previously Used Extra Charges -->
+                        <div class="saved-extras-box" id="savedExtrasSection" style="display: none;">
+                            <div class="seb-head">
+                                <span>⚡ Saved / Recent Extras (Tap to Use)</span>
+                            </div>
+                            <div class="seb-chips-wrap" id="savedExtrasChipsList">
+                                <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+
+                        <!-- Manual Extra Charge (Auto-saves for Next Time!) -->
+                        <div class="manual-extra-highlight-box">
+                            <div class="meh-top">
+                                <span>➕ Manual / Custom Extra Charge</span>
+                                <button type="button" class="meh-save-chip-btn" id="saveCustomExtraPresetBtn" title="Save this Extra Charge for Next Time">
+                                    ＋ Save for Next Time
+                                </button>
+                            </div>
+                            <div class="form-row-2">
+                                <div class="field-group" style="overflow: visible; position: relative;">
+                                    <label for="customExtraLabel" data-i18n="customExtraItemName">Extra Charge Name</label>
+                                    <input type="text" id="customExtraLabel" placeholder="e.g. MS Pipe / Cap / Tanker" autocomplete="off">
+                                    <div class="smart-site-dropdown extra-sug-dd" id="customExtraSmartDropdown" style="display: none;"></div>
+                                </div>
+                                <div class="field-group">
+                                    <label for="customExtraAmount" data-i18n="customExtraAmount">Extra Amount (₹)</label>
+                                    <input type="number" id="customExtraAmount" value="" placeholder="₹ Amount" min="0" inputmode="numeric">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row-2" style="margin-top: 7px;">
+                            <div class="field-group">
+                                <label for="collarCapCost" data-i18n="collarCapWelding">Collar / Cap / Welding (₹)</label>
+                                <input type="number" id="collarCapCost" value="" placeholder="₹" min="0" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="transportSurveyCost" data-i18n="transportWaterSurvey">Transport / Survey (₹)</label>
+                                <input type="number" id="transportSurveyCost" value="" placeholder="₹" min="0" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="discountAmount" data-i18n="discountLess">Discount (− ₹)</label>
+                                <input type="number" id="discountAmount" value="" placeholder="₹" min="0" inputmode="numeric">
+                            </div>
+                            <div class="field-group">
+                                <label for="advancePaidAmount" data-i18n="advanceReceived">Advance Paid (− ₹)</label>
+                                <input type="number" id="advancePaidAmount" value="" placeholder="₹" min="0" inputmode="numeric">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inline Drawer 3: Optional Notes / Remarks (Opens only when user taps "+ Note / Remark") -->
+                    <div class="inline-sheet" id="billNotesDrawer" style="display: none;">
+                        <div class="sheet-head">
+                            <h4><i data-lucide="file-pen-line" class="icon-xs"></i> <span>Bill Note / Remark (Optional)</span></h4>
+                            <button type="button" class="icon-close-btn" id="closeBillNotesDrawer"><i data-lucide="x" class="icon-xs"></i></button>
+                        </div>
+
+                        <div class="saved-notes-chips" id="savedNotesChipsList">
+                            <!-- Quick 1-Tap Remark Chips injected by app.js -->
+                        </div>
+
+                        <div class="note-input-wrap">
+                            <textarea id="billCustomNoteInput" rows="2" placeholder="Write any custom note or remark for this bill (only shown if entered)..."></textarea>
+                            <button type="button" class="note-clear-btn" id="clearBillNoteBtn" style="display: none;">✕ Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- Primary Action: Preview & Save Bill Button -->
+                    <div class="proceed-preview-bar" id="proceedToPreviewBar">
+                        <button type="button" class="btn-preview-save-cta" id="openBillPreviewBtn">
+                            <div class="bps-left">
+                                <i data-lucide="eye" class="icon-sm"></i>
+                                <span id="openBillPreviewBtnText">Preview & Save Bill</span>
+                            </div>
+                            <div class="bps-right">
+                                <strong id="previewBtnLiveTotal">₹0</strong>
+                                <i data-lucide="arrow-right" class="icon-sm"></i>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden Bottom Step Navigation Bar -->
+            <div class="wiz-step-nav-bar" id="wizStepNavBar" style="display: none;">
+                <button type="button" class="wiz-nav-btn prev" id="wizPrevStepBtn" disabled aria-label="Step 1" title="Step 1">
+                    <i data-lucide="arrow-left" class="icon-sm"></i>
+                </button>
+                <div class="wiz-nav-center">
+                    <strong class="wiz-nav-live-total" id="wizNavLiveTotal">₹2,000</strong>
+                </div>
+                <button type="button" class="wiz-nav-btn next" id="wizNextStepBtn" aria-label="Step 2" title="Step 2">
+                    <i data-lucide="arrow-right" class="icon-sm"></i>
+                </button>
+            </div>
+            </div><!-- /#billEditorFormsContainer -->
+
+            <!-- 4. Printable / Exportable Official Bill Receipt Card (Shown when user taps Preview & Save) -->
+            <div class="bill-preview-wrapper" id="billReceiptPreviewWrapper" style="display: none;">
+                <div class="preview-stage-top-bar" id="previewStageTopBar">
+                    <div class="pst-left">
+                        <span class="pst-badge" id="previewStageStatusBadge">👁️ BILL PREVIEW</span>
+                        <small id="previewStageStatusSub">Check details below & tap Save Bill</small>
+                    </div>
+                    <button type="button" class="pst-edit-btn" id="backToEditFromPreviewTopBtn">
+                        ✏️ Edit Details
+                    </button>
+                </div>
+
+                <div class="bill-receipt-card" id="printableBillCard">
+                    <div class="receipt-header">
+                        <div class="receipt-brand-row">
+                            <div class="receipt-logo-box" id="receiptLogoBox">
+                                <img id="receiptLogoImg" src="" alt="Company Logo" style="display: none;">
+                                <span id="receiptLogoFallback">🚜</span>
+                            </div>
+                            <div class="receipt-company-info">
+                                <h2 id="receiptCompanyName">SRI ANJANEYA BOREWELLS</h2>
+                                <p id="receiptCompanyTagline" class="receipt-tagline">ஆழமான நம்பிக்கை! • High Power Compressor Drilling</p>
+                                <p id="receiptCompanyAddress" class="receipt-address">6/906-1, Trichy Main Road, Namakkal - 637001</p>
+                                <div class="receipt-phones-row">
+                                    <span>📞 <strong id="receiptCompanyPhone">+91 96596 57777, 94433 73573</strong></span>
+                                    <span id="receiptCompanyGstBadge" class="gst-pill-badge" style="display: none;">GSTIN: <span id="receiptCompanyGstNo"></span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="receipt-meta-strip">
+                            <span class="receipt-doc-badge" id="receiptDocBadge">QUOTATION</span>
+                            <div class="receipt-meta-right">
+                                <span id="receiptBillNo">No: #AB-101</span>
+                                <span class="meta-pipe">|</span>
+                                <span id="receiptDateText">02 Oct 2026</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Info Strip -->
+                    <div class="receipt-customer-box" id="receiptCustomerBox" style="display: none;">
+                        <div class="cust-grid">
+                            <div id="rcptCustNameWrap" style="display: none;"><span class="c-lbl" data-i18n="customer">Customer:</span> <strong id="rcptCustName"></strong></div>
+                            <div id="rcptCustPhoneWrap" style="display: none;"><span class="c-lbl" data-i18n="mobile">Mobile:</span> <strong id="rcptCustPhone"></strong></div>
+                            <div id="rcptCustLocWrap" style="display: none;"><span class="c-lbl" data-i18n="site">Site:</span> <strong id="rcptCustLoc"></strong></div>
+                            <div id="rcptCustGstWrap" style="display: none;"><span class="c-lbl">Client GSTIN:</span> <strong id="rcptCustGst"></strong></div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Chips -->
+                    <div class="receipt-summary-chips">
+                        <div class="r-chip">
+                            <span class="r-chip-lbl" data-i18n="workType">Work Type</span>
+                            <strong class="r-chip-val" id="rcptWorkType">New Bore (6.5")</strong>
+                        </div>
+                        <div class="r-chip">
+                            <span class="r-chip-lbl" data-i18n="totalDepthShort">Total Depth</span>
+                            <strong class="r-chip-val" id="rcptTotalDepth">800 ft</strong>
+                        </div>
+                        <div class="r-chip">
+                            <span class="r-chip-lbl" data-i18n="baseRateShort">Base Rate</span>
+                            <strong class="r-chip-val" id="rcptBaseRate">₹90/ft</strong>
+                        </div>
+                        <div class="r-chip">
+                            <span class="r-chip-lbl" data-i18n="casingPipes">Casing (7"/10")</span>
+                            <strong class="r-chip-val" id="rcptCasingSummary">30ft / 15ft</strong>
+                        </div>
+                    </div>
+
+                    <!-- Slab Table -->
+                    <div class="receipt-slab-section">
+                        <div class="slab-table-header">
+                            <span data-i18n="depthSlabCol">Depth Slab (ft)</span>
+                            <span data-i18n="feetCol">Feet</span>
+                            <span data-i18n="rateCol">Rate/ft</span>
+                            <span data-i18n="amountCol">Amount</span>
+                        </div>
+                        <div class="slab-table-body" id="receiptSlabRows"></div>
+                    </div>
+
+                    <!-- Itemized Charges -->
+                    <div class="receipt-charges-list">
+                        <div class="charge-line highlight-drilling">
+                            <span data-i18n="totalDrillingCharges">Total Drilling Cost</span>
+                            <strong id="rcptDrillingTotal">₹1,07,000</strong>
+                        </div>
+                        <div class="charge-line" id="rcptPvc7Row">
+                            <span id="rcptPvc7Label">7" PVC Pipe (30 ft × ₹400/ft)</span>
+                            <strong id="rcptPvc7Amount">₹12,000</strong>
+                        </div>
+                        <div class="charge-line" id="rcptPvc10Row">
+                            <span id="rcptPvc10Label">10" PVC Pipe (15 ft × ₹700/ft)</span>
+                            <strong id="rcptPvc10Amount">₹10,500</strong>
+                        </div>
+                        <div class="charge-line" id="rcptBataRow">
+                            <span data-i18n="boreBataCharge">Bore Bata (Per Bore)</span>
+                            <strong id="rcptBataAmount">₹2,000</strong>
+                        </div>
+                        <div class="charge-line" id="rcptCollarRow" style="display: none;">
+                            <span data-i18n="collarCapWelding">Collar / Cap / Welding</span>
+                            <strong id="rcptCollarAmount">₹0</strong>
+                        </div>
+                        <div class="charge-line" id="rcptTransportRow" style="display: none;">
+                            <span data-i18n="transportWaterSurvey">Transport / Survey Charges</span>
+                            <strong id="rcptTransportAmount">₹0</strong>
+                        </div>
+                        <div class="charge-line" id="rcptCustomExtraRow" style="display: none;">
+                            <span id="rcptCustomExtraLabel">Extra Charges</span>
+                            <strong id="rcptCustomExtraAmount">₹0</strong>
+                        </div>
+                        <div class="charge-line subtotal-line">
+                            <span data-i18n="subtotal">Subtotal</span>
+                            <strong id="rcptSubtotal">₹1,31,500</strong>
+                        </div>
+                        <div class="charge-line discount-line" id="rcptDiscountRow" style="display: none;">
+                            <span data-i18n="discountLess">Discount / Less</span>
+                            <strong id="rcptDiscountAmount">− ₹0</strong>
+                        </div>
+                        <div class="charge-line gst-line" id="rcptGstRow" style="display: none;">
+                            <span id="rcptGstLabel">GST (18%)</span>
+                            <strong id="rcptGstAmount">₹0</strong>
+                        </div>
+                        <div class="charge-line grand-total-line">
+                            <div>
+                                <span class="gt-title" data-i18n="grandTotal">TOTAL AMOUNT</span>
+                                <small class="gt-sub" id="rcptAvgPerFootSub">Avg: ₹164.4 / ft</small>
+                            </div>
+                            <span class="gt-value" id="rcptGrandTotal">₹1,31,500</span>
+                        </div>
+                        <div class="charge-line advance-line" id="rcptAdvanceRow" style="display: none;">
+                            <span data-i18n="advancePaid">Advance Paid</span>
+                            <strong id="rcptAdvanceAmount">− ₹0</strong>
+                        </div>
+                        <div class="charge-line balance-due-line" id="rcptBalanceRow" style="display: none;">
+                            <span data-i18n="balancePayable">BALANCE PAYABLE</span>
+                            <strong id="rcptBalanceAmount">₹0</strong>
+                        </div>
+                    </div>
+
+                    <div class="receipt-footer">
+                        <!-- Custom Optional Note / Remark (Shown ONLY when entered by user) -->
+                        <div class="receipt-custom-remark" id="rcptCustomNoteBox" style="display: none;">
+                            <span class="rcr-lbl">📝 Note / Remark:</span>
+                            <span class="rcr-txt" id="rcptCustomNoteText"></span>
+                        </div>
+                        <div class="receipt-note is-final-bill" id="receiptTermsText">
+                            🙏 எங்கள் நிறுவனத்தைத் தேர்ந்தெடுத்தமைக்கு நன்றி! • Thank you for your business!
+                        </div>
+                        <div class="receipt-sign-row">
+                            <div class="upi-info-text" id="rcptUpiBox" style="display: none;">
+                                <span>💳 UPI / GPay: <strong id="rcptUpiId"></strong></span>
+                            </div>
+                            <div class="sign-box">
+                                <span data-i18n="forCompany">For</span> <strong id="rcptSignCompany">SRI ANJANEYA BOREWELLS</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Two-Stage Save & Share Workflow: First Confirm & Save -> Then Unlock Share Options -->
+            <div class="bill-preview-action-stage" id="billPreviewActionStage" style="display: none;">
+                <!-- Stage A: Shown in Preview BEFORE Bill is Saved -->
+                <div class="pre-save-confirm-box" id="preSavePreviewActions">
+                    <button type="button" class="btn-back-edit-lg" id="backToEditFromPreviewBtn">
+                        <i data-lucide="pencil" class="icon-xs"></i>
+                        <span>Edit Bill</span>
+                    </button>
+                    <button type="button" class="btn-confirm-save-lg" id="saveBillHistoryBtn">
+                        <i data-lucide="bookmark-check" class="icon-sm"></i>
+                        <div class="bcs-txt">
+                            <strong id="saveBillBtnTitle" data-i18n="saveToHistory">Confirm & Save Bill</strong>
+                            <small id="saveBillBtnSub" data-i18n="keepInBillBook">Save to unlock Share & PDF</small>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Stage B: Shown ONLY AFTER Bill is Saved (Compact Share on WhatsApp, Image, PDF) -->
+                <div class="post-save-share-box" id="postSaveShareContainer" style="display: none;">
+                    <div class="pss-saved-banner">
+                        <div class="pss-sb-left">
+                            <span class="pss-check-ico">✅</span>
+                            <div>
+                                <strong id="postSaveBannerTitle">Bill Saved to Bill Book!</strong>
+                            </div>
+                        </div>
+                        <div class="pss-sb-actions">
+                            <button type="button" class="pss-mini-btn" id="postSaveEditBillBtn">✏️ Edit</button>
+                            <button type="button" class="pss-mini-btn new" id="postSaveNewBillBtn">＋ New Bill</button>
+                        </div>
+                    </div>
+
+                    <div class="export-actions-grid three-cols compact-share-bar" id="billExportActionsGrid">
+                        <button type="button" class="exp-btn compact wa" id="shareWhatsappBtn">
+                            <i data-lucide="message-circle" class="icon-xs"></i>
+                            <span>WhatsApp</span>
+                        </button>
+                        <button type="button" class="exp-btn compact img" id="downloadImageBtn">
+                            <i data-lucide="image" class="icon-xs"></i>
+                            <span data-i18n="saveBillImage">Bill Image</span>
+                        </button>
+                        <button type="button" class="exp-btn compact pdf" id="downloadPdfBtn">
+                            <i data-lucide="file-down" class="icon-xs"></i>
+                            <span data-i18n="downloadPdf">Download PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================================
+             TAB 2: CUSTOMER KHATA & CRM LEDGER (VYAPAR / KHATABOOK STYLE)
+             ==================================================================== -->
+        <section class="tab-panel" id="tab-customers">
+            <!-- Top KPI Summary Cards -->
+            <div class="kpi-grid-3">
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl" data-i18n="totalCustomersStat">Customers</span>
+                        <i data-lucide="users" class="icon-xs text-muted"></i>
+                    </div>
+                    <strong class="kpi-val" id="crmTotalCustomers">0</strong>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl" data-i18n="totalBilledStat">Total Billed</span>
+                        <i data-lucide="trending-up" class="icon-xs text-brand"></i>
+                    </div>
+                    <strong class="kpi-val text-brand" id="crmTotalBilled">₹0</strong>
+                </div>
+                <div class="kpi-card due-kpi">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl" data-i18n="pendingBalanceStat">Pending Due</span>
+                        <i data-lucide="alert-circle" class="icon-xs text-danger"></i>
+                    </div>
+                    <strong class="kpi-val text-danger" id="crmTotalPending">₹0</strong>
+                </div>
+            </div>
+
+            <!-- Customer Directory Header + Add Customer Button -->
+            <div class="ui-card">
+                <div class="page-head-row">
+                    <div>
+                        <h2 class="page-title"><i data-lucide="contact-2" class="icon-sm text-brand"></i> <span data-i18n="customerDirectoryTitle">Customer Ledger</span></h2>
+                        <p class="page-sub" data-i18n="customerDirectorySub">Manage parties, track borewell dues & create instant bills</p>
+                    </div>
+                    <div class="head-action-group">
+                        <button type="button" class="btn-undo-inline global-undo-trigger-btn" style="display: none;" title="Undo last deleted item">
+                            <span>↩ Undo</span>
+                        </button>
+                        <button type="button" class="btn-brand-sm" id="toggleAddCustomerDrawerBtn">
+                            <i data-lucide="user-plus" class="icon-xs"></i>
+                            <span data-i18n="addCustomerBtnLabel">Add Customer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Filter Bar (All | Pending Balance | Settled) -->
+                <div class="ledger-toolbar">
+                    <div class="search-input-box">
+                        <i data-lucide="search" class="icon-xs search-ico"></i>
+                        <input type="search" id="crmSearchInput" placeholder="Search customer name, mobile, village...">
+                    </div>
+                    <div class="filter-chip-group" id="crmFilterPills">
+                        <button type="button" class="f-chip active" data-filter="all" data-i18n="filterAll">All</button>
+                        <button type="button" class="f-chip" data-filter="due" data-i18n="filterPendingDue">Pending Due</button>
+                        <button type="button" class="f-chip" data-filter="settled" data-i18n="filterSettled">No Due</button>
+                    </div>
+                </div>
+
+                <!-- Customer Khata Cards List -->
+                <div class="khata-list" id="crmCustomerList">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================================
+             TAB 3: BILLS & QUOTATIONS LEDGER (DEFAULT: BILLS)
+             ==================================================================== -->
+        <section class="tab-panel" id="tab-history">
+            <div class="ui-card">
+                <div class="page-head-row">
+                    <div>
+                        <h2 class="page-title"><i data-lucide="receipt" class="icon-sm text-brand"></i> <span id="historyMainHeadingText" data-i18n="savedBillsHistory">Bills</span></h2>
+                        <p class="page-sub" id="historyMainSubText" data-i18n="savedBillsSub">Track final bills, pending payments & quotations</p>
+                    </div>
+                    <div class="head-action-group">
+                        <button type="button" class="btn-undo-inline global-undo-trigger-btn" style="display: none;" title="Undo last deleted bill">
+                            <span>↩ Undo</span>
+                        </button>
+                        <button type="button" class="btn-danger-xs" id="clearAllHistoryBtn">
+                            <i data-lucide="trash-2" class="icon-xs"></i>
+                            <span data-i18n="clearAll">Clear All</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Separate Sub-Tabs: 1. Bills (Always Default View) | 2. Quotations -->
+                <div class="bills-quotations-tab-bar" id="historyDocTabSwitcher">
+                    <button type="button" class="bq-tab-btn active" data-doctab="INVOICE" id="histSubTabBillsBtn">
+                        <i data-lucide="receipt" class="icon-xs"></i>
+                        <span data-i18n="billsTabLabel">Bills</span>
+                        <span class="bq-tab-count" id="histBillsTabCount">0</span>
+                    </button>
+                    <button type="button" class="bq-tab-btn" data-doctab="QUOTATION" id="histSubTabQuotesBtn">
+                        <i data-lucide="file-text" class="icon-xs"></i>
+                        <span data-i18n="quotationsTabLabel">Quotations</span>
+                        <span class="bq-tab-count" id="histQuotesTabCount">0</span>
+                    </button>
+                </div>
+
+                <!-- Search Box with Embedded Filter Icon Button + Quick Payment/Date Filter Bar -->
+                <div class="ledger-toolbar bills-toolbar-stack">
+                    <div class="search-input-box has-inline-filter">
+                        <i data-lucide="search" class="icon-xs search-ico"></i>
+                        <input type="search" id="historySearchInput" placeholder="Search customer, site, or bill #...">
+                        <button type="button" class="search-inline-filter-btn" id="historyFilterToggleBtn" title="Filter by Payment & Date">
+                            <i data-lucide="sliders-horizontal" class="icon-xs"></i>
+                            <span class="sif-lbl">Filter</span>
+                            <span class="sif-badge" id="historyFilterCountBadge" style="display: none;">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick 1-Tap Payment Status Pills (Shown in Bills Tab) & Active Date Filter Chip -->
+                    <div class="bills-quick-filter-row" id="historyQuickFilterBar">
+                        <div class="filter-chip-group" id="historyPaymentQuickPills">
+                            <button type="button" class="f-chip active" data-payfilter="all">All Bills</button>
+                            <button type="button" class="f-chip unpaid-chip" data-payfilter="unpaid">
+                                🔴 Unpaid / Pending <span class="fc-mini-count" id="histUnpaidQuickCount">0</span>
+                            </button>
+                            <button type="button" class="f-chip" data-payfilter="paid">✅ Paid</button>
+                        </div>
+                        <button type="button" class="active-date-filter-chip" id="historyActiveDateChip" style="display: none;" title="Tap to clear date filter">
+                            <span id="historyActiveDateChipText">📅 Today</span>
+                            <span class="adfc-x">✕</span>
+                        </button>
+                    </div>
+
+                    <!-- Expandable Filter Panel (Opens when clicking Filter Icon inside Search Box) -->
+                    <div class="bills-filter-popover" id="historyFilterDropdownPanel" style="display: none;">
+                        <!-- 1. Payment Status Filter (For Bills Tab) -->
+                        <div class="bfp-section" id="historyPayFilterSection">
+                            <div class="bfp-sec-head">
+                                <span>💳 Payment Status</span>
+                            </div>
+                            <div class="bfp-pills-row" id="historyPopupPayPills">
+                                <button type="button" class="bfp-pill active" data-payfilter="all">All Bills</button>
+                                <button type="button" class="bfp-pill unpaid" data-payfilter="unpaid">🔴 Unpaid / Pending</button>
+                                <button type="button" class="bfp-pill paid" data-payfilter="paid">✅ Paid / Settled</button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Date Filter -->
+                        <div class="bfp-section">
+                            <div class="bfp-sec-head">
+                                <span>📅 Date Filter</span>
+                            </div>
+                            <div class="bfp-pills-row" id="historyDatePresetPills">
+                                <button type="button" class="bfp-pill active" data-datepreset="all">All Dates</button>
+                                <button type="button" class="bfp-pill" data-datepreset="today">Today</button>
+                                <button type="button" class="bfp-pill" data-datepreset="yesterday">Yesterday</button>
+                                <button type="button" class="bfp-pill" data-datepreset="7d">Last 7 Days</button>
+                                <button type="button" class="bfp-pill" data-datepreset="month">This Month</button>
+                                <button type="button" class="bfp-pill" data-datepreset="custom">Custom Date</button>
+                            </div>
+                            <div class="bfp-date-range-row" id="historyCustomDateRow">
+                                <div class="bfp-date-field">
+                                    <label for="historyDateFrom">From Date</label>
+                                    <input type="date" id="historyDateFrom">
+                                </div>
+                                <div class="bfp-date-field">
+                                    <label for="historyDateTo">To Date</label>
+                                    <input type="date" id="historyDateTo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bfp-footer">
+                            <button type="button" class="btn-secondary-sm" id="resetHistoryFiltersBtn">↺ Reset Filters</button>
+                            <button type="button" class="btn-brand-sm" id="closeHistoryFilterPanelBtn">✓ Done</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="khata-list" id="savedBillsList">
+                    <!-- Populated by app.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================================
+             TAB 4: MULTI-RATE PROFILES, MASTER PRICE SETTINGS & 19 DEPTH SLABS
+             ==================================================================== -->
+        <section class="tab-panel" id="tab-rates">
+            <!-- Top KPI Summary Strip for Rates -->
+            <div class="kpi-grid-3">
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Applied in Bill</span>
+                        <i data-lucide="zap" class="icon-xs text-brand"></i>
+                    </div>
+                    <strong class="kpi-val text-brand kpi-truncate" id="rateKpiActiveName">Standard 6.5"</strong>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Default Rate ★</span>
+                        <i data-lucide="star" class="icon-xs" style="color: #d97706;"></i>
+                    </div>
+                    <strong class="kpi-val kpi-truncate" id="rateKpiDefaultName">Standard 6.5"</strong>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Saved Lists</span>
+                        <i data-lucide="layers" class="icon-xs text-muted"></i>
+                    </div>
+                    <strong class="kpi-val" id="rateKpiTotalCount">2 Cards</strong>
+                </div>
+            </div>
+
+            <!-- 1. Saved Rate Cards Deck -->
+            <div class="ui-card">
+                <div class="page-head-row">
+                    <div>
+                        <h2 class="page-title"><i data-lucide="layers" class="icon-sm text-brand"></i> <span data-i18n="savedRateProfilesTitle">Saved Rate Cards</span></h2>
+                        <p class="page-sub" data-i18n="savedRateProfilesSub">Tap any rate card to apply in New Bill or set as ★ Default</p>
+                    </div>
+                    <button type="button" class="btn-brand-sm" id="createNewRateProfileBtn">
+                        <i data-lucide="plus" class="icon-xs"></i>
+                        <span data-i18n="newRateProfileBtnLabel">New Rate</span>
+                    </button>
+                </div>
+
+                <div class="rate-deck-list" id="savedRateProfilesList">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </div>
+
+            <!-- 2. Unified Segmented Rate Profile Studio (Hidden by default; opens on Edit / + New Rate) -->
+            <div class="ui-card rate-studio-card" id="rateEditorCard" style="display: none;">
+                <div class="studio-header-banner">
+                    <div class="studio-title-wrap">
+                        <span class="studio-mode-pill" id="studioEditingModeBadge">✏️ Editing Profile</span>
+                        <h2 class="page-title">
+                            <span id="studioEditingTitleText" data-i18n="masterPriceSettings">Rate Card Studio</span>
+                        </h2>
+                    </div>
+                    <div class="studio-head-actions">
+                        <button type="button" class="btn-secondary-sm" id="resetDefaultRatesBtn" title="Load Standard ₹90 Rates">
+                            <i data-lucide="rotate-ccw" class="icon-xs"></i>
+                            <span data-i18n="resetDefaults">Reset ₹90</span>
+                        </button>
+                        <button type="button" class="icon-close-btn" id="closeRateEditorBtn" title="Close Studio">
+                            <i data-lucide="x" class="icon-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <input type="hidden" id="editingRateProfileId" value="">
+
+                <!-- Profile Name + Default Star Switch Row -->
+                <div class="studio-identity-bar">
+                    <div class="studio-name-field">
+                        <label for="masterProfileName" data-i18n="rateProfileNameLabel">RATE LIST NAME *</label>
+                        <input type="text" id="masterProfileName" placeholder="e.g. Standard 6.5&quot; Rate / Hard Rock ₹100" value="Standard 6.5&quot; Rate">
+                    </div>
+                    <label class="studio-default-toggle" for="masterIsDefaultCheckbox">
+                        <input type="checkbox" id="masterIsDefaultCheckbox">
+                        <span class="sdt-box">
+                            <span class="sdt-star">★</span>
+                            <span data-i18n="setAsDefaultRateLabel">Default</span>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Segmented Studio View Switcher -->
+                <div class="studio-seg-tabs" id="rateStudioSubTabs">
+                    <button type="button" class="studio-seg-btn active" data-view="core">
+                        <i data-lucide="sliders-horizontal" class="icon-xs"></i>
+                        <span>Pipe & Core Rates</span>
+                    </button>
+                    <button type="button" class="studio-seg-btn" data-view="slabs">
+                        <i data-lucide="bar-chart-3" class="icon-xs"></i>
+                        <span id="studioSlabsTabLabel">Depth Slabs</span>
+                    </button>
+                    <button type="button" class="studio-seg-btn" data-view="all">
+                        <i data-lucide="layout-grid" class="icon-xs"></i>
+                        <span>All</span>
+                    </button>
+                </div>
+
+                <!-- STUDIO PANEL A: CORE DRILLING, PVC PIPE & BATA RATES -->
+                <div class="studio-section-panel" id="studioCorePanel">
+                    <div class="rate-category-label">Drilling & Depth Buffer</div>
+                    <div class="rate-tiles-grid-3">
+                        <div class="rate-metric-tile highlight-tile">
+                            <label for="masterBaseRate" id="masterBaseRateLabel" data-i18n="baseDrillingRate">Base Rate (1–300 ft)</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterBaseRate" value="90" inputmode="numeric">
+                                <span class="rmt-unit">₹/ft</span>
+                            </div>
+                        </div>
+                        <div class="rate-metric-tile">
+                            <label for="masterOldBoreRate" data-i18n="oldBoreFlushingRate">Old Bore Flush</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterOldBoreRate" value="40" inputmode="numeric">
+                                <span class="rmt-unit">₹/ft</span>
+                            </div>
+                        </div>
+                        <div class="rate-metric-tile">
+                            <label for="masterSlabBuffer" data-i18n="slabBufferGrace">Grace Buffer</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterSlabBuffer" value="5" min="0" max="50" inputmode="numeric">
+                                <span class="rmt-unit">ft</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rate-category-label" style="margin-top: 10px;">PVC Casing Pipe, Labour & GST</div>
+                    <div class="rate-tiles-grid-2">
+                        <div class="rate-metric-tile">
+                            <label for="masterPvc7Rate">7" PVC Casing Pipe</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterPvc7Rate" value="400" inputmode="numeric">
+                                <span class="rmt-unit">₹/ft</span>
+                            </div>
+                        </div>
+                        <div class="rate-metric-tile">
+                            <label for="masterPvc10Rate">10" PVC Casing Pipe</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterPvc10Rate" value="700" inputmode="numeric">
+                                <span class="rmt-unit">₹/ft</span>
+                            </div>
+                        </div>
+                        <div class="rate-metric-tile">
+                            <label for="masterBoreBata" data-i18n="boreBataFixed">Bore Bata (Labour)</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterBoreBata" value="2000" inputmode="numeric">
+                                <span class="rmt-unit">₹</span>
+                            </div>
+                        </div>
+                        <div class="rate-metric-tile">
+                            <label for="masterGstPercent">Default GST Tax</label>
+                            <div class="rmt-input-row">
+                                <input type="number" id="masterGstPercent" value="18" step="0.5" inputmode="decimal">
+                                <span class="rmt-unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STUDIO PANEL B: SMART STEP-BY-STEP DEPTH SLAB BUILDER -->
+                <div class="studio-section-panel" id="studioSlabsPanel" style="display: none;">
+                    <!-- 1. Base Slab Range & Aligned Quick Shift Card -->
+                    <div class="slab-builder-top-card">
+                        <div class="sbtc-base-bar">
+                            <span class="sbtc-lbl">1st Base Slab:</span>
+                            <div class="sbtc-base-pills" id="baseSlabSpanPills">
+                                <button type="button" class="sbtc-pill" data-base-span="100">1–100 ft</button>
+                                <button type="button" class="sbtc-pill" data-base-span="200">1–200 ft</button>
+                                <button type="button" class="sbtc-pill active" data-base-span="300">1–300 ft</button>
+                            </div>
+                        </div>
+
+                        <div class="sbtc-divider"></div>
+
+                        <!-- 2. Cleanly Aligned Quick Shift & 1-Step Controls -->
+                        <div class="sbtc-quick-shift-box">
+                            <div class="sqs-top-row">
+                                <span class="sbtc-lbl" data-i18n="bulkAdjustAllSlabs">Quick Shift:</span>
+                                <div class="sqs-chips-grid">
+                                    <button type="button" class="bulk-chip minus" id="slabBulkMinus10">−₹10</button>
+                                    <button type="button" class="bulk-chip minus" id="slabBulkMinus5">−₹5</button>
+                                    <button type="button" class="bulk-chip plus" id="slabBulkPlus5">+₹5</button>
+                                    <button type="button" class="bulk-chip plus" id="slabBulkPlus10">+₹10</button>
+                                </div>
+                            </div>
+                            <div class="sqs-step-row">
+                                <button type="button" class="sqs-step-btn minus" id="slabCustomDeductBtn">− Step</button>
+                                <div class="sqs-step-input-wrap" title="Step Increment (Default 1)">
+                                    <span>±₹</span>
+                                    <input type="number" id="customSlabStepInput" value="1" min="1" step="1" class="mini-num-input" inputmode="numeric">
+                                </div>
+                                <button type="button" class="sqs-step-btn plus" id="slabCustomAddBtn">+ Step</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aligned 4-Column Slab Builder Header -->
+                    <div class="slab-builder-table-head">
+                        <span class="sbth-col-range">DEPTH SLAB (FT)</span>
+                        <span class="sbth-col-step">+ STEP (₹)</span>
+                        <span class="sbth-col-rate">RATE (₹/FT)</span>
+                        <span class="sbth-col-del"></span>
+                    </div>
+
+                    <!-- Dynamic Step-by-Step Slabs Rows Container -->
+                    <div class="slabs-editor-grid" id="masterSlabsGrid"></div>
+
+                    <!-- Step-by-Step "+ Add Next 100 ft" & Quick Auto-Fill Bar -->
+                    <div class="slab-builder-add-bar" id="slabBuilderFooterBar">
+                        <button type="button" class="btn-add-next-slab" id="addNextSlabRowBtn">
+                            <span class="bans-left">
+                                <span class="bans-plus-icon">＋</span>
+                                <span id="addNextSlabBtnRangeText">Add Next 100 ft (301–400 ft)</span>
+                            </span>
+                            <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10 → ₹100/ft</span>
+                        </button>
+                        <div class="slab-autofill-strip">
+                            <span class="sas-lbl">Quick Auto-Fill:</span>
+                            <button type="button" class="sas-chip" id="slabFill1000Btn">Up to 1000 ft</button>
+                            <button type="button" class="sas-chip" id="slabFill1500Btn">Up to 1500 ft</button>
+                            <button type="button" class="sas-chip" id="slabFill2200Btn">Up to 2200 ft</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Dual Save Action Bar -->
+                <div class="save-bar-bottom dual-save-bar">
+                    <button type="button" class="btn-brand-full" id="saveMasterRatesBtn">
+                        <i data-lucide="check-circle-2" class="icon-sm"></i>
+                        <span data-i18n="saveAllPriceSettings">Save & Apply Rate</span>
+                    </button>
+                    <button type="button" class="btn-outline-full" id="saveAsNewProfileBtn">
+                        <i data-lucide="plus-circle" class="icon-sm"></i>
+                        <span data-i18n="saveAsNewProfileLabel">Save as New Card</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====================================================================
+             TAB 5: WHITE-LABEL COMPANY BRANDING & BACKUP SUITE
+             ==================================================================== -->
+        <section class="tab-panel" id="tab-brand">
+            <!-- Top KPI Strip for Company & Numbering Status -->
+            <div class="kpi-grid-3">
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Next Quote #</span>
+                        <i data-lucide="file-spreadsheet" class="icon-xs text-brand"></i>
+                    </div>
+                    <strong class="kpi-val text-brand kpi-truncate" id="companyKpiNextQuote">AB-Q101</strong>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Next Final Bill #</span>
+                        <i data-lucide="receipt" class="icon-xs" style="color: #d97706;"></i>
+                    </div>
+                    <strong class="kpi-val kpi-truncate" id="companyKpiNextBill">AB-101</strong>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-top">
+                        <span class="kpi-lbl">Total Billed</span>
+                        <i data-lucide="indian-rupee" class="icon-xs text-muted"></i>
+                    </div>
+                    <strong class="kpi-val kpi-truncate" id="companyKpiTotalBilled">₹0</strong>
+                </div>
+            </div>
+
+            <!-- 1. Unified Executive Business Profile & Appearance Suite Card -->
+            <div class="ui-card biz-suite-card" id="companyLiveHeroCard">
+                <div class="bsc-top-bar">
+                    <span class="bsc-verified-badge">
+                        <i data-lucide="badge-check" class="icon-xs"></i>
+                        <span>Official Bill Header & Brand Identity</span>
+                    </span>
+                    <button type="button" class="btn-brand-sm" id="toggleCompanyEditBtn">
+                        <i data-lucide="pencil" class="icon-xs"></i>
+                        <span id="toggleCompanyEditBtnText">Edit Details</span>
+                    </button>
+                </div>
+
+                <!-- Main Identity Row: Interactive Logo + Company Name & Tagline -->
+                <div class="bsc-identity-row">
+                    <div class="bsc-logo-wrap">
+                        <div class="bsc-logo-box" id="brandTabLogoPreview">
+                            <img id="brandTabLogoImg" src="" alt="Uploaded Logo" style="display: none;">
+                            <span id="brandTabLogoFallback">🚜</span>
+                        </div>
+                        <label for="logoFileInput" class="bsc-logo-cam-btn" title="Upload Company Logo">
+                            <i data-lucide="camera" class="icon-xs"></i>
+                        </label>
+                    </div>
+                    <div class="bsc-title-block">
+                        <h2 id="brandCardNameText">SRI ANJANEYA BOREWELLS</h2>
+                        <p id="brandCardTaglineText">ஆழமான நம்பிக்கை! • High Power Compressor Drilling</p>
+                    </div>
+                </div>
+
+                <!-- Contact & Location Details Grid -->
+                <div class="bsc-contact-grid">
+                    <div class="bsc-contact-card">
+                        <span class="bsc-contact-icon"><i data-lucide="phone-call" class="icon-xs"></i></span>
+                        <div class="bsc-contact-txt">
+                            <small>Contact Numbers</small>
+                            <strong id="brandCardPhoneText">+91 96596 57777, 94433 73573</strong>
+                        </div>
+                    </div>
+                    <div class="bsc-contact-card">
+                        <span class="bsc-contact-icon"><i data-lucide="map-pin" class="icon-xs"></i></span>
+                        <div class="bsc-contact-txt">
+                            <small>Office Address</small>
+                            <strong id="brandCardAddressText">6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4-Column Business Meta Spec Strip -->
+                <div class="bsc-specs-grid">
+                    <div class="bsc-spec-cell">
+                        <span class="bsc-spec-lbl">Prefix</span>
+                        <strong class="bsc-spec-val text-brand" id="brandCardPrefixText">#AB</strong>
+                    </div>
+                    <div class="bsc-spec-cell">
+                        <span class="bsc-spec-lbl">Auto Counter</span>
+                        <strong class="bsc-spec-val" id="brandCardNextSeqText">Q101 / 101</strong>
+                    </div>
+                    <div class="bsc-spec-cell">
+                        <span class="bsc-spec-lbl">GSTIN</span>
+                        <strong class="bsc-spec-val" id="brandCardGstText">Optional</strong>
+                    </div>
+                    <div class="bsc-spec-cell">
+                        <span class="bsc-spec-lbl">UPI / GPay</span>
+                        <strong class="bsc-spec-val" id="brandCardUpiText">Not Set</strong>
+                    </div>
+                </div>
+
+                <!-- Integrated Theme Color & Logo Actions Section -->
+                <div class="bsc-appearance-section">
+                    <div class="bsc-appear-head">
+                        <span class="bsc-appear-title">
+                            <i data-lucide="palette" class="icon-xs text-brand"></i>
+                            <span data-i18n="billThemeColor">App & Bill Theme Color</span>
+                        </span>
+                        <div class="logo-btn-row">
+                            <label for="logoFileInput" class="bsc-mini-link cursor-pointer">
+                                <i data-lucide="upload" class="icon-xs"></i>
+                                <span data-i18n="uploadCompanyLogo">Upload Logo</span>
+                            </label>
+                            <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
+                            <button type="button" class="bsc-mini-link danger" id="removeLogoBtn" data-i18n="removeLogo">Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="theme-swatches-grid" id="themeSwatches">
+                        <button type="button" class="theme-swatch active" data-theme="emerald" style="--swatch-color: #15803d;">
+                            <span class="ts-dot"></span>
+                            <span>Emerald</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="royal" style="--swatch-color: #1d4ed8;">
+                            <span class="ts-dot"></span>
+                            <span>Royal Blue</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="crimson" style="--swatch-color: #b91c1c;">
+                            <span class="ts-dot"></span>
+                            <span>Rig Red</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="amber" style="--swatch-color: #b45309;">
+                            <span class="ts-dot"></span>
+                            <span>Earth Gold</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="slate" style="--swatch-color: #0f172a;">
+                            <span class="ts-dot"></span>
+                            <span>Slate Dark</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quotation & Final Bill Separate Footer Notes Preview -->
+                <div class="bsc-footer-note bsc-dual-footer-notes">
+                    <div class="bsc-fn-item is-quote-fn">
+                        <span class="bsc-fn-label">📋 QUOTATION FOOTER NOTE (Quotation Only):</span>
+                        <p id="brandCardTermsText">⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.</p>
+                    </div>
+                    <div class="bsc-fn-item is-bill-fn">
+                        <span class="bsc-fn-label">🧾 FINAL BILL FOOTER NOTE (Final Bill Only):</span>
+                        <p id="brandCardFinalBillTermsText">🙏 எங்கள் நிறுவனத்தைத் தேர்ந்தெடுத்தமைக்கு நன்றி! • Thank you for your business!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Collapsible / Toggleable Categorized Company Edit Studio (Opens when "Edit Details" is tapped) -->
+            <div class="ui-card rate-studio-card" id="companyEditStudioCard" style="display: none;">
+                <div class="studio-header-banner">
+                    <div class="studio-title-wrap">
+                        <span class="studio-mode-pill">✏️ Editing Company Details</span>
+                        <h2 class="page-title"><span data-i18n="companyBrandingTitle">Edit Business Profile</span></h2>
+                    </div>
+                    <button type="button" class="icon-close-btn" id="closeCompanyEditStudioBtn" title="Close Editor">
+                        <i data-lucide="x" class="icon-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Group 1: Business Identity & Contact -->
+                <div class="rate-category-label">1. Business Identity & Contact</div>
+                <div class="company-form-box">
+                    <div class="form-row-2">
+                        <div class="field-group full-col">
+                            <label for="brandCompanyName" data-i18n="companyNameLabel">Company Name *</label>
+                            <input type="text" id="brandCompanyName" value="SRI ANJANEYA BOREWELLS">
+                        </div>
+                        <div class="field-group full-col">
+                            <label for="brandCompanyTagline" data-i18n="companySloganLabel">Tagline / Slogan</label>
+                            <input type="text" id="brandCompanyTagline" value="ஆழமான நம்பிக்கை! • High Power Compressor Drilling">
+                        </div>
+                        <div class="field-group full-col">
+                            <label for="brandCompanyPhones" data-i18n="contactNumbersLabel">Contact Phone Numbers *</label>
+                            <input type="text" id="brandCompanyPhones" value="+91 96596 57777, 94433 73573">
+                        </div>
+                        <div class="field-group full-col">
+                            <label for="brandCompanyAddress" data-i18n="officeAddressLabel">Office Address</label>
+                            <input type="text" id="brandCompanyAddress" value="6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Auto-Increment Bill & Quotation Counters -->
+                <div class="rate-category-label" style="margin-top: 10px;">2. Auto Bill & Quotation Numbering</div>
+                <div class="rate-tiles-grid-3">
+                    <div class="rate-metric-tile highlight-tile">
+                        <label for="brandBillPrefix" data-i18n="billPrefixLabel">Prefix Code</label>
+                        <div class="rmt-input-row">
+                            <input type="text" id="brandBillPrefix" value="AB" style="text-transform: uppercase;">
+                            <span class="rmt-unit">#</span>
+                        </div>
+                    </div>
+                    <div class="rate-metric-tile">
+                        <label for="brandNextQuoteSeq">Next Quote #</label>
+                        <div class="rmt-input-row">
+                            <input type="number" id="brandNextQuoteSeq" value="101" min="1" inputmode="numeric">
+                            <span class="rmt-unit">Q#</span>
+                        </div>
+                    </div>
+                    <div class="rate-metric-tile">
+                        <label for="brandNextBillSeq">Next Final Bill #</label>
+                        <div class="rmt-input-row">
+                            <input type="number" id="brandNextBillSeq" value="101" min="1" inputmode="numeric">
+                            <span class="rmt-unit">B#</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 3: GSTIN, UPI Payment & Separate Quotation / Final Bill Footer Notes -->
+                <div class="rate-category-label" style="margin-top: 10px;">3. Tax, UPI & Separate Footer Notes</div>
+                <div class="company-form-box">
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="brandGstNumber" data-i18n="gstinNumberLabel">GSTIN (Optional)</label>
+                            <input type="text" id="brandGstNumber" placeholder="33AAAAA0000A1Z5">
+                        </div>
+                        <div class="field-group">
+                            <label for="brandUpiId" data-i18n="upiGpayLabel">UPI ID / GPay Number</label>
+                            <input type="text" id="brandUpiId" placeholder="9659657777@upi">
+                        </div>
+
+                        <!-- A. Quotation-Only Footer Disclaimer -->
+                        <div class="field-group full-col footer-setting-block quote-setting-block">
+                            <div class="fsb-head">
+                                <label for="brandTermsNote" data-i18n="footerTermsLabel">📋 Quotation Footer Note (Quotation Only)</label>
+                                <div class="fsb-actions">
+                                    <button type="button" class="fsb-mini-btn" id="restoreDefaultQuoteTermsBtn" title="Restore default quotation disclaimer">↺ Default</button>
+                                    <button type="button" class="fsb-mini-btn danger" id="clearQuoteTermsBtn" title="Clear quotation footer note">✕ Clear</button>
+                                </div>
+                            </div>
+                            <input type="text" id="brandTermsNote" placeholder="Quotation disclaimer (shown ONLY on Quotations)..." value="⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.">
+                            <small class="fsb-hint">Shown ONLY on Quotations (Receipt, Image, PDF & WhatsApp). Never shown on Final Bills.</small>
+                        </div>
+
+                        <!-- B. Final Bill-Only Footer Note -->
+                        <div class="field-group full-col footer-setting-block bill-setting-block">
+                            <div class="fsb-head">
+                                <label for="brandFinalBillTermsNote" data-i18n="finalBillFooterTermsLabel">🧾 Final Bill Footer Note (Final Bill Only)</label>
+                                <div class="fsb-actions">
+                                    <button type="button" class="fsb-mini-btn" id="restoreDefaultBillTermsBtn" title="Set thank you note">🙏 Default</button>
+                                    <button type="button" class="fsb-mini-btn danger" id="clearFinalBillTermsBtn" title="Leave empty / hide on Final Bill">✕ Empty</button>
+                                </div>
+                            </div>
+                            <input type="text" id="brandFinalBillTermsNote" placeholder="Optional Final Bill footer note (leave blank if not needed)..." value="🙏 எங்கள் நிறுவனத்தைத் தேர்ந்தெடுத்தமைக்கு நன்றி! • Thank you for your business!">
+                            <div class="fsb-preset-chips" id="finalBillTermsPresetChips">
+                                <button type="button" class="fsb-preset-chip" data-bill-note="🙏 எங்கள் நிறுவனத்தைத் தேர்ந்தெடுத்தமைக்கு நன்றி! • Thank you for your business!">🙏 Thank You</button>
+                                <button type="button" class="fsb-preset-chip" data-bill-note="✅ போர்வெல் பணி முழுமையாக முடிக்கப்பட்டது. நன்றி! • Borewell work completed.">✅ Work Completed</button>
+                                <button type="button" class="fsb-preset-chip" data-bill-note="💧 வற்றாத நீர்வளம் பெருக வாழ்த்துக்கள்! நன்றி!">💧 Water Wishes</button>
+                                <button type="button" class="fsb-preset-chip clear-chip" data-bill-note="">🚫 None (Empty)</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="save-bar-bottom">
+                    <button type="button" class="btn-brand-full" id="saveBrandProfileBtn">
+                        <i data-lucide="check-circle-2" class="icon-sm"></i>
+                        <span data-i18n="saveCompanyBranding">Save Company Profile</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. App Data Vault & Backup Studio -->
+            <div class="ui-card">
+                <div class="page-head-row">
+                    <div>
+                        <h3 class="page-title"><i data-lucide="database-backup" class="icon-sm text-brand"></i> <span data-i18n="backupRestoreTitle">Data Vault & Backup</span></h3>
+                        <p class="page-sub" data-i18n="backupRestoreSub">Export or restore all customers, bills, rates & company branding</p>
+                    </div>
+                </div>
+
+                <div class="vault-stats-strip">
+                    <div class="vs-pill">
+                        <span class="vs-lbl">Customers</span>
+                        <strong class="vs-val" id="vaultStatCustomers">0</strong>
+                    </div>
+                    <div class="vs-pill">
+                        <span class="vs-lbl">Saved Bills</span>
+                        <strong class="vs-val" id="vaultStatBills">0</strong>
+                    </div>
+                    <div class="vs-pill">
+                        <span class="vs-lbl">Rate Cards</span>
+                        <strong class="vs-val" id="vaultStatRates">2</strong>
+                    </div>
+                </div>
+
+                <div class="backup-grid-2">
+                    <button type="button" class="backup-tile-btn export" id="exportDataJsonBtn">
+                        <i data-lucide="download" class="icon-sm"></i>
+                        <div class="bt-txt">
+                            <strong>Export Backup</strong>
+                            <small>Save .JSON file</small>
+                        </div>
+                    </button>
+                    <label for="importDataJsonInput" class="backup-tile-btn restore cursor-pointer">
+                        <i data-lucide="upload" class="icon-sm"></i>
+                        <div class="bt-txt">
+                            <strong>Restore Data</strong>
+                            <small>Load .JSON file</small>
+                        </div>
+                    </label>
+                    <input type="file" id="importDataJsonInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== UNIFIED COMPACT ADD / EDIT CUSTOMER POPUP MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="crmCustomerFormDrawer" style="display: none;">
+        <div class="cust-popup-dialog">
+            <div class="cust-popup-head">
+                <div class="cph-left">
+                    <span class="cph-icon"><i data-lucide="user-plus" class="icon-xs"></i></span>
+                    <div>
+                        <h4 id="crmFormTitle" data-i18n="addCustomerTitle">Add Customer</h4>
+                        <p class="cph-sub" id="crmPopupSubText">Save Name, 10-digit Mobile & Place</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeCrmFormDrawerBtn"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <input type="hidden" id="crmEditCustomerId" value="">
+            <input type="hidden" id="crmPopupFromBill" value="false">
+
+            <div class="cust-popup-body">
+                <div class="field-group">
+                    <label for="crmCustName" data-i18n="customerName">Customer Name *</label>
+                    <input type="text" id="crmCustName" placeholder="e.g. R. Senthil Kumar" autocomplete="off">
+                </div>
+                <div class="field-group">
+                    <label for="crmCustPhone" data-i18n="phoneNumber">Mobile / WhatsApp No *</label>
+                    <input type="tel" id="crmCustPhone" placeholder="10-digit Mobile No" maxlength="10" inputmode="numeric" autocomplete="off">
+                    <div class="phone-val-hint" id="crmPhoneValHint" style="display: none;"></div>
+                </div>
+                <div class="phone-dup-alert" id="crmPhoneDupAlert" style="display: none;"></div>
+                <div class="field-group">
+                    <label for="crmCustVillage" data-i18n="customerPlaceLabel">Customer Place *</label>
+                    <input type="text" id="crmCustVillage" placeholder="e.g. Tiruchengode / Rasipuram" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="cust-popup-foot">
+                <button type="button" class="btn-secondary-sm" id="resetCrmFormBtn">Clear</button>
+                <div class="cpf-right">
+                    <button type="button" class="btn-secondary-sm" id="cancelCrmPopupBtn">Cancel</button>
+                    <button type="button" class="btn-brand-sm" id="saveCrmCustomerBtn">
+                        <i data-lucide="check" class="icon-xs"></i>
+                        <span id="saveCrmCustomerBtnText" data-i18n="saveCustomerBtn">Save Customer</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== UNIVERSAL DELETE CONFIRMATION POPUP MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="deleteConfirmModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog del-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="delConfirmTitle">
+            <div class="cust-popup-head del-confirm-head">
+                <div class="cph-left">
+                    <span class="cph-icon del-icon-badge"><i data-lucide="trash-2" class="icon-xs"></i></span>
+                    <div>
+                        <h4 id="delConfirmTitle">Confirm Delete?</h4>
+                        <p class="cph-sub" id="delConfirmSubtitle">You can undo this right after deleting</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeDelConfirmBtn"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="del-confirm-body">
+                <div class="del-confirm-target-box" id="delConfirmItemBox">Item Name</div>
+                <p class="del-confirm-desc" id="delConfirmMessage">Are you sure you want to delete this item?</p>
+
+                <!-- High-Safety Type-to-Confirm Box (Shown for Clear All Bills) -->
+                <div class="del-type-confirm-box" id="delConfirmTypeVerifyBox" style="display: none;">
+                    <div class="dtcb-warn-banner">
+                        <span>⚠️ <strong>WARNING:</strong> All saved bills &amp; quotations will be permanently deleted!</span>
+                    </div>
+                    <label for="delConfirmTypeInput" class="dtcb-label">
+                        Type <strong id="delConfirmRequiredWordBadge">CLEAR ALL</strong> below to confirm:
+                    </label>
+                    <input type="text" id="delConfirmTypeInput" class="dtcb-input" placeholder="Type CLEAR ALL here..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="cust-popup-foot del-confirm-foot">
+                <button type="button" class="btn-secondary-sm" id="cancelDelConfirmBtn">Cancel</button>
+                <button type="button" class="btn-danger-confirm" id="confirmDelActionBtn">
+                    <i data-lucide="trash-2" class="icon-xs"></i>
+                    <span id="confirmDelActionBtnText">Yes, Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CUSTOMER FULL BOREWELL & PAYMENT DETAIL MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="custDetailModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog cust-bore-detail-modal" role="dialog" aria-modal="true" aria-labelledby="cdmName">
+            <!-- 1. Clean Customer Identity Header -->
+            <div class="cust-popup-head cdm-head">
+                <div class="cph-left">
+                    <div class="party-avatar cdm-avatar" id="cdmAvatar">C</div>
+                    <div class="cdm-title-wrap">
+                        <h4 id="cdmName">Customer Name</h4>
+                        <p class="cph-sub" id="cdmMeta">🏠 Place • 📞 Mobile</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeCustDetailModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <!-- 2. Clean Quick Actions Bar -->
+            <div class="cdm-quick-actions-bar">
+                <button type="button" class="cdm-qa-btn primary" id="cdmNewBillBtn">
+                    <i data-lucide="file-plus-2" class="icon-xs"></i>
+                    <span>+ New Bill</span>
+                </button>
+                <button type="button" class="cdm-qa-btn whatsapp" id="cdmWhatsAppRemindBtn">
+                    <i data-lucide="message-circle" class="icon-xs"></i>
+                    <span id="cdmWhatsAppRemindTxt">WhatsApp</span>
+                </button>
+                <a href="#" class="cdm-qa-btn call" id="cdmCallBtn">
+                    <i data-lucide="phone-call" class="icon-xs"></i>
+                    <span>Call</span>
+                </a>
+                <button type="button" class="cdm-qa-btn edit" id="cdmEditCustomerBtn">
+                    <i data-lucide="pencil" class="icon-xs"></i>
+                    <span>Edit</span>
+                </button>
+                <button type="button" class="cdm-qa-btn danger" id="cdmDeleteCustomerBtn" title="Delete Customer">
+                    <i data-lucide="trash-2" class="icon-xs"></i>
+                </button>
+            </div>
+
+            <!-- 3. Separate View Switcher Tabs (1. Summary Overview | 2. Bore-by-Bore Details) -->
+            <div class="cdm-view-tabs" id="cdmViewTabs">
+                <button type="button" class="cdm-vtab active" data-cdmview="overview" id="cdmTabOverviewBtn">
+                    <span>📊 Overall Summary</span>
+                </button>
+                <button type="button" class="cdm-vtab" data-cdmview="bores" id="cdmTabBoresBtn">
+                    <span>🚜 Bore Details</span>
+                    <span class="cdm-vtab-badge" id="cdmTabBoresCountBadge">0</span>
+                </button>
+            </div>
+
+            <!-- 4. Scrollable Modal Body -->
+            <div class="cdm-scroll-body">
+                <!-- VIEW 1: CLEAN OVERALL SUMMARY (Payments + Drilling & Pipes) -->
+                <div class="cdm-view-pane" id="cdmOverviewPane">
+                    <!-- A. Payment Summary Card -->
+                    <div class="cdm-clean-card">
+                        <div class="cdm-cc-head">
+                            <span>💳 Payment Summary</span>
+                            <span class="cdm-sec-pill" id="cdmBookingBreakdownPill">0 Bills • 0 Quotes</span>
+                        </div>
+                        <div class="cdm-pay-trio">
+                            <div class="cdm-pt-item">
+                                <span class="cdm-pt-lbl">Total Billed</span>
+                                <strong class="cdm-pt-val" id="cdmTotalBilled">₹0</strong>
+                            </div>
+                            <div class="cdm-pt-item is-paid">
+                                <span class="cdm-pt-lbl">Paid Amount</span>
+                                <strong class="cdm-pt-val text-green" id="cdmTotalPaid">₹0</strong>
+                            </div>
+                            <div class="cdm-pt-item is-due" id="cdmDueStatBox">
+                                <span class="cdm-pt-lbl">Pending Due</span>
+                                <strong class="cdm-pt-val text-danger" id="cdmTotalDue">₹0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- B. Borewell & Pipe Totals Card (Clean Vertical Rows) -->
+                    <div class="cdm-clean-card">
+                        <div class="cdm-cc-head">
+                            <span>⛏️ Borewell &amp; Pipe Summary</span>
+                            <span class="cdm-sec-pill" id="cdmSitesCountPill">📍 0 Sites</span>
+                        </div>
+                        <div class="cdm-kv-list">
+                            <div class="cdm-kv-row">
+                                <span class="ckv-label">🚜 Total Bores Done</span>
+                                <div class="ckv-right">
+                                    <strong id="cdmTotalBoresCount">0 Bores</strong>
+                                    <small id="cdmBoresTypeSub">New: 0 • Re-Bore: 0</small>
+                                </div>
+                            </div>
+                            <div class="cdm-kv-row">
+                                <span class="ckv-label">📏 Total Depth Drilled</span>
+                                <div class="ckv-right">
+                                    <strong class="text-brand" id="cdmTotalDrilledFt">0 ft</strong>
+                                    <small id="cdmTotalDrillCostSub">Drilling Cost: ₹0</small>
+                                </div>
+                            </div>
+                            <div class="cdm-kv-row">
+                                <span class="ckv-label">🟦 Total PVC Pipe Installed</span>
+                                <div class="ckv-right">
+                                    <strong id="cdmTotalPipeFt">0 ft</strong>
+                                    <small id="cdmPipeBreakdownSub">7": 0 ft • 10": 0 ft</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Button to Switch to Bore-by-Bore View -->
+                    <button type="button" class="cdm-goto-bores-btn" id="cdmGotoBoresViewBtn">
+                        <span>🚜 View Each Bore Detail Separately</span>
+                        <span>→</span>
+                    </button>
+                </div>
+
+                <!-- VIEW 2: SEPARATE BORE-BY-BORE DETAILED VIEW -->
+                <div class="cdm-view-pane" id="cdmBoresPane" style="display: none;">
+                    <!-- Individual Bore Selector Pills (Bore #1 | Bore #2 | ... | All) -->
+                    <div class="cdm-bore-selector-bar" id="cdmBoreSelectorBar">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+
+                    <div class="cdm-bores-list" id="cdmBoresList">
+                        <!-- Populated dynamically with clean Bore Detail card(s) -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== UNIFIED WHATSAPP MESSAGE PREVIEW MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="whatsappPreviewModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog wa-preview-modal" role="dialog" aria-modal="true" aria-labelledby="waPreviewModalTitle">
+            <div class="cust-popup-head wa-preview-head">
+                <div class="cph-left">
+                    <span class="cph-icon wa-icon-badge"><i data-lucide="message-circle" class="icon-xs"></i></span>
+                    <div>
+                        <h4 id="waPreviewModalTitle">WhatsApp Message Preview</h4>
+                        <p class="cph-sub" id="waPreviewModalSub">Review bill message & mobile number before sending</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeWaPreviewModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="wa-preview-body">
+                <!-- Recipient Name & Editable Mobile Number Row -->
+                <div class="wa-recipient-bar">
+                    <div class="war-cust-info">
+                        <span class="war-lbl">To:</span>
+                        <strong id="waPreviewRecipientName">Customer</strong>
+                    </div>
+                    <div class="war-phone-wrap">
+                        <span class="war-prefix">+91</span>
+                        <input type="tel" id="waPreviewPhoneInput" placeholder="10-digit WhatsApp No" maxlength="10" inputmode="numeric" autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Preview Toolbar (Visual Bubble vs Edit Text + Copy) -->
+                <div class="wa-preview-toolbar">
+                    <span class="wpt-badge">💬 Message Preview</span>
+                    <div class="wpt-actions">
+                        <button type="button" class="wpt-btn" id="toggleWaRawEditBtn" title="Edit message text">✏️ Edit Text</button>
+                        <button type="button" class="wpt-btn" id="copyWaPreviewTextBtn" title="Copy message to clipboard">📋 Copy</button>
+                    </div>
+                </div>
+
+                <!-- Realistic WhatsApp Chat Bubble Preview -->
+                <div class="wa-chat-wallpaper" id="waChatPreviewContainer">
+                    <div class="wa-chat-bubble" id="waPreviewFormattedBubble"></div>
+                </div>
+
+                <!-- Optional Editable Raw Message Textarea (Hidden unless "Edit Text" tapped) -->
+                <textarea class="wa-raw-textarea" id="waPreviewMessageInput" rows="9" style="display: none;" aria-label="WhatsApp Message Text"></textarea>
+            </div>
+
+            <div class="cust-popup-foot wa-preview-foot">
+                <button type="button" class="btn-secondary-sm" id="cancelWaPreviewBtn">Cancel</button>
+                <button type="button" class="btn-wa-send-confirm" id="confirmSendWhatsappBtn">
+                    <i data-lucide="send" class="icon-xs"></i>
+                    <span>Send on WhatsApp</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== BOTTOM NAVIGATION BAR (LUCIDE ICONS) ==================== -->
+    <nav class="bottom-nav">
+        <button type="button" class="b-nav-item active" data-tab="tab-bill">
+            <span class="b-nav-icon"><i data-lucide="file-plus-2"></i></span>
+            <span class="b-nav-label" data-i18n="navCalculator">New Bill</span>
+        </button>
+        <button type="button" class="b-nav-item" data-tab="tab-customers">
+            <span class="b-nav-icon"><i data-lucide="users"></i></span>
+            <span class="b-nav-label" data-i18n="navCustomers">Customers</span>
+            <span class="b-nav-badge" id="navCustomerCount">0</span>
+        </button>
+        <button type="button" class="b-nav-item" data-tab="tab-history">
+            <span class="b-nav-icon"><i data-lucide="receipt"></i></span>
+            <span class="b-nav-label" data-i18n="navHistory">Bills</span>
+            <span class="b-nav-badge" id="navHistoryCount">0</span>
+        </button>
+        <button type="button" class="b-nav-item" data-tab="tab-rates">
+            <span class="b-nav-icon"><i data-lucide="sliders-horizontal"></i></span>
+            <span class="b-nav-label" data-i18n="navRates">Rates</span>
+        </button>
+        <button type="button" class="b-nav-item" data-tab="tab-brand">
+            <span class="b-nav-icon"><i data-lucide="building-2"></i></span>
+            <span class="b-nav-label" data-i18n="navCompany">Company</span>
+        </button>
+    </nav>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="app.js?v=46"></script>
+</body>
+</html>
