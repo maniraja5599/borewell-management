@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=47">
+    <link rel="stylesheet" href="styles.css?v=48">
 </head>
 <body>
     <!-- ==================== TOP APP SHELL HEADER ==================== -->
@@ -382,18 +382,18 @@
                     </div>
                 </div>
 
-                <!-- STAGE 3: SIMPLE PVC CASING PIPES (Auto-opens as soon as Drilling Depth is entered) -->
+                <!-- STAGE 3: SIMPLE CASING PIPES (Auto-opens as soon as Drilling Depth is entered) -->
                 <div class="ui-card prog-reveal-card simple-work-card" id="progCasingSection" style="display: none;">
                     <div class="simple-card-head">
-                        <span class="simple-card-title">3. PVC Casing Pipes</span>
+                        <span class="simple-card-title">3. Casing Pipes</span>
                         <strong class="simple-card-amount" id="liveInlineCasingTotalBadge">₹0</strong>
                     </div>
 
                     <div class="simple-pvc-grid">
-                        <!-- 1st PVC Box (7" PVC - Focused on Next from Drilling Depth) -->
+                        <!-- 1st Casing Box (7" Casing Pipe - Focused on Next from Base Rate) -->
                         <div class="simple-pvc-card casing-box">
                             <div class="spvc-top">
-                                <label for="pvc7Length" id="labelPvc7Name">7" PVC Pipe</label>
+                                <label for="pvc7Length" id="labelPvc7Name">7" Casing Pipe</label>
                                 <span id="hintPvc7Rate" style="display:none;">₹400</span>
                                 <strong id="liveInlinePvc7Cost" class="spvc-cost">₹0</strong>
                             </div>
@@ -405,16 +405,16 @@
                                 <span class="spvc-rate-lbl">Rate:</span>
                                 <div class="spvc-rate-input-box">
                                     <span>₹</span>
-                                    <input type="number" id="pvc7RateInput" value="400" min="1" inputmode="numeric" tabindex="-1" aria-label="7 inch PVC Pipe Rate">
+                                    <input type="number" id="pvc7RateInput" value="400" min="1" inputmode="numeric" tabindex="-1" aria-label="7 inch Casing Pipe Rate">
                                     <small>/ft</small>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 2nd PVC Box (10" PVC - Focused on Next from 7" PVC) -->
+                        <!-- 2nd Casing Box (10" Casing Pipe - Focused on Next from 7" Casing) -->
                         <div class="simple-pvc-card casing-box">
                             <div class="spvc-top">
-                                <label for="pvc10Length" id="labelPvc10Name">10" PVC Pipe</label>
+                                <label for="pvc10Length" id="labelPvc10Name">10" Casing Pipe</label>
                                 <span id="hintPvc10Rate" style="display:none;">₹700</span>
                                 <strong id="liveInlinePvc10Cost" class="spvc-cost">₹0</strong>
                             </div>
@@ -426,7 +426,7 @@
                                 <span class="spvc-rate-lbl">Rate:</span>
                                 <div class="spvc-rate-input-box">
                                     <span>₹</span>
-                                    <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch PVC Pipe Rate">
+                                    <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch Casing Pipe Rate">
                                     <small>/ft</small>
                                 </div>
                             </div>
@@ -472,11 +472,11 @@
                         </div>
                         <div class="form-row-3">
                             <div class="field-group">
-                                <label for="quickPvc7Rate">7" PVC (₹/ft)</label>
+                                <label for="quickPvc7Rate">7" Casing (₹/ft)</label>
                                 <input type="number" id="quickPvc7Rate" value="400" inputmode="numeric">
                             </div>
                             <div class="field-group">
-                                <label for="quickPvc10Rate">10" PVC (₹/ft)</label>
+                                <label for="quickPvc10Rate">10" Casing (₹/ft)</label>
                                 <input type="number" id="quickPvc10Rate" value="700" inputmode="numeric">
                             </div>
                             <div class="field-group">
@@ -701,11 +701,11 @@
                             <strong id="rcptDrillingTotal">₹1,07,000</strong>
                         </div>
                         <div class="charge-line" id="rcptPvc7Row">
-                            <span id="rcptPvc7Label">7" PVC Pipe (30 ft × ₹400/ft)</span>
+                            <span id="rcptPvc7Label">7" Casing Pipe (30 ft × ₹400/ft)</span>
                             <strong id="rcptPvc7Amount">₹12,000</strong>
                         </div>
                         <div class="charge-line" id="rcptPvc10Row">
-                            <span id="rcptPvc10Label">10" PVC Pipe (15 ft × ₹700/ft)</span>
+                            <span id="rcptPvc10Label">10" Casing Pipe (15 ft × ₹700/ft)</span>
                             <strong id="rcptPvc10Amount">₹10,500</strong>
                         </div>
                         <div class="charge-line" id="rcptBataRow">
@@ -739,7 +739,7 @@
                         <div class="charge-line grand-total-line">
                             <div>
                                 <span class="gt-title" data-i18n="grandTotal">TOTAL AMOUNT</span>
-                                <small class="gt-sub" id="rcptAvgPerFootSub">Avg: ₹164.4 / ft</small>
+                                <small class="gt-sub" id="rcptAvgPerFootSub" style="display: none;"></small>
                             </div>
                             <span class="gt-value" id="rcptGrandTotal">₹1,31,500</span>
                         </div>
@@ -1132,17 +1132,17 @@
                         </div>
                     </div>
 
-                    <div class="rate-category-label" style="margin-top: 10px;">PVC Casing Pipe, Labour & GST</div>
+                    <div class="rate-category-label" style="margin-top: 10px;">Casing Pipe, Labour & GST</div>
                     <div class="rate-tiles-grid-2">
                         <div class="rate-metric-tile">
-                            <label for="masterPvc7Rate">7" PVC Casing Pipe</label>
+                            <label for="masterPvc7Rate">7" Casing Pipe</label>
                             <div class="rmt-input-row">
                                 <input type="number" id="masterPvc7Rate" value="400" inputmode="numeric">
                                 <span class="rmt-unit">₹/ft</span>
                             </div>
                         </div>
                         <div class="rate-metric-tile">
-                            <label for="masterPvc10Rate">10" PVC Casing Pipe</label>
+                            <label for="masterPvc10Rate">10" Casing Pipe</label>
                             <div class="rmt-input-row">
                                 <input type="number" id="masterPvc10Rate" value="700" inputmode="numeric">
                                 <span class="rmt-unit">₹/ft</span>
@@ -1741,7 +1741,7 @@
                                 </div>
                             </div>
                             <div class="cdm-kv-row">
-                                <span class="ckv-label">🟦 Total PVC Pipe Installed</span>
+                                <span class="ckv-label">🟦 Total Casing Pipe Installed</span>
                                 <div class="ckv-right">
                                     <strong id="cdmTotalPipeFt">0 ft</strong>
                                     <small id="cdmPipeBreakdownSub">7": 0 ft • 10": 0 ft</small>
@@ -1856,6 +1856,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=47"></script>
+    <script src="app.js?v=48"></script>
 </body>
 </html>

@@ -49,7 +49,7 @@ const I18N_DICTIONARY = {
         drillingAndPipeInputs: "Drilling & Casing",
         resetValues: "Reset",
         drillingSectionLabel: "1. Borewell Drilling",
-        casingSectionLabel: "2. PVC Casing Pipes",
+        casingSectionLabel: "2. Casing Pipes",
         oldBoreDepth: "Old Bore Flushing",
         totalDepth: "Total Drilling Depth",
         tapOrTypeDepth: "Slab rate auto-calculated",
@@ -915,7 +915,7 @@ class BoreBillSaaSApp {
         const gstAmount = gstEnabled ? Math.round((taxableAmount * this.rates.gstPercentage) / 100) : 0;
         const grandTotal = taxableAmount + gstAmount;
         const balancePayable = Math.max(0, grandTotal - advancePaidAmount);
-        const avgPerFoot = totalDepth > 0 ? (grandTotal / totalDepth) : 0;
+        const avgPerFoot = totalDepth > 0 ? (drillingCost / totalDepth) : 0;
 
         this.lastResult = {
             drillingType: s.drillingType,
@@ -1306,10 +1306,10 @@ class BoreBillSaaSApp {
         }
 
         document.getElementById('rcptDrillingTotal').textContent = this.formatINR(res.drillingCost);
-        document.getElementById('rcptPvc7Label').textContent = `7" PVC Pipe (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
+        document.getElementById('rcptPvc7Label').textContent = `7" Casing Pipe (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
         document.getElementById('rcptPvc7Amount').textContent = this.formatINR(res.pvc7Cost);
 
-        document.getElementById('rcptPvc10Label').textContent = `10" PVC Pipe (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;
+        document.getElementById('rcptPvc10Label').textContent = `10" Casing Pipe (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;
         document.getElementById('rcptPvc10Amount').textContent = this.formatINR(res.pvc10Cost);
 
         document.getElementById('rcptBataAmount').textContent = this.formatINR(res.boreBataCost);
@@ -1346,7 +1346,11 @@ class BoreBillSaaSApp {
         }
 
         document.getElementById('rcptGrandTotal').textContent = this.formatINR(res.grandTotal);
-        document.getElementById('rcptAvgPerFootSub').textContent = `Avg: ₹${res.avgPerFoot.toFixed(1)} / ft`;
+        const rcptAvgEl = document.getElementById('rcptAvgPerFootSub');
+        if (rcptAvgEl) {
+            rcptAvgEl.textContent = '';
+            rcptAvgEl.style.display = 'none';
+        }
 
         const advRow = document.getElementById('rcptAdvanceRow');
         const balRow = document.getElementById('rcptBalanceRow');
@@ -3107,12 +3111,12 @@ class BoreBillSaaSApp {
                             </span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🟦 7" PVC Casing Pipe</span>
+                            <span class="cbc-r-lbl">🟦 7" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc7Ft} ft <small>(@ ₹${pvc7Rate}/ft)</small> • <strong>${this.formatINR(pvc7Cost)}</strong></span>
                         </div>
                         ${pvc10Ft > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🟦 10" PVC Casing Pipe</span>
+                            <span class="cbc-r-lbl">🟦 10" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc10Ft} ft <small>(@ ₹${pvc10Rate}/ft)</small> • <strong>${this.formatINR(pvc10Cost)}</strong></span>
                         </div>
                         ` : ''}
@@ -3790,11 +3794,11 @@ class BoreBillSaaSApp {
                             <strong class="rpc-spec-val">₹${r.baseDrillingRate}/ft</strong>
                         </div>
                         <div class="rpc-spec-box">
-                            <span class="rpc-spec-lbl">7" PVC Pipe</span>
+                            <span class="rpc-spec-lbl">7" Casing Pipe</span>
                             <strong class="rpc-spec-val">₹${r.pvc7Rate}/ft</strong>
                         </div>
                         <div class="rpc-spec-box">
-                            <span class="rpc-spec-lbl">10" PVC Pipe</span>
+                            <span class="rpc-spec-lbl">10" Casing Pipe</span>
                             <strong class="rpc-spec-val">₹${r.pvc10Rate}/ft</strong>
                         </div>
                         <div class="rpc-spec-box">
@@ -4494,10 +4498,10 @@ class BoreBillSaaSApp {
 
         const otherLines = [];
         if (res.pvc7Length > 0) {
-            otherLines.push(`• 7" PVC Pipe (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+            otherLines.push(`• 7" Casing Pipe (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
         }
         if (res.pvc10Length > 0) {
-            otherLines.push(`• 10" PVC Pipe (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
+            otherLines.push(`• 10" Casing Pipe (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
         }
         if (res.boreBataCost > 0) {
             otherLines.push(`• Bore Bata : *${this.formatINR(res.boreBataCost)}*`);
@@ -4715,7 +4719,7 @@ class BoreBillSaaSApp {
             lines.push(`*⛏️ BOREWELL & PIPE SUMMARY:*`);
             lines.push(`• Total Bores : *${agg.boresCount} ${agg.boresCount === 1 ? 'Bore' : 'Bores'}*`);
             lines.push(`• Total Drilled : *${agg.totalDrilledFt.toLocaleString('en-IN')} ft*`);
-            lines.push(`• Total PVC Pipe : *${agg.totalPipeFt.toLocaleString('en-IN')} ft* (7": ${agg.totalPvc7Ft}ft, 10": ${agg.totalPvc10Ft}ft)`);
+            lines.push(`• Total Casing Pipe : *${agg.totalPipeFt.toLocaleString('en-IN')} ft* (7": ${agg.totalPvc7Ft}ft, 10": ${agg.totalPvc10Ft}ft)`);
             lines.push(`──────────────────────`);
         }
 
@@ -5310,7 +5314,7 @@ class BoreBillSaaSApp {
                     </div>
                 </div>
                 <div class="khata-actions">
-                    <span class="khata-Quick-stats">Base: ₹${snap.baseDrillingRate}/ft • PVC: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft</span>
+                    <span class="khata-Quick-stats">Base: ₹${snap.baseDrillingRate}/ft • Casing: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft</span>
                     <div class="khata-btn-group">
                         <button type="button" class="btn-wa-xs hist-wa-btn" data-id="${item.id}" title="Preview & Send on WhatsApp">💬 WA</button>
                         <button type="button" class="btn-brand-sm hist-load-btn" data-id="${item.id}">${isInvoice ? 'Open Bill' : 'Open Quote'}</button>
