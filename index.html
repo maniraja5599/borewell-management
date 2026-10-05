@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=51">
+    <link rel="stylesheet" href="styles.css?v=52">
 </head>
 <body>
     <!-- ==================== TOP APP SHELL HEADER ==================== -->
@@ -323,15 +323,26 @@
                         <strong class="simple-card-amount" id="liveInlineDrillingCostBadge">₹0</strong>
                     </div>
 
-                    <!-- Old Bore Flushing Row (Only in Re-Bore Mode) -->
+                    <!-- Old Bore Flushing Row (Only in Re-Bore Mode) — Editable Flushing Depth & Rate/ft -->
                     <div class="simple-rebore-box" id="oldBoreRow" style="display: none;">
-                        <div class="srb-left">
-                            <label for="oldBoreDepth">Old Bore Flushing (ft)</label>
-                            <small>@ <strong id="hintOldBoreRate">₹40</strong>/ft</small>
-                        </div>
-                        <div class="simple-big-input-wrap compact">
-                            <input type="number" id="oldBoreDepth" value="" placeholder="0" min="1" max="2200" inputmode="numeric" enterkeyhint="next">
-                            <span class="sbi-unit">ft</span>
+                        <div class="srb-top-row">
+                            <div class="srb-left">
+                                <label for="oldBoreDepth">Old Bore Flushing (ft)</label>
+                                <div class="srb-rate-inline-wrap">
+                                    <span class="srb-rate-lbl">Rate:</span>
+                                    <div class="spvc-rate-input-box srb-rate-input-box" title="Tap to change Re-Bore / Flushing Rate per ft">
+                                        <span>₹</span>
+                                        <input type="number" id="oldBoreRateInput" value="40" min="1" max="2000" step="5" inputmode="numeric" enterkeyhint="next" aria-label="Old Bore Flushing Rate per foot">
+                                        <small>/ft</small>
+                                    </div>
+                                    <strong class="srb-flush-amt" id="liveInlineOldBoreCost">₹0</strong>
+                                    <strong id="hintOldBoreRate" style="display: none;">₹40</strong>
+                                </div>
+                            </div>
+                            <div class="simple-big-input-wrap compact">
+                                <input type="number" id="oldBoreDepth" value="" placeholder="0" min="1" max="2200" inputmode="numeric" enterkeyhint="next">
+                                <span class="sbi-unit">ft</span>
+                            </div>
                         </div>
                     </div>
 
@@ -760,7 +771,10 @@
                             <span class="rcr-txt" id="rcptCustomNoteText"></span>
                         </div>
                         <div class="receipt-note is-final-bill" id="receiptTermsText">
-                            Thank you ! Makers Of Green India !
+                            Thank you !
+                        </div>
+                        <div class="receipt-website-line" id="rcptWebsiteBox" style="display: none;">
+                            <span>🌐 <strong id="rcptWebsiteText"></strong></span>
                         </div>
                         <div class="receipt-sign-row">
                             <div class="upi-info-text" id="rcptUpiBox" style="display: none;">
@@ -769,6 +783,33 @@
                             <div class="sign-box">
                                 <span data-i18n="forCompany">For</span> <strong id="rcptSignCompany">SRI ANJANEYA BOREWELLS</strong>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Inline Footer & Website Customizer (Ignored in PDF/Image Export) -->
+                <div class="preview-footer-customizer-wrap" id="previewFooterCustomizerWrap">
+                    <div class="pfc-trigger-row">
+                        <button type="button" class="pfc-toggle-btn" id="togglePreviewFooterEditBtn">
+                            <span>✏️ Change Footer Text / Add Website</span>
+                        </button>
+                    </div>
+                    <div class="pfc-drawer-box" id="previewFooterEditDrawer" style="display: none;">
+                        <div class="pfc-grid">
+                            <div class="pfc-field">
+                                <label for="quickPreviewFooterNoteInput">🧾 Bottom Footer Text</label>
+                                <input type="text" id="quickPreviewFooterNoteInput" placeholder="Thank you !" value="Thank you !">
+                            </div>
+                            <div class="pfc-field">
+                                <label for="quickPreviewWebsiteInput">🌐 Website (Optional)</label>
+                                <input type="text" id="quickPreviewWebsiteInput" placeholder="e.g. www.srianjaneyaborewells.com" value="">
+                            </div>
+                        </div>
+                        <div class="pfc-presets-row">
+                            <button type="button" class="fsb-preset-chip" data-quick-footer="Thank you !">🙏 Thank you !</button>
+                            <button type="button" class="fsb-preset-chip" data-quick-footer="Thank you for your business!">🤝 Thank you for your business!</button>
+                            <button type="button" class="fsb-preset-chip" data-quick-footer="Thank you ! Makers Of Green India !">🌱 Makers Of Green India</button>
+                            <button type="button" class="fsb-preset-chip clear-chip" data-quick-footer="">🚫 Hide Text</button>
                         </div>
                     </div>
                 </div>
@@ -1390,8 +1431,9 @@
                         <p id="brandCardTermsText">⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.</p>
                     </div>
                     <div class="bsc-fn-item is-bill-fn">
-                        <span class="bsc-fn-label">🧾 FINAL BILL FOOTER NOTE (Final Bill Only):</span>
-                        <p id="brandCardFinalBillTermsText">Thank you ! Makers Of Green India !</p>
+                        <span class="bsc-fn-label">🧾 FINAL BILL FOOTER NOTE &amp; WEBSITE:</span>
+                        <p id="brandCardFinalBillTermsText">Thank you !</p>
+                        <p id="brandCardWebsiteText" style="display: none; margin-top: 3px; font-weight: 700; color: var(--brand-primary);">🌐 www.example.com</p>
                     </div>
                 </div>
             </div>
@@ -1427,6 +1469,10 @@
                         <div class="field-group full-col">
                             <label for="brandCompanyAddress" data-i18n="officeAddressLabel">Office Address</label>
                             <input type="text" id="brandCompanyAddress" value="6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001">
+                        </div>
+                        <div class="field-group full-col">
+                            <label for="brandWebsite">🌐 Website (Optional — shown on Receipt, PDF &amp; Image)</label>
+                            <input type="text" id="brandWebsite" placeholder="e.g. www.srianjaneyaborewells.com" value="">
                         </div>
                     </div>
                 </div>
@@ -1488,15 +1534,15 @@
                             <div class="fsb-head">
                                 <label for="brandFinalBillTermsNote" data-i18n="finalBillFooterTermsLabel">🧾 Final Bill Footer Note (Final Bill Only)</label>
                                 <div class="fsb-actions">
-                                    <button type="button" class="fsb-mini-btn" id="restoreDefaultBillTermsBtn" title="Set thank you note">🙏 Default</button>
+                                    <button type="button" class="fsb-mini-btn" id="restoreDefaultBillTermsBtn" title="Set Thank you !">🙏 Default</button>
                                     <button type="button" class="fsb-mini-btn danger" id="clearFinalBillTermsBtn" title="Leave empty / hide on Final Bill">✕ Empty</button>
                                 </div>
                             </div>
-                            <input type="text" id="brandFinalBillTermsNote" placeholder="Optional Final Bill footer note (leave blank if not needed)..." value="Thank you ! Makers Of Green India !">
+                            <input type="text" id="brandFinalBillTermsNote" placeholder="Optional Final Bill footer note (e.g. Thank you !)..." value="Thank you !">
                             <div class="fsb-preset-chips" id="finalBillTermsPresetChips">
+                                <button type="button" class="fsb-preset-chip" data-bill-note="Thank you !">🙏 Thank you !</button>
+                                <button type="button" class="fsb-preset-chip" data-bill-note="Thank you for your business!">🤝 Thank you for your business!</button>
                                 <button type="button" class="fsb-preset-chip" data-bill-note="Thank you ! Makers Of Green India !">🌱 Makers Of Green India</button>
-                                <button type="button" class="fsb-preset-chip" data-bill-note="Thank you for your business!">🙏 Thank You</button>
-                                <button type="button" class="fsb-preset-chip" data-bill-note="Borewell work completed. Thank you!">✅ Work Completed</button>
                                 <button type="button" class="fsb-preset-chip clear-chip" data-bill-note="">🚫 None (Empty)</button>
                             </div>
                         </div>
@@ -1973,6 +2019,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=51"></script>
+    <script src="app.js?v=52"></script>
 </body>
 </html>

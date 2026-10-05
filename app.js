@@ -161,13 +161,14 @@ class BoreBillSaaSApp {
             tagline: 'ஆழமான நம்பிக்கை! • High Power Compressor Drilling',
             phones: '+91 96596 57777, 94433 73573',
             address: '6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001',
+            website: '',
             gstNumber: '',
             upiId: '',
             billPrefix: 'AB',
             nextBillSeq: 101,
             nextQuoteSeq: 101,
             termsNote: '⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.',
-            finalBillTermsNote: 'Thank you ! Makers Of Green India !',
+            finalBillTermsNote: 'Thank you !',
             theme: 'emerald',
             logoDataUrl: ''
         };
@@ -193,10 +194,20 @@ class BoreBillSaaSApp {
         if (this.brand.finalBillTermsNote === undefined) {
             this.brand.finalBillTermsNote = this.defaultBrand.finalBillTermsNote;
         }
-        // Ensure Final Bill footer note uses "Thank you ! Makers Of Green India !" instead of old Tamil wording or Quotation disclaimer
-        if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(this.brand.finalBillTermsNote || '')) {
-            this.brand.finalBillTermsNote = this.defaultBrand.finalBillTermsNote;
+        if (this.brand.website === undefined) {
+            this.brand.website = '';
+        }
+        // Migrate old default "Thank you ! Makers Of Green India !" or Tamil wording to clean "Thank you !"
+        const v52FooterMigrated = localStorage.getItem('borebill_v52_footer_migrated') === '1';
+        if (
+            /பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(this.brand.finalBillTermsNote || '') ||
+            (!v52FooterMigrated && (this.brand.finalBillTermsNote || '').trim() === 'Thank you ! Makers Of Green India !')
+        ) {
+            this.brand.finalBillTermsNote = 'Thank you !';
             this.saveToStorage('borebill_brand', this.brand);
+        }
+        if (!v52FooterMigrated) {
+            localStorage.setItem('borebill_v52_footer_migrated', '1');
         }
         this.rates = this.loadFromStorage('borebill_rates', this.defaultRates);
         this.history = this.loadFromStorage('borebill_history', []);
@@ -620,6 +631,7 @@ class BoreBillSaaSApp {
 
         // Instant Rate & Bore Bata fields in New Bill
         setVal('baseDrillingRate', s.baseDrillingRate || this.rates.baseDrillingRate || 90);
+        setVal('oldBoreRateInput', s.oldBoreRate || this.rates.oldBoreRate || 40);
         setVal('billBoreBataInput', this.rates.boreBataRate ?? 2000);
         setVal('pvc7RateInput', this.rates.pvc7Rate || 400);
         setVal('pvc10RateInput', this.rates.pvc10Rate || 700);
@@ -654,10 +666,14 @@ class BoreBillSaaSApp {
     }
 
     persistCurrentSession() {
+        const oldBoreRateInput = document.getElementById('oldBoreRateInput');
         const pvc7RateInput = document.getElementById('pvc7RateInput');
         const pvc10RateInput = document.getElementById('pvc10RateInput');
         const bataInput = document.getElementById('billBoreBataInput');
 
+        if (oldBoreRateInput && oldBoreRateInput.value !== '') {
+            this.rates.oldBoreRate = Math.max(1, parseFloat(oldBoreRateInput.value) || this.rates.oldBoreRate || 40);
+        }
         if (pvc7RateInput && pvc7RateInput.value !== '') {
             this.rates.pvc7Rate = Math.max(1, parseFloat(pvc7RateInput.value) || this.rates.pvc7Rate || 400);
         }
@@ -675,6 +691,7 @@ class BoreBillSaaSApp {
         this.state = {
             ...this.state,
             oldBoreDepth: Math.max(0, parseInt(document.getElementById('oldBoreDepth')?.value, 10) || 0),
+            oldBoreRate: this.rates.oldBoreRate || 40,
             totalDepth: Math.max(0, parseInt(document.getElementById('totalDepth')?.value, 10) || 0),
             baseDrillingRate: Math.max(1, parseFloat(document.getElementById('baseDrillingRate')?.value) || this.rates.baseDrillingRate),
             pvc7Length: Math.max(0, parseFloat(document.getElementById('pvc7Length')?.value) || 0),
@@ -918,12 +935,20 @@ class BoreBillSaaSApp {
         const balancePayable = Math.max(0, grandTotal - advancePaidAmount);
         const avgPerFoot = totalDepth > 0 ? (drillingCost / totalDepth) : 0;
 
+        const validOldBoreDepth = s.drillingType === 'repair'
+            ? (totalDepth > 0 ? Math.min(oldBoreDepth, totalDepth) : oldBoreDepth)
+            : 0;
+        const oldBoreRate = this.rates.oldBoreRate || 40;
+        const oldBoreCost = validOldBoreDepth * oldBoreRate;
+
         this.lastResult = {
             drillingType: s.drillingType,
             docType: s.docType || 'QUOTATION',
             boreDia: s.boreDia,
             totalDepth,
             oldBoreDepth,
+            oldBoreRate,
+            oldBoreCost,
             baseDrillingRate,
             pvc7Length,
             pvc7Rate: this.rates.pvc7Rate,
@@ -1060,6 +1085,10 @@ class BoreBillSaaSApp {
         }
 
         document.getElementById('hintOldBoreRate').textContent = this.formatINR(this.rates.oldBoreRate);
+        const liveOldBoreCostEl = document.getElementById('liveInlineOldBoreCost');
+        if (liveOldBoreCostEl) {
+            liveOldBoreCostEl.textContent = this.formatINR(res.oldBoreCost || 0);
+        }
         document.getElementById('hintPvc7Rate').textContent = this.formatINR(this.rates.pvc7Rate);
         document.getElementById('liveInlinePvc7Cost').textContent = this.formatINR(res.pvc7Cost);
         document.getElementById('hintPvc10Rate').textContent = this.formatINR(this.rates.pvc10Rate);
@@ -1076,10 +1105,12 @@ class BoreBillSaaSApp {
             clearCustGstBtn.style.display = (this.state.custGst || '').trim() ? 'inline-flex' : 'none';
         }
 
-        // Sync Quick Rate Drawer fields if user edited pipe rate or bata inline
+        // Sync Quick Rate Drawer fields if user edited pipe rate, old bore rate, or bata inline
+        const qOldBore = document.getElementById('quickOldBoreRate');
         const qPvc7 = document.getElementById('quickPvc7Rate');
         const qPvc10 = document.getElementById('quickPvc10Rate');
         const qBata = document.getElementById('quickBoreBata');
+        if (qOldBore && document.activeElement !== qOldBore) qOldBore.value = this.rates.oldBoreRate;
         if (qPvc7 && document.activeElement !== qPvc7) qPvc7.value = this.rates.pvc7Rate;
         if (qPvc10 && document.activeElement !== qPvc10) qPvc10.value = this.rates.pvc10Rate;
         if (qBata && document.activeElement !== qBata) qBata.value = this.rates.boreBataRate;
@@ -1382,16 +1413,34 @@ class BoreBillSaaSApp {
             }
         }
 
-        // Document-Specific Official Footer Note (Quotation vs Final Bill)
+        // Document-Specific Official Footer Note (Quotation vs Final Bill) & Optional Website
         const rcptTermsEl = document.getElementById('receiptTermsText');
+        const isQuoteDoc = (res.docType || 'INVOICE') === 'QUOTATION';
+        const footerNote = this.getDocFooterTermsNote(isQuoteDoc ? 'QUOTATION' : 'INVOICE');
         if (rcptTermsEl) {
-            const isQuoteDoc = (res.docType || 'INVOICE') === 'QUOTATION';
-            const footerNote = this.getDocFooterTermsNote(isQuoteDoc ? 'QUOTATION' : 'INVOICE');
             rcptTermsEl.textContent = footerNote;
             rcptTermsEl.style.display = footerNote ? 'block' : 'none';
             rcptTermsEl.classList.toggle('is-quotation', isQuoteDoc);
             rcptTermsEl.classList.toggle('is-final-bill', !isQuoteDoc);
         }
+        const rcptWebBox = document.getElementById('rcptWebsiteBox');
+        const rcptWebTxt = document.getElementById('rcptWebsiteText');
+        const cleanWeb = (this.brand?.website || '').trim();
+        if (rcptWebBox && rcptWebTxt) {
+            rcptWebTxt.textContent = cleanWeb;
+            rcptWebBox.style.display = cleanWeb ? 'block' : 'none';
+        }
+        const quickFooterInp = document.getElementById('quickPreviewFooterNoteInput');
+        if (quickFooterInp && document.activeElement !== quickFooterInp) {
+            quickFooterInp.value = footerNote;
+        }
+        const quickWebInp = document.getElementById('quickPreviewWebsiteInput');
+        if (quickWebInp && document.activeElement !== quickWebInp) {
+            quickWebInp.value = cleanWeb;
+        }
+        document.querySelectorAll('#previewFooterEditDrawer [data-quick-footer]').forEach(chip => {
+            chip.classList.toggle('active', (chip.dataset.quickFooter || '').trim() === footerNote);
+        });
     }
 
     renderInlineSmartSlabDropdown(res = this.lastResult, { skipRowsRebuild = false } = {}) {
@@ -3954,7 +4003,7 @@ class BoreBillSaaSApp {
         let billNote = (b.finalBillTermsNote ?? '').trim();
         // Guarantee the Quotation rock-strata disclaimer or old Tamil thank-you never appears on a Final Bill
         if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(billNote)) {
-            billNote = 'Thank you ! Makers Of Green India !';
+            billNote = 'Thank you !';
         }
         return billNote;
     }
@@ -3969,6 +4018,7 @@ class BoreBillSaaSApp {
         this.brand.nextQuoteSeq = Math.max(1, parseInt(document.getElementById('brandNextQuoteSeq')?.value, 10) || 101);
         this.brand.nextBillSeq = Math.max(1, parseInt(document.getElementById('brandNextBillSeq')?.value, 10) || 101);
         this.brand.address = (document.getElementById('brandCompanyAddress')?.value || '').trim();
+        this.brand.website = (document.getElementById('brandWebsite')?.value || '').trim();
         this.brand.gstNumber = (document.getElementById('brandGstNumber')?.value || '').trim().toUpperCase();
         this.brand.upiId = (document.getElementById('brandUpiId')?.value || '').trim();
         this.brand.termsNote = (document.getElementById('brandTermsNote')?.value || '').trim();
@@ -3976,7 +4026,7 @@ class BoreBillSaaSApp {
         if (billTermsEl) {
             let cleanBillTerms = (billTermsEl.value || '').trim();
             if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(cleanBillTerms)) {
-                cleanBillTerms = 'Thank you ! Makers Of Green India !';
+                cleanBillTerms = 'Thank you !';
                 billTermsEl.value = cleanBillTerms;
             }
             this.brand.finalBillTermsNote = cleanBillTerms;
@@ -4008,6 +4058,7 @@ class BoreBillSaaSApp {
         const tagline = (b.tagline || '').trim();
         const address = (b.address || '').trim();
         const phones = (b.phones || '').trim();
+        const website = (b.website || '').trim();
         const quoteTermsNote = this.getDocFooterTermsNote('QUOTATION');
         const finalBillTermsNote = this.getDocFooterTermsNote('INVOICE');
 
@@ -4040,6 +4091,12 @@ class BoreBillSaaSApp {
             rcptTermsEl.classList.toggle('is-quotation', activeDoc === 'QUOTATION');
             rcptTermsEl.classList.toggle('is-final-bill', activeDoc !== 'QUOTATION');
         }
+        const rcptWebBox = document.getElementById('rcptWebsiteBox');
+        const rcptWebTxt = document.getElementById('rcptWebsiteText');
+        if (rcptWebBox && rcptWebTxt) {
+            rcptWebTxt.textContent = website;
+            rcptWebBox.style.display = website ? 'block' : 'none';
+        }
 
         // Populate Official Company Digital Business Card & Top KPI Strip (Tab 5)
         const setCardTxt = (id, val) => {
@@ -4065,6 +4122,11 @@ class BoreBillSaaSApp {
         setCardTxt('brandCardUpiText', (b.upiId && b.upiId.trim()) ? b.upiId.trim() : 'Not Set');
         setCardTxt('brandCardTermsText', quoteTermsNote || '— None (Hidden on Quotation) —');
         setCardTxt('brandCardFinalBillTermsText', finalBillTermsNote || '— None (Hidden on Final Bill) —');
+        const brandCardWebEl = document.getElementById('brandCardWebsiteText');
+        if (brandCardWebEl) {
+            brandCardWebEl.textContent = website ? `🌐 ${website}` : '';
+            brandCardWebEl.style.display = website ? 'block' : 'none';
+        }
 
         // Highlight active preset chip in Company Settings for Final Bill Footer Note
         document.querySelectorAll('#finalBillTermsPresetChips .fsb-preset-chip').forEach(chip => {
@@ -4123,6 +4185,7 @@ class BoreBillSaaSApp {
         setInputIfNotFocused('brandNextQuoteSeq', b.nextQuoteSeq || 101);
         setInputIfNotFocused('brandNextBillSeq', b.nextBillSeq || 101);
         setInputIfNotFocused('brandCompanyAddress', b.address || '');
+        setInputIfNotFocused('brandWebsite', b.website || '');
         setInputIfNotFocused('brandGstNumber', b.gstNumber || '');
         setInputIfNotFocused('brandUpiId', b.upiId || '');
         setInputIfNotFocused('brandTermsNote', quoteTermsNote);
@@ -4586,9 +4649,11 @@ class BoreBillSaaSApp {
         const bataVal = r.boreBataRate !== undefined ? r.boreBataRate : 2000;
 
         // Instant New Bill Rate & Bata inputs
+        const oldBoreInstant = document.getElementById('oldBoreRateInput');
         const pvc7Instant = document.getElementById('pvc7RateInput');
         const pvc10Instant = document.getElementById('pvc10RateInput');
         const bataInstant = document.getElementById('billBoreBataInput');
+        if (oldBoreInstant) oldBoreInstant.value = r.oldBoreRate || 40;
         if (pvc7Instant) pvc7Instant.value = r.pvc7Rate;
         if (pvc10Instant) pvc10Instant.value = r.pvc10Rate;
         if (bataInstant) bataInstant.value = bataVal;
@@ -5088,9 +5153,6 @@ class BoreBillSaaSApp {
             res.slabDetails.forEach(s => {
                 lines.push(`• ${s.range} : ${s.depth} ft × ₹${s.rate} = *${this.formatINR(s.cost)}*`);
             });
-            if (res.drillingType === 'repair' && res.oldBoreDepth > 0) {
-                lines.push(`• Old Bore Flush (${res.oldBoreDepth} ft × ₹${res.oldBoreRate}) = *${this.formatINR(res.oldBoreCost)}*`);
-            }
             lines.push(`▸ *Drilling Total : ${this.formatINR(res.drillingCost)}*`);
             lines.push(`──────────────────────`);
         }
@@ -5153,6 +5215,7 @@ class BoreBillSaaSApp {
         if (docFooterNote) {
             lines.push(docFooterNote);
         }
+        if (b.website && b.website.trim()) lines.push(`🌐 *Website:* ${b.website.trim()}`);
         if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
         if (b.phones && b.phones.trim()) lines.push(`📞 *Contact:* ${b.phones.trim()}`);
 
@@ -6077,6 +6140,11 @@ class BoreBillSaaSApp {
 
         document.getElementById('totalDepth').value = s.totalDepth > 0 ? s.totalDepth : '';
         document.getElementById('oldBoreDepth').value = s.oldBoreDepth > 0 ? s.oldBoreDepth : '';
+        const savedFlushRate = s.oldBoreRate || (Array.isArray(s.slabDetails) && s.slabDetails[0]?.slabIndex === -1 ? s.slabDetails[0].rate : null) || this.rates.oldBoreRate || 40;
+        this.rates.oldBoreRate = savedFlushRate;
+        if (document.getElementById('oldBoreRateInput')) {
+            document.getElementById('oldBoreRateInput').value = savedFlushRate;
+        }
         document.getElementById('baseDrillingRate').value = s.baseDrillingRate || this.rates.baseDrillingRate || 90;
         document.getElementById('pvc7Length').value = s.pvc7Length > 0 ? s.pvc7Length : '';
         document.getElementById('pvc10Length').value = s.pvc10Length > 0 ? s.pvc10Length : '';
@@ -6768,13 +6836,14 @@ class BoreBillSaaSApp {
         // Old Bore (#oldBoreDepth) -> Drilling Depth (#totalDepth) -> Base Rate (#baseDrillingRate, e.g. 90) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length) -> Done
         // (Skips Bore Bata #billBoreBataInput and PVC Pipe Prices #pvc7RateInput / #pvc10RateInput!)
         const oldBoreDepthEl = document.getElementById('oldBoreDepth');
+        const oldBoreRateEl = document.getElementById('oldBoreRateInput');
         const totalDepthEl = document.getElementById('totalDepth');
         const baseRateEl = document.getElementById('baseDrillingRate');
         const pvc7LenEl = document.getElementById('pvc7Length');
         const pvc10LenEl = document.getElementById('pvc10Length');
-        const seqFlowInputIds = ['custLocation', 'oldBoreDepth', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'];
+        const seqFlowInputIds = ['custLocation', 'oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'];
 
-        [oldBoreDepthEl, totalDepthEl, baseRateEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
+        [oldBoreDepthEl, oldBoreRateEl, totalDepthEl, baseRateEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
             if (!inp) return;
             inp.addEventListener('focus', () => {
                 const card = inp.closest('.casing-box') || inp.closest('.simple-work-card') || inp;
@@ -6792,6 +6861,19 @@ class BoreBillSaaSApp {
         });
 
         oldBoreDepthEl?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
+                if (oldBoreRateEl) {
+                    oldBoreRateEl.focus();
+                    try { oldBoreRateEl.select(); } catch (err) { /* ignore */ }
+                } else if (totalDepthEl) {
+                    totalDepthEl.focus();
+                }
+            }
+        });
+
+        oldBoreRateEl?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
@@ -6851,7 +6933,7 @@ class BoreBillSaaSApp {
                 if (!activeEl) return;
                 if (activeEl.id === 'custLocation') {
                     this.scrollServiceSiteAboveKeyboard();
-                } else if (['oldBoreDepth', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
+                } else if (['oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
                     const card = activeEl.closest('.casing-box') || activeEl.closest('.simple-work-card') || activeEl;
                     this.scrollElementAboveKeyboard(card);
                 }
@@ -7247,7 +7329,7 @@ class BoreBillSaaSApp {
         // Universal Select-All on Focus/Tap & Instant Overwrite on First Keypress for PVC Pipe Rates & All Number Inputs
         const isAutoSelectNumInput = (el) => {
             if (!el || el.tagName !== 'INPUT') return false;
-            return el.type === 'number' || el.id === 'pvc7RateInput' || el.id === 'pvc10RateInput' || el.id === 'baseDrillingRate' || el.id === 'billBoreBataInput';
+            return el.type === 'number' || el.id === 'oldBoreRateInput' || el.id === 'pvc7RateInput' || el.id === 'pvc10RateInput' || el.id === 'baseDrillingRate' || el.id === 'billBoreBataInput';
         };
 
         const triggerSelectAllOnInput = (inp) => {
@@ -7369,7 +7451,10 @@ class BoreBillSaaSApp {
             // Restore current rate if a core Rate input was cleared and left empty on blur
             const rawVal = (inp.value || '').trim();
             if (!rawVal) {
-                if (inp.id === 'pvc7RateInput') {
+                if (inp.id === 'oldBoreRateInput') {
+                    inp.value = this.rates.oldBoreRate || 40;
+                    this.calculateAndRender();
+                } else if (inp.id === 'pvc7RateInput') {
                     inp.value = this.rates.pvc7Rate || 400;
                     this.calculateAndRender();
                 } else if (inp.id === 'pvc10RateInput') {
@@ -7387,9 +7472,9 @@ class BoreBillSaaSApp {
             }
         });
 
-        // Live Inputs (including Instant Pipe Rates, Bore Bata, Client GSTIN & Optional Note in New Bill)
+        // Live Inputs (including Instant Pipe Rates, Old Bore Rate, Bore Bata, Client GSTIN & Optional Note in New Bill)
         const liveInputIds = [
-            'oldBoreDepth', 'totalDepth', 'baseDrillingRate', 'billBoreBataInput',
+            'oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billBoreBataInput',
             'pvc7Length', 'pvc10Length', 'pvc7RateInput', 'pvc10RateInput',
             'custName', 'custPhone', 'custLocation', 'custGstInput', 'billNoInput', 'billDateInput',
             'collarCapCost', 'transportSurveyCost', 'customExtraLabel', 'customExtraAmount',
@@ -7522,6 +7607,9 @@ class BoreBillSaaSApp {
             }
             document.getElementById('totalDepth').value = '';
             document.getElementById('oldBoreDepth').value = '';
+            if (document.getElementById('oldBoreRateInput')) {
+                document.getElementById('oldBoreRateInput').value = this.rates.oldBoreRate || 40;
+            }
             document.getElementById('baseDrillingRate').value = this.rates.baseDrillingRate;
             if (document.getElementById('billBoreBataInput')) {
                 document.getElementById('billBoreBataInput').value = this.rates.boreBataRate ?? 2000;
@@ -7917,7 +8005,7 @@ class BoreBillSaaSApp {
         const brandInputIds = [
             'brandCompanyName', 'brandCompanyTagline', 'brandCompanyPhones',
             'brandBillPrefix', 'brandNextQuoteSeq', 'brandNextBillSeq',
-            'brandCompanyAddress', 'brandGstNumber', 'brandUpiId',
+            'brandCompanyAddress', 'brandWebsite', 'brandGstNumber', 'brandUpiId',
             'brandTermsNote', 'brandFinalBillTermsNote'
         ];
         brandInputIds.forEach(bId => {
@@ -7935,6 +8023,65 @@ class BoreBillSaaSApp {
                     this.syncAutoBillNumber(true);
                 }
                 this.calculateAndRender();
+            });
+        });
+
+        // Quick Inline Footer & Website Customizer right below Receipt Preview
+        document.getElementById('togglePreviewFooterEditBtn')?.addEventListener('click', () => {
+            const drawer = document.getElementById('previewFooterEditDrawer');
+            const btn = document.getElementById('togglePreviewFooterEditBtn');
+            if (!drawer) return;
+            const willOpen = drawer.style.display === 'none';
+            drawer.style.display = willOpen ? 'block' : 'none';
+            btn?.classList.toggle('active', willOpen);
+        });
+
+        document.getElementById('quickPreviewFooterNoteInput')?.addEventListener('input', (e) => {
+            const val = e.target.value || '';
+            const isQuoteDoc = (this.lastResult?.docType || this.state?.docType || 'INVOICE') === 'QUOTATION';
+            if (isQuoteDoc) {
+                this.brand.termsNote = val;
+                const bTerms = document.getElementById('brandTermsNote');
+                if (bTerms) bTerms.value = val;
+            } else {
+                this.brand.finalBillTermsNote = val;
+                const bFinal = document.getElementById('brandFinalBillTermsNote');
+                if (bFinal) bFinal.value = val;
+            }
+            this.saveToStorage('borebill_brand', this.brand);
+            this.applyBrandToUI();
+            this.calculateAndRender();
+        });
+
+        document.getElementById('quickPreviewWebsiteInput')?.addEventListener('input', (e) => {
+            const val = (e.target.value || '').trim();
+            this.brand.website = val;
+            const bWeb = document.getElementById('brandWebsite');
+            if (bWeb) bWeb.value = val;
+            this.saveToStorage('borebill_brand', this.brand);
+            this.applyBrandToUI();
+            this.calculateAndRender();
+        });
+
+        document.querySelectorAll('#previewFooterEditDrawer [data-quick-footer]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const val = chip.dataset.quickFooter || '';
+                const isQuoteDoc = (this.lastResult?.docType || this.state?.docType || 'INVOICE') === 'QUOTATION';
+                if (isQuoteDoc) {
+                    this.brand.termsNote = val;
+                    const bTerms = document.getElementById('brandTermsNote');
+                    if (bTerms) bTerms.value = val;
+                } else {
+                    this.brand.finalBillTermsNote = val;
+                    const bFinal = document.getElementById('brandFinalBillTermsNote');
+                    if (bFinal) bFinal.value = val;
+                }
+                const qInp = document.getElementById('quickPreviewFooterNoteInput');
+                if (qInp) qInp.value = val;
+                this.saveToStorage('borebill_brand', this.brand);
+                this.applyBrandToUI();
+                this.calculateAndRender();
+                this.showToast(val ? `🧾 Footer updated to "${val}"` : '🚫 Footer text hidden');
             });
         });
 

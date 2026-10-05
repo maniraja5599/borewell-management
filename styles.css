@@ -8583,3 +8583,189 @@ input.is-select-all-ready,
     height: 36px;
     font-size: 0.78rem;
 }
+
+/* ==========================================================================
+   EDITABLE RE-BORE / OLD BORE FLUSHING RATE & RECEIPT WEBSITE / FOOTER (v52)
+   ========================================================================== */
+
+.simple-rebore-box .srb-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.srb-rate-inline-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.srb-rate-lbl {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #92400e;
+}
+
+.srb-rate-input-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #ffffff;
+    border: 1.5px solid #f59e0b;
+    border-radius: 7px;
+    padding: 2px 7px;
+    height: 28px;
+    box-shadow: 0 1px 2px rgba(245, 158, 11, 0.12);
+}
+
+.srb-rate-input-box:focus-within {
+    border-color: #d97706;
+    box-shadow: 0 0 0 2.5px rgba(245, 158, 11, 0.22);
+}
+
+.srb-rate-input-box span {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #b45309;
+}
+
+.srb-rate-input-box input {
+    width: 44px;
+    border: none;
+    background: transparent;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #78350f;
+    text-align: center;
+    padding: 0;
+    outline: none;
+}
+
+.srb-rate-input-box small {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #92400e;
+}
+
+.srb-flush-amt {
+    font-family: var(--font-display);
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+/* Optional Website Line on Official Receipt, PDF & Image */
+.receipt-website-line {
+    text-align: center;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--brand-primary-dark);
+    margin: -2px 0 6px;
+    letter-spacing: 0.01em;
+}
+
+.receipt-website-line strong {
+    font-weight: 800;
+    color: var(--brand-primary);
+}
+
+/* Quick Inline Footer & Website Customizer below Receipt Preview */
+.preview-footer-customizer-wrap {
+    margin-top: 8px;
+}
+
+.pfc-trigger-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pfc-toggle-btn {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #475569;
+    border-radius: 8px;
+    padding: 5px 11px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+
+.pfc-toggle-btn:hover,
+.pfc-toggle-btn.active {
+    background: #f0fdf4;
+    border-color: var(--brand-primary);
+    border-style: solid;
+    color: var(--brand-primary-dark);
+}
+
+.pfc-drawer-box {
+    margin-top: 7px;
+    padding: 11px 12px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 11px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.pfc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+@media (max-width: 520px) {
+    .pfc-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pfc-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pfc-field label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #475569;
+}
+
+.pfc-field input {
+    height: 34px;
+    padding: 0 10px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #f8fafc;
+}
+
+.pfc-field input:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    background: #ffffff;
+}
+
+.pfc-presets-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
