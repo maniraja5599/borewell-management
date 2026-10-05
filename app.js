@@ -167,7 +167,7 @@ class BoreBillSaaSApp {
             nextBillSeq: 101,
             nextQuoteSeq: 101,
             termsNote: '⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.',
-            finalBillTermsNote: '🙏 எங்கள் நிறுவனத்தைத் தேர்ந்தெடுத்தமைக்கு நன்றி! • Thank you for your business!',
+            finalBillTermsNote: 'Thank you ! Makers Of Green India !',
             theme: 'emerald',
             logoDataUrl: ''
         };
@@ -193,9 +193,10 @@ class BoreBillSaaSApp {
         if (this.brand.finalBillTermsNote === undefined) {
             this.brand.finalBillTermsNote = this.defaultBrand.finalBillTermsNote;
         }
-        // Ensure Final Bill footer note never contains the Quotation rock-strata disclaimer
-        if (/பாறை கடினம்|rock strata/i.test(this.brand.finalBillTermsNote || '')) {
+        // Ensure Final Bill footer note uses "Thank you ! Makers Of Green India !" instead of old Tamil wording or Quotation disclaimer
+        if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(this.brand.finalBillTermsNote || '')) {
             this.brand.finalBillTermsNote = this.defaultBrand.finalBillTermsNote;
+            this.saveToStorage('borebill_brand', this.brand);
         }
         this.rates = this.loadFromStorage('borebill_rates', this.defaultRates);
         this.history = this.loadFromStorage('borebill_history', []);
@@ -3453,9 +3454,9 @@ class BoreBillSaaSApp {
             return (b.termsNote ?? '').trim();
         }
         let billNote = (b.finalBillTermsNote ?? '').trim();
-        // Guarantee the Quotation rock-strata disclaimer never appears on a Final Bill
-        if (/பாறை கடினம்|rock strata/i.test(billNote)) {
-            billNote = '';
+        // Guarantee the Quotation rock-strata disclaimer or old Tamil thank-you never appears on a Final Bill
+        if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(billNote)) {
+            billNote = 'Thank you ! Makers Of Green India !';
         }
         return billNote;
     }
@@ -3476,9 +3477,9 @@ class BoreBillSaaSApp {
         const billTermsEl = document.getElementById('brandFinalBillTermsNote');
         if (billTermsEl) {
             let cleanBillTerms = (billTermsEl.value || '').trim();
-            if (/பாறை கடினம்|rock strata/i.test(cleanBillTerms)) {
-                cleanBillTerms = '';
-                billTermsEl.value = '';
+            if (/பாறை கடினம்|rock strata|எங்கள் நிறுவனத்தைத்|நன்றி/i.test(cleanBillTerms)) {
+                cleanBillTerms = 'Thank you ! Makers Of Green India !';
+                billTermsEl.value = cleanBillTerms;
             }
             this.brand.finalBillTermsNote = cleanBillTerms;
         }
