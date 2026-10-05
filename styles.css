@@ -8070,6 +8070,652 @@ input.is-select-all-ready,
     justify-content: flex-end;
 }
 
+/* ==========================================================================
+   V50: RECORD PAYMENT (DATE & MULTIPLE INSTALLMENTS), SINGLE BILL DETAIL MODAL,
+   AND NUMBERED (1, 2, 3...) CLEAN RATE LIST + RATE DETAIL MODAL
+   ========================================================================== */
+
+.khata-card.clickable-bill-card {
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.khata-card.clickable-bill-card:hover {
+    border-color: var(--brand-primary);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+}
+
+.khata-card.clickable-bill-card:active {
+    transform: scale(0.995);
+}
+
+.status-pill.static-badge {
+    cursor: default;
+    pointer-events: none;
+}
+
+.btn-record-pay-xs {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    border: 1px solid #059669;
+    background: #ecfdf5;
+    color: #065f46;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.btn-record-pay-xs:hover {
+    background: #059669;
+    color: #ffffff;
+}
+
+.btn-record-pay-xs.has-due-btn {
+    background: #059669;
+    border-color: #047857;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.22);
+}
+
+.btn-record-pay-xs.has-due-btn:hover {
+    background: #047857;
+}
+
+/* Record Payment Modal */
+.record-payment-modal {
+    max-width: 480px;
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.rpm-body {
+    padding: 12px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+}
+
+.rpm-pay-trio {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.rpm-form-card {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.rpm-form-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.rpm-full-fill-chip {
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid #10b981;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 0.68rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rpm-full-fill-chip:hover {
+    background: #059669;
+    color: #ffffff;
+}
+
+.rpm-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.rpm-mode-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.rpm-mode-lbl {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.rpm-mode-pills {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.rpm-mode-pill {
+    padding: 5px 9px;
+    border-radius: 7px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.rpm-mode-pill.active {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary-dark);
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.rpm-save-btn {
+    margin-top: 10px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+}
+
+.rpm-history-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.rpm-hist-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.rpm-history-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.rpm-hist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.rpm-hist-item:last-child {
+    border-bottom: none;
+}
+
+.rpm-hi-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.rpm-hi-date {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.rpm-hi-mode-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    font-size: 0.64rem;
+    font-weight: 700;
+}
+
+.rpm-hi-note {
+    font-size: 0.69rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.rpm-hi-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.rpm-hi-amt {
+    font-family: var(--font-display);
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #15803d;
+}
+
+.rpm-hi-del-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 0.68rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rpm-hi-del-btn:hover {
+    background: #dc2626;
+    color: #ffffff;
+}
+
+/* Inline Payment History Box inside Bill Detail & Customer Bore Card */
+.cbc-pay-history-box {
+    margin: 6px 14px 10px;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+    overflow: hidden;
+}
+
+.cphb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 11px;
+    background: #dcfce7;
+    border-bottom: 1px solid #bbf7d0;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #065f46;
+}
+
+.cphb-rows {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 11px;
+    background: #ffffff;
+}
+
+.cphb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 0.75rem;
+}
+
+.cphb-row:last-child {
+    border-bottom: none;
+}
+
+.cphb-r-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    color: #334155;
+    font-weight: 700;
+}
+
+.cphb-r-amt {
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: #15803d;
+}
+
+.bdm-foot-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+
+.bdm-foot-bar .bdm-foot-left,
+.bdm-foot-bar .bdm-foot-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   RATES SECTION: REDESIGNED DEFAULT SELECTOR + NUMBERED (1, 2, 3...) CLEAN LIST
+   ========================================================================== */
+
+.default-rate-selector-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%);
+    border: 1.5px solid #bbf7d0;
+}
+
+.drsb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.drsb-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #065f46;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.drsb-hint {
+    font-size: 0.67rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.drsb-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.drsb-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.drsb-pill:hover {
+    border-color: var(--brand-primary);
+}
+
+.drsb-pill.is-default {
+    background: #059669;
+    border-color: #047857;
+    color: #ffffff;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.22);
+}
+
+.drsb-radio-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.drsb-pill.is-default .drsb-radio-dot::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ffffff;
+}
+
+/* Clean Numbered (1, 2, 3...) Minimal Rate List Rows */
+.rate-clean-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.rate-clean-row:hover {
+    border-color: var(--brand-primary);
+    background: #f8fafc;
+}
+
+.rate-clean-row.is-active-rate {
+    border-color: var(--brand-primary);
+    background: #f0fdf4;
+}
+
+.rcr-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.rcr-num-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: #f1f5f9;
+    border: 1.5px solid #cbd5e1;
+    color: #0f172a;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rate-clean-row.is-active-rate .rcr-num-badge {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary-dark);
+    color: #ffffff;
+}
+
+.rcr-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.rcr-title-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.rcr-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.rcr-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 800;
+}
+
+.rcr-tag.default-tag {
+    background: #dcfce7;
+    color: #065f46;
+    border: 1px solid #86efac;
+}
+
+.rcr-tag.applied-tag {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+}
+
+.rcr-sub {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rcr-sub strong {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.rcr-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.rcr-default-btn {
+    padding: 4px 8px;
+    border-radius: 7px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rcr-default-btn:hover {
+    border-color: #059669;
+    color: #059669;
+}
+
+.rcr-default-btn.is-def {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #065f46;
+    font-weight: 800;
+    cursor: default;
+}
+
+.rcr-open-arrow {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background: #f1f5f9;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+/* Rate Card Detail Modal */
+.rdm-num-avatar {
+    background: var(--brand-primary) !important;
+    color: #ffffff !important;
+    font-family: var(--font-display);
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+}
+
+.rdm-default-switch-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+}
+
+.rdm-default-switch-banner.is-default-active {
+    background: #ecfdf5;
+    border-color: #86efac;
+}
+
+.rdsb-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.rdsb-title {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.rdsb-sub {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+
 
 
 

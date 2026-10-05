@@ -2565,35 +2565,541 @@ class BoreBillSaaSApp {
         return existing;
     }
 
-    getBillPendingAmount(item) {
-        if (!item || !item.snapshot) return 0;
+    ensureBillPaymentsArray(item) {
+        if (!item || !item.snapshot) return [];
         const snap = item.snapshot;
-        if ((snap.docType || 'QUOTATION') !== 'INVOICE') return 0;
-        if (item.paymentStatus === 'paid') return 0;
+        if (!Array.isArray(item.payments)) {
+            item.payments = [];
+            const initAdv = Math.round(snap.initialAdvanceAmount ?? snap.advancePaidAmount ?? 0);
+            if (snap.initialAdvanceAmount === undefined) {
+                snap.initialAdvanceAmount = initAdv;
+            }
+            if (initAdv > 0) {
+                item.payments.push({
+                    id: 'adv_' + (item.id || Date.now()),
+                    date: item.billDate || new Date().toISOString().split('T')[0],
+                    amount: initAdv,
+                    mode: 'Advance',
+                    note: 'Initial Advance on Bill',
+                    isAdvance: true
+                });
+            }
+        }
+        return item.payments;
+    }
 
-        const hasAdvanceBalance = (snap.advancePaidAmount || 0) > 0 && (snap.balancePayable || 0) > 0;
-        if (hasAdvanceBalance) {
-            return Math.round(snap.balancePayable || 0);
-        }
-        if (item.paymentStatus === 'unpaid') {
-            return Math.round((snap.balancePayable > 0 ? snap.balancePayable : snap.grandTotal) || 0);
-        }
-        return 0;
+    getBillPaymentEntries(item) {
+        if (!item || !item.snapshot) return [];
+        return this.ensureBillPaymentsArray(item);
     }
 
     getBillPaidAmount(item) {
         if (!item || !item.snapshot) return 0;
         const snap = item.snapshot;
-        const grand = Math.round(snap.grandTotal || 0);
         if ((snap.docType || 'QUOTATION') !== 'INVOICE') {
             return Math.round(snap.advancePaidAmount || 0);
         }
-        const pending = this.getBillPendingAmount(item);
-        return Math.max(0, grand - pending);
+        const entries = this.getBillPaymentEntries(item);
+        const totalPaid = entries.reduce((sum, p) => sum + (Math.round(Number(p.amount) || 0)), 0);
+        return Math.max(0, totalPaid);
+    }
+
+    getBillPendingAmount(item) {
+        if (!item || !item.snapshot) return 0;
+        const snap = item.snapshot;
+        if ((snap.docType || 'QUOTATION') !== 'INVOICE') return 0;
+        const grand = Math.round(snap.grandTotal || 0);
+        const paid = this.getBillPaidAmount(item);
+        return Math.max(0, grand - paid);
     }
 
     isBillItemUnpaid(item) {
         return this.getBillPendingAmount(item) > 0;
+    }
+
+    syncBillPaymentSnapshot(item) {
+        if (!item || !item.snapshot) return;
+        const snap = item.snapshot;
+        if ((snap.docType || 'QUOTATION') !== 'INVOICE') return;
+        const paid = this.getBillPaidAmount(item);
+        const pending = this.getBillPendingAmount(item);
+        snap.advancePaidAmount = paid;
+        snap.balancePayable = pending;
+        item.paymentStatus = (pending <= 0 && (snap.grandTotal || 0) > 0) ? 'paid' : 'unpaid';
+    }
+
+    formatPaymentDateDisplay(ymdStr) {
+        if (!ymdStr) return 'Date N/A';
+        try {
+            const parts = String(ymdStr).split('-');
+            if (parts.length === 3) {
+                const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                }
+            }
+            return ymdStr;
+        } catch (e) {
+            return ymdStr;
+        }
+    }
+
+    openRecordPaymentModal(billId) {
+        const item = (this.history || []).find(h => h.id === billId);
+        if (!item || !item.snapshot) return;
+        const overlay = document.getElementById('recordPaymentModalOverlay');
+        if (!overlay) return;
+
+        this.activeRecordPayBillId = item.id;
+        this.ensureBillPaymentsArray(item);
+        this.syncBillPaymentSnapshot(item);
+
+        const idInp = document.getElementById('rpmBillIdInput');
+        if (idInp) idInp.value = item.id;
+
+        const dateInp = document.getElementById('rpmDateInput');
+        if (dateInp && !dateInp.value) {
+            dateInp.value = new Date().toISOString().split('T')[0];
+        } else if (dateInp) {
+            dateInp.value = new Date().toISOString().split('T')[0];
+        }
+
+        const amtInp = document.getElementById('rpmAmountInput');
+        if (amtInp) amtInp.value = '';
+        const noteInp = document.getElementById('rpmNoteInput');
+        if (noteInp) noteInp.value = '';
+
+        this.renderRecordPaymentModalContent(item);
+        overlay.style.display = 'flex';
+        this.refreshIcons();
+        setTimeout(() => amtInp?.focus(), 80);
+    }
+
+    renderRecordPaymentModalContent(item) {
+        if (!item || !item.snapshot) return;
+        const snap = item.snapshot;
+        const displayCust = (item.custName && item.custName !== 'Walk-in Customer') ? item.custName : 'Direct Bill';
+        const siteStr = item.custLocation || 'Site N/A';
+
+        const subEl = document.getElementById('rpmSub');
+        if (subEl) subEl.textContent = `#${item.billNo} • ${displayCust} (${siteStr})`;
+
+        const grand = Math.round(snap.grandTotal || 0);
+        const paid = this.getBillPaidAmount(item);
+        const pending = this.getBillPendingAmount(item);
+        const hasDue = pending > 0;
+
+        const totEl = document.getElementById('rpmTotalBillVal');
+        const paidEl = document.getElementById('rpmTotalPaidVal');
+        const dueEl = document.getElementById('rpmBalanceDueVal');
+        const dueBox = document.getElementById('rpmDueBox');
+        if (totEl) totEl.textContent = this.formatINR(grand);
+        if (paidEl) paidEl.textContent = this.formatINR(paid);
+        if (dueEl) {
+            dueEl.textContent = hasDue ? this.formatINR(pending) : '₹0 (Paid)';
+            dueEl.className = `cdm-pt-val ${hasDue ? 'text-danger' : 'text-green'}`;
+        }
+        if (dueBox) dueBox.classList.toggle('has-due', hasDue);
+
+        const fullBtn = document.getElementById('rpmFillFullBalanceBtn');
+        if (fullBtn) {
+            if (hasDue) {
+                fullBtn.style.display = 'inline-flex';
+                fullBtn.textContent = `Pay Full Due (${this.formatINR(pending)})`;
+            } else {
+                fullBtn.style.display = 'none';
+            }
+        }
+
+        const entries = this.getBillPaymentEntries(item);
+        const countBadge = document.getElementById('rpmHistoryCountBadge');
+        if (countBadge) {
+            countBadge.textContent = `${entries.length} ${entries.length === 1 ? 'Entry' : 'Entries'}`;
+        }
+
+        const listEl = document.getElementById('rpmHistoryList');
+        if (!listEl) return;
+
+        if (entries.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align:center; padding: 18px 12px; color:#64748b; font-size:0.78rem; font-weight:600;">
+                    No payments recorded yet for this bill. Enter date &amp; amount above to record payment.
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = entries.map((p, idx) => `
+            <div class="rpm-hist-item">
+                <div class="rpm-hi-left">
+                    <div class="rpm-hi-date">
+                        <span>#${idx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                        <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
+                    </div>
+                    ${p.note ? `<div class="rpm-hi-note">${this.escapeHtml(p.note)}</div>` : ''}
+                </div>
+                <div class="rpm-hi-right">
+                    <span class="rpm-hi-amt">+ ${this.formatINR(p.amount)}</span>
+                    <button type="button" class="rpm-hi-del-btn" data-payid="${p.id}" title="Remove this payment entry">✕</button>
+                </div>
+            </div>
+        `).join('');
+
+        listEl.querySelectorAll('.rpm-hi-del-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.deleteBillPaymentEntry(item.id, btn.dataset.payid);
+            });
+        });
+    }
+
+    saveNewBillPaymentRecord() {
+        const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
+        const item = (this.history || []).find(h => h.id === billId);
+        if (!item) return;
+
+        const dateVal = (document.getElementById('rpmDateInput')?.value || '').trim() || new Date().toISOString().split('T')[0];
+        const amtInput = document.getElementById('rpmAmountInput');
+        const rawAmt = Math.round(parseFloat(amtInput?.value) || 0);
+        if (rawAmt <= 0) {
+            this.showToast('⚠️ Please enter a valid payment amount (₹)');
+            amtInput?.focus();
+            return;
+        }
+
+        const activeModeBtn = document.querySelector('#rpmModePills .rpm-mode-pill.active');
+        const modeVal = activeModeBtn?.dataset.mode || 'Cash';
+        const noteVal = (document.getElementById('rpmNoteInput')?.value || '').trim();
+
+        const entries = this.ensureBillPaymentsArray(item);
+        entries.push({
+            id: 'pay_' + Date.now() + '_' + Math.floor(Math.random() * 100),
+            date: dateVal,
+            amount: rawAmt,
+            mode: modeVal,
+            note: noteVal
+        });
+
+        this.syncBillPaymentSnapshot(item);
+        this.saveToStorage('borebill_history', this.history);
+
+        if (amtInput) amtInput.value = '';
+        const noteInp = document.getElementById('rpmNoteInput');
+        if (noteInp) noteInp.value = '';
+
+        this.renderRecordPaymentModalContent(item);
+        this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+        this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+
+        if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
+            this.openBillDetailModal(item.id);
+        }
+        if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
+            this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
+        }
+        if (this.loadedHistoryBillId === item.id) {
+            const advEl = document.getElementById('advancePaidAmount');
+            if (advEl) advEl.value = item.snapshot.advancePaidAmount > 0 ? item.snapshot.advancePaidAmount : '';
+            this.calculateAndRender();
+        }
+
+        this.showToast(`✅ Recorded ${this.formatINR(rawAmt)} on ${this.formatPaymentDateDisplay(dateVal)}!`);
+    }
+
+    deleteBillPaymentEntry(billId, payId) {
+        const item = (this.history || []).find(h => h.id === billId);
+        if (!item) return;
+        const entries = this.ensureBillPaymentsArray(item);
+        const idx = entries.findIndex(p => p.id === payId);
+        if (idx === -1) return;
+
+        const removed = entries[idx];
+        entries.splice(idx, 1);
+        if (removed.isAdvance && item.snapshot) {
+            item.snapshot.initialAdvanceAmount = 0;
+        }
+        this.syncBillPaymentSnapshot(item);
+        this.saveToStorage('borebill_history', this.history);
+
+        this.renderRecordPaymentModalContent(item);
+        this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+        this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+
+        if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
+            this.openBillDetailModal(item.id);
+        }
+        if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
+            this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
+        }
+
+        this.showUndoToast(`🗑️ Removed payment ${this.formatINR(removed.amount)}`, () => {
+            entries.splice(idx, 0, removed);
+            this.syncBillPaymentSnapshot(item);
+            this.saveToStorage('borebill_history', this.history);
+            this.renderRecordPaymentModalContent(item);
+            this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+            if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
+                this.openBillDetailModal(item.id);
+            }
+            if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
+                this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
+            }
+        });
+    }
+
+    closeRecordPaymentModal() {
+        const overlay = document.getElementById('recordPaymentModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+        this.activeRecordPayBillId = null;
+    }
+
+    openBillDetailModal(billId) {
+        const item = (this.history || []).find(h => h.id === billId);
+        if (!item || !item.snapshot) return;
+        const overlay = document.getElementById('billDetailModalOverlay');
+        const bodyEl = document.getElementById('bdmBodyContent');
+        const footEl = document.getElementById('bdmFooterActions');
+        if (!overlay || !bodyEl || !footEl) return;
+
+        this.activeDetailBillId = item.id;
+        const snap = item.snapshot;
+        const isInvoice = (snap.docType || 'QUOTATION') === 'INVOICE';
+        const displayCust = (item.custName && item.custName !== 'Walk-in Customer') ? item.custName : 'Direct Bill';
+        const dateStr = this.getHistoryItemDateStr(item) || 'N/A';
+        const siteName = item.custLocation || 'Site N/A';
+        const phoneStr = item.custPhone || '';
+
+        const avatarEl = document.getElementById('bdmAvatar');
+        const titleEl = document.getElementById('bdmTitle');
+        const subEl = document.getElementById('bdmSub');
+        if (avatarEl) avatarEl.textContent = this.getInitials(displayCust);
+        if (titleEl) titleEl.textContent = `${isInvoice ? 'Bill' : 'Quotation'} #${item.billNo} — ${displayCust}`;
+        if (subEl) subEl.textContent = `📍 ${siteName}${phoneStr ? ` • 📞 ${phoneStr}` : ''} • 📅 ${dateStr}`;
+
+        const isRepair = snap.drillingType === 'repair';
+        const workTypeLabel = isRepair ? `Re-Bore (${snap.boreDia || '6.5"'})` : `New Bore (${snap.boreDia || '6.5"'})`;
+        const depthFt = Number(snap.totalDepth || 0);
+        const oldBoreFt = Number(snap.oldBoreDepth || 0);
+        const drillCost = Math.round(snap.drillingCost || 0);
+
+        const pvc7Ft = Number(snap.pvc7Length || 0);
+        const pvc10Ft = Number(snap.pvc10Length || 0);
+        const totalPipeFt = pvc7Ft + pvc10Ft;
+        const pvc7Rate = snap.pvc7Rate || this.rates.pvc7Rate || 400;
+        const pvc10Rate = snap.pvc10Rate || this.rates.pvc10Rate || 700;
+        const pvc7Cost = Math.round(snap.pvc7Cost || (pvc7Ft * pvc7Rate));
+        const pvc10Cost = Math.round(snap.pvc10Cost || (pvc10Ft * pvc10Rate));
+        const totalPipeCost = pvc7Cost + pvc10Cost;
+
+        const bataCost = Math.round(snap.boreBataCost || 0);
+        const collarCost = Math.round(snap.collarCapCost || 0);
+        const transportCost = Math.round(snap.transportSurveyCost || 0);
+        const customExtraCost = Math.round(snap.customExtraAmount || 0);
+        const customExtraLbl = (snap.customExtraLabel || 'Other Extra').trim();
+        const extrasTotal = bataCost + collarCost + transportCost + customExtraCost;
+
+        const extrasParts = [];
+        if (bataCost > 0) extrasParts.push(`Bata: ${this.formatINR(bataCost)}`);
+        if (collarCost > 0) extrasParts.push(`Collar: ${this.formatINR(collarCost)}`);
+        if (transportCost > 0) extrasParts.push(`Transport: ${this.formatINR(transportCost)}`);
+        if (customExtraCost > 0) extrasParts.push(`${this.escapeHtml(customExtraLbl)}: ${this.formatINR(customExtraCost)}`);
+
+        const discountAmt = Math.round(snap.discountAmount || 0);
+        const gstAmt = Math.round(snap.gstAmount || 0);
+        const grandTotal = Math.round(snap.grandTotal || 0);
+        const paidAmt = this.getBillPaidAmount(item);
+        const pendingAmt = this.getBillPendingAmount(item);
+        const hasDue = pendingAmt > 0;
+        const payEntries = this.getBillPaymentEntries(item);
+        const slabRows = Array.isArray(snap.slabDetails) ? snap.slabDetails : [];
+
+        bodyEl.innerHTML = `
+            <div class="cdm-bore-card ${isInvoice ? (hasDue ? 'is-unpaid-bore' : 'is-paid-bore') : 'is-quote-bore'}" style="margin-bottom:0;">
+                <div class="cbc-head">
+                    <div class="cbc-head-left">
+                        <span class="cbc-bore-num-badge ${isInvoice ? '' : 'quote-badge'}">
+                            ${isInvoice ? '🧾 FINAL BILL' : '📋 QUOTATION'}
+                        </span>
+                        <span class="cbc-bill-no">#${this.escapeHtml(item.billNo || '')}</span>
+                        <span class="cbc-date">📅 ${dateStr}</span>
+                    </div>
+                    <div class="cbc-head-right">
+                        ${isInvoice
+                            ? (hasDue
+                                ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                : `<span class="status-pill paid static-badge">✅ Paid</span>`)
+                            : `<span class="status-pill quote static-badge">📋 Quotation</span>`
+                        }
+                    </div>
+                </div>
+
+                <div class="cbc-clean-rows">
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">👤 Customer</span>
+                        <span class="cbc-r-val">${this.escapeHtml(displayCust)}${phoneStr ? ` <small>(${this.escapeHtml(phoneStr)})</small>` : ''}</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">📍 Site Location</span>
+                        <span class="cbc-r-val">${this.escapeHtml(siteName)}</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">⚙️ Bore Type &amp; Base Rate</span>
+                        <span class="cbc-r-val">${workTypeLabel} <small>(Base ₹${snap.baseDrillingRate || 90}/ft)</small></span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">⛏️ Depth Drilled</span>
+                        <span class="cbc-r-val">
+                            ${depthFt.toLocaleString('en-IN')} ft
+                            ${isRepair && oldBoreFt > 0 ? `<small>(Flush ${oldBoreFt} ft)</small>` : ''}
+                            • <strong class="text-brand">${this.formatINR(drillCost)}</strong>
+                        </span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🟦 7" Casing Pipe</span>
+                        <span class="cbc-r-val">${pvc7Ft} ft <small>(@ ₹${pvc7Rate}/ft)</small> • <strong>${this.formatINR(pvc7Cost)}</strong></span>
+                    </div>
+                    ${pvc10Ft > 0 ? `
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🟦 10" Casing Pipe</span>
+                        <span class="cbc-r-val">${pvc10Ft} ft <small>(@ ₹${pvc10Rate}/ft)</small> • <strong>${this.formatINR(pvc10Cost)}</strong></span>
+                    </div>
+                    ` : ''}
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">📏 Total Casing Installed</span>
+                        <span class="cbc-r-val">${totalPipeFt.toLocaleString('en-IN')} ft • <strong class="text-brand">${this.formatINR(totalPipeCost)}</strong></span>
+                    </div>
+                    ${extrasTotal > 0 ? `
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🛠️ Bata &amp; Extras</span>
+                        <span class="cbc-r-val"><small>${extrasParts.join(', ')}</small> • <strong>${this.formatINR(extrasTotal)}</strong></span>
+                    </div>
+                    ` : ''}
+                    ${discountAmt > 0 ? `
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🏷️ Discount</span>
+                        <span class="cbc-r-val text-green">−${this.formatINR(discountAmt)}</span>
+                    </div>
+                    ` : ''}
+                    ${gstAmt > 0 ? `
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🧾 GST</span>
+                        <span class="cbc-r-val">+${this.formatINR(gstAmt)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="cbc-row highlight-row">
+                        <span class="cbc-r-lbl">💰 ${isInvoice ? 'Total Bill Amount' : 'Estimated Total'}</span>
+                        <span class="cbc-r-val" style="font-size: 0.92rem;">${this.formatINR(grandTotal)}</span>
+                    </div>
+                    ${isInvoice ? `
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">✅ Paid Amount</span>
+                        <span class="cbc-r-val text-green">${this.formatINR(paidAmt)}</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">⏳ Balance Due</span>
+                        <span class="cbc-r-val ${hasDue ? 'text-danger' : 'text-green'}">${hasDue ? this.formatINR(pendingAmt) : '₹0 (Settled)'}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                ${isInvoice ? `
+                <div class="cbc-pay-history-box">
+                    <div class="cphb-head">
+                        <span>💳 Date-wise Payment History (${payEntries.length})</span>
+                        <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''}" id="bdmInlineRecordPayBtn">
+                            ${hasDue ? '＋ Record Payment' : '💳 Edit Payments'}
+                        </button>
+                    </div>
+                    <div class="cphb-rows">
+                        ${payEntries.length > 0
+                            ? payEntries.map((p, idx) => `
+                                <div class="cphb-row">
+                                    <span class="cphb-r-left">
+                                        <span>#${idx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                                        <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
+                                        ${p.note ? `<small style="color:#64748b;">(${this.escapeHtml(p.note)})</small>` : ''}
+                                    </span>
+                                    <span class="cphb-r-amt">+ ${this.formatINR(p.amount)}</span>
+                                </div>
+                            `).join('')
+                            : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet. Tap "＋ Record Payment" to add date &amp; amount.</div>`
+                        }
+                    </div>
+                </div>
+                ` : ''}
+
+                ${slabRows.length > 0 ? `
+                    <details class="cbc-slab-details">
+                        <summary>
+                            <span>📐 View Depth Slab Breakup (${slabRows.length} ${slabRows.length === 1 ? 'Slab' : 'Slabs'})</span>
+                            <span>▾</span>
+                        </summary>
+                        <table class="cbc-slab-table">
+                            <thead>
+                                <tr>
+                                    <th>Depth Slab</th>
+                                    <th>Feet</th>
+                                    <th>Rate/ft</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${slabRows.map(sr => `
+                                    <tr>
+                                        <td>${this.escapeHtml(sr.range)}</td>
+                                        <td>${sr.depth} ft</td>
+                                        <td>₹${sr.rate}</td>
+                                        <td>${this.formatINR(sr.cost)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+
+        footEl.innerHTML = `
+            <div class="bdm-foot-left">
+                ${isInvoice ? `
+                    <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''}" id="bdmFootRecordPayBtn">
+                        💳 ${hasDue ? 'Record Payment' : 'Payments'}
+                    </button>
+                ` : ''}
+                <button type="button" class="btn-wa-xs" id="bdmFootWaBtn">💬 WhatsApp</button>
+            </div>
+            <div class="bdm-foot-right">
+                <button type="button" class="btn-secondary-sm" id="bdmFootEditBtn">✏️ Edit</button>
+                <button type="button" class="btn-brand-sm" id="bdmFootReceiptBtn">🧾 Receipt / PDF</button>
+            </div>
+        `;
+
+        document.getElementById('bdmInlineRecordPayBtn')?.addEventListener('click', () => {
+            this.openRecordPaymentModal(item.id);
+        });
+        document.getElementById('bdmFootRecordPayBtn')?.addEventListener('click', () => {
+            this.openRecordPaymentModal(item.id);
+        });
+        document.getElementById('bdmFootWaBtn')?.addEventListener('click', () => {
+            this.shareSavedHistoryBillOnWhatsApp(item.id);
+        });
+        document.getElementById('bdmFootEditBtn')?.addEventListener('click', () => {
+            this.closeBillDetailModal();
+            this.loadBillFromHistory(item.id, false, true);
+        });
+        document.getElementById('bdmFootReceiptBtn')?.addEventListener('click', () => {
+            this.closeBillDetailModal();
+            this.loadBillFromHistory(item.id, true, true);
+        });
+
+        overlay.style.display = 'flex';
+        this.refreshIcons();
+    }
+
+    closeBillDetailModal() {
+        const overlay = document.getElementById('billDetailModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+        this.activeDetailBillId = null;
     }
 
     getCustomerMatchingBills(cust) {
@@ -3071,6 +3577,7 @@ class BoreBillSaaSApp {
             if (customExtraCost > 0) extrasParts.push(`${this.escapeHtml(customExtraLbl)}: ${this.formatINR(customExtraCost)}`);
 
             const slabRows = Array.isArray(snap.slabDetails) ? snap.slabDetails : [];
+            const payEntries = this.getBillPaymentEntries(item);
 
             return `
                 <div class="cdm-bore-card ${isInvoice ? (hasDue ? 'is-unpaid-bore' : 'is-paid-bore') : 'is-quote-bore'}">
@@ -3086,9 +3593,9 @@ class BoreBillSaaSApp {
                         <div class="cbc-head-right">
                             ${isInvoice
                                 ? (hasDue
-                                    ? `<button type="button" class="status-pill due clickable-pay-toggle cdm-bore-pay-toggle" data-id="${item.id}" title="Tap to mark as Paid">🔴 Due: ${this.formatINR(pendingAmt)}</button>`
-                                    : `<button type="button" class="status-pill paid clickable-pay-toggle cdm-bore-pay-toggle" data-id="${item.id}" title="Tap to mark as Unpaid">✅ Paid</button>`)
-                                : `<span class="status-pill quote">📋 Quotation</span>`
+                                    ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                    : `<span class="status-pill paid static-badge">✅ Paid</span>`)
+                                : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                             }
                         </div>
                     </div>
@@ -3159,6 +3666,32 @@ class BoreBillSaaSApp {
                         ` : ''}
                     </div>
 
+                    ${isInvoice ? `
+                    <div class="cbc-pay-history-box">
+                        <div class="cphb-head">
+                            <span>💳 Date-wise Payment History (${payEntries.length})</span>
+                            <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} cdm-bore-pay-btn" data-id="${item.id}">
+                                ${hasDue ? '＋ Record Payment' : '💳 Edit Payments'}
+                            </button>
+                        </div>
+                        <div class="cphb-rows">
+                            ${payEntries.length > 0
+                                ? payEntries.map((p, pIdx) => `
+                                    <div class="cphb-row">
+                                        <span class="cphb-r-left">
+                                            <span>#${pIdx + 1} • 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                                            <span class="rpm-hi-mode-tag">${this.escapeHtml(p.mode || 'Cash')}</span>
+                                            ${p.note ? `<small style="color:#64748b;">(${this.escapeHtml(p.note)})</small>` : ''}
+                                        </span>
+                                        <span class="cphb-r-amt">+ ${this.formatINR(p.amount)}</span>
+                                    </div>
+                                `).join('')
+                                : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet. Tap "＋ Record Payment" to add date &amp; amount.</div>`
+                            }
+                        </div>
+                    </div>
+                    ` : ''}
+
                     <!-- Expandable Depth Slab Breakup Table -->
                     ${slabRows.length > 0 ? `
                         <details class="cbc-slab-details">
@@ -3193,13 +3726,13 @@ class BoreBillSaaSApp {
                     <div class="cbc-foot">
                         <div class="cbc-foot-btns">
                             ${isInvoice ? `
-                                <button type="button" class="btn-secondary-sm cdm-bore-pay-toggle" data-id="${item.id}">
-                                    ${hasDue ? '✅ Mark Paid' : '↺ Mark Unpaid'}
+                                <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} cdm-bore-pay-btn" data-id="${item.id}">
+                                    💳 ${hasDue ? 'Record Payment' : 'Payments'}
                                 </button>
                             ` : ''}
                             <button type="button" class="btn-wa-xs cdm-bore-wa-btn" data-id="${item.id}">💬 WA Bill</button>
                             <button type="button" class="btn-secondary-sm cdm-bore-edit-btn" data-id="${item.id}">✏️ Edit</button>
-                            <button type="button" class="btn-brand-sm cdm-bore-view-btn" data-id="${item.id}">👁️ Open Bill</button>
+                            <button type="button" class="btn-brand-sm cdm-bore-view-btn" data-id="${item.id}">🧾 Receipt / PDF</button>
                         </div>
                     </div>
                 </div>
@@ -3207,22 +3740,10 @@ class BoreBillSaaSApp {
         }).join('');
 
         // Wire Bore Card action buttons inside the modal
-        listEl.querySelectorAll('.cdm-bore-pay-toggle').forEach(btn => {
+        listEl.querySelectorAll('.cdm-bore-pay-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const target = this.history.find(h => h.id === btn.dataset.id);
-                if (!target) return;
-                const currentlyUnpaid = this.isBillItemUnpaid(target);
-                target.paymentStatus = currentlyUnpaid ? 'paid' : 'unpaid';
-                this.saveToStorage('borebill_history', this.history);
-                this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-                this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-                this.openCustomerDetailModal(cust.id, null, 'bores');
-                this.showToast(
-                    target.paymentStatus === 'paid'
-                        ? `✅ Bore Bill #${target.billNo} marked as Paid!`
-                        : `🔴 Bore Bill #${target.billNo} marked as Pending Due`
-                );
+                this.openRecordPaymentModal(btn.dataset.id);
             });
         });
 
@@ -3697,7 +4218,9 @@ class BoreBillSaaSApp {
 
         const badgeEl = document.getElementById('activeRateProfileBadge');
         if (badgeEl && activeProf) {
-            badgeEl.textContent = `${activeProf.isDefault ? '★ ' : ''}${activeProf.name}`;
+            const activeIdx = this.rateProfiles.findIndex(p => p.id === activeProf.id);
+            const numPrefix = activeIdx !== -1 ? `#${activeIdx + 1} ` : '';
+            badgeEl.textContent = `${numPrefix}${activeProf.name}`;
         }
 
         // Top KPI Strip on Tab 4 (Rates)
@@ -3705,23 +4228,25 @@ class BoreBillSaaSApp {
         const kpiDefault = document.getElementById('rateKpiDefaultName');
         const kpiCount = document.getElementById('rateKpiTotalCount');
         if (kpiActive && activeProf) {
-            kpiActive.textContent = `${activeProf.name} (₹${activeProf.rates.baseDrillingRate})`;
+            const aIdx = this.rateProfiles.findIndex(p => p.id === activeProf.id);
+            kpiActive.textContent = `${aIdx !== -1 ? `${aIdx + 1}. ` : ''}${activeProf.name} (₹${activeProf.rates.baseDrillingRate})`;
         }
         if (kpiDefault && defaultProf) {
-            kpiDefault.textContent = `★ ${defaultProf.name}`;
+            const dIdx = this.rateProfiles.findIndex(p => p.id === defaultProf.id);
+            kpiDefault.textContent = `${dIdx !== -1 ? `${dIdx + 1}. ` : ''}${defaultProf.name}`;
         }
         if (kpiCount) {
-            kpiCount.textContent = `${this.rateProfiles.length} ${this.rateProfiles.length === 1 ? 'Card' : 'Cards'}`;
+            kpiCount.textContent = `${this.rateProfiles.length} ${this.rateProfiles.length === 1 ? 'Rate' : 'Rates'}`;
         }
 
-        // 1. Render Quick 1-Tap Rate Profile Chips on New Bill Tab
+        // 1. Render Quick 1-Tap Rate Profile Chips on New Bill Tab (Numbered 1, 2, 3...)
         const billPillsEl = document.getElementById('billRateProfilePills');
         if (billPillsEl) {
-            billPillsEl.innerHTML = this.rateProfiles.map(p => {
+            billPillsEl.innerHTML = this.rateProfiles.map((p, idx) => {
                 const isActive = p.id === this.activeRateProfileId;
                 return `
                     <button type="button" class="rp-chip ${isActive ? 'active' : ''}" data-rpid="${p.id}">
-                        <span>${isActive ? '✓ ' : ''}${p.isDefault ? '★ ' : ''}${p.name}</span>
+                        <span>${idx + 1}. ${this.escapeHtml(p.name)}</span>
                         <small>₹${p.rates.baseDrillingRate}/ft</small>
                     </button>
                 `;
@@ -3742,178 +4267,287 @@ class BoreBillSaaSApp {
             });
         }
 
-        // 2. Render Saved Rate Preset Cards Deck on Tab 4 (Rates)
+        // 2. Render Redesigned Default Rate Selector Strip on Tab 4 (Rates)
+        const defBarEl = document.getElementById('defaultRateSelectorBar');
+        if (defBarEl) {
+            defBarEl.innerHTML = `
+                <div class="drsb-top">
+                    <span class="drsb-label">✓ Default Rate for New Bills</span>
+                    <span class="drsb-hint">Tap to switch default</span>
+                </div>
+                <div class="drsb-pills">
+                    ${this.rateProfiles.map((p, idx) => `
+                        <button type="button" class="drsb-pill ${p.isDefault ? 'is-default' : ''}" data-defid="${p.id}">
+                            <span class="drsb-radio-dot"></span>
+                            <span>${idx + 1}. ${this.escapeHtml(p.name)} (₹${p.rates?.baseDrillingRate || 90})</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            defBarEl.querySelectorAll('.drsb-pill').forEach(pill => {
+                pill.addEventListener('click', () => {
+                    this.setDefaultRateProfile(pill.dataset.defid);
+                });
+            });
+        }
+
+        // 3. Render Clean Numbered (1, 2, 3...) Minimal Rate List on Tab 4 (Tap any row to open full details modal)
         const listEl = document.getElementById('savedRateProfilesList');
         if (!listEl) return;
 
-        listEl.innerHTML = this.rateProfiles.map(p => {
+        listEl.innerHTML = this.rateProfiles.map((p, idx) => {
+            const num = idx + 1;
             const r = p.rates || this.defaultRates;
             const isActive = p.id === this.activeRateProfileId;
             const isEditing = studioVisible && p.id === editingId;
             const slabs = this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90);
-            const minRate = slabs[0]?.rate ?? r.baseDrillingRate;
-            const maxRate = slabs[slabs.length - 1]?.rate ?? minRate;
-            const baseRangeText = slabs[0]?.rangeStr || '001-300 ft';
-            const maxEndDepth = slabs[slabs.length - 1]?.end || 2200;
-
-            const slabsPillsHtml = slabs.map((s, idx) => {
-                const shortRange = s.rangeStr.replace(/\s*Ft/i, '');
-                return `
-                    <div class="rpc-slab-pill ${idx === 0 ? 'base-pill' : ''}">
-                        <span class="rpc-sp-range">${shortRange}</span>
-                        <strong class="rpc-sp-rate">₹${s.rate}</strong>
-                    </div>
-                `;
-            }).join('');
+            const baseRangeText = (slabs[0]?.rangeStr || '001-300 ft').replace(/^0+/, '');
 
             return `
-                <div class="rate-preset-card ${isActive ? 'is-active-card' : ''} ${isEditing ? 'is-editing-card' : ''}">
-                    <div class="rpc-head">
-                        <div class="rpc-title-group">
-                            <div class="rpc-name-row">
-                                <span class="rpc-title">${p.name}</span>
-                                ${p.isDefault ? `<span class="rpc-badge default-star">★ Default</span>` : ''}
-                                ${isActive ? `<span class="rpc-badge active-bill">● Applied</span>` : ''}
+                <div class="rate-clean-row ${isActive ? 'is-active-rate' : ''} ${isEditing ? 'is-editing-card' : ''}" data-rateid="${p.id}">
+                    <div class="rcr-left">
+                        <div class="rcr-num-badge">${num}</div>
+                        <div class="rcr-info">
+                            <div class="rcr-title-line">
+                                <span class="rcr-name">${this.escapeHtml(p.name)}</span>
+                                ${p.isDefault ? `<span class="rcr-tag default-tag">✓ Default</span>` : ''}
+                                ${isActive ? `<span class="rcr-tag applied-tag">● Applied</span>` : ''}
+                            </div>
+                            <div class="rcr-sub">
+                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> (${baseRangeText}) • 7" Casing: <strong>₹${r.pvc7Rate}/ft</strong> • ${slabs.length} Slabs
                             </div>
                         </div>
-                        <div class="rpc-quick-actions">
-                            ${!p.isDefault
-                                ? `<button type="button" class="rpc-icon-btn star-btn rp-default-btn" data-id="${p.id}" title="Set as Default Rate">☆ Set Default</button>`
-                                : ''
-                            }
-                            <button type="button" class="rpc-icon-btn rp-edit-btn" data-id="${p.id}" title="Customize Rate Card">✏️ Edit</button>
-                            ${this.rateProfiles.length > 1
-                                ? `<button type="button" class="rpc-icon-btn del-btn rp-del-btn" data-id="${p.id}" title="Delete Rate Card">✕</button>`
-                                : ''
-                            }
-                        </div>
                     </div>
-
-                    <div class="rpc-specs-grid">
-                        <div class="rpc-spec-box primary-spec">
-                            <span class="rpc-spec-lbl">${baseRangeText}</span>
-                            <strong class="rpc-spec-val">₹${r.baseDrillingRate}/ft</strong>
-                        </div>
-                        <div class="rpc-spec-box">
-                            <span class="rpc-spec-lbl">7" Casing Pipe</span>
-                            <strong class="rpc-spec-val">₹${r.pvc7Rate}/ft</strong>
-                        </div>
-                        <div class="rpc-spec-box">
-                            <span class="rpc-spec-lbl">10" Casing Pipe</span>
-                            <strong class="rpc-spec-val">₹${r.pvc10Rate}/ft</strong>
-                        </div>
-                        <div class="rpc-spec-box">
-                            <span class="rpc-spec-lbl">Bore Bata</span>
-                            <strong class="rpc-spec-val">₹${r.boreBataRate ?? 2000}</strong>
-                        </div>
-                    </div>
-
-                    <div class="rpc-foot">
-                        <button type="button" class="rpc-slabs-toggle-btn rp-toggle-slabs-btn" data-id="${p.id}">
-                            <span>📊 ${slabs.length} ${slabs.length === 1 ? 'Slab' : 'Slabs'} (₹${minRate}→₹${maxRate}/ft)</span>
-                            <span class="toggle-arrow">▼</span>
+                    <div class="rcr-right">
+                        <button type="button" class="rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Current Default Rate' : 'Set as Default Rate'}">
+                            ${p.isDefault ? '● Default' : '○ Set Default'}
                         </button>
-                        <button type="button" class="rpc-apply-btn rp-apply-btn ${isActive ? 'applied' : ''}" data-id="${p.id}">
-                            ${isActive ? '✓ Active in Bill' : 'Apply to Bill →'}
-                        </button>
-                    </div>
-
-                    <!-- Read-Only Expandable Slab Rate Chart Drawer -->
-                    <div class="rpc-slabs-drawer" id="slabsDrawer_${p.id}" style="display: none;">
-                        <div class="rpc-drawer-head">
-                            <span>${slabs.length}-Slab Schedule (1–${maxEndDepth} ft)</span>
-                            <span>Flush: ₹${r.oldBoreRate}/ft • Grace: ${r.slabBufferFt}ft • GST: ${r.gstPercentage}%</span>
-                        </div>
-                        <div class="rpc-slab-pill-grid">
-                            ${slabsPillsHtml}
-                        </div>
+                        <span class="rcr-open-arrow" title="View Full Rate Details">›</span>
                     </div>
                 </div>
             `;
         }).join('');
 
-        listEl.querySelectorAll('.rp-toggle-slabs-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const drawer = document.getElementById(`slabsDrawer_${btn.dataset.id}`);
-                if (!drawer) return;
-                const isOpen = drawer.style.display !== 'none';
-                drawer.style.display = isOpen ? 'none' : 'block';
-                btn.classList.toggle('open', !isOpen);
-                const arrow = btn.querySelector('.toggle-arrow');
-                if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
-            });
-        });
-
-        listEl.querySelectorAll('.rp-apply-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.applyRateProfileToBill(btn.dataset.id, true);
-                this.switchTab('tab-bill');
-            });
-        });
-
-        listEl.querySelectorAll('.rp-default-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.setDefaultRateProfile(btn.dataset.id);
-            });
-        });
-
-        listEl.querySelectorAll('.rp-edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const prof = this.rateProfiles.find(x => x.id === btn.dataset.id);
-                if (prof) {
-                    this.toggleRateStudio(true);
-                    this.loadRateProfileIntoEditor(prof);
-                    this.showToast(`✏️ Editing "${prof.name}"`);
+        listEl.querySelectorAll('.rcr-default-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetId = btn.dataset.defbtn;
+                const prof = this.rateProfiles.find(x => x.id === targetId);
+                if (prof && !prof.isDefault) {
+                    this.setDefaultRateProfile(targetId);
                 }
             });
         });
 
-        listEl.querySelectorAll('.rp-del-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (this.rateProfiles.length <= 1) return;
-                const targetId = btn.dataset.id;
-                const origIdx = this.rateProfiles.findIndex(x => x.id === targetId);
-                if (origIdx === -1) return;
-                const deletedProf = JSON.parse(JSON.stringify(this.rateProfiles[origIdx]));
-                const wasActive = (this.activeRateProfileId === targetId);
-
-                this.confirmDeleteModal({
-                    title: 'Delete Rate Card?',
-                    itemLabel: `⚡ ${deletedProf.name} (Base ₹${deletedProf.rates?.baseDrillingRate || 90}/ft)`,
-                    message: 'Are you sure you want to delete this saved Rate Card?',
-                    onConfirm: () => {
-                        this.rateProfiles = this.rateProfiles.filter(x => x.id !== targetId);
-                        if (deletedProf.isDefault && this.rateProfiles.length > 0) {
-                            this.rateProfiles[0].isDefault = true;
-                        }
-                        if (wasActive) {
-                            const fallback = this.getDefaultRateProfile();
-                            if (fallback) this.applyRateProfileToBill(fallback.id, false);
-                        }
-                        this.saveToStorage('borebill_rate_profiles', this.rateProfiles);
-                        this.renderRateProfilesUI();
-                        this.applyBrandToUI();
-
-                        this.showUndoToast(`🗑️ Deleted Rate "${deletedProf.name}"`, () => {
-                            if (!this.rateProfiles.some(x => x.id === deletedProf.id)) {
-                                if (deletedProf.isDefault) {
-                                    this.rateProfiles.forEach(p => { p.isDefault = false; });
-                                }
-                                const insertAt = Math.min(origIdx, this.rateProfiles.length);
-                                this.rateProfiles.splice(insertAt, 0, deletedProf);
-                                this.saveToStorage('borebill_rate_profiles', this.rateProfiles);
-                                if (wasActive) {
-                                    this.applyRateProfileToBill(deletedProf.id, false);
-                                } else {
-                                    this.renderRateProfilesUI();
-                                }
-                                this.applyBrandToUI();
-                            }
-                        });
-                    }
-                });
+        listEl.querySelectorAll('.rate-clean-row').forEach(row => {
+            row.addEventListener('click', () => {
+                this.openRateDetailModal(row.dataset.rateid);
             });
         });
+
+        if (this.activeDetailRateId && document.getElementById('rateDetailModalOverlay')?.style.display !== 'none') {
+            if (this.rateProfiles.some(p => p.id === this.activeDetailRateId)) {
+                this.openRateDetailModal(this.activeDetailRateId);
+            } else {
+                this.closeRateDetailModal();
+            }
+        }
+    }
+
+    openRateDetailModal(profileId) {
+        const idx = this.rateProfiles.findIndex(p => p.id === profileId);
+        if (idx === -1) return;
+        const p = this.rateProfiles[idx];
+        const num = idx + 1;
+        const r = p.rates || this.defaultRates;
+        const slabs = this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90);
+        const isActive = p.id === this.activeRateProfileId;
+        const baseRangeText = slabs[0]?.rangeStr || '001-300 ft';
+        const maxEndDepth = slabs[slabs.length - 1]?.end || 2200;
+
+        const overlay = document.getElementById('rateDetailModalOverlay');
+        const bodyEl = document.getElementById('rdmBodyContent');
+        const footEl = document.getElementById('rdmFooterActions');
+        if (!overlay || !bodyEl || !footEl) return;
+
+        this.activeDetailRateId = p.id;
+
+        const numEl = document.getElementById('rdmNumBadge');
+        const titleEl = document.getElementById('rdmTitle');
+        const subEl = document.getElementById('rdmSub');
+        if (numEl) numEl.textContent = String(num);
+        if (titleEl) titleEl.textContent = `${num}. ${p.name}`;
+        if (subEl) subEl.textContent = `Base ₹${r.baseDrillingRate}/ft (${baseRangeText}) • ${slabs.length} Slabs (1–${maxEndDepth} ft)`;
+
+        bodyEl.innerHTML = `
+            <!-- Default Rate Toggle Banner inside Modal -->
+            <div class="rdm-default-switch-banner ${p.isDefault ? 'is-default-active' : ''}">
+                <div class="rdsb-left">
+                    <span class="rdsb-title">${p.isDefault ? '✓ This is your Default Rate' : 'Default Rate Setting'}</span>
+                    <span class="rdsb-sub">${p.isDefault ? 'Automatically loaded when starting a new bill' : 'Tap button to make this the default rate for new bills'}</span>
+                </div>
+                ${p.isDefault
+                    ? `<span class="rcr-tag default-tag" style="padding:5px 10px; font-size:0.72rem;">● Default Active</span>`
+                    : `<button type="button" class="btn-brand-sm" id="rdmMakeDefaultBtn">Set as Default</button>`
+                }
+            </div>
+
+            <!-- Core Drilling & Casing Pipe Rates -->
+            <div class="cdm-clean-card" style="margin-bottom: 10px;">
+                <div class="cdm-cc-head">
+                    <span>⚙️ Drilling, Casing Pipe &amp; Labour Rates</span>
+                    <span class="cdm-sec-pill">${isActive ? '● Applied in Bill' : `Rate #${num}`}</span>
+                </div>
+                <div class="cbc-clean-rows">
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">⛏️ Base Drilling Rate (${baseRangeText})</span>
+                        <span class="cbc-r-val text-brand" style="font-size:0.9rem;">₹${r.baseDrillingRate}/ft</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🟦 7" Casing Pipe Rate</span>
+                        <span class="cbc-r-val">₹${r.pvc7Rate}/ft</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🟦 10" Casing Pipe Rate</span>
+                        <span class="cbc-r-val">₹${r.pvc10Rate}/ft</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">🛠️ Bore Bata (Labour)</span>
+                        <span class="cbc-r-val">₹${r.boreBataRate ?? 2000}</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">💧 Old Bore Flushing Rate</span>
+                        <span class="cbc-r-val">₹${r.oldBoreRate}/ft</span>
+                    </div>
+                    <div class="cbc-row">
+                        <span class="cbc-r-lbl">📏 Slab Grace Buffer &amp; GST</span>
+                        <span class="cbc-r-val">${r.slabBufferFt ?? 5} ft Grace • ${r.gstPercentage ?? 18}% GST</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Complete Depth Slab Schedule Table -->
+            <div class="cdm-clean-card" style="margin-bottom: 0;">
+                <div class="cdm-cc-head">
+                    <span>📐 Depth Slab Schedule (${slabs.length} Slabs)</span>
+                    <span class="cdm-sec-pill">1 – ${maxEndDepth} ft</span>
+                </div>
+                <div style="max-height: 260px; overflow-y: auto;">
+                    <table class="cbc-slab-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Depth Slab (ft)</th>
+                                <th>+ Step</th>
+                                <th>Rate / ft</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${slabs.map((s, sIdx) => {
+                                const stepDiff = sIdx === 0 ? 'Base' : `+₹${s.rate - slabs[sIdx - 1].rate}`;
+                                return `
+                                    <tr>
+                                        <td>${sIdx + 1}</td>
+                                        <td><strong>${this.escapeHtml(s.rangeStr)}</strong></td>
+                                        <td>${stepDiff}</td>
+                                        <td><strong class="text-brand">₹${s.rate}/ft</strong></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        footEl.innerHTML = `
+            <div class="bdm-foot-left">
+                ${this.rateProfiles.length > 1
+                    ? `<button type="button" class="btn-danger-xs" id="rdmFootDeleteBtn" title="Delete Rate">🗑️ Delete</button>`
+                    : ''
+                }
+                <button type="button" class="btn-secondary-sm" id="rdmFootEditBtn">✏️ Edit Rate</button>
+            </div>
+            <div class="bdm-foot-right">
+                <button type="button" class="btn-brand-sm" id="rdmFootApplyBtn">
+                    ${isActive ? '✓ Applied in Bill' : '⚡ Apply to Bill'}
+                </button>
+            </div>
+        `;
+
+        document.getElementById('rdmMakeDefaultBtn')?.addEventListener('click', () => {
+            this.setDefaultRateProfile(p.id);
+            this.openRateDetailModal(p.id);
+        });
+
+        document.getElementById('rdmFootEditBtn')?.addEventListener('click', () => {
+            this.closeRateDetailModal();
+            this.toggleRateStudio(true);
+            this.loadRateProfileIntoEditor(p);
+            this.showToast(`✏️ Editing "${p.name}"`);
+        });
+
+        document.getElementById('rdmFootApplyBtn')?.addEventListener('click', () => {
+            this.closeRateDetailModal();
+            this.applyRateProfileToBill(p.id, true);
+            this.switchTab('tab-bill');
+        });
+
+        document.getElementById('rdmFootDeleteBtn')?.addEventListener('click', () => {
+            if (this.rateProfiles.length <= 1) return;
+            const targetId = p.id;
+            const origIdx = this.rateProfiles.findIndex(x => x.id === targetId);
+            if (origIdx === -1) return;
+            const deletedProf = JSON.parse(JSON.stringify(this.rateProfiles[origIdx]));
+            const wasActive = (this.activeRateProfileId === targetId);
+
+            this.closeRateDetailModal();
+            this.confirmDeleteModal({
+                title: 'Delete Rate Card?',
+                itemLabel: `#${origIdx + 1} ${deletedProf.name} (Base ₹${deletedProf.rates?.baseDrillingRate || 90}/ft)`,
+                message: 'Are you sure you want to delete this saved Rate?',
+                onConfirm: () => {
+                    this.rateProfiles = this.rateProfiles.filter(x => x.id !== targetId);
+                    if (deletedProf.isDefault && this.rateProfiles.length > 0) {
+                        this.rateProfiles[0].isDefault = true;
+                    }
+                    if (wasActive) {
+                        const fallback = this.getDefaultRateProfile();
+                        if (fallback) this.applyRateProfileToBill(fallback.id, false);
+                    }
+                    this.saveToStorage('borebill_rate_profiles', this.rateProfiles);
+                    this.renderRateProfilesUI();
+                    this.applyBrandToUI();
+
+                    this.showUndoToast(`🗑️ Deleted Rate "${deletedProf.name}"`, () => {
+                        if (!this.rateProfiles.some(x => x.id === deletedProf.id)) {
+                            if (deletedProf.isDefault) {
+                                this.rateProfiles.forEach(pr => { pr.isDefault = false; });
+                            }
+                            const insertAt = Math.min(origIdx, this.rateProfiles.length);
+                            this.rateProfiles.splice(insertAt, 0, deletedProf);
+                            this.saveToStorage('borebill_rate_profiles', this.rateProfiles);
+                            if (wasActive) {
+                                this.applyRateProfileToBill(deletedProf.id, false);
+                            } else {
+                                this.renderRateProfilesUI();
+                            }
+                            this.applyBrandToUI();
+                        }
+                    });
+                }
+            });
+        });
+
+        overlay.style.display = 'flex';
+        this.refreshIcons();
+    }
+
+    closeRateDetailModal() {
+        const overlay = document.getElementById('rateDetailModalOverlay');
+        if (overlay) overlay.style.display = 'none';
+        this.activeDetailRateId = null;
     }
 
     switchStudioSubTab(viewMode = 'core') {
@@ -4984,8 +5618,30 @@ class BoreBillSaaSApp {
         if (this.loadedHistoryBillId) {
             const idx = this.history.findIndex(h => h.id === this.loadedHistoryBillId);
             if (idx !== -1) {
+                const existingItem = this.history[idx];
+                const existingPayments = Array.isArray(existingItem.payments) ? [...existingItem.payments] : [];
+                const snapCopy = JSON.parse(JSON.stringify(res));
+
+                if (existingPayments.length === 0 && (snapCopy.advancePaidAmount || 0) > 0) {
+                    existingPayments.push({
+                        id: 'adv_' + existingItem.id,
+                        date: currentBillDate,
+                        amount: Math.round(snapCopy.advancePaidAmount),
+                        mode: 'Advance',
+                        note: 'Initial Advance on Bill',
+                        isAdvance: true
+                    });
+                } else if (existingPayments.length === 1 && existingPayments[0].isAdvance) {
+                    if ((snapCopy.advancePaidAmount || 0) > 0) {
+                        existingPayments[0].amount = Math.round(snapCopy.advancePaidAmount);
+                        existingPayments[0].date = currentBillDate;
+                    } else {
+                        existingPayments.length = 0;
+                    }
+                }
+
                 this.history[idx] = {
-                    ...this.history[idx],
+                    ...existingItem,
                     updatedAt: new Date().toISOString(),
                     billNo: currentBillNo,
                     billDate: currentBillDate,
@@ -4993,8 +5649,10 @@ class BoreBillSaaSApp {
                     custPhone: cPhone,
                     custLocation: cLoc,
                     custGst: res.gstEnabled ? cGst : '',
-                    snapshot: JSON.parse(JSON.stringify(res))
+                    payments: existingPayments,
+                    snapshot: snapCopy
                 };
+                this.syncBillPaymentSnapshot(this.history[idx]);
                 this.saveToStorage('borebill_history', this.history);
                 this.isBillPreviewOpen = true;
                 this.isBillSavedAndReadyToShare = true;
@@ -5016,8 +5674,20 @@ class BoreBillSaaSApp {
         }
 
         // 3. Normal New Bill / Quotation Save -> Save to Bill Book & unlock Share Options!
+        const newId = Date.now().toString();
+        const initialPayments = [];
+        if ((res.advancePaidAmount || 0) > 0) {
+            initialPayments.push({
+                id: 'adv_' + newId,
+                date: currentBillDate,
+                amount: Math.round(res.advancePaidAmount),
+                mode: 'Advance',
+                note: 'Initial Advance on Bill',
+                isAdvance: true
+            });
+        }
         const record = {
-            id: Date.now().toString(),
+            id: newId,
             createdAt: new Date().toISOString(),
             billNo: currentBillNo,
             billDate: currentBillDate,
@@ -5025,8 +5695,10 @@ class BoreBillSaaSApp {
             custPhone: cPhone,
             custLocation: cLoc,
             custGst: res.gstEnabled ? cGst : '',
+            payments: initialPayments,
             snapshot: JSON.parse(JSON.stringify(res))
         };
+        this.syncBillPaymentSnapshot(record);
 
         this.history.unshift(record);
         this.saveToStorage('borebill_history', this.history);
@@ -5286,21 +5958,24 @@ class BoreBillSaaSApp {
         listEl.innerHTML = filtered.map(item => {
             const snap = item.snapshot || {};
             const isInvoice = (snap.docType || 'QUOTATION') === 'INVOICE';
+            const paidAmt = this.getBillPaidAmount(item);
             const pendingAmt = this.getBillPendingAmount(item);
             const hasDue = pendingAmt > 0;
             const displayCust = (item.custName && item.custName !== 'Walk-in Customer') ? item.custName : 'Direct Bill';
             const initials = this.getInitials(displayCust);
             const dateStr = this.getHistoryItemDateStr(item);
+            const payEntries = this.getBillPaymentEntries(item);
+            const lastPayDate = payEntries.length > 0 ? this.formatPaymentDateDisplay(payEntries[payEntries.length - 1].date) : '';
 
             return `
-            <div class="khata-card">
+            <div class="khata-card clickable-bill-card" data-billid="${item.id}">
                 <div class="khata-top">
                     <div class="khata-identity">
                         <div class="party-avatar">${initials}</div>
                         <div class="party-info">
-                            <div class="party-name">#${item.billNo} — ${displayCust}</div>
+                            <div class="party-name">#${this.escapeHtml(item.billNo)} — ${this.escapeHtml(displayCust)}</div>
                             <div class="party-meta">
-                                📍 ${item.custLocation || 'Site N/A'} • ${snap.totalDepth || 0} ft (${snap.boreDia}) • 📅 ${dateStr || 'N/A'}
+                                📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'}) • 📅 ${dateStr || 'N/A'}
                             </div>
                         </div>
                     </div>
@@ -5308,38 +5983,42 @@ class BoreBillSaaSApp {
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>
                         ${isInvoice
                             ? (hasDue
-                                ? `<button type="button" class="status-pill due clickable-pay-toggle hist-pay-toggle-btn" data-id="${item.id}" title="Tap to mark as Paid">🔴 Due: ${this.formatINR(pendingAmt)} • Tap if Paid</button>`
-                                : `<button type="button" class="status-pill paid clickable-pay-toggle hist-pay-toggle-btn" data-id="${item.id}" title="Tap to mark as Unpaid / Pending">✅ Paid • Tap if Unpaid</button>`)
-                            : `<span class="status-pill quote">📋 Quotation</span>`
+                                ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                : `<span class="status-pill paid static-badge">✅ Paid${lastPayDate ? ` (${lastPayDate})` : ''}</span>`)
+                            : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                         }
                     </div>
                 </div>
                 <div class="khata-actions">
-                    <span class="khata-Quick-stats">Base: ₹${snap.baseDrillingRate}/ft • Casing: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft</span>
+                    <span class="khata-Quick-stats">
+                        ${isInvoice
+                            ? `Paid: ${this.formatINR(paidAmt)}${payEntries.length > 0 ? ` (${payEntries.length} ${payEntries.length === 1 ? 'entry' : 'entries'})` : ''} • Tap card for details`
+                            : `Base: ₹${snap.baseDrillingRate}/ft • Casing: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft`
+                        }
+                    </span>
                     <div class="khata-btn-group">
+                        ${isInvoice
+                            ? `<button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} hist-record-pay-btn" data-id="${item.id}" title="Record Payment with Date">💳 ${hasDue ? 'Record Payment' : 'Payments'}</button>`
+                            : ''
+                        }
                         <button type="button" class="btn-wa-xs hist-wa-btn" data-id="${item.id}" title="Preview & Send on WhatsApp">💬 WA</button>
-                        <button type="button" class="btn-brand-sm hist-load-btn" data-id="${item.id}">${isInvoice ? 'Open Bill' : 'Open Quote'}</button>
+                        <button type="button" class="btn-brand-sm hist-detail-btn" data-id="${item.id}">${isInvoice ? '👁️ Details' : '👁️ View'}</button>
                         <button type="button" class="btn-danger-xs hist-del-btn" data-id="${item.id}">✕</button>
                     </div>
                 </div>
             </div>
         `}).join('');
 
-        listEl.querySelectorAll('.hist-pay-toggle-btn').forEach(btn => {
+        listEl.querySelectorAll('.clickable-bill-card').forEach(card => {
+            card.addEventListener('click', () => {
+                this.openBillDetailModal(card.dataset.billid);
+            });
+        });
+
+        listEl.querySelectorAll('.hist-record-pay-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const target = this.history.find(h => h.id === btn.dataset.id);
-                if (!target) return;
-                const currentlyUnpaid = this.isBillItemUnpaid(target);
-                target.paymentStatus = currentlyUnpaid ? 'paid' : 'unpaid';
-                this.saveToStorage('borebill_history', this.history);
-                this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-                this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-                this.showToast(
-                    target.paymentStatus === 'paid'
-                        ? `✅ Bill #${target.billNo} marked as Paid!`
-                        : `🔴 Bill #${target.billNo} marked as Unpaid (Pending Payment)`
-                );
+                this.openRecordPaymentModal(btn.dataset.id);
             });
         });
 
@@ -5350,12 +6029,16 @@ class BoreBillSaaSApp {
             });
         });
 
-        listEl.querySelectorAll('.hist-load-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.loadBillFromHistory(btn.dataset.id, true, true));
+        listEl.querySelectorAll('.hist-detail-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openBillDetailModal(btn.dataset.id);
+            });
         });
 
         listEl.querySelectorAll('.hist-del-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const delId = btn.dataset.id;
                 const origIdx = this.history.findIndex(h => h.id === delId);
                 if (origIdx === -1) return;
@@ -6319,6 +7002,68 @@ class BoreBillSaaSApp {
                     this.openCustomerDetailModal(this.activeDetailCustomerId, pill.dataset.cdmfilter || 'all', 'bores');
                 }
             });
+        });
+
+        // Single Bill Detail Modal Listeners
+        document.getElementById('closeBillDetailModalBtn')?.addEventListener('click', () => {
+            this.closeBillDetailModal();
+        });
+        document.getElementById('billDetailModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'billDetailModalOverlay') {
+                this.closeBillDetailModal();
+            }
+        });
+
+        // Record Payment Modal (Date-wise & Multiple Installments) Listeners
+        document.getElementById('closeRecordPaymentModalBtn')?.addEventListener('click', () => {
+            this.closeRecordPaymentModal();
+        });
+        document.getElementById('recordPaymentModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'recordPaymentModalOverlay') {
+                this.closeRecordPaymentModal();
+            }
+        });
+        document.getElementById('rpmFillFullBalanceBtn')?.addEventListener('click', () => {
+            const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
+            const item = (this.history || []).find(h => h.id === billId);
+            if (!item) return;
+            const pending = this.getBillPendingAmount(item);
+            const amtInp = document.getElementById('rpmAmountInput');
+            if (amtInp && pending > 0) {
+                amtInp.value = pending;
+                amtInp.focus();
+            }
+        });
+        document.querySelectorAll('#rpmModePills .rpm-mode-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('#rpmModePills .rpm-mode-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+            });
+        });
+        document.getElementById('rpmSavePaymentBtn')?.addEventListener('click', () => {
+            this.saveNewBillPaymentRecord();
+        });
+        document.getElementById('rpmAmountInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.saveNewBillPaymentRecord();
+            }
+        });
+        document.getElementById('rpmNoteInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.saveNewBillPaymentRecord();
+            }
+        });
+
+        // Rate Card Full Detail Modal Listeners
+        document.getElementById('closeRateDetailModalBtn')?.addEventListener('click', () => {
+            this.closeRateDetailModal();
+        });
+        document.getElementById('rateDetailModalOverlay')?.addEventListener('click', (e) => {
+            if (e.target.id === 'rateDetailModalOverlay') {
+                this.closeRateDetailModal();
+            }
         });
 
         document.querySelectorAll('#crmFilterPills .f-chip').forEach(chip => {

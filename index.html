@@ -27,7 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=49">
+    <link rel="stylesheet" href="styles.css?v=50">
 </head>
 <body>
     <!-- ==================== TOP APP SHELL HEADER ==================== -->
@@ -1020,31 +1020,36 @@
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-top">
-                        <span class="kpi-lbl">Default Rate ★</span>
-                        <i data-lucide="star" class="icon-xs" style="color: #d97706;"></i>
+                        <span class="kpi-lbl">Default Rate</span>
+                        <i data-lucide="check-circle-2" class="icon-xs" style="color: #059669;"></i>
                     </div>
                     <strong class="kpi-val kpi-truncate" id="rateKpiDefaultName">Standard 6.5"</strong>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-top">
-                        <span class="kpi-lbl">Saved Lists</span>
+                        <span class="kpi-lbl">Saved Rates</span>
                         <i data-lucide="layers" class="icon-xs text-muted"></i>
                     </div>
-                    <strong class="kpi-val" id="rateKpiTotalCount">2 Cards</strong>
+                    <strong class="kpi-val" id="rateKpiTotalCount">2 Rates</strong>
                 </div>
             </div>
 
-            <!-- 1. Saved Rate Cards Deck -->
+            <!-- 1. Saved Rate Cards Deck (Clean Numbered 1, 2, 3 List) -->
             <div class="ui-card">
                 <div class="page-head-row">
                     <div>
-                        <h2 class="page-title"><i data-lucide="layers" class="icon-sm text-brand"></i> <span data-i18n="savedRateProfilesTitle">Saved Rate Cards</span></h2>
-                        <p class="page-sub" data-i18n="savedRateProfilesSub">Tap any rate card to apply in New Bill or set as ★ Default</p>
+                        <h2 class="page-title"><i data-lucide="layers" class="icon-sm text-brand"></i> <span data-i18n="savedRateProfilesTitle">Rate List</span></h2>
+                        <p class="page-sub">Tap any rate (1, 2, 3...) to open full slab &amp; casing details</p>
                     </div>
                     <button type="button" class="btn-brand-sm" id="createNewRateProfileBtn">
                         <i data-lucide="plus" class="icon-xs"></i>
                         <span data-i18n="newRateProfileBtnLabel">New Rate</span>
                     </button>
+                </div>
+
+                <!-- Redesigned Default Rate Selector Strip -->
+                <div class="default-rate-selector-bar" id="defaultRateSelectorBar">
+                    <!-- Populated dynamically by app.js -->
                 </div>
 
                 <div class="rate-deck-list" id="savedRateProfilesList">
@@ -1827,6 +1832,135 @@
         </div>
     </div>
 
+    <!-- ==================== SINGLE BILL FULL DETAIL MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="billDetailModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog cust-bore-detail-modal bill-single-detail-modal" role="dialog" aria-modal="true" aria-labelledby="bdmTitle">
+            <div class="cust-popup-head cdm-head">
+                <div class="cph-left">
+                    <div class="party-avatar cdm-avatar" id="bdmAvatar">B</div>
+                    <div class="cdm-title-wrap">
+                        <h4 id="bdmTitle">Bill #AB-101</h4>
+                        <p class="cph-sub" id="bdmSub">Customer • Place • Date</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeBillDetailModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="cdm-scroll-body" id="bdmBodyContent">
+                <!-- Populated dynamically by app.js with this bill's exact borewell, pipe & payment details -->
+            </div>
+
+            <div class="cust-popup-foot bdm-foot-bar" id="bdmFooterActions">
+                <!-- Populated dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== RECORD PAYMENT (DATE & MULTIPLE INSTALLMENTS) MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="recordPaymentModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog record-payment-modal" role="dialog" aria-modal="true" aria-labelledby="rpmTitle">
+            <div class="cust-popup-head cdm-head">
+                <div class="cph-left">
+                    <span class="cph-icon" style="background:#dcfce7; color:#15803d;"><i data-lucide="wallet" class="icon-xs"></i></span>
+                    <div class="cdm-title-wrap">
+                        <h4 id="rpmTitle">Record Payment</h4>
+                        <p class="cph-sub" id="rpmSub">Bill #AB-101 • Customer</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeRecordPaymentModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="cdm-scroll-body rpm-body">
+                <input type="hidden" id="rpmBillIdInput" value="">
+
+                <!-- 3-Column Bill Payment Status Strip -->
+                <div class="cdm-pay-trio rpm-pay-trio">
+                    <div class="cdm-pt-item">
+                        <span class="cdm-pt-lbl">Total Bill</span>
+                        <strong class="cdm-pt-val" id="rpmTotalBillVal">₹0</strong>
+                    </div>
+                    <div class="cdm-pt-item is-paid">
+                        <span class="cdm-pt-lbl">Total Paid</span>
+                        <strong class="cdm-pt-val text-green" id="rpmTotalPaidVal">₹0</strong>
+                    </div>
+                    <div class="cdm-pt-item is-due" id="rpmDueBox">
+                        <span class="cdm-pt-lbl">Balance Due</span>
+                        <strong class="cdm-pt-val text-danger" id="rpmBalanceDueVal">₹0</strong>
+                    </div>
+                </div>
+
+                <!-- Add New Payment Entry Card -->
+                <div class="rpm-form-card" id="rpmAddPaymentFormCard">
+                    <div class="rpm-form-head">
+                        <span>➕ Add Payment Received</span>
+                        <button type="button" class="rpm-full-fill-chip" id="rpmFillFullBalanceBtn">Pay Full Balance</button>
+                    </div>
+                    <div class="rpm-grid-2">
+                        <div class="field-group">
+                            <label for="rpmDateInput">📅 Payment Date *</label>
+                            <input type="date" id="rpmDateInput">
+                        </div>
+                        <div class="field-group">
+                            <label for="rpmAmountInput">💰 Amount Received (₹) *</label>
+                            <input type="number" id="rpmAmountInput" placeholder="Enter amount..." min="1" step="any" inputmode="numeric">
+                        </div>
+                    </div>
+                    <div class="rpm-mode-row">
+                        <span class="rpm-mode-lbl">Mode:</span>
+                        <div class="rpm-mode-pills" id="rpmModePills">
+                            <button type="button" class="rpm-mode-pill active" data-mode="Cash">💵 Cash</button>
+                            <button type="button" class="rpm-mode-pill" data-mode="UPI / GPay">📱 UPI / GPay</button>
+                            <button type="button" class="rpm-mode-pill" data-mode="Bank">🏦 Bank</button>
+                            <button type="button" class="rpm-mode-pill" data-mode="Cheque">🧾 Cheque</button>
+                        </div>
+                    </div>
+                    <div class="field-group" style="margin-top: 8px;">
+                        <input type="text" id="rpmNoteInput" placeholder="Optional note (e.g. Received by GPay / 2nd installment)..." autocomplete="off">
+                    </div>
+                    <button type="button" class="btn-brand-full rpm-save-btn" id="rpmSavePaymentBtn">
+                        <i data-lucide="check-circle-2" class="icon-xs"></i>
+                        <span>Save Payment Record</span>
+                    </button>
+                </div>
+
+                <!-- Date-wise Payment History List -->
+                <div class="rpm-history-section">
+                    <div class="rpm-hist-head">
+                        <span>📋 Payment History (Date-wise)</span>
+                        <span class="cdm-sec-pill" id="rpmHistoryCountBadge">0 Entries</span>
+                    </div>
+                    <div class="rpm-history-list" id="rpmHistoryList">
+                        <!-- Populated dynamically by app.js -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== RATE CARD FULL DETAILS MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="rateDetailModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog cust-bore-detail-modal rate-detail-modal" role="dialog" aria-modal="true" aria-labelledby="rdmTitle">
+            <div class="cust-popup-head cdm-head">
+                <div class="cph-left">
+                    <div class="party-avatar cdm-avatar rdm-num-avatar" id="rdmNumBadge">1</div>
+                    <div class="cdm-title-wrap">
+                        <h4 id="rdmTitle">Rate Name</h4>
+                        <p class="cph-sub" id="rdmSub">Base Rate &amp; Casing Summary</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeRateDetailModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="cdm-scroll-body" id="rdmBodyContent">
+                <!-- Populated dynamically by app.js -->
+            </div>
+
+            <div class="cust-popup-foot bdm-foot-bar" id="rdmFooterActions">
+                <!-- Populated dynamically by app.js -->
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== BOTTOM NAVIGATION BAR (LUCIDE ICONS) ==================== -->
     <nav class="bottom-nav">
         <button type="button" class="b-nav-item active" data-tab="tab-bill">
@@ -1856,6 +1990,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=49"></script>
+    <script src="app.js?v=50"></script>
 </body>
 </html>
