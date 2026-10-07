@@ -45,7 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=55">
+    <link rel="stylesheet" href="styles.css?v=56">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Plate for iPhone PWA (Prevents iOS 26/27 Liquid Glass Status Bar Blur) -->
@@ -1485,7 +1485,26 @@
                         </div>
                         <div class="field-group full-col">
                             <label for="brandCompanyPhones" data-i18n="contactNumbersLabel">Contact Phone Numbers *</label>
-                            <input type="text" id="brandCompanyPhones" value="+91 96596 57777, 94433 73573">
+                            <div class="country-phone-input-group">
+                                <select id="brandPhoneCountryCode" class="country-code-select" aria-label="Company Country Code" title="Select Country Code">
+                                    <option value="+91">🇮🇳 +91</option>
+                                    <option value="+65">🇸🇬 +65</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                    <option value="+60">🇲🇾 +60</option>
+                                    <option value="+94">🇱🇰 +94</option>
+                                    <option value="+966">🇸🇦 +966</option>
+                                    <option value="+974">🇶🇦 +974</option>
+                                    <option value="+965">🇰🇼 +965</option>
+                                    <option value="+968">🇴🇲 +968</option>
+                                    <option value="+973">🇧🇭 +973</option>
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+61">🇦🇺 +61</option>
+                                    <option value="+27">🇿🇦 +27</option>
+                                    <option value="+977">🇳🇵 +977</option>
+                                </select>
+                                <input type="text" id="brandCompanyPhones" value="+91 96596 57777, +91 94433 73573">
+                            </div>
                         </div>
                         <div class="field-group full-col">
                             <label for="brandCompanyAddress" data-i18n="officeAddressLabel">Office Address</label>
@@ -1648,7 +1667,26 @@
                 </div>
                 <div class="field-group">
                     <label for="crmCustPhone" data-i18n="phoneNumber">Mobile / WhatsApp No *</label>
-                    <input type="tel" id="crmCustPhone" placeholder="10-digit Mobile No" maxlength="10" inputmode="numeric" autocomplete="off">
+                    <div class="country-phone-input-group" id="crmPhoneGroupWrap">
+                        <select id="crmCustCountryCode" class="country-code-select" aria-label="Customer Country Code" title="Select Country Code">
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+971">🇦🇪 +971</option>
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+94">🇱🇰 +94</option>
+                            <option value="+966">🇸🇦 +966</option>
+                            <option value="+974">🇶🇦 +974</option>
+                            <option value="+965">🇰🇼 +965</option>
+                            <option value="+968">🇴🇲 +968</option>
+                            <option value="+973">🇧🇭 +973</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+61">🇦🇺 +61</option>
+                            <option value="+27">🇿🇦 +27</option>
+                            <option value="+977">🇳🇵 +977</option>
+                        </select>
+                        <input type="tel" id="crmCustPhone" placeholder="10-digit Mobile No" maxlength="10" inputmode="numeric" autocomplete="off">
+                    </div>
                     <div class="phone-val-hint" id="crmPhoneValHint" style="display: none;"></div>
                 </div>
                 <div class="phone-dup-alert" id="crmPhoneDupAlert" style="display: none;"></div>
@@ -1861,7 +1899,23 @@
                         <strong id="waPreviewRecipientName">Customer</strong>
                     </div>
                     <div class="war-phone-wrap">
-                        <span class="war-prefix">+91</span>
+                        <select id="waPreviewCountryCode" class="war-country-select" aria-label="WhatsApp Country Code" title="Select Country Code">
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+971">🇦🇪 +971</option>
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+94">🇱🇰 +94</option>
+                            <option value="+966">🇸🇦 +966</option>
+                            <option value="+974">🇶🇦 +974</option>
+                            <option value="+965">🇰🇼 +965</option>
+                            <option value="+968">🇴🇲 +968</option>
+                            <option value="+973">🇧🇭 +973</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+61">🇦🇺 +61</option>
+                            <option value="+27">🇿🇦 +27</option>
+                            <option value="+977">🇳🇵 +977</option>
+                        </select>
                         <input type="tel" id="waPreviewPhoneInput" placeholder="10-digit WhatsApp No" maxlength="10" inputmode="numeric" autocomplete="off">
                     </div>
                 </div>
@@ -2040,6 +2094,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=55"></script>
+    <script src="app.js?v=56"></script>
 </body>
 </html>

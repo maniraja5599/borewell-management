@@ -25,6 +25,24 @@ const DEPTH_SLABS_DEFINITION = [
     { start: 2001, end: 2200, span: 200, inc: 1480, defaultRate: 1570, rangeStr: '2001-2200 ft' }
 ];
 
+const COUNTRY_DIAL_CODES = [
+    { code: '+91',  dial: '91',  iso: 'IN', flag: '🇮🇳', name: 'India',        minLen: 10, maxLen: 10, indiaRule: true },
+    { code: '+65',  dial: '65',  iso: 'SG', flag: '🇸🇬', name: 'Singapore',    minLen: 8,  maxLen: 8  },
+    { code: '+971', dial: '971', iso: 'AE', flag: '🇦🇪', name: 'UAE',          minLen: 9,  maxLen: 9  },
+    { code: '+60',  dial: '60',  iso: 'MY', flag: '🇲🇾', name: 'Malaysia',     minLen: 9,  maxLen: 10 },
+    { code: '+94',  dial: '94',  iso: 'LK', flag: '🇱🇰', name: 'Sri Lanka',    minLen: 9,  maxLen: 9  },
+    { code: '+966', dial: '966', iso: 'SA', flag: '🇸🇦', name: 'Saudi Arabia', minLen: 9,  maxLen: 9  },
+    { code: '+974', dial: '974', iso: 'QA', flag: '🇶🇦', name: 'Qatar',        minLen: 8,  maxLen: 8  },
+    { code: '+965', dial: '965', iso: 'KW', flag: '🇰🇼', name: 'Kuwait',       minLen: 8,  maxLen: 8  },
+    { code: '+968', dial: '968', iso: 'OM', flag: '🇴🇲', name: 'Oman',         minLen: 8,  maxLen: 8  },
+    { code: '+973', dial: '973', iso: 'BH', flag: '🇧🇭', name: 'Bahrain',      minLen: 8,  maxLen: 8  },
+    { code: '+1',   dial: '1',   iso: 'US', flag: '🇺🇸', name: 'USA / Canada', minLen: 10, maxLen: 10 },
+    { code: '+44',  dial: '44',  iso: 'GB', flag: '🇬🇧', name: 'UK',           minLen: 10, maxLen: 10 },
+    { code: '+61',  dial: '61',  iso: 'AU', flag: '🇦🇺', name: 'Australia',    minLen: 9,  maxLen: 9  },
+    { code: '+27',  dial: '27',  iso: 'ZA', flag: '🇿🇦', name: 'South Africa', minLen: 9,  maxLen: 9  },
+    { code: '+977', dial: '977', iso: 'NP', flag: '🇳🇵', name: 'Nepal',        minLen: 10, maxLen: 10 }
+];
+
 const I18N_DICTIONARY = {
     en: {
         netPayableLabel: "NET TOTAL",
@@ -149,6 +167,7 @@ class BoreBillSaaSApp {
     constructor() {
         this.lang = 'en';
         localStorage.setItem('borebill_lang', 'en');
+        this.defaultCountryCode = this.initDefaultCountryCode();
         this.crmFilter = 'all'; // 'all' | 'due' | 'settled'
         this.historyDocFilter = 'INVOICE'; // 'INVOICE' | 'QUOTATION' (Always default to Bills!)
         this.historyPayFilter = 'all'; // 'all' | 'unpaid' | 'paid'
@@ -159,7 +178,8 @@ class BoreBillSaaSApp {
         this.defaultBrand = {
             companyName: 'SRI ANJANEYA BOREWELLS',
             tagline: 'ஆழமான நம்பிக்கை! • High Power Compressor Drilling',
-            phones: '+91 96596 57777, 94433 73573',
+            phones: '+91 96596 57777, +91 94433 73573',
+            phoneCountryCode: '+91',
             address: '6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001',
             website: '',
             gstNumber: '',
@@ -283,6 +303,7 @@ class BoreBillSaaSApp {
         };
 
         this.state = this.loadFromStorage('borebill_last_session', this.defaultSession);
+        this.migrateStoredPhonesWithCountryCode();
         // Always default to Final Bill ('INVOICE') view and GST OFF unless viewing a specific saved bill
         if (!this.state.loadedHistoryBillId) {
             this.state.docType = 'INVOICE';
@@ -716,7 +737,7 @@ class BoreBillSaaSApp {
 
         // Restore in-progress Customer selection so refreshing stays right where the user left off
         setVal('custName', s.custName || '');
-        setVal('custPhone', s.custPhone || '');
+        setVal('custPhone', this.formatPhoneWithCountryCode(s.custPhone || ''));
         setVal('custLocation', s.custLocation || '');
         setVal('custGstInput', s.custGst || '');
 
@@ -757,6 +778,7 @@ class BoreBillSaaSApp {
         }
 
         const rawCustGst = (document.getElementById('custGstInput')?.value || '').trim().toUpperCase();
+        const rawCustPhone = (document.getElementById('custPhone')?.value || '').trim();
 
         this.state = {
             ...this.state,
@@ -776,7 +798,7 @@ class BoreBillSaaSApp {
             discountAmount: Math.max(0, parseFloat(document.getElementById('discountAmount')?.value) || 0),
             advancePaidAmount: Math.max(0, parseFloat(document.getElementById('advancePaidAmount')?.value) || 0),
             custName: (document.getElementById('custName')?.value || '').trim(),
-            custPhone: (document.getElementById('custPhone')?.value || '').trim(),
+            custPhone: rawCustPhone ? this.formatPhoneWithCountryCode(rawCustPhone) : '',
             custLocation: (document.getElementById('custLocation')?.value || '').trim(),
             currentWizardStep: this.currentWizardStep || 1,
             loadedHistoryBillId: this.loadedHistoryBillId || null,
@@ -1247,7 +1269,7 @@ class BoreBillSaaSApp {
         if (ctrlDateBadge) ctrlDateBadge.textContent = formattedDate;
 
         const cName = this.state.custName;
-        const cPhone = this.state.custPhone;
+        const cPhone = this.formatPhoneWithCountryCode(this.state.custPhone || '');
         const cLoc = this.state.custLocation;
         const cGst = res.gstEnabled ? (res.custGst || '') : '';
 
@@ -1807,43 +1829,285 @@ class BoreBillSaaSApp {
         return clean.slice(0, 2).toUpperCase();
     }
 
-    normalizeMobileNumber(raw) {
-        let digits = String(raw || '').replace(/\D/g, '');
-        if (digits.length === 12 && digits.startsWith('91')) {
-            digits = digits.slice(2);
-        } else if (digits.length === 11 && digits.startsWith('0')) {
-            digits = digits.slice(1);
-        }
-        return digits.slice(0, 10);
+    initDefaultCountryCode() {
+        try {
+            const saved = (localStorage.getItem('borebill_default_country_code') || '').trim();
+            if (saved && COUNTRY_DIAL_CODES.some(c => c.code === saved)) {
+                return saved;
+            }
+        } catch (e) { /* ignore */ }
+        // First-time default: always Indian country code (+91)
+        try {
+            localStorage.setItem('borebill_default_country_code', '+91');
+        } catch (e) { /* ignore */ }
+        return '+91';
     }
 
-    validateMobileNumber(raw) {
-        const digits = this.normalizeMobileNumber(raw);
+    getCountryCodeMeta(code) {
+        const clean = String(code || '').trim();
+        return COUNTRY_DIAL_CODES.find(c => c.code === clean) || COUNTRY_DIAL_CODES[0];
+    }
+
+    setDefaultCountryCode(code, { syncAllSelects = true } = {}) {
+        const meta = this.getCountryCodeMeta(code || this.defaultCountryCode || '+91');
+        this.defaultCountryCode = meta.code;
+        try {
+            localStorage.setItem('borebill_default_country_code', meta.code);
+        } catch (e) { /* ignore */ }
+
+        if (syncAllSelects) {
+            ['crmCustCountryCode', 'waPreviewCountryCode', 'brandPhoneCountryCode'].forEach(selId => {
+                const sel = document.getElementById(selId);
+                if (sel && sel.value !== meta.code) {
+                    sel.value = meta.code;
+                }
+            });
+            this.syncPhoneInputMetaForCountry('crmCustPhone', meta.code);
+            this.syncPhoneInputMetaForCountry('waPreviewPhoneInput', meta.code);
+        }
+        return meta;
+    }
+
+    syncPhoneInputMetaForCountry(inputId, countryCode) {
+        const inp = document.getElementById(inputId);
+        if (!inp) return;
+        const meta = this.getCountryCodeMeta(countryCode || this.defaultCountryCode);
+        inp.maxLength = meta.maxLen;
+        if (inputId === 'waPreviewPhoneInput') {
+            inp.placeholder = `${meta.maxLen}-digit WhatsApp No`;
+        } else {
+            inp.placeholder = `${meta.maxLen}-digit Mobile No (${meta.code})`;
+        }
+    }
+
+    parsePhoneWithCountryCode(raw, fallbackCode = null) {
+        const fallbackMeta = this.getCountryCodeMeta(fallbackCode || this.defaultCountryCode || '+91');
+        let str = String(raw || '').trim();
+        if (!str) {
+            return {
+                countryCode: fallbackMeta.code,
+                localDigits: '',
+                meta: fallbackMeta,
+                hasExplicitCode: false
+            };
+        }
+
+        if (str.startsWith('00')) {
+            str = '+' + str.slice(2).trim();
+        }
+
+        // Sort by longest dial code first so +971 / +966 match before +91 / +1
+        const sortedCodes = [...COUNTRY_DIAL_CODES].sort((a, b) => b.dial.length - a.dial.length);
+
+        if (str.startsWith('+')) {
+            const afterPlus = str.slice(1).trim();
+            for (const c of sortedCodes) {
+                if (afterPlus.startsWith(c.dial)) {
+                    const restDigits = afterPlus.slice(c.dial.length).replace(/\D/g, '');
+                    return {
+                        countryCode: c.code,
+                        localDigits: restDigits.slice(0, c.maxLen),
+                        meta: c,
+                        hasExplicitCode: true
+                    };
+                }
+            }
+        }
+
+        let digits = str.replace(/\D/g, '');
         if (!digits) {
-            return { valid: false, isEmpty: true, digits: '', reason: 'empty', message: 'Enter 10-digit mobile number' };
+            return {
+                countryCode: fallbackMeta.code,
+                localDigits: '',
+                meta: fallbackMeta,
+                hasExplicitCode: false
+            };
         }
-        if (!/^[6-9]/.test(digits)) {
-            return { valid: false, isEmpty: false, digits, reason: 'invalid_start', message: 'Must start with 6, 7, 8 or 9' };
+
+        // Auto-detect if user pasted full international digits without '+' (e.g. 919876543210, 971501234567)
+        for (const c of sortedCodes) {
+            if (
+                digits.length === (c.dial.length + c.maxLen) &&
+                digits.startsWith(c.dial) &&
+                (c.code === fallbackMeta.code || digits.length > fallbackMeta.maxLen)
+            ) {
+                return {
+                    countryCode: c.code,
+                    localDigits: digits.slice(c.dial.length, c.dial.length + c.maxLen),
+                    meta: c,
+                    hasExplicitCode: true
+                };
+            }
         }
-        if (digits.length < 10) {
-            return { valid: false, isEmpty: false, digits, reason: 'incomplete', message: `Enter 10 digits (${digits.length}/10)` };
+
+        if (digits.length === (fallbackMeta.maxLen + 1) && digits.startsWith('0')) {
+            digits = digits.slice(1);
         }
-        return { valid: true, isEmpty: false, digits, reason: 'ok', message: '✓ Valid 10-digit mobile' };
+
+        return {
+            countryCode: fallbackMeta.code,
+            localDigits: digits.slice(0, fallbackMeta.maxLen),
+            meta: fallbackMeta,
+            hasExplicitCode: false
+        };
+    }
+
+    normalizeMobileNumber(raw, countryCode = null) {
+        const parsed = this.parsePhoneWithCountryCode(raw, countryCode || this.defaultCountryCode);
+        return parsed.localDigits;
+    }
+
+    formatPhoneWithCountryCode(raw, countryCode = null) {
+        const parsed = this.parsePhoneWithCountryCode(raw, countryCode || this.defaultCountryCode);
+        if (!parsed.localDigits) return '';
+        return `${parsed.countryCode} ${parsed.localDigits}`;
+    }
+
+    formatCompanyPhonesWithCountryCode(rawPhones, countryCode = null) {
+        const str = String(rawPhones || '').trim();
+        if (!str) return '';
+        const meta = this.getCountryCodeMeta(countryCode || this.brand?.phoneCountryCode || this.defaultCountryCode);
+        const parts = str.split(/\s*[,;/]\s*/).filter(Boolean);
+        return parts.map(part => {
+            const p = part.trim();
+            if (!p) return '';
+            if (p.startsWith('+')) {
+                const parsed = this.parsePhoneWithCountryCode(p, meta.code);
+                if (parsed.hasExplicitCode && parsed.localDigits) {
+                    return p;
+                }
+                return p;
+            }
+            const digitsOnly = p.replace(/\D/g, '');
+            if (digitsOnly.length >= 6) {
+                if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) {
+                    return `+91 ${digitsOnly.slice(2)}`;
+                }
+                return `${meta.code} ${p}`;
+            }
+            return p;
+        }).filter(Boolean).join(', ');
+    }
+
+    migrateStoredPhonesWithCountryCode() {
+        const defCode = this.defaultCountryCode || '+91';
+        let custChanged = false;
+        if (Array.isArray(this.customers)) {
+            this.customers.forEach(c => {
+                if (c && c.phone) {
+                    const parsed = this.parsePhoneWithCountryCode(c.phone, c.countryCode || defCode);
+                    if (parsed.localDigits) {
+                        const formatted = `${parsed.countryCode} ${parsed.localDigits}`;
+                        if (c.phone !== formatted || c.countryCode !== parsed.countryCode) {
+                            c.phone = formatted;
+                            c.countryCode = parsed.countryCode;
+                            custChanged = true;
+                        }
+                    }
+                }
+            });
+            if (custChanged) {
+                this.saveToStorage('borebill_customers', this.customers);
+            }
+        }
+
+        let histChanged = false;
+        if (Array.isArray(this.history)) {
+            this.history.forEach(h => {
+                if (h && h.custPhone) {
+                    const formatted = this.formatPhoneWithCountryCode(h.custPhone, h.custCountryCode || defCode);
+                    if (formatted && h.custPhone !== formatted) {
+                        h.custPhone = formatted;
+                        histChanged = true;
+                    }
+                }
+            });
+            if (histChanged) {
+                this.saveToStorage('borebill_history', this.history);
+            }
+        }
+
+        if (this.state && this.state.custPhone) {
+            this.state.custPhone = this.formatPhoneWithCountryCode(this.state.custPhone, defCode);
+        }
+
+        if (this.brand) {
+            if (!this.brand.phoneCountryCode) {
+                const parsedBrand = this.parsePhoneWithCountryCode(this.brand.phones || '', defCode);
+                this.brand.phoneCountryCode = parsedBrand.countryCode || defCode;
+            }
+            if (this.brand.phones) {
+                const formattedPhones = this.formatCompanyPhonesWithCountryCode(this.brand.phones, this.brand.phoneCountryCode);
+                if (formattedPhones && formattedPhones !== this.brand.phones) {
+                    this.brand.phones = formattedPhones;
+                    this.saveToStorage('borebill_brand', this.brand);
+                }
+            }
+        }
+    }
+
+    validateMobileNumber(raw, countryCode = null) {
+        const parsed = this.parsePhoneWithCountryCode(raw, countryCode || this.defaultCountryCode);
+        const { localDigits: digits, meta } = parsed;
+        if (!digits) {
+            return {
+                valid: false,
+                isEmpty: true,
+                digits: '',
+                countryCode: meta.code,
+                fullPhone: '',
+                reason: 'empty',
+                message: `Enter ${meta.maxLen}-digit mobile number (${meta.code})`
+            };
+        }
+        if (meta.indiaRule && !/^[6-9]/.test(digits)) {
+            return {
+                valid: false,
+                isEmpty: false,
+                digits,
+                countryCode: meta.code,
+                fullPhone: '',
+                reason: 'invalid_start',
+                message: 'Indian mobile number must start with 6, 7, 8 or 9'
+            };
+        }
+        if (digits.length < meta.minLen) {
+            return {
+                valid: false,
+                isEmpty: false,
+                digits,
+                countryCode: meta.code,
+                fullPhone: '',
+                reason: 'incomplete',
+                message: `Enter ${meta.minLen} digits for ${meta.code} (${digits.length}/${meta.minLen})`
+            };
+        }
+        const fullPhone = `${meta.code} ${digits}`;
+        return {
+            valid: true,
+            isEmpty: false,
+            digits,
+            countryCode: meta.code,
+            fullPhone,
+            reason: 'ok',
+            message: `✓ Valid mobile (${fullPhone})`
+        };
     }
 
     findExistingCustomerByPhone(phone, excludeCustomerId = null) {
-        const cleanPhone = this.normalizeMobileNumber(phone);
-        if (cleanPhone.length !== 10) return null;
+        const parsed = this.parsePhoneWithCountryCode(phone, this.defaultCountryCode);
+        const cleanPhone = parsed.localDigits;
+        if (cleanPhone.length < parsed.meta.minLen) return null;
 
         const custMatch = (this.customers || []).find(c =>
-            c.id !== excludeCustomerId && this.normalizeMobileNumber(c.phone) === cleanPhone
+            c.id !== excludeCustomerId && this.normalizeMobileNumber(c.phone, c.countryCode) === cleanPhone
         );
         if (custMatch) {
             return {
                 source: 'customer',
                 id: custMatch.id,
                 name: custMatch.name || 'Saved Customer',
-                phone: cleanPhone,
+                phone: this.formatPhoneWithCountryCode(custMatch.phone, custMatch.countryCode),
                 village: custMatch.village || ''
             };
         }
@@ -1859,7 +2123,7 @@ class BoreBillSaaSApp {
                 source: 'history',
                 id: null,
                 name: hName,
-                phone: cleanPhone,
+                phone: this.formatPhoneWithCountryCode(histMatch.custPhone),
                 village: histMatch.custLocation || '',
                 billNo: histMatch.billNo
             };
@@ -1874,14 +2138,15 @@ class BoreBillSaaSApp {
         const dupBanner = document.getElementById('billPhoneDupAlert');
         if (!phoneInput || !hintEl || !dupBanner) return;
 
-        const cleaned = this.normalizeMobileNumber(phoneInput.value);
-        if (phoneInput.value !== cleaned) {
-            phoneInput.value = cleaned;
+        const parsed = this.parsePhoneWithCountryCode(phoneInput.value, this.defaultCountryCode);
+        const formatted = parsed.localDigits ? `${parsed.countryCode} ${parsed.localDigits}` : '';
+        if (phoneInput.value !== formatted) {
+            phoneInput.value = formatted;
         }
 
         phoneInput.classList.remove('input-invalid', 'input-warn', 'input-valid');
 
-        const val = this.validateMobileNumber(cleaned);
+        const val = this.validateMobileNumber(formatted, parsed.countryCode);
         if (val.isEmpty) {
             hintEl.style.display = 'none';
             dupBanner.style.display = 'none';
@@ -1897,8 +2162,7 @@ class BoreBillSaaSApp {
             return;
         }
 
-        // Valid 10-digit number -> check if already exists!
-        const dup = this.findExistingCustomerByPhone(val.digits);
+        const dup = this.findExistingCustomerByPhone(val.fullPhone);
         if (dup) {
             phoneInput.classList.add('input-warn');
             hintEl.className = 'phone-val-hint warn';
@@ -1909,7 +2173,7 @@ class BoreBillSaaSApp {
             const isSameSelected = currentName && currentName.toLowerCase() === dup.name.toLowerCase();
 
             dupBanner.innerHTML = `
-                <span>⚠️ Mobile <strong>${val.digits}</strong> already registered to <strong>${dup.name}</strong>${dup.village ? ` (${dup.village})` : ''}!</span>
+                <span>⚠️ Mobile <strong>${val.fullPhone}</strong> already registered to <strong>${dup.name}</strong>${dup.village ? ` (${dup.village})` : ''}!</span>
                 <div class="phone-dup-actions">
                     ${!isSameSelected ? `<button type="button" class="phone-dup-btn primary" id="applyDupCustToBillBtn">Use ${dup.name}</button>` : ''}
                     ${(dup.source === 'customer' && currentName && !isSameSelected) ? `<button type="button" class="phone-dup-btn" id="overwriteDupCustFromBillBtn">Update Party</button>` : ''}
@@ -1931,19 +2195,19 @@ class BoreBillSaaSApp {
             document.getElementById('overwriteDupCustFromBillBtn')?.addEventListener('click', () => {
                 const newName = (document.getElementById('custName')?.value || '').trim();
                 const newLoc = (document.getElementById('custLocation')?.value || '').trim();
-                this.upsertCustomerRecord({ name: newName, phone: val.digits, village: newLoc, site: newLoc, allowOverwrite: true });
+                this.upsertCustomerRecord({ name: newName, phone: val.fullPhone, countryCode: val.countryCode, village: newLoc, site: newLoc, allowOverwrite: true });
                 this.updateBillPhoneValidationUI(false);
                 this.renderCustomerSiteSuggestions();
-                this.showToast(`✅ Updated ${val.digits} to "${newName}"`);
+                this.showToast(`✅ Updated ${val.fullPhone} to "${newName}"`);
             });
 
             if (triggerDuplicateToast) {
-                this.showToast(`⚠️ Mobile ${val.digits} already exists for "${dup.name}"!`);
+                this.showToast(`⚠️ Mobile ${val.fullPhone} already exists for "${dup.name}"!`);
             }
         } else {
             phoneInput.classList.add('input-valid');
             hintEl.className = 'phone-val-hint valid';
-            hintEl.textContent = '✓ Valid 10-digit mobile number';
+            hintEl.textContent = val.message;
             hintEl.style.display = 'block';
             dupBanner.style.display = 'none';
         }
@@ -1951,19 +2215,29 @@ class BoreBillSaaSApp {
 
     updateCrmPhoneValidationUI(triggerDuplicateToast = false) {
         const phoneInput = document.getElementById('crmCustPhone');
+        const codeSelect = document.getElementById('crmCustCountryCode');
         const hintEl = document.getElementById('crmPhoneValHint');
         const dupBanner = document.getElementById('crmPhoneDupAlert');
         const editId = document.getElementById('crmEditCustomerId')?.value || null;
         if (!phoneInput || !hintEl || !dupBanner) return;
 
-        const cleaned = this.normalizeMobileNumber(phoneInput.value);
+        let activeCode = codeSelect?.value || this.defaultCountryCode || '+91';
+        const parsed = this.parsePhoneWithCountryCode(phoneInput.value, activeCode);
+        if (parsed.hasExplicitCode && parsed.countryCode !== activeCode) {
+            activeCode = parsed.countryCode;
+            if (codeSelect) codeSelect.value = activeCode;
+            this.setDefaultCountryCode(activeCode);
+        }
+        this.syncPhoneInputMetaForCountry('crmCustPhone', activeCode);
+
+        const cleaned = parsed.localDigits;
         if (phoneInput.value !== cleaned) {
             phoneInput.value = cleaned;
         }
 
         phoneInput.classList.remove('input-invalid', 'input-warn', 'input-valid');
 
-        const val = this.validateMobileNumber(cleaned);
+        const val = this.validateMobileNumber(cleaned, activeCode);
         if (val.isEmpty) {
             hintEl.style.display = 'none';
             dupBanner.style.display = 'none';
@@ -1981,7 +2255,7 @@ class BoreBillSaaSApp {
 
         // Check for duplicate in Customer Book (excluding editId)
         const dupCust = (this.customers || []).find(c =>
-            c.id !== editId && this.normalizeMobileNumber(c.phone) === val.digits
+            c.id !== editId && this.normalizeMobileNumber(c.phone, c.countryCode) === val.digits
         );
 
         if (dupCust) {
@@ -1991,7 +2265,7 @@ class BoreBillSaaSApp {
             hintEl.style.display = 'block';
 
             dupBanner.innerHTML = `
-                <span>⚠️ Warning: Mobile <strong>${val.digits}</strong> already exists for <strong>${dupCust.name}</strong>${dupCust.village ? ` (${dupCust.village})` : ''}!</span>
+                <span>⚠️ Warning: Mobile <strong>${val.fullPhone}</strong> already exists for <strong>${dupCust.name}</strong>${dupCust.village ? ` (${dupCust.village})` : ''}!</span>
                 <div class="phone-dup-actions">
                     <button type="button" class="phone-dup-btn primary" id="switchCrmToExistingCustBtn">Edit ${dupCust.name}</button>
                 </div>
@@ -1999,21 +2273,24 @@ class BoreBillSaaSApp {
             dupBanner.style.display = 'flex';
 
             document.getElementById('switchCrmToExistingCustBtn')?.addEventListener('click', () => {
+                const dupParsed = this.parsePhoneWithCountryCode(dupCust.phone, dupCust.countryCode || activeCode);
                 document.getElementById('crmEditCustomerId').value = dupCust.id;
                 document.getElementById('crmCustName').value = dupCust.name || '';
-                document.getElementById('crmCustPhone').value = this.normalizeMobileNumber(dupCust.phone);
+                if (codeSelect) codeSelect.value = dupParsed.countryCode;
+                this.syncPhoneInputMetaForCountry('crmCustPhone', dupParsed.countryCode);
+                document.getElementById('crmCustPhone').value = dupParsed.localDigits;
                 document.getElementById('crmCustVillage').value = dupCust.village || '';
                 this.updateCrmPhoneValidationUI(false);
                 this.showToast(`✏️ Switched to editing ${dupCust.name}`);
             });
 
             if (triggerDuplicateToast) {
-                this.showToast(`⚠️ Mobile ${val.digits} already registered for "${dupCust.name}"!`);
+                this.showToast(`⚠️ Mobile ${val.fullPhone} already registered for "${dupCust.name}"!`);
             }
         } else {
             phoneInput.classList.add('input-valid');
             hintEl.className = 'phone-val-hint valid';
-            hintEl.textContent = '✓ Valid 10-digit mobile number';
+            hintEl.textContent = val.message;
             hintEl.style.display = 'block';
             dupBanner.style.display = 'none';
         }
@@ -2029,26 +2306,37 @@ class BoreBillSaaSApp {
         const subEl = document.getElementById('crmPopupSubText');
         const saveBtnTxt = document.getElementById('saveCrmCustomerBtnText');
         const nameEl = document.getElementById('crmCustName');
+        const codeEl = document.getElementById('crmCustCountryCode');
         const phoneEl = document.getElementById('crmCustPhone');
         const villageEl = document.getElementById('crmCustVillage');
 
         if (editCust) {
+            const parsed = this.parsePhoneWithCountryCode(editCust.phone || '', editCust.countryCode || this.defaultCountryCode);
             if (editIdEl) editIdEl.value = editCust.id;
             if (fromBillEl) fromBillEl.value = fromBill ? 'true' : 'false';
             if (titleEl) titleEl.textContent = 'Edit Customer';
             if (subEl) subEl.textContent = `Update details for ${editCust.name}`;
             if (saveBtnTxt) saveBtnTxt.textContent = fromBill ? 'Update & Select' : 'Update Customer';
             if (nameEl) nameEl.value = editCust.name || '';
-            if (phoneEl) phoneEl.value = this.normalizeMobileNumber(editCust.phone || '');
+            if (codeEl) codeEl.value = parsed.countryCode;
+            this.syncPhoneInputMetaForCountry('crmCustPhone', parsed.countryCode);
+            if (phoneEl) phoneEl.value = parsed.localDigits;
             if (villageEl) villageEl.value = editCust.village || '';
         } else {
+            const prefillParsed = this.parsePhoneWithCountryCode(prefill?.phone || '', this.defaultCountryCode);
+            const activeCode = prefillParsed.hasExplicitCode ? prefillParsed.countryCode : (this.defaultCountryCode || '+91');
+            if (prefillParsed.hasExplicitCode) {
+                this.setDefaultCountryCode(activeCode);
+            }
             if (editIdEl) editIdEl.value = '';
             if (fromBillEl) fromBillEl.value = fromBill ? 'true' : 'false';
             if (titleEl) titleEl.textContent = 'Add Customer';
-            if (subEl) subEl.textContent = fromBill ? 'Save to Customer Book & use in Bill' : 'Save Name, 10-digit Mobile & Place';
+            if (subEl) subEl.textContent = fromBill ? 'Save to Customer Book & use in Bill' : 'Save Name, Mobile with Country Code & Place';
             if (saveBtnTxt) saveBtnTxt.textContent = fromBill ? 'Save & Select' : 'Save Customer';
             if (nameEl) nameEl.value = prefill?.name || '';
-            if (phoneEl) phoneEl.value = this.normalizeMobileNumber(prefill?.phone || '');
+            if (codeEl) codeEl.value = activeCode;
+            this.syncPhoneInputMetaForCountry('crmCustPhone', activeCode);
+            if (phoneEl) phoneEl.value = prefillParsed.localDigits;
             if (villageEl) villageEl.value = prefill?.village || '';
         }
 
@@ -2676,15 +2964,17 @@ class BoreBillSaaSApp {
         });
     }
 
-    upsertCustomerRecord({ name, phone, village, site = '', allowOverwrite = false }) {
+    upsertCustomerRecord({ name, phone, countryCode = null, village, site = '', allowOverwrite = false }) {
         const cleanName = (name || '').trim();
-        const cleanPhone = this.normalizeMobileNumber(phone);
+        const parsed = this.parsePhoneWithCountryCode(phone, countryCode || this.defaultCountryCode);
+        const cleanPhone = parsed.localDigits;
+        const formattedPhone = cleanPhone ? `${parsed.countryCode} ${cleanPhone}` : '';
         const cleanVillage = (village || '').trim();
         const cleanSite = (site || '').trim();
         if (!cleanName && !cleanPhone) return null;
 
         let existing = null;
-        if (cleanPhone.length === 10) {
+        if (cleanPhone.length >= parsed.meta.minLen) {
             existing = this.customers.find(c => this.normalizeMobileNumber(c.phone) === cleanPhone);
         }
         if (!existing && cleanName && !cleanPhone) {
@@ -2694,7 +2984,10 @@ class BoreBillSaaSApp {
         if (existing) {
             if (allowOverwrite || !existing.name || existing.name.toLowerCase() === cleanName.toLowerCase()) {
                 existing.name = cleanName || existing.name;
-                existing.phone = cleanPhone || existing.phone;
+                if (formattedPhone) {
+                    existing.phone = formattedPhone;
+                    existing.countryCode = parsed.countryCode;
+                }
                 existing.village = cleanVillage || existing.village;
                 if (!Array.isArray(existing.sites)) existing.sites = [];
                 if (cleanSite && cleanSite.toLowerCase() !== (existing.village || '').toLowerCase()) {
@@ -2713,7 +3006,8 @@ class BoreBillSaaSApp {
             existing = {
                 id: 'cust_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
                 name: cleanName || 'Customer',
-                phone: cleanPhone,
+                phone: formattedPhone,
+                countryCode: parsed.countryCode,
                 village: cleanVillage,
                 sites: initialSites,
                 createdAt: new Date().toISOString(),
@@ -3014,7 +3308,7 @@ class BoreBillSaaSApp {
         const displayCust = (item.custName && item.custName !== 'Walk-in Customer') ? item.custName : 'Direct Bill';
         const dateStr = this.getHistoryItemDateStr(item) || 'N/A';
         const siteName = item.custLocation || 'Site N/A';
-        const phoneStr = item.custPhone || '';
+        const phoneStr = this.formatPhoneWithCountryCode(item.custPhone || '');
 
         const avatarEl = document.getElementById('bdmAvatar');
         const titleEl = document.getElementById('bdmTitle');
@@ -3388,6 +3682,7 @@ class BoreBillSaaSApp {
             const hasDue = agg.totalPending > 0;
             const { allSites } = this.getCustomerSiteSuggestions(c);
             const placeText = c.village || (allSites.length > 0 ? allSites[0] : '');
+            const dispPhone = this.formatPhoneWithCountryCode(c.phone || '', c.countryCode || this.defaultCountryCode);
 
             let badgeHtml = '';
             if (hasDue) {
@@ -3408,8 +3703,8 @@ class BoreBillSaaSApp {
                             <div class="cmr-name">${this.escapeHtml(c.name)}</div>
                             <div class="cmr-sub">
                                 ${placeText ? `<span class="cmr-place">📍 ${this.escapeHtml(placeText)}</span>` : ''}
-                                ${placeText && c.phone ? `<span class="cmr-dot">•</span>` : ''}
-                                ${c.phone ? `<span class="cmr-phone">📞 ${this.escapeHtml(c.phone)}</span>` : (!placeText ? '<span class="cmr-phone">Tap to view details</span>' : '')}
+                                ${placeText && dispPhone ? `<span class="cmr-dot">•</span>` : ''}
+                                ${dispPhone ? `<span class="cmr-phone">📞 ${this.escapeHtml(dispPhone)}</span>` : (!placeText ? '<span class="cmr-phone">Tap to view details</span>' : '')}
                             </div>
                         </div>
                     </div>
@@ -3433,7 +3728,8 @@ class BoreBillSaaSApp {
         const origIdx = this.customers.findIndex(x => x.id === targetId);
         if (origIdx === -1) return;
         const deletedCust = JSON.parse(JSON.stringify(this.customers[origIdx]));
-        const labelTxt = `${deletedCust.name}${deletedCust.phone ? ` (${deletedCust.phone})` : ''}${deletedCust.village ? ` • 📍 ${deletedCust.village}` : ''}`;
+        const dispPhone = this.formatPhoneWithCountryCode(deletedCust.phone || '', deletedCust.countryCode || this.defaultCountryCode);
+        const labelTxt = `${deletedCust.name}${dispPhone ? ` (${dispPhone})` : ''}${deletedCust.village ? ` • 📍 ${deletedCust.village}` : ''}`;
 
         this.confirmDeleteModal({
             title: 'Delete Customer?',
@@ -3504,20 +3800,21 @@ class BoreBillSaaSApp {
         const avatarEl = document.getElementById('cdmAvatar');
         const nameEl = document.getElementById('cdmName');
         const metaEl = document.getElementById('cdmMeta');
+        const dispPhone = this.formatPhoneWithCountryCode(cust.phone || '', cust.countryCode || this.defaultCountryCode);
         if (avatarEl) avatarEl.textContent = this.getInitials(cust.name);
         if (nameEl) nameEl.textContent = cust.name;
         if (metaEl) {
             const parts = [];
             if (cust.village) parts.push(`📍 ${cust.village}`);
-            if (cust.phone) parts.push(`📞 ${cust.phone}`);
+            if (dispPhone) parts.push(`📞 ${dispPhone}`);
             if (allSites.length > 1) parts.push(`${allSites.length} Sites`);
             metaEl.textContent = parts.join(' • ') || 'Customer Profile';
         }
 
         const callBtn = document.getElementById('cdmCallBtn');
         if (callBtn) {
-            if (cust.phone) {
-                callBtn.href = `tel:${cust.phone}`;
+            if (dispPhone) {
+                callBtn.href = `tel:${dispPhone.replace(/\s+/g, '')}`;
                 callBtn.style.display = 'inline-flex';
             } else {
                 callBtn.style.display = 'none';
@@ -3997,7 +4294,7 @@ class BoreBillSaaSApp {
                     </div>
                 `;
                 document.getElementById('wizInstantCreateCustBtn')?.addEventListener('click', () => {
-                    const isDigits = /^\d+$/.test(rawQ);
+                    const isDigits = /^[\d+\s-]+$/.test(rawQ) && /\d{3,}/.test(rawQ);
                     this.openCustomerPopupModal({
                         fromBill: true,
                         prefill: {
@@ -4028,6 +4325,7 @@ class BoreBillSaaSApp {
 
         listEl.innerHTML = filtered.map(c => {
             const cPhone = this.normalizeMobileNumber(c.phone || '');
+            const dispPhone = this.formatPhoneWithCountryCode(c.phone || '', c.countryCode || this.defaultCountryCode);
             const isSelected = (currentSelectedPhone && cPhone && currentSelectedPhone === cPhone) ||
                 (!currentSelectedPhone && currentSelectedName && (c.name || '').trim().toLowerCase() === currentSelectedName);
             const agg = this.getCustomerAggregates(c);
@@ -4044,7 +4342,7 @@ class BoreBillSaaSApp {
                             ${c.village ? `<span class="wiz-cc-place-tag">🏠 ${c.village}</span>` : ''}
                         </div>
                         <div class="wiz-cc-meta">
-                            📞 ${c.phone || 'N/A'} • ${agg.billsCount} ${agg.billsCount === 1 ? 'Bill' : 'Bills'}${sitesSub}
+                            📞 ${dispPhone || 'N/A'} • ${agg.billsCount} ${agg.billsCount === 1 ? 'Bill' : 'Bills'}${sitesSub}
                         </div>
                     </div>
                 </div>
@@ -4068,7 +4366,7 @@ class BoreBillSaaSApp {
 
     selectCustomerIntoBill(cust, initialSite = '') {
         document.getElementById('custName').value = cust.name || '';
-        document.getElementById('custPhone').value = this.normalizeMobileNumber(cust.phone || '');
+        document.getElementById('custPhone').value = this.formatPhoneWithCountryCode(cust.phone || '', cust.countryCode || this.defaultCountryCode);
         const custGstEl = document.getElementById('custGstInput');
         if (custGstEl) {
             custGstEl.value = (cust.gstNumber || '').trim().toUpperCase();
@@ -4124,9 +4422,13 @@ class BoreBillSaaSApp {
     syncBrandFromInputs(saveStorage = true) {
         const nameEl = document.getElementById('brandCompanyName');
         if (!nameEl) return;
+        const brandPhoneCodeEl = document.getElementById('brandPhoneCountryCode');
+        const brandCode = brandPhoneCodeEl?.value || this.brand.phoneCountryCode || this.defaultCountryCode || '+91';
+        this.brand.phoneCountryCode = brandCode;
         this.brand.companyName = (nameEl.value || '').trim() || 'MY BOREWELLS';
         this.brand.tagline = (document.getElementById('brandCompanyTagline')?.value || '').trim();
-        this.brand.phones = (document.getElementById('brandCompanyPhones')?.value || '').trim();
+        const rawCompPhones = (document.getElementById('brandCompanyPhones')?.value || '').trim();
+        this.brand.phones = rawCompPhones ? this.formatCompanyPhonesWithCountryCode(rawCompPhones, brandCode) : '';
         this.brand.billPrefix = (document.getElementById('brandBillPrefix')?.value || 'AB').trim().toUpperCase();
         this.brand.nextQuoteSeq = Math.max(1, parseInt(document.getElementById('brandNextQuoteSeq')?.value, 10) || 101);
         this.brand.nextBillSeq = Math.max(1, parseInt(document.getElementById('brandNextBillSeq')?.value, 10) || 101);
@@ -4170,7 +4472,8 @@ class BoreBillSaaSApp {
         const compName = (b.companyName || '').trim() || 'MY BOREWELL COMPANY';
         const tagline = (b.tagline || '').trim();
         const address = (b.address || '').trim();
-        const phones = (b.phones || '').trim();
+        const brandPhoneCode = b.phoneCountryCode || this.defaultCountryCode || '+91';
+        const phones = this.formatCompanyPhonesWithCountryCode((b.phones || '').trim(), brandPhoneCode);
         const website = (b.website || '').trim();
         const quoteTermsNote = this.getDocFooterTermsNote('QUOTATION');
         const finalBillTermsNote = this.getDocFooterTermsNote('INVOICE');
@@ -4291,9 +4594,13 @@ class BoreBillSaaSApp {
                 el.value = val;
             }
         };
+        const brandCodeSelect = document.getElementById('brandPhoneCountryCode');
+        if (brandCodeSelect && document.activeElement !== brandCodeSelect) {
+            brandCodeSelect.value = brandPhoneCode;
+        }
         setInputIfNotFocused('brandCompanyName', b.companyName || '');
         setInputIfNotFocused('brandCompanyTagline', b.tagline || '');
-        setInputIfNotFocused('brandCompanyPhones', b.phones || '');
+        setInputIfNotFocused('brandCompanyPhones', phones || '');
         setInputIfNotFocused('brandBillPrefix', b.billPrefix || 'AB');
         setInputIfNotFocused('brandNextQuoteSeq', b.nextQuoteSeq || 101);
         setInputIfNotFocused('brandNextBillSeq', b.nextBillSeq || 101);
@@ -5241,9 +5548,10 @@ class BoreBillSaaSApp {
         const isInvoice = (res.docType || 'INVOICE') === 'INVOICE';
         const docLabel = isInvoice ? '🧾 FINAL BILL' : '📋 QUOTATION';
         const cleanCust = (custName && custName !== 'Walk-in Customer') ? custName.trim() : '';
-        const cleanPhone = (custPhone || '').trim();
+        const cleanPhone = this.formatPhoneWithCountryCode(custPhone || '');
         const cleanLoc = (custLocation || '').trim();
         const cleanClientGst = res.gstEnabled ? ((custGst || res.custGst || '').trim().toUpperCase()) : '';
+        const compPhones = this.formatCompanyPhonesWithCountryCode((b.phones || '').trim(), b.phoneCountryCode || this.defaultCountryCode);
 
         const lines = [];
         lines.push(`*🚜 ${compName}*`);
@@ -5330,7 +5638,7 @@ class BoreBillSaaSApp {
         }
         if (b.website && b.website.trim()) lines.push(`🌐 *Website:* ${b.website.trim()}`);
         if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
-        if (b.phones && b.phones.trim()) lines.push(`📞 *Contact:* ${b.phones.trim()}`);
+        if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
 
         return lines.join('\n');
     }
@@ -5370,6 +5678,7 @@ class BoreBillSaaSApp {
         const titleEl = document.getElementById('waPreviewModalTitle');
         const subEl = document.getElementById('waPreviewModalSub');
         const recNameEl = document.getElementById('waPreviewRecipientName');
+        const countrySelect = document.getElementById('waPreviewCountryCode');
         const phoneInput = document.getElementById('waPreviewPhoneInput');
         const bubbleEl = document.getElementById('waPreviewFormattedBubble');
         const rawArea = document.getElementById('waPreviewMessageInput');
@@ -5378,10 +5687,16 @@ class BoreBillSaaSApp {
 
         if (!overlay) return;
 
+        const parsedPhone = this.parsePhoneWithCountryCode(phone || '', this.defaultCountryCode);
+        if (countrySelect) {
+            countrySelect.value = parsedPhone.countryCode;
+        }
+        this.syncPhoneInputMetaForCountry('waPreviewPhoneInput', parsedPhone.countryCode);
+
         if (titleEl) titleEl.textContent = title;
         if (subEl) subEl.textContent = subtitle;
         if (recNameEl) recNameEl.textContent = (recipientName || 'Customer').trim() || 'Customer';
-        if (phoneInput) phoneInput.value = this.normalizeMobileNumber(phone || '');
+        if (phoneInput) phoneInput.value = parsedPhone.localDigits;
         if (rawArea) {
             rawArea.value = message || '';
             rawArea.style.display = 'none';
@@ -5406,17 +5721,21 @@ class BoreBillSaaSApp {
 
     confirmAndSendWhatsAppFromModal() {
         const rawArea = document.getElementById('waPreviewMessageInput');
+        const countrySelect = document.getElementById('waPreviewCountryCode');
         const phoneInput = document.getElementById('waPreviewPhoneInput');
         const msg = (rawArea?.value || '').trim();
         if (!msg) {
             this.showToast('⚠️ Message is empty');
             return;
         }
-        const rawPhone = (phoneInput?.value || '').replace(/\D/g, '');
+        const selectedCode = countrySelect?.value || this.defaultCountryCode || '+91';
+        const parsed = this.parsePhoneWithCountryCode(phoneInput?.value || '', selectedCode);
+        this.setDefaultCountryCode(parsed.countryCode);
+
         let waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-        if (rawPhone.length >= 10) {
-            const cleanPhone = rawPhone.length === 10 ? `91${rawPhone}` : rawPhone;
-            waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
+        if (parsed.localDigits.length >= parsed.meta.minLen) {
+            const fullDial = `${parsed.meta.dial}${parsed.localDigits}`;
+            waUrl = `https://wa.me/${fullDial}?text=${encodeURIComponent(msg)}`;
         }
         this.closeWhatsAppPreviewModal();
         window.open(waUrl, '_blank');
@@ -5467,8 +5786,10 @@ class BoreBillSaaSApp {
         this.syncBrandFromInputs(true);
         const b = this.brand || this.defaultBrand;
         const compName = (b.companyName || 'MY BOREWELL COMPANY').trim();
+        const custNormPhone = this.normalizeMobileNumber(cust.phone || '');
         const matchingBills = (this.history || []).filter(item => {
-            if (cust.phone && item.custPhone && cust.phone === item.custPhone) return true;
+            const itemNormPhone = this.normalizeMobileNumber(item.custPhone || '');
+            if (custNormPhone && itemNormPhone && custNormPhone === itemNormPhone) return true;
             if (cust.name && item.custName && cust.name.toLowerCase() === item.custName.toLowerCase()) return true;
             return false;
         });
@@ -5481,13 +5802,16 @@ class BoreBillSaaSApp {
 
         const agg = this.getCustomerAggregates(cust);
         const unpaidBills = matchingBills.filter(item => this.isBillItemUnpaid(item));
+        const dispCustPhone = this.formatPhoneWithCountryCode(cust.phone || '', cust.countryCode || this.defaultCountryCode);
+        const compPhones = this.formatCompanyPhonesWithCountryCode((b.phones || '').trim(), b.phoneCountryCode || this.defaultCountryCode);
+
         const lines = [];
         lines.push(`*🚜 ${compName}*`);
         if (b.tagline) lines.push(`_${b.tagline.trim()}_`);
         lines.push(`──────────────────────`);
         lines.push(`👤 *Customer:* ${cust.name}`);
         if (cust.village) lines.push(`🏠 *Place:* ${cust.village}`);
-        if (cust.phone) lines.push(`📞 *Mobile:* ${cust.phone}`);
+        if (dispCustPhone) lines.push(`📞 *Mobile:* ${dispCustPhone}`);
         lines.push(`──────────────────────`);
 
         if (matchingBills.length > 0) {
@@ -5526,11 +5850,11 @@ class BoreBillSaaSApp {
 
         lines.push(`──────────────────────`);
         if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
-        if (b.phones && b.phones.trim()) lines.push(`📞 *Contact:* ${b.phones.trim()}`);
+        if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
 
         this.openWhatsAppPreviewModal({
             recipientName: cust.name,
-            phone: cust.phone || '',
+            phone: dispCustPhone || '',
             message: lines.join('\n'),
             title: `WhatsApp Preview — ${cust.name}`,
             subtitle: agg.totalPending > 0 ? `Pending Due: ${this.formatINR(agg.totalPending)}` : 'Review customer message before sending'
@@ -5699,19 +6023,23 @@ class BoreBillSaaSApp {
             return;
         }
 
-        const cPhone = phoneVal.valid ? phoneVal.digits : '';
+        const cPhone = phoneVal.valid ? phoneVal.fullPhone : '';
+        if (phoneVal.valid && phoneVal.countryCode) {
+            this.setDefaultCountryCode(phoneVal.countryCode);
+        }
 
         // Only save Customer to Customer Book if the user explicitly checked "Save to Customer Book" (Never by default!)
         const shouldSaveToCustomerBook = Boolean(document.getElementById('autoSaveCustCheckbox')?.checked);
         if (shouldSaveToCustomerBook && (cName || cPhone)) {
             if (cPhone) {
-                const dupCust = (this.customers || []).find(c => this.normalizeMobileNumber(c.phone) === cPhone);
+                const dupCust = (this.customers || []).find(c => this.normalizeMobileNumber(c.phone) === phoneVal.digits);
                 if (dupCust && cName && dupCust.name.toLowerCase() !== cName.toLowerCase()) {
                     this.showToast(`⚠️ Mobile ${cPhone} already exists for "${dupCust.name}" in Customer Book!`);
                 } else {
                     const upserted = this.upsertCustomerRecord({
                         name: cName,
                         phone: cPhone,
+                        countryCode: phoneVal.countryCode,
                         village: cLoc,
                         site: cLoc
                     });
@@ -5724,6 +6052,7 @@ class BoreBillSaaSApp {
                 const upserted = this.upsertCustomerRecord({
                     name: cName,
                     phone: cPhone,
+                    countryCode: phoneVal.countryCode,
                     village: cLoc,
                     site: cLoc
                 });
@@ -6228,7 +6557,7 @@ class BoreBillSaaSApp {
         document.getElementById('billNoInput').value = item.billNo;
         document.getElementById('billDateInput').value = item.billDate;
         document.getElementById('custName').value = (!item.custName || item.custName === 'Walk-in Customer') ? '' : item.custName;
-        document.getElementById('custPhone').value = this.normalizeMobileNumber(item.custPhone || '');
+        document.getElementById('custPhone').value = this.formatPhoneWithCountryCode(item.custPhone || '');
         document.getElementById('custLocation').value = item.custLocation || '';
         const custGstEl = document.getElementById('custGstInput');
         if (custGstEl) {
@@ -7083,7 +7412,7 @@ class BoreBillSaaSApp {
         // Unified Compact Popup Triggers across New Bill & Customers Tab
         const openBillAddCustomerPopup = () => {
             const searchVal = (document.getElementById('quickCustSearchInput')?.value || '').trim();
-            const isDigits = /^\d+$/.test(searchVal);
+            const isDigits = /^[\d+\s-]+$/.test(searchVal) && /\d{3,}/.test(searchVal);
             this.openCustomerPopupModal({
                 fromBill: true,
                 prefill: {
@@ -7240,16 +7569,45 @@ class BoreBillSaaSApp {
             });
         });
 
+        document.getElementById('crmCustCountryCode')?.addEventListener('change', (e) => {
+            const selectedCode = e.target.value || '+91';
+            this.setDefaultCountryCode(selectedCode);
+            this.syncPhoneInputMetaForCountry('crmCustPhone', selectedCode);
+            const phoneEl = document.getElementById('crmCustPhone');
+            if (phoneEl) {
+                const cleaned = this.normalizeMobileNumber(phoneEl.value, selectedCode);
+                if (phoneEl.value !== cleaned) phoneEl.value = cleaned;
+            }
+            this.updateCrmPhoneValidationUI(false);
+        });
+
         document.getElementById('crmCustPhone')?.addEventListener('input', (e) => {
-            const cleaned = this.normalizeMobileNumber(e.target.value);
-            if (e.target.value !== cleaned) e.target.value = cleaned;
-            this.updateCrmPhoneValidationUI(cleaned.length === 10);
+            const rawVal = e.target.value || '';
+            const codeSelect = document.getElementById('crmCustCountryCode');
+            let activeCode = codeSelect?.value || this.defaultCountryCode || '+91';
+
+            if (rawVal.trim().startsWith('+') || rawVal.trim().startsWith('00') || rawVal.replace(/\D/g, '').length > 10) {
+                const parsed = this.parsePhoneWithCountryCode(rawVal, activeCode);
+                if (parsed.countryCode !== activeCode && codeSelect) {
+                    codeSelect.value = parsed.countryCode;
+                    activeCode = parsed.countryCode;
+                    this.setDefaultCountryCode(activeCode);
+                    this.syncPhoneInputMetaForCountry('crmCustPhone', activeCode);
+                }
+                e.target.value = parsed.localDigits;
+            } else {
+                const cleaned = this.normalizeMobileNumber(rawVal, activeCode);
+                if (e.target.value !== cleaned) e.target.value = cleaned;
+            }
+            const meta = this.getCountryCodeMeta(activeCode);
+            this.updateCrmPhoneValidationUI((e.target.value || '').length >= meta.minLen);
         });
 
         document.getElementById('saveCrmCustomerBtn')?.addEventListener('click', () => {
             const editId = document.getElementById('crmEditCustomerId').value;
             const fromBill = document.getElementById('crmPopupFromBill')?.value === 'true';
             const name = (document.getElementById('crmCustName').value || '').trim();
+            const selectedCode = document.getElementById('crmCustCountryCode')?.value || this.defaultCountryCode || '+91';
             const rawPhone = (document.getElementById('crmCustPhone').value || '').trim();
             const village = (document.getElementById('crmCustVillage').value || '').trim();
 
@@ -7259,7 +7617,7 @@ class BoreBillSaaSApp {
                 return;
             }
 
-            const phoneVal = this.validateMobileNumber(rawPhone);
+            const phoneVal = this.validateMobileNumber(rawPhone, selectedCode);
             if (!phoneVal.valid) {
                 this.updateCrmPhoneValidationUI(false);
                 document.getElementById('crmCustPhone')?.focus();
@@ -7273,7 +7631,7 @@ class BoreBillSaaSApp {
             if (dupCust) {
                 this.updateCrmPhoneValidationUI(false);
                 document.getElementById('crmCustPhone')?.focus();
-                this.showToast(`⚠️ Mobile ${phoneVal.digits} already registered for "${dupCust.name}"!`);
+                this.showToast(`⚠️ Mobile ${phoneVal.fullPhone} already registered for "${dupCust.name}"!`);
                 return;
             }
 
@@ -7283,12 +7641,16 @@ class BoreBillSaaSApp {
                 return;
             }
 
+            // Remember chosen country code as the default for next time!
+            this.setDefaultCountryCode(phoneVal.countryCode);
+
             let savedRecord = null;
             if (editId) {
                 const existing = this.customers.find(c => c.id === editId);
                 if (existing) {
                     existing.name = name;
-                    existing.phone = phoneVal.digits;
+                    existing.phone = phoneVal.fullPhone;
+                    existing.countryCode = phoneVal.countryCode;
                     existing.village = village;
                     if (!Array.isArray(existing.sites)) existing.sites = [];
                     delete existing.rig;
@@ -7299,7 +7661,12 @@ class BoreBillSaaSApp {
                 this.renderCustomerDirectory();
                 this.showToast('✅ Customer updated!');
             } else {
-                savedRecord = this.upsertCustomerRecord({ name, phone: phoneVal.digits, village });
+                savedRecord = this.upsertCustomerRecord({
+                    name,
+                    phone: phoneVal.fullPhone,
+                    countryCode: phoneVal.countryCode,
+                    village
+                });
                 this.showToast(fromBill ? `✅ Saved ${name} — now choose Service Site!` : '✅ Customer added to Ledger!');
             }
 
@@ -7326,6 +7693,9 @@ class BoreBillSaaSApp {
             document.getElementById('crmCustName').value = '';
             document.getElementById('crmCustPhone').value = '';
             document.getElementById('crmCustVillage').value = '';
+            const codeSelect = document.getElementById('crmCustCountryCode');
+            if (codeSelect) codeSelect.value = this.defaultCountryCode || '+91';
+            this.syncPhoneInputMetaForCountry('crmCustPhone', this.defaultCountryCode || '+91');
             this.updateCrmPhoneValidationUI(false);
         });
 
@@ -7603,9 +7973,10 @@ class BoreBillSaaSApp {
             document.getElementById(id)?.addEventListener('input', (e) => {
                 this.isBillSavedAndReadyToShare = false;
                 if (id === 'custPhone') {
+                    const formatted = this.formatPhoneWithCountryCode(e.target.value);
                     const cleaned = this.normalizeMobileNumber(e.target.value);
-                    if (e.target.value !== cleaned) e.target.value = cleaned;
-                    this.updateBillPhoneValidationUI(cleaned.length === 10);
+                    if (e.target.value !== formatted) e.target.value = formatted;
+                    this.updateBillPhoneValidationUI(cleaned.length >= 7);
                     this.renderCustomerSiteSuggestions();
                 } else if (id === 'custLocation') {
                     this.updateBillPhoneValidationUI(false);
@@ -8121,6 +8492,19 @@ class BoreBillSaaSApp {
         });
 
         // Live Auto-Sync on all Company Settings inputs so Receipt & Download PDF always reflect changes immediately
+        document.getElementById('brandPhoneCountryCode')?.addEventListener('change', (e) => {
+            const selectedCode = e.target.value || '+91';
+            this.brand.phoneCountryCode = selectedCode;
+            this.setDefaultCountryCode(selectedCode);
+            const phonesEl = document.getElementById('brandCompanyPhones');
+            if (phonesEl && phonesEl.value.trim()) {
+                phonesEl.value = this.formatCompanyPhonesWithCountryCode(phonesEl.value, selectedCode);
+            }
+            this.syncBrandFromInputs(true);
+            this.applyBrandToUI();
+            this.calculateAndRender();
+        });
+
         const brandInputIds = [
             'brandCompanyName', 'brandCompanyTagline', 'brandCompanyPhones',
             'brandBillPrefix', 'brandNextQuoteSeq', 'brandNextBillSeq',
@@ -8277,9 +8661,34 @@ class BoreBillSaaSApp {
             }
         });
 
+        document.getElementById('waPreviewCountryCode')?.addEventListener('change', (e) => {
+            const selectedCode = e.target.value || '+91';
+            this.setDefaultCountryCode(selectedCode);
+            this.syncPhoneInputMetaForCountry('waPreviewPhoneInput', selectedCode);
+            const phoneInp = document.getElementById('waPreviewPhoneInput');
+            if (phoneInp) {
+                const cleaned = this.normalizeMobileNumber(phoneInp.value, selectedCode);
+                if (phoneInp.value !== cleaned) phoneInp.value = cleaned;
+            }
+        });
+
         document.getElementById('waPreviewPhoneInput')?.addEventListener('input', (e) => {
-            const cleaned = this.normalizeMobileNumber(e.target.value);
-            if (e.target.value !== cleaned) e.target.value = cleaned;
+            const rawVal = e.target.value || '';
+            const codeSelect = document.getElementById('waPreviewCountryCode');
+            let activeCode = codeSelect?.value || this.defaultCountryCode || '+91';
+            if (rawVal.trim().startsWith('+') || rawVal.trim().startsWith('00') || rawVal.replace(/\D/g, '').length > 10) {
+                const parsed = this.parsePhoneWithCountryCode(rawVal, activeCode);
+                if (parsed.countryCode !== activeCode && codeSelect) {
+                    codeSelect.value = parsed.countryCode;
+                    activeCode = parsed.countryCode;
+                    this.setDefaultCountryCode(activeCode);
+                    this.syncPhoneInputMetaForCountry('waPreviewPhoneInput', activeCode);
+                }
+                e.target.value = parsed.localDigits;
+            } else {
+                const cleaned = this.normalizeMobileNumber(rawVal, activeCode);
+                if (e.target.value !== cleaned) e.target.value = cleaned;
+            }
         });
 
         document.getElementById('toggleWaRawEditBtn')?.addEventListener('click', () => {
@@ -8424,6 +8833,7 @@ class BoreBillSaaSApp {
                         this.savedNotes = parsed.savedNotes;
                         this.saveToStorage('borebill_saved_notes', this.savedNotes);
                     }
+                    this.migrateStoredPhonesWithCountryCode();
                     this.applyBrandToUI();
                     this.populateRateInputsUI(this.getActiveRateProfile());
                     this.renderMasterSlabsGrid();
