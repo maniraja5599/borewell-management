@@ -503,15 +503,16 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-balance {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    font-size: 0.68rem;
+    gap: 2.5px;
+    font-size: 0.65rem;
     background: #dc2626;
     color: #ffffff;
-    padding: 3px 8px;
+    padding: 2px 7px;
     border-radius: 99px;
     font-weight: 700;
-    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
-    letter-spacing: 0.2px;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.35);
+    letter-spacing: 0.15px;
+    line-height: 1.2;
 }
 
 .live-bar-balance.fully-paid {
@@ -6046,34 +6047,34 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .preview-btn-due-tag {
     display: inline-block;
-    font-size: 0.68rem;
-    font-weight: 800;
+    font-size: 0.63rem;
+    font-weight: 750;
     background: #dc2626;
     color: #ffffff;
-    padding: 1.5px 7px;
+    padding: 1px 6px;
     border-radius: 99px;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.1px;
     line-height: 1.2;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .preview-btn-due-tag.fully-paid {
     background: #16a34a;
 }
 
-/* Advance & Extras Live Calculated Due Pill */
+/* Advance & Extras Live Calculated Due Pill (Compact Kutty) */
 .advance-due-calc-pill {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    margin-top: 10px;
-    padding: 8px 12px;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 10px;
     background: #fef2f2;
-    border: 1.5px solid #fca5a5;
-    border-radius: 9px;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
     color: #991b1b;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 600;
 }
 
@@ -6084,37 +6085,85 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .advance-due-calc-pill strong {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 800;
+    color: #dc2626;
     font-family: var(--font-display, inherit);
 }
 
-/* Selected Customer Past Pending Due Badge */
+/* Selected Customer Past Pending Due Badge - Compact & Kutty */
 .wiz-scc-due-badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    font-size: 0.68rem;
-    font-weight: 800;
+    gap: 2.5px;
+    font-size: 0.64rem;
+    font-weight: 750;
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fca5a5;
-    padding: 2px 7px;
+    padding: 1.5px 6px;
     border-radius: 99px;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.15px;
+    line-height: 1.2;
 }
 
-/* Customer Picker Card Due Tag */
+/* Customer Picker Card Due Tag - Compact & Kutty */
 .wiz-cust-due-chip {
     display: inline-block;
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 700;
     background: #fee2e2;
     color: #b91c1c;
     border: 1px solid #fecaca;
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: 6px;
     margin-left: 4px;
+}
+
+/* Floating Kutty Quick-Tab Jump Button for Bill Page */
+.quick-tab-jump-btn {
+    position: fixed;
+    right: 14px;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    z-index: 95;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 13px;
+    height: 35px;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffffff;
+    border: 1.5px solid rgba(16, 185, 129, 0.55);
+    border-radius: 99px;
+    font-size: 0.76rem;
+    font-weight: 750;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.quick-tab-jump-btn:active {
+    transform: scale(0.92);
+    background: #1e293b;
+    border-color: #10b981;
+}
+
+.qtj-label {
+    white-space: nowrap;
+}
+
+.qtj-arrow {
+    display: inline-block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #34d399;
+    line-height: 1;
 }
 
 /* High-Performance Smooth Pagination "Load More" Button */

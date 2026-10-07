@@ -418,15 +418,10 @@ class BoreBillSaaSApp {
         }
         const previewBtnBal = document.getElementById('previewBtnBalanceDue');
         if (previewBtnBal && res) {
-            if (res.advancePaidAmount > 0) {
+            if (res.advancePaidAmount > 0 && res.balancePayable > 0) {
                 previewBtnBal.style.display = 'inline-block';
-                if (res.balancePayable > 0) {
-                    previewBtnBal.className = 'preview-btn-due-tag';
-                    previewBtnBal.textContent = `Due: ${this.formatINR(res.balancePayable)}`;
-                } else {
-                    previewBtnBal.className = 'preview-btn-due-tag fully-paid';
-                    previewBtnBal.textContent = 'Fully Paid';
-                }
+                previewBtnBal.className = 'preview-btn-due-tag';
+                previewBtnBal.textContent = `Due: ${this.formatINR(res.balancePayable)}`;
             } else {
                 previewBtnBal.style.display = 'none';
             }
@@ -475,6 +470,100 @@ class BoreBillSaaSApp {
         }
         if (exportGrid) {
             exportGrid.style.display = isSavedReady ? 'grid' : 'none';
+        }
+        this.updateQuickTabJumpLabel();
+    }
+
+    jumpToNextBillField() {
+        const activeEl = document.activeElement;
+
+        // Sequence of logical input fields on tab-bill:
+        // 1. Service Site (custLocation)
+        // 2. Drilling Depth (totalDepth)
+        // 3. 7" Casing Pipe (pvc7Length)
+        // 4. 10" Casing Pipe (pvc10Length)
+        // 5. Advance Paid (advancePaidAmount) - if drawer open or entered
+        // 6. Preview & Save (openBillPreviewBtn)
+        const sequence = [
+            document.getElementById('custLocation'),
+            document.getElementById('totalDepth'),
+            document.getElementById('pvc7Length'),
+            document.getElementById('pvc10Length'),
+            document.getElementById('advancePaidAmount'),
+            document.getElementById('openBillPreviewBtn')
+        ].filter(el => {
+            if (!el) return false;
+            if (el.disabled) return false;
+            return el.offsetParent !== null;
+        });
+
+        if (sequence.length === 0) return;
+
+        let nextEl = null;
+        const currentIdx = sequence.indexOf(activeEl);
+
+        if (currentIdx !== -1) {
+            if (currentIdx < sequence.length - 1) {
+                nextEl = sequence[currentIdx + 1];
+            } else {
+                nextEl = sequence[sequence.length - 1];
+            }
+        } else {
+            // If currently no input is focused, jump to first empty required field or first field
+            const emptyField = sequence.find(el => el.tagName === 'INPUT' && !String(el.value || '').trim());
+            nextEl = emptyField || sequence[0];
+        }
+
+        if (nextEl) {
+            if (nextEl.id === 'openBillPreviewBtn') {
+                nextEl.click();
+            } else {
+                nextEl.focus();
+                if (typeof nextEl.select === 'function' && nextEl.tagName === 'INPUT') {
+                    setTimeout(() => {
+                        try { nextEl.select(); } catch (_) {}
+                    }, 25);
+                }
+                nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const wrap = nextEl.closest('.simple-big-input-wrap') || nextEl.closest('.srbb-input-box') || nextEl;
+                this.triggerOneShotPulse(wrap, 'sticky-val-pop');
+            }
+            this.updateQuickTabJumpLabel(nextEl);
+        }
+    }
+
+    updateQuickTabJumpLabel(activeEl = document.activeElement) {
+        const btn = document.getElementById('billQuickTabJumpBtn');
+        const lbl = document.getElementById('billQuickTabJumpLabel');
+        if (!btn || !lbl) return;
+
+        const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
+        const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
+
+        if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved) {
+            btn.style.display = 'none';
+            return;
+        }
+
+        btn.style.display = 'inline-flex';
+
+        const id = activeEl?.id;
+        if (id === 'quickCustSearchInput' || id === 'custLocation') {
+            lbl.textContent = 'Depth';
+        } else if (id === 'totalDepth') {
+            lbl.textContent = '7" Pipe';
+        } else if (id === 'baseDrillingRate' || id === 'billBoreBataInput') {
+            lbl.textContent = '7" Pipe';
+        } else if (id === 'pvc7Length' || id === 'pvc7RateInput') {
+            lbl.textContent = '10" Pipe';
+        } else if (id === 'pvc10Length' || id === 'pvc10RateInput') {
+            const advInp = document.getElementById('advancePaidAmount');
+            const advVisible = advInp && advInp.offsetParent !== null;
+            lbl.textContent = advVisible ? 'Advance' : 'Preview';
+        } else if (id === 'advancePaidAmount' || id === 'discountAmount' || id === 'collarCapCost' || id === 'transportSurveyCost') {
+            lbl.textContent = 'Preview';
+        } else {
+            lbl.textContent = 'Next';
         }
     }
 
@@ -1191,15 +1280,10 @@ class BoreBillSaaSApp {
 
         const balBadge = document.getElementById('liveBalanceBadge');
         if (balBadge) {
-            if (res.advancePaidAmount > 0) {
+            if (res.advancePaidAmount > 0 && res.balancePayable > 0) {
                 balBadge.style.display = 'inline-flex';
-                if (res.balancePayable > 0) {
-                    balBadge.className = 'live-bar-balance has-due';
-                    balBadge.innerHTML = `🔴 Due: ${this.formatINR(res.balancePayable)}`;
-                } else {
-                    balBadge.className = 'live-bar-balance fully-paid';
-                    balBadge.innerHTML = '🟢 Fully Paid';
-                }
+                balBadge.className = 'live-bar-balance has-due';
+                balBadge.textContent = `Due: ${this.formatINR(res.balancePayable)}`;
             } else {
                 balBadge.style.display = 'none';
             }
@@ -1209,19 +1293,12 @@ class BoreBillSaaSApp {
         const advDueBadge = document.getElementById('advanceBalanceDueBadge');
         const advDueAmt = document.getElementById('advanceLiveDueAmount');
         if (advDueBadge && advDueAmt) {
-            if (res.advancePaidAmount > 0) {
+            if (res.advancePaidAmount > 0 && res.balancePayable > 0) {
                 advDueBadge.style.display = 'flex';
-                if (res.balancePayable > 0) {
-                    advDueBadge.className = 'advance-due-calc-pill';
-                    advDueAmt.textContent = this.formatINR(res.balancePayable);
-                    const lbl = advDueBadge.querySelector('.adcb-label');
-                    if (lbl) lbl.textContent = '🔴 Balance Due:';
-                } else {
-                    advDueBadge.className = 'advance-due-calc-pill fully-paid';
-                    advDueAmt.textContent = '₹0';
-                    const lbl = advDueBadge.querySelector('.adcb-label');
-                    if (lbl) lbl.textContent = '🟢 Fully Paid:';
-                }
+                advDueBadge.className = 'advance-due-calc-pill';
+                advDueAmt.textContent = this.formatINR(res.balancePayable);
+                const lbl = advDueBadge.querySelector('.adcb-label');
+                if (lbl) lbl.textContent = '🔴 Balance Due:';
             } else {
                 advDueBadge.style.display = 'none';
             }
@@ -1421,7 +1498,7 @@ class BoreBillSaaSApp {
             if (custDueBadge && agg) {
                 if (agg.totalPending > 0) {
                     custDueBadge.style.display = 'inline-flex';
-                    custDueBadge.textContent = `🔴 Past Due: ${this.formatINR(agg.totalPending)}`;
+                    custDueBadge.textContent = `Due: ${this.formatINR(agg.totalPending)}`;
                     custDueBadge.title = `Customer has ${this.formatINR(agg.totalPending)} unpaid balance from earlier bills`;
                 } else {
                     custDueBadge.style.display = 'none';
@@ -6993,6 +7070,7 @@ class BoreBillSaaSApp {
         if (scroll) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        this.updateQuickTabJumpLabel();
     }
 
     showToast(msg) {
@@ -8454,6 +8532,24 @@ class BoreBillSaaSApp {
             this.exitSavedBillMode(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             this.showToast(`➕ Ready for New Bill (#${document.getElementById('billNoInput')?.value})`);
+        });
+
+        // Kutty Floating Quick-Tab Jump Button (Moves cursor to Next Field like a Tab key)
+        document.getElementById('billQuickTabJumpBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.jumpToNextBillField();
+        });
+
+        // Track active focus on bill page to keep tab jump button label updated
+        document.addEventListener('focusin', (e) => {
+            if (e.target && e.target.closest('#tab-bill')) {
+                this.updateQuickTabJumpLabel(e.target);
+            }
+        });
+        document.addEventListener('focusout', () => {
+            setTimeout(() => {
+                this.updateQuickTabJumpLabel();
+            }, 60);
         });
 
         // Inline Sheets
