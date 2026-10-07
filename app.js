@@ -482,10 +482,7 @@ class BoreBillSaaSApp {
             const root = document.documentElement;
             if (isIOS) {
                 root.classList.add('ios-device');
-                const maxDim = Math.max(window.screen?.height || 0, window.screen?.width || 0);
-                if (maxDim >= 780) {
-                    root.classList.add('ios-notched');
-                }
+                root.classList.add('ios-notched');
             }
             if (isStandalone) {
                 root.classList.add('pwa-standalone');
@@ -509,10 +506,8 @@ class BoreBillSaaSApp {
             root.classList.remove('ios-live-bar-stuck');
             return;
         }
-        const safeBar = document.getElementById('iosPwaSafeTopBar');
-        const safeTop = (safeBar && safeBar.offsetHeight > 0) ? safeBar.offsetHeight : 0;
         const rect = liveBar.getBoundingClientRect();
-        const isStuck = (window.scrollY > 12) && (rect.top <= safeTop + 2);
+        const isStuck = (window.scrollY > 12) && (rect.top <= 4);
         root.classList.toggle('ios-live-bar-stuck', isStuck);
     }
 
@@ -2173,8 +2168,12 @@ class BoreBillSaaSApp {
     scrollElementAboveKeyboard(targetEl) {
         if (!targetEl) return;
         document.body.classList.add('keyboard-open');
+        const liveBar = document.getElementById('stickyLiveBar');
+        const topOffset = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
+            ? (liveBar.offsetHeight + 8)
+            : 76;
         const rect = targetEl.getBoundingClientRect();
-        const targetTop = Math.max(0, window.scrollY + rect.top - 68);
+        const targetTop = Math.max(0, window.scrollY + rect.top - topOffset);
         window.scrollTo({ top: targetTop, behavior: 'smooth' });
     }
 

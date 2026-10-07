@@ -75,92 +75,31 @@
     --ios-pwa-safe-top: 0px;
 }
 
-/* iPhone / iOS Standalone PWA ONLY — Extra Top Clearance below Dynamic Island / Notch & Home Indicator */
+/* iPhone / iOS (All iOS Safari & Standalone PWA Modes) — Unconditional 68px Top Clearance (Never shrinks when iOS Keyboard opens) */
 @supports (-webkit-touch-callout: none) {
-    @media all and (display-mode: standalone) {
-        :root {
-            --safe-top: max(env(safe-area-inset-top, 0px), 28px);
-            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-            --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 6px), 34px);
-        }
-        @media (min-height: 780px), (min-device-height: 780px) {
-            :root {
-                --safe-top: max(env(safe-area-inset-top, 0px), 54px);
-                --safe-bottom: max(env(safe-area-inset-bottom, 0px), 28px);
-                --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 8px), 62px);
-            }
-        }
+    :root {
+        --safe-top: max(env(safe-area-inset-top, 0px), 56px);
+        --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+        --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 14px), 68px);
     }
 }
 
-html.ios-standalone {
-    --safe-top: max(env(safe-area-inset-top, 0px), 28px);
-    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
-    --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 6px), 34px);
-    background-color: var(--brand-primary);
-}
-
+html.ios-device,
+html.ios-standalone,
 html.ios-standalone.ios-notched {
-    --safe-top: max(env(safe-area-inset-top, 0px), 54px);
-    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 28px);
-    --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 8px), 62px);
-}
-
-/* Real DOM Solid Status-Bar Plate on iOS PWA — Eliminates iOS 26/27 Liquid Glass top blur & compositing bleed */
-.ios-pwa-safe-top-bar {
-    display: none;
-}
-
-html.ios-standalone .ios-pwa-safe-top-bar {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: var(--ios-pwa-safe-top);
+    --safe-top: max(env(safe-area-inset-top, 0px), 56px);
+    --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+    --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 14px), 68px);
     background-color: var(--brand-primary);
-    background-image: none;
-    border: none;
-    box-shadow: none;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    z-index: 1009;
-    pointer-events: none;
 }
 
-html.ios-standalone.ios-live-bar-stuck,
-html.ios-standalone.ios-live-bar-stuck .ios-pwa-safe-top-bar {
+.ios-pwa-safe-top-bar {
+    display: none !important;
+}
+
+html.ios-device.ios-live-bar-stuck,
+html.ios-standalone.ios-live-bar-stuck {
     background-color: #0f172a;
-}
-
-@supports (-webkit-touch-callout: none) {
-    @media all and (display-mode: standalone) {
-        html {
-            background-color: var(--brand-primary);
-        }
-        .ios-pwa-safe-top-bar {
-            display: block;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            height: var(--ios-pwa-safe-top);
-            background-color: var(--brand-primary);
-            background-image: none;
-            border: none;
-            box-shadow: none;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            z-index: 1009;
-            pointer-events: none;
-        }
-        html.ios-live-bar-stuck,
-        html.ios-live-bar-stuck .ios-pwa-safe-top-bar {
-            background-color: #0f172a;
-        }
-    }
 }
 
 * {
@@ -238,10 +177,11 @@ svg.lucide {
 /* ==================== TOP APP BAR ==================== */
 .app-header {
     position: relative;
+    z-index: 1006;
     background-color: var(--brand-primary);
     background-image: var(--brand-gradient);
     color: #ffffff;
-    padding-top: 9px;
+    padding-top: calc(9px + var(--ios-pwa-safe-top, 0px));
     padding-bottom: 9px;
     padding-left: max(12px, var(--safe-left));
     padding-right: max(12px, var(--safe-right));
@@ -249,10 +189,23 @@ svg.lucide {
     overflow-x: clip;
 }
 
-/* On iOS PWA, sit cleanly below #iosPwaSafeTopBar with a flat solid color so there is zero safe-area overlap or blur */
+/* Overscroll top shield so pulling down on iPhone never shows a light gap behind the status bar */
+.app-header::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: 180px;
+    background-color: var(--brand-primary);
+    pointer-events: none;
+}
+
+/* On iOS, extend .app-header from top: 0 with full 74px solid top padding so text sits completely below iOS 26's top blur zone */
+html.ios-device .app-header,
 html.ios-standalone .app-header {
-    margin-top: var(--ios-pwa-safe-top);
-    padding-top: 10px;
+    margin-top: 0;
+    padding-top: calc(var(--ios-pwa-safe-top) + 6px);
     padding-bottom: 10px;
     background-color: var(--brand-primary);
     background-image: none;
@@ -261,31 +214,30 @@ html.ios-standalone .app-header {
     -webkit-backdrop-filter: none !important;
 }
 
+html.ios-device body.live-bar-hidden .app-header,
 html.ios-standalone body.live-bar-hidden .app-header {
     position: -webkit-sticky;
     position: sticky;
-    top: var(--ios-pwa-safe-top);
-    z-index: 1005;
+    top: 0px;
+    z-index: 1006;
 }
 
 @supports (-webkit-touch-callout: none) {
-    @media all and (display-mode: standalone) {
-        .app-header {
-            margin-top: var(--ios-pwa-safe-top);
-            padding-top: 10px;
-            padding-bottom: 10px;
-            background-color: var(--brand-primary);
-            background-image: none;
-            border-top: none;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-        }
-        body.live-bar-hidden .app-header {
-            position: -webkit-sticky;
-            position: sticky;
-            top: var(--ios-pwa-safe-top);
-            z-index: 1005;
-        }
+    .app-header {
+        margin-top: 0;
+        padding-top: calc(var(--ios-pwa-safe-top) + 6px);
+        padding-bottom: 10px;
+        background-color: var(--brand-primary);
+        background-image: none;
+        border-top: none;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+    body.live-bar-hidden .app-header {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0px;
+        z-index: 1006;
     }
 }
 
@@ -400,7 +352,7 @@ html.ios-standalone body.live-bar-hidden .app-header {
 .sticky-live-bar {
     position: -webkit-sticky;
     position: sticky;
-    top: var(--ios-pwa-safe-top, 0px);
+    top: 0px;
     z-index: 1005;
     background-color: #0f172a;
     background-image: none;
@@ -413,20 +365,22 @@ html.ios-standalone body.live-bar-hidden .app-header {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
-/* On iOS PWA only, keep the fixed live bar pushed down below the status bar / Dynamic Island shield */
+/* On iOS, anchor .sticky-live-bar at top: 0px of the visual viewport with 76px solid #0f172a top padding
+   tucked under .app-header (margin-top: -68px) so Row 1 never enters the 0..66px iOS status-bar blur zone! */
+html.ios-device .sticky-live-bar,
 html.ios-standalone .sticky-live-bar {
-    top: var(--ios-pwa-safe-top);
-    padding-top: 10px;
+    top: 0px;
+    margin-top: calc(-1 * var(--ios-pwa-safe-top));
+    padding-top: calc(var(--ios-pwa-safe-top) + 8px);
     padding-bottom: 8px;
 }
 
 @supports (-webkit-touch-callout: none) {
-    @media all and (display-mode: standalone) {
-        .sticky-live-bar {
-            top: var(--ios-pwa-safe-top);
-            padding-top: 10px;
-            padding-bottom: 8px;
-        }
+    .sticky-live-bar {
+        top: 0px;
+        margin-top: calc(-1 * var(--ios-pwa-safe-top));
+        padding-top: calc(var(--ios-pwa-safe-top) + 8px);
+        padding-bottom: 8px;
     }
 }
 

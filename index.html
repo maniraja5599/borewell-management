@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#15803d" id="metaThemeColor">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="BoreBill Pro">
     <meta name="format-detection" content="telephone=no">
     <link rel="manifest" href="manifest.json">
@@ -23,9 +23,7 @@
                 var root = document.documentElement;
                 if (isIOS) {
                     root.classList.add('ios-device');
-                    if (Math.max(window.screen ? window.screen.height : 0, window.screen ? window.screen.width : 0) >= 780) {
-                        root.classList.add('ios-notched');
-                    }
+                    root.classList.add('ios-notched');
                 }
                 if (isStandalone) {
                     root.classList.add('pwa-standalone');
@@ -47,7 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=53">
+    <link rel="stylesheet" href="styles.css?v=54">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Plate for iPhone PWA (Prevents iOS 26/27 Liquid Glass Status Bar Blur) -->
@@ -2042,6 +2040,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=53"></script>
+    <script src="app.js?v=54"></script>
 </body>
 </html>
