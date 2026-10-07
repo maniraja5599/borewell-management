@@ -76,12 +76,12 @@
     --vv-offset-top: 0px;
 }
 
-/* iPhone / iOS (All iOS Safari & Standalone PWA Modes) — Unconditional 68px Top Clearance (Never shrinks when iOS Keyboard opens) */
+/* iPhone / iOS (All iOS Safari & Standalone PWA Modes) — Generous 78px Top Clearance (Never shrinks when iOS Keyboard opens) */
 @supports (-webkit-touch-callout: none) {
     :root {
         --safe-top: max(env(safe-area-inset-top, 0px), 56px);
         --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
-        --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 14px), 68px);
+        --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 78px);
     }
 }
 
@@ -90,7 +90,7 @@ html.ios-standalone,
 html.ios-standalone.ios-notched {
     --safe-top: max(env(safe-area-inset-top, 0px), 56px);
     --safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
-    --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 14px), 68px);
+    --ios-pwa-safe-top: max(calc(env(safe-area-inset-top, 0px) + 20px), 78px);
     background-color: var(--brand-primary);
 }
 
@@ -223,8 +223,8 @@ svg.lucide {
     background-color: var(--brand-primary);
     background-image: var(--brand-gradient);
     color: #ffffff;
-    padding-top: calc(9px + var(--ios-pwa-safe-top, 0px));
-    padding-bottom: 9px;
+    padding-top: calc(11px + var(--ios-pwa-safe-top, 0px));
+    padding-bottom: 11px;
     padding-left: max(12px, var(--safe-left));
     padding-right: max(12px, var(--safe-right));
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -243,12 +243,12 @@ svg.lucide {
     pointer-events: none;
 }
 
-/* On iOS, place .app-header cleanly below #iosPwaSafeTopBar (68px) and compensate for visualViewport.offsetTop when keyboard opens */
+/* On iOS, place .app-header cleanly below #iosPwaSafeTopBar (78px) and compensate for visualViewport.offsetTop when keyboard opens */
 html.ios-device .app-header,
 html.ios-standalone .app-header {
     margin-top: var(--ios-pwa-safe-top);
-    padding-top: 8px;
-    padding-bottom: 9px;
+    padding-top: 10px;
+    padding-bottom: 11px;
     background-color: var(--brand-primary);
     background-image: none;
     border-top: none;
@@ -407,19 +407,19 @@ html.ios-standalone body.live-bar-hidden .app-header {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     color: #ffffff;
-    padding: 7px max(10px, var(--safe-right)) 7px max(10px, var(--safe-left));
+    padding: 9px max(12px, var(--safe-right)) 9px max(12px, var(--safe-left));
     border-top: none;
     border-bottom: 2px solid var(--brand-accent);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
-/* On iOS, anchor .sticky-live-bar at top: var(--ios-pwa-safe-top) (68px) and compensate for visualViewport.offsetTop when keyboard opens */
+/* On iOS, anchor .sticky-live-bar at top: var(--ios-pwa-safe-top) (78px) and compensate for visualViewport.offsetTop when keyboard opens */
 html.ios-device .sticky-live-bar,
 html.ios-standalone .sticky-live-bar {
     top: var(--ios-pwa-safe-top);
     margin-top: 0;
-    padding-top: 7px;
-    padding-bottom: 7px;
+    padding-top: 9px;
+    padding-bottom: 9px;
     transform: translate3d(0, var(--vv-offset-top, 0px), 0);
     -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
     will-change: transform;
@@ -429,8 +429,8 @@ html.ios-standalone .sticky-live-bar {
     .sticky-live-bar {
         top: var(--ios-pwa-safe-top);
         margin-top: 0;
-        padding-top: 7px;
-        padding-bottom: 7px;
+        padding-top: 9px;
+        padding-bottom: 9px;
         transform: translate3d(0, var(--vv-offset-top, 0px), 0);
         -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
         will-change: transform;
@@ -442,7 +442,7 @@ html.ios-standalone .sticky-live-bar {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
 }
 
 .live-bar-top {
@@ -456,31 +456,31 @@ html.ios-standalone .sticky-live-bar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 5px;
+    gap: 6px;
 }
 
 .live-doc-tag {
     background: var(--brand-accent);
     color: #0f172a;
-    font-size: 0.58rem;
+    font-size: 0.62rem;
     font-weight: 800;
-    padding: 1px 5px;
+    padding: 2px 6px;
     border-radius: 4px;
     letter-spacing: 0.03em;
 }
 
 .live-bar-label {
-    font-size: 0.62rem;
+    font-size: 0.66rem;
     color: #cbd5e1;
     font-weight: 800;
     letter-spacing: 0.04em;
 }
 
 .live-avg-pill {
-    font-size: 0.62rem;
+    font-size: 0.64rem;
     color: #94a3b8;
     background: rgba(255, 255, 255, 0.08);
-    padding: 1px 6px;
+    padding: 2px 7px;
     border-radius: 99px;
     font-weight: 600;
 }
@@ -488,13 +488,13 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     text-align: right;
 }
 
 .live-bar-amount {
     font-family: var(--font-display);
-    font-size: 1.18rem;
+    font-size: 1.28rem;
     font-weight: 800;
     color: #4ade80;
     line-height: 1.05;
@@ -502,10 +502,10 @@ html.ios-standalone .sticky-live-bar {
 
 .live-bar-balance {
     display: inline-block;
-    font-size: 0.62rem;
+    font-size: 0.64rem;
     background: var(--danger);
     color: #fff;
-    padding: 2px 6px;
+    padding: 2.5px 7px;
     border-radius: 99px;
     font-weight: 700;
 }
@@ -513,26 +513,26 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-details-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 5px;
+    gap: 6px;
 }
 
 .live-detail-pill {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 6px;
-    padding: 3.5px 7px;
+    border-radius: 7px;
+    padding: 5px 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 4px;
+    gap: 5px;
     min-width: 0;
 }
 
 .ld-left {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 0.66rem;
+    gap: 5px;
+    font-size: 0.72rem;
     font-weight: 600;
     color: #e2e8f0;
     white-space: nowrap;
@@ -542,13 +542,13 @@ html.ios-standalone .sticky-live-bar {
 
 .ld-left svg {
     color: var(--brand-accent);
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
 }
 
 .ld-val {
     font-family: var(--font-display);
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 800;
     color: var(--brand-accent);
     flex-shrink: 0;
@@ -4889,7 +4889,7 @@ body.keyboard-open .bottom-nav {
     background: #ffffff;
     border: 1.5px solid var(--brand-primary-light);
     box-shadow: 0 3px 10px rgba(5, 150, 105, 0.06);
-    scroll-margin-top: 68px;
+    scroll-margin-top: calc(var(--ios-pwa-safe-top, 0px) + 76px);
     transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
