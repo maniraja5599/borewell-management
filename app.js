@@ -498,6 +498,24 @@ class BoreBillSaaSApp {
         }
     }
 
+    syncIosTopSafeBarColor() {
+        const root = document.documentElement;
+        const liveBar = document.getElementById('stickyLiveBar');
+        const isLiveBarVisible = Boolean(liveBar && liveBar.style.display !== 'none');
+        if (document.body) {
+            document.body.classList.toggle('live-bar-hidden', !isLiveBarVisible);
+        }
+        if (!isLiveBarVisible) {
+            root.classList.remove('ios-live-bar-stuck');
+            return;
+        }
+        const safeBar = document.getElementById('iosPwaSafeTopBar');
+        const safeTop = (safeBar && safeBar.offsetHeight > 0) ? safeBar.offsetHeight : 0;
+        const rect = liveBar.getBoundingClientRect();
+        const isStuck = (window.scrollY > 12) && (rect.top <= safeTop + 2);
+        root.classList.toggle('ios-live-bar-stuck', isStuck);
+    }
+
     init() {
         this.setupIosPwaViewportFix();
         this.restoreRememberedSessionUI();
@@ -525,6 +543,7 @@ class BoreBillSaaSApp {
         if (this.state.activeTab && this.state.activeTab !== 'tab-bill') {
             this.switchTab(this.state.activeTab, false, false);
         }
+        this.syncIosTopSafeBarColor();
         this.calculateAndRender();
         this.renderCustomerSiteSuggestions();
         this.renderSavedExtrasUI();
@@ -536,10 +555,12 @@ class BoreBillSaaSApp {
         if (savedScrollY > 0) {
             setTimeout(() => {
                 window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+                this.syncIosTopSafeBarColor();
             }, 40);
         }
         window.addEventListener('scroll', () => {
             sessionStorage.setItem('borebill_scroll_y', String(Math.round(window.scrollY || 0)));
+            this.syncIosTopSafeBarColor();
         }, { passive: true });
     }
 
@@ -6210,6 +6231,7 @@ class BoreBillSaaSApp {
             if (liveBar) liveBar.style.display = isBillTab ? 'block' : 'none';
             if (saveTitle) saveTitle.textContent = 'Confirm & Save Bill';
             if (saveSub) saveSub.textContent = 'Save to Bills to unlock Share';
+            this.syncIosTopSafeBarColor();
             this.goToWizardStep(this.currentWizardStep || 1, false);
             return;
         }
@@ -6232,6 +6254,7 @@ class BoreBillSaaSApp {
             if (saveSub) saveSub.textContent = 'Tap to unlock & modify';
             this.isBillPreviewOpen = true;
             this.isBillSavedAndReadyToShare = true;
+            this.syncIosTopSafeBarColor();
             this.syncProgressiveBillSections();
         } else {
             banner?.classList.add('is-editing');
@@ -6242,6 +6265,7 @@ class BoreBillSaaSApp {
             if (toggleTxt) toggleTxt.textContent = 'Final View';
             if (saveTitle) saveTitle.textContent = `💾 Update #${bNo}`;
             if (saveSub) saveSub.textContent = 'Save changes to unlock Share';
+            this.syncIosTopSafeBarColor();
             this.goToWizardStep(this.currentWizardStep || 1, false);
         }
     }
@@ -6339,6 +6363,7 @@ class BoreBillSaaSApp {
             const hideLiveBar = (tabId !== 'tab-bill') || (this.loadedHistoryBillId && this.isSavedBillReadOnly);
             liveBar.style.display = hideLiveBar ? 'none' : 'block';
         }
+        this.syncIosTopSafeBarColor();
         if (persist) {
             this.state.activeTab = tabId;
             this.persistCurrentSession();
