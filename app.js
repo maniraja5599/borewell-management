@@ -497,6 +497,24 @@ class BoreBillSaaSApp {
 
     syncIosTopSafeBarColor() {
         const root = document.documentElement;
+        const vv = window.visualViewport;
+        const activeEl = document.activeElement;
+        const activeTag = activeEl?.tagName || '';
+        const isInputActive = Boolean(
+            activeEl &&
+            (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') &&
+            !activeEl.readOnly &&
+            activeEl.type !== 'hidden' &&
+            activeEl.type !== 'checkbox' &&
+            activeEl.type !== 'radio'
+        );
+        const isKeyboardShrunk = Boolean(vv && (window.innerHeight - vv.height > 80));
+        let vvTop = 0;
+        if (vv && (isInputActive || isKeyboardShrunk)) {
+            vvTop = Math.max(0, Math.round(vv.offsetTop || 0));
+        }
+        root.style.setProperty('--vv-offset-top', `${vvTop}px`);
+
         const liveBar = document.getElementById('stickyLiveBar');
         const isLiveBarVisible = Boolean(liveBar && liveBar.style.display !== 'none');
         if (document.body) {
@@ -506,9 +524,28 @@ class BoreBillSaaSApp {
             root.classList.remove('ios-live-bar-stuck');
             return;
         }
+        const safeTop = parseFloat(getComputedStyle(root).getPropertyValue('--ios-pwa-safe-top')) || 0;
         const rect = liveBar.getBoundingClientRect();
-        const isStuck = (window.scrollY > 12) && (rect.top <= 4);
+        const isStuck = ((window.scrollY || 0) > 12) && (rect.top <= safeTop + vvTop + 6);
         root.classList.toggle('ios-live-bar-stuck', isStuck);
+    }
+
+    startIosViewportSyncLoop(durationMs = 480) {
+        if (this._iosVvRafId) {
+            cancelAnimationFrame(this._iosVvRafId);
+            this._iosVvRafId = null;
+        }
+        const startTs = performance.now();
+        const tick = (now) => {
+            this.syncIosTopSafeBarColor();
+            if (now - startTs < durationMs) {
+                this._iosVvRafId = requestAnimationFrame(tick);
+            } else {
+                this._iosVvRafId = null;
+                this.syncIosTopSafeBarColor();
+            }
+        };
+        this._iosVvRafId = requestAnimationFrame(tick);
     }
 
     init() {
@@ -556,6 +593,23 @@ class BoreBillSaaSApp {
         window.addEventListener('scroll', () => {
             sessionStorage.setItem('borebill_scroll_y', String(Math.round(window.scrollY || 0)));
             this.syncIosTopSafeBarColor();
+        }, { passive: true });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('scroll', () => {
+                this.syncIosTopSafeBarColor();
+            }, { passive: true });
+            window.visualViewport.addEventListener('resize', () => {
+                this.syncIosTopSafeBarColor();
+            }, { passive: true });
+        }
+        document.addEventListener('focusin', () => {
+            this.startIosViewportSyncLoop(480);
+        }, { passive: true });
+        document.addEventListener('focusout', () => {
+            this.startIosViewportSyncLoop(480);
+            setTimeout(() => {
+                this.syncIosTopSafeBarColor();
+            }, 260);
         }, { passive: true });
     }
 
@@ -2168,19 +2222,58 @@ class BoreBillSaaSApp {
     scrollElementAboveKeyboard(targetEl) {
         if (!targetEl) return;
         document.body.classList.add('keyboard-open');
+        this.syncIosTopSafeBarColor();
+
+        const vv = window.visualViewport;
+        const vvTop = vv ? (vv.offsetTop || 0) : 0;
+        const vvHeight = vv ? vv.height : window.innerHeight;
         const liveBar = document.getElementById('stickyLiveBar');
-        const topOffset = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
-            ? (liveBar.offsetHeight + 8)
-            : 76;
+        const liveBarBottom = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
+            ? liveBar.getBoundingClientRect().bottom
+            : (vvTop + 76);
+
+        const safeVisibleTop = Math.max(vvTop + 76, liveBarBottom + 8);
+        const safeVisibleBottom = vvTop + vvHeight - 16;
         const rect = targetEl.getBoundingClientRect();
-        const targetTop = Math.max(0, window.scrollY + rect.top - topOffset);
-        window.scrollTo({ top: targetTop, behavior: 'smooth' });
+
+        if (rect.bottom > safeVisibleBottom) {
+            const neededDelta = rect.bottom - safeVisibleBottom;
+            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop);
+            const scrollDelta = Math.min(neededDelta, maxAllowedDelta);
+            if (scrollDelta > 6) {
+                window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+            }
+        }
     }
 
     scrollServiceSiteAboveKeyboard() {
         const siteSection = document.getElementById('serviceSiteSection');
         if (!siteSection || siteSection.style.display === 'none') return;
-        this.scrollElementAboveKeyboard(siteSection);
+        document.body.classList.add('keyboard-open');
+        this.syncIosTopSafeBarColor();
+
+        const locInput = document.getElementById('custLocation') || siteSection;
+        const vv = window.visualViewport;
+        const vvTop = vv ? (vv.offsetTop || 0) : 0;
+        const vvHeight = vv ? vv.height : window.innerHeight;
+        const liveBar = document.getElementById('stickyLiveBar');
+        const liveBarBottom = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
+            ? liveBar.getBoundingClientRect().bottom
+            : (vvTop + 76);
+
+        const safeVisibleTop = Math.max(vvTop + 76, liveBarBottom + 8);
+        const safeVisibleBottom = vvTop + vvHeight - 16;
+        const rect = locInput.getBoundingClientRect();
+        const desiredBottom = rect.bottom + 110;
+
+        if (desiredBottom > safeVisibleBottom) {
+            const neededDelta = desiredBottom - safeVisibleBottom;
+            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop);
+            const scrollDelta = Math.min(neededDelta, maxAllowedDelta);
+            if (scrollDelta > 6) {
+                window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
+            }
+        }
     }
 
     applySelectedServiceSite(siteValue, { closeDropdown = true, toast = true } = {}) {
@@ -6819,16 +6912,15 @@ class BoreBillSaaSApp {
         if (locInputEl) {
             locInputEl.addEventListener('focus', () => {
                 this.isEditingServiceSite = true;
+                document.body.classList.add('keyboard-open');
+                this.startIosViewportSyncLoop(480);
                 this.renderCustomerSiteSuggestions({ showDropdown: true });
-                this.scrollServiceSiteAboveKeyboard();
-                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 180);
-                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 340);
+                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 240);
             });
 
             locInputEl.addEventListener('click', () => {
                 this.isEditingServiceSite = true;
                 this.renderCustomerSiteSuggestions({ showDropdown: true });
-                this.scrollServiceSiteAboveKeyboard();
             });
 
             locInputEl.addEventListener('keydown', (e) => {
@@ -6845,6 +6937,7 @@ class BoreBillSaaSApp {
                 setTimeout(() => {
                     if (document.activeElement !== locInputEl) {
                         document.body.classList.remove('keyboard-open');
+                        this.syncIosTopSafeBarColor();
                         const ddEl = document.getElementById('smartSiteDropdownList');
                         if (ddEl) ddEl.style.display = 'none';
                         if ((locInputEl.value || '').trim()) {
@@ -6870,9 +6963,10 @@ class BoreBillSaaSApp {
         [oldBoreDepthEl, oldBoreRateEl, totalDepthEl, baseRateEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
             if (!inp) return;
             inp.addEventListener('focus', () => {
+                document.body.classList.add('keyboard-open');
+                this.startIosViewportSyncLoop(480);
                 const card = inp.closest('.casing-box') || inp.closest('.simple-work-card') || inp;
-                this.scrollElementAboveKeyboard(card);
-                setTimeout(() => this.scrollElementAboveKeyboard(card), 200);
+                setTimeout(() => this.scrollElementAboveKeyboard(card), 240);
             });
             inp.addEventListener('blur', () => {
                 setTimeout(() => {
@@ -6880,6 +6974,7 @@ class BoreBillSaaSApp {
                     if (!seqFlowInputIds.includes(activeId)) {
                         document.body.classList.remove('keyboard-open');
                     }
+                    this.syncIosTopSafeBarColor();
                 }, 180);
             });
         });

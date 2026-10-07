@@ -73,6 +73,7 @@
     --safe-left: env(safe-area-inset-left, 0px);
     --safe-right: env(safe-area-inset-right, 0px);
     --ios-pwa-safe-top: 0px;
+    --vv-offset-top: 0px;
 }
 
 /* iPhone / iOS (All iOS Safari & Standalone PWA Modes) — Unconditional 68px Top Clearance (Never shrinks when iOS Keyboard opens) */
@@ -94,12 +95,53 @@ html.ios-standalone.ios-notched {
 }
 
 .ios-pwa-safe-top-bar {
-    display: none !important;
+    display: none;
+}
+
+html.ios-device .ios-pwa-safe-top-bar,
+html.ios-standalone .ios-pwa-safe-top-bar {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--ios-pwa-safe-top);
+    background-color: var(--brand-primary);
+    z-index: 9999;
+    pointer-events: none;
+    transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    will-change: transform;
 }
 
 html.ios-device.ios-live-bar-stuck,
 html.ios-standalone.ios-live-bar-stuck {
     background-color: #0f172a;
+}
+
+html.ios-device.ios-live-bar-stuck .ios-pwa-safe-top-bar,
+html.ios-standalone.ios-live-bar-stuck .ios-pwa-safe-top-bar {
+    background-color: #0f172a;
+}
+
+@supports (-webkit-touch-callout: none) {
+    .ios-pwa-safe-top-bar {
+        display: block !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--ios-pwa-safe-top);
+        background-color: var(--brand-primary);
+        z-index: 9999;
+        pointer-events: none;
+        transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        will-change: transform;
+    }
+    html.ios-live-bar-stuck .ios-pwa-safe-top-bar {
+        background-color: #0f172a;
+    }
 }
 
 * {
@@ -177,7 +219,7 @@ svg.lucide {
 /* ==================== TOP APP BAR ==================== */
 .app-header {
     position: relative;
-    z-index: 1006;
+    z-index: 1004;
     background-color: var(--brand-primary);
     background-image: var(--brand-gradient);
     color: #ffffff;
@@ -201,42 +243,48 @@ svg.lucide {
     pointer-events: none;
 }
 
-/* On iOS, extend .app-header from top: 0 with full 74px solid top padding so text sits completely below iOS 26's top blur zone */
+/* On iOS, place .app-header cleanly below #iosPwaSafeTopBar (68px) and compensate for visualViewport.offsetTop when keyboard opens */
 html.ios-device .app-header,
 html.ios-standalone .app-header {
-    margin-top: 0;
-    padding-top: calc(var(--ios-pwa-safe-top) + 6px);
-    padding-bottom: 10px;
+    margin-top: var(--ios-pwa-safe-top);
+    padding-top: 8px;
+    padding-bottom: 9px;
     background-color: var(--brand-primary);
     background-image: none;
     border-top: none;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    will-change: transform;
 }
 
 html.ios-device body.live-bar-hidden .app-header,
 html.ios-standalone body.live-bar-hidden .app-header {
     position: -webkit-sticky;
     position: sticky;
-    top: 0px;
+    top: var(--ios-pwa-safe-top);
     z-index: 1006;
 }
 
 @supports (-webkit-touch-callout: none) {
     .app-header {
-        margin-top: 0;
-        padding-top: calc(var(--ios-pwa-safe-top) + 6px);
-        padding-bottom: 10px;
+        margin-top: var(--ios-pwa-safe-top);
+        padding-top: 8px;
+        padding-bottom: 9px;
         background-color: var(--brand-primary);
         background-image: none;
         border-top: none;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
+        transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        will-change: transform;
     }
     body.live-bar-hidden .app-header {
         position: -webkit-sticky;
         position: sticky;
-        top: 0px;
+        top: var(--ios-pwa-safe-top);
         z-index: 1006;
     }
 }
@@ -365,22 +413,27 @@ html.ios-standalone body.live-bar-hidden .app-header {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
-/* On iOS, anchor .sticky-live-bar at top: 0px of the visual viewport with 76px solid #0f172a top padding
-   tucked under .app-header (margin-top: -68px) so Row 1 never enters the 0..66px iOS status-bar blur zone! */
+/* On iOS, anchor .sticky-live-bar at top: var(--ios-pwa-safe-top) (68px) and compensate for visualViewport.offsetTop when keyboard opens */
 html.ios-device .sticky-live-bar,
 html.ios-standalone .sticky-live-bar {
-    top: 0px;
-    margin-top: calc(-1 * var(--ios-pwa-safe-top));
-    padding-top: calc(var(--ios-pwa-safe-top) + 8px);
-    padding-bottom: 8px;
+    top: var(--ios-pwa-safe-top);
+    margin-top: 0;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+    will-change: transform;
 }
 
 @supports (-webkit-touch-callout: none) {
     .sticky-live-bar {
-        top: 0px;
-        margin-top: calc(-1 * var(--ios-pwa-safe-top));
-        padding-top: calc(var(--ios-pwa-safe-top) + 8px);
-        padding-bottom: 8px;
+        top: var(--ios-pwa-safe-top);
+        margin-top: 0;
+        padding-top: 7px;
+        padding-bottom: 7px;
+        transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        -webkit-transform: translate3d(0, var(--vv-offset-top, 0px), 0);
+        will-change: transform;
     }
 }
 
@@ -5084,7 +5137,12 @@ body.keyboard-open .bottom-nav {
 
 /* Mobile Keyboard-Aware Scroll Space so Input + Suggestions move above Keyboard */
 body.keyboard-open .app-main {
-    padding-bottom: 52vh !important;
+    padding-bottom: 36vh !important;
+}
+
+html.ios-device body.keyboard-open .app-main,
+html.ios-standalone body.keyboard-open .app-main {
+    padding-bottom: calc(140px + var(--safe-bottom)) !important;
 }
 
 
