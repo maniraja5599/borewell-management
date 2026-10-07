@@ -330,9 +330,15 @@ class BoreBillSaaSApp {
     }
 
     refreshIcons() {
-        if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-        }
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+        if (this._iconRefreshScheduled) return;
+        this._iconRefreshScheduled = true;
+        requestAnimationFrame(() => {
+            this._iconRefreshScheduled = false;
+            try {
+                window.lucide.createIcons();
+            } catch (_) {}
+        });
     }
 
     ensureCustomerSelectedForBill() {
@@ -409,6 +415,21 @@ class BoreBillSaaSApp {
         }
         if (previewBtnTotal && res) {
             previewBtnTotal.textContent = this.formatINR(res.grandTotal);
+        }
+        const previewBtnBal = document.getElementById('previewBtnBalanceDue');
+        if (previewBtnBal && res) {
+            if (res.advancePaidAmount > 0) {
+                previewBtnBal.style.display = 'inline-block';
+                if (res.balancePayable > 0) {
+                    previewBtnBal.className = 'preview-btn-due-tag';
+                    previewBtnBal.textContent = `Due: ${this.formatINR(res.balancePayable)}`;
+                } else {
+                    previewBtnBal.className = 'preview-btn-due-tag fully-paid';
+                    previewBtnBal.textContent = 'Fully Paid';
+                }
+            } else {
+                previewBtnBal.style.display = 'none';
+            }
         }
 
         // 3. Official Bill Receipt Preview & Save/Share Stage:
@@ -1169,11 +1190,41 @@ class BoreBillSaaSApp {
         }
 
         const balBadge = document.getElementById('liveBalanceBadge');
-        if (res.advancePaidAmount > 0) {
-            balBadge.style.display = 'inline-block';
-            balBadge.textContent = `Bal: ${this.formatINR(res.balancePayable)}`;
-        } else {
-            balBadge.style.display = 'none';
+        if (balBadge) {
+            if (res.advancePaidAmount > 0) {
+                balBadge.style.display = 'inline-flex';
+                if (res.balancePayable > 0) {
+                    balBadge.className = 'live-bar-balance has-due';
+                    balBadge.innerHTML = `🔴 Due: ${this.formatINR(res.balancePayable)}`;
+                } else {
+                    balBadge.className = 'live-bar-balance fully-paid';
+                    balBadge.innerHTML = '🟢 Fully Paid';
+                }
+            } else {
+                balBadge.style.display = 'none';
+            }
+        }
+
+        // Live Calculated Pending / Balance Due Badge inside Extras & Advance Drawer
+        const advDueBadge = document.getElementById('advanceBalanceDueBadge');
+        const advDueAmt = document.getElementById('advanceLiveDueAmount');
+        if (advDueBadge && advDueAmt) {
+            if (res.advancePaidAmount > 0) {
+                advDueBadge.style.display = 'flex';
+                if (res.balancePayable > 0) {
+                    advDueBadge.className = 'advance-due-calc-pill';
+                    advDueAmt.textContent = this.formatINR(res.balancePayable);
+                    const lbl = advDueBadge.querySelector('.adcb-label');
+                    if (lbl) lbl.textContent = '🔴 Balance Due:';
+                } else {
+                    advDueBadge.className = 'advance-due-calc-pill fully-paid';
+                    advDueAmt.textContent = '₹0';
+                    const lbl = advDueBadge.querySelector('.adcb-label');
+                    if (lbl) lbl.textContent = '🟢 Fully Paid:';
+                }
+            } else {
+                advDueBadge.style.display = 'none';
+            }
         }
 
         document.getElementById('hintOldBoreRate').textContent = this.formatINR(this.rates.oldBoreRate);
@@ -1356,8 +1407,29 @@ class BoreBillSaaSApp {
                 ? (cName || I18N_DICTIONARY[this.lang].customerDetails)
                 : I18N_DICTIONARY[this.lang].customerDetails;
         }
-        if (billsBadge) {
-            billsBadge.style.display = 'none';
+        const custDueBadge = document.getElementById('selCustDueBadge');
+        if (activeCust) {
+            const agg = this.getCustomerAggregates(activeCust);
+            if (billsBadge && agg) {
+                if (agg.billsCount > 0) {
+                    billsBadge.style.display = 'inline-flex';
+                    billsBadge.textContent = `${agg.billsCount} ${agg.billsCount === 1 ? 'Bill' : 'Bills'}`;
+                } else {
+                    billsBadge.style.display = 'none';
+                }
+            }
+            if (custDueBadge && agg) {
+                if (agg.totalPending > 0) {
+                    custDueBadge.style.display = 'inline-flex';
+                    custDueBadge.textContent = `🔴 Past Due: ${this.formatINR(agg.totalPending)}`;
+                    custDueBadge.title = `Customer has ${this.formatINR(agg.totalPending)} unpaid balance from earlier bills`;
+                } else {
+                    custDueBadge.style.display = 'none';
+                }
+            }
+        } else {
+            if (billsBadge) billsBadge.style.display = 'none';
+            if (custDueBadge) custDueBadge.style.display = 'none';
         }
         if (editCustBtn) {
             editCustBtn.style.display = hasCustomer ? 'inline-flex' : 'none';
@@ -3539,10 +3611,53 @@ class BoreBillSaaSApp {
         this.activeDetailBillId = null;
     }
 
-    getCustomerMatchingBills(cust) {
+    buildCustomerBillsIndex() {
+        const phoneMap = new Map();
+        const nameMap = new Map();
+        (this.history || []).forEach(b => {
+            const p = this.normalizeMobileNumber(b.custPhone || '');
+            if (p) {
+                if (!phoneMap.has(p)) phoneMap.set(p, []);
+                phoneMap.get(p).push(b);
+            }
+            const n = (b.custName || '').trim().toLowerCase();
+            if (n) {
+                if (!nameMap.has(n)) nameMap.set(n, []);
+                nameMap.get(n).push(b);
+            }
+        });
+        return { phoneMap, nameMap };
+    }
+
+    getCustomerMatchingBills(cust, index = null) {
         if (!cust) return [];
         const custDigits = this.normalizeMobileNumber(cust.phone || '');
         const custNameLower = (cust.name || '').trim().toLowerCase();
+
+        if (index && index.phoneMap && index.nameMap) {
+            const seen = new Set();
+            const result = [];
+            if (custDigits && index.phoneMap.has(custDigits)) {
+                index.phoneMap.get(custDigits).forEach(b => {
+                    const idKey = b.id || b;
+                    if (!seen.has(idKey)) {
+                        seen.add(idKey);
+                        result.push(b);
+                    }
+                });
+            }
+            if (custNameLower && index.nameMap.has(custNameLower)) {
+                index.nameMap.get(custNameLower).forEach(b => {
+                    const idKey = b.id || b;
+                    if (!seen.has(idKey)) {
+                        seen.add(idKey);
+                        result.push(b);
+                    }
+                });
+            }
+            return result;
+        }
+
         return (this.history || []).filter(b => {
             const billDigits = this.normalizeMobileNumber(b.custPhone || '');
             if (custDigits && billDigits && custDigits === billDigits) return true;
@@ -3551,8 +3666,21 @@ class BoreBillSaaSApp {
         });
     }
 
-    getCustomerAggregates(cust) {
-        const matchingBills = this.getCustomerMatchingBills(cust);
+    getCustomerAggregates(cust, index = null) {
+        if (!cust) {
+            return {
+                matchingBills: [], invoices: [], quotes: [], totalBookings: 0,
+                billsCount: 0, finalBillsCount: 0, quotesCount: 0, boresCount: 0,
+                newBoresCount: 0, reBoresCount: 0, totalBilled: 0, totalPaid: 0,
+                totalPending: 0, totalQuoted: 0, totalDrilledFt: 0, totalOldBoreFt: 0,
+                totalPvc7Ft: 0, totalPvc10Ft: 0, totalPipeFt: 0, totalDrillingCost: 0, totalPipeCost: 0
+            };
+        }
+        if (this._aggCache && cust.id && this._aggCache.has(cust.id)) {
+            return this._aggCache.get(cust.id);
+        }
+
+        const matchingBills = this.getCustomerMatchingBills(cust, index);
         const invoices = matchingBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE');
         const quotes = matchingBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'QUOTATION');
 
@@ -3604,7 +3732,7 @@ class BoreBillSaaSApp {
             }
         });
 
-        return {
+        const aggResult = {
             matchingBills,
             invoices,
             quotes,
@@ -3627,6 +3755,11 @@ class BoreBillSaaSApp {
             totalDrillingCost,
             totalPipeCost
         };
+
+        if (this._aggCache && cust.id) {
+            this._aggCache.set(cust.id, aggResult);
+        }
+        return aggResult;
     }
 
     renderCustomerDirectory(query = '') {
@@ -3655,9 +3788,12 @@ class BoreBillSaaSApp {
         const listEl = document.getElementById('crmCustomerList');
         if (!listEl) return;
 
+        const billsIndex = this.buildCustomerBillsIndex();
+        this._aggCache = new Map();
+
         const q = query.toLowerCase().trim();
         const filtered = this.customers.filter(c => {
-            const agg = this.getCustomerAggregates(c);
+            const agg = this.getCustomerAggregates(c, billsIndex);
             if (this.crmFilter === 'due' && agg.totalPending <= 0) return false;
             if (this.crmFilter === 'settled' && agg.totalPending > 0) return false;
 
@@ -3676,8 +3812,12 @@ class BoreBillSaaSApp {
             return;
         }
 
-        listEl.innerHTML = filtered.map(c => {
-            const agg = this.getCustomerAggregates(c);
+        const pageSize = 40;
+        const pageCount = this.crmPage || 1;
+        const sliced = filtered.slice(0, pageCount * pageSize);
+
+        let html = sliced.map(c => {
+            const agg = this.getCustomerAggregates(c, billsIndex);
             const initials = this.getInitials(c.name);
             const hasDue = agg.totalPending > 0;
             const { allSites } = this.getCustomerSiteSuggestions(c);
@@ -3716,11 +3856,31 @@ class BoreBillSaaSApp {
             `;
         }).join('');
 
+        if (filtered.length > sliced.length) {
+            const remaining = filtered.length - sliced.length;
+            html += `
+                <div class="pagination-load-more-wrap">
+                    <button type="button" class="btn-pagination-load-more" id="crmLoadMoreBtn">
+                        <span>Load More (${remaining} remaining)</span>
+                        <span>↓</span>
+                    </button>
+                    <span class="pagination-count-sub">Showing ${sliced.length} of ${filtered.length} customers</span>
+                </div>
+            `;
+        }
+
+        listEl.innerHTML = html;
+
         // Tapping any minimal customer row opens the clean Customer Detail Modal
         listEl.querySelectorAll('.crm-minimal-row').forEach(row => {
             row.addEventListener('click', () => {
                 this.openCustomerDetailModal(row.dataset.custId);
             });
+        });
+
+        document.getElementById('crmLoadMoreBtn')?.addEventListener('click', () => {
+            this.crmPage = (this.crmPage || 1) + 1;
+            this.renderCustomerDirectory(query);
         });
     }
 
@@ -4323,14 +4483,18 @@ class BoreBillSaaSApp {
             return;
         }
 
-        listEl.innerHTML = filtered.map(c => {
+        const billsIndex = this.buildCustomerBillsIndex();
+        const displaySlice = filtered.slice(0, 35);
+
+        let pickerCardsHtml = displaySlice.map(c => {
             const cPhone = this.normalizeMobileNumber(c.phone || '');
             const dispPhone = this.formatPhoneWithCountryCode(c.phone || '', c.countryCode || this.defaultCountryCode);
             const isSelected = (currentSelectedPhone && cPhone && currentSelectedPhone === cPhone) ||
                 (!currentSelectedPhone && currentSelectedName && (c.name || '').trim().toLowerCase() === currentSelectedName);
-            const agg = this.getCustomerAggregates(c);
+            const agg = this.getCustomerAggregates(c, billsIndex);
             const { pastSites } = this.getCustomerSiteSuggestions(c);
             const sitesSub = pastSites.length > 0 ? ` • 📍 +${pastSites.length} site` : '';
+            const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">🔴 Due: ${this.formatINR(agg.totalPending)}</span>` : '';
 
             return `
             <button type="button" class="wiz-cust-card ${isSelected ? 'is-selected' : ''}" data-id="${c.id}">
@@ -4338,8 +4502,9 @@ class BoreBillSaaSApp {
                     <div class="wiz-cc-avatar">${this.getInitials(c.name)}</div>
                     <div class="wiz-cc-info">
                         <div class="wiz-cc-name-row">
-                            <span class="wiz-cc-name">${c.name}</span>
-                            ${c.village ? `<span class="wiz-cc-place-tag">🏠 ${c.village}</span>` : ''}
+                            <span class="wiz-cc-name">${this.escapeHtml(c.name)}</span>
+                            ${c.village ? `<span class="wiz-cc-place-tag">🏠 ${this.escapeHtml(c.village)}</span>` : ''}
+                            ${dueChipHtml}
                         </div>
                         <div class="wiz-cc-meta">
                             📞 ${dispPhone || 'N/A'} • ${agg.billsCount} ${agg.billsCount === 1 ? 'Bill' : 'Bills'}${sitesSub}
@@ -4348,7 +4513,18 @@ class BoreBillSaaSApp {
                 </div>
                 <span class="wiz-cc-pick-badge">${isSelected ? '✓ Picked' : 'Pick'}</span>
             </button>
-        `}).join('');
+        `;
+        }).join('');
+
+        if (filtered.length > displaySlice.length) {
+            pickerCardsHtml += `
+                <div style="text-align:center; padding: 12px 6px; font-size: 0.74rem; color: var(--text-muted); grid-column: 1 / -1; width: 100%;">
+                    + ${filtered.length - displaySlice.length} more customers. Refine name or phone above to filter.
+                </div>
+            `;
+        }
+
+        listEl.innerHTML = pickerCardsHtml;
 
         listEl.querySelectorAll('.wiz-cust-card').forEach(item => {
             item.addEventListener('click', () => {
@@ -6424,7 +6600,11 @@ class BoreBillSaaSApp {
             return;
         }
 
-        listEl.innerHTML = filtered.map(item => {
+        const pageSize = 40;
+        const pageCount = this.historyPage || 1;
+        const sliced = filtered.slice(0, pageCount * pageSize);
+
+        let html = sliced.map(item => {
             const snap = item.snapshot || {};
             const isInvoice = (snap.docType || 'QUOTATION') === 'INVOICE';
             const paidAmt = this.getBillPaidAmount(item);
@@ -6476,7 +6656,23 @@ class BoreBillSaaSApp {
                     </div>
                 </div>
             </div>
-        `}).join('');
+        `;
+        }).join('');
+
+        if (filtered.length > sliced.length) {
+            const remaining = filtered.length - sliced.length;
+            html += `
+                <div class="pagination-load-more-wrap">
+                    <button type="button" class="btn-pagination-load-more" id="historyLoadMoreBtn">
+                        <span>Load More (${remaining} remaining)</span>
+                        <span>↓</span>
+                    </button>
+                    <span class="pagination-count-sub">Showing ${sliced.length} of ${filtered.length} ${docFilter === 'QUOTATION' ? 'quotations' : 'bills'}</span>
+                </div>
+            `;
+        }
+
+        listEl.innerHTML = html;
 
         listEl.querySelectorAll('.clickable-bill-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -6543,6 +6739,11 @@ class BoreBillSaaSApp {
                     }
                 });
             });
+        });
+
+        document.getElementById('historyLoadMoreBtn')?.addEventListener('click', () => {
+            this.historyPage = (this.historyPage || 1) + 1;
+            this.renderHistoryList(query);
         });
     }
 
@@ -7202,8 +7403,12 @@ class BoreBillSaaSApp {
             this.calculateAndRender();
         });
 
+        let quickSearchDebounceTimer;
         document.getElementById('quickCustSearchInput')?.addEventListener('input', (e) => {
-            this.renderQuickCustomerPicker(e.target.value);
+            clearTimeout(quickSearchDebounceTimer);
+            quickSearchDebounceTimer = setTimeout(() => {
+                this.renderQuickCustomerPicker(e.target.value);
+            }, 75);
         });
 
         document.getElementById('editSelectedCustomerBtn')?.addEventListener('click', () => {
@@ -7699,8 +7904,13 @@ class BoreBillSaaSApp {
             this.updateCrmPhoneValidationUI(false);
         });
 
+        let crmSearchDebounceTimer;
         document.getElementById('crmSearchInput')?.addEventListener('input', (e) => {
-            this.renderCustomerDirectory(e.target.value);
+            clearTimeout(crmSearchDebounceTimer);
+            crmSearchDebounceTimer = setTimeout(() => {
+                this.crmPage = 1;
+                this.renderCustomerDirectory(e.target.value);
+            }, 75);
         });
 
         // Bills vs Quotations Separate Sub-Tabs (Always defaults to 'INVOICE' / Bills)
@@ -8739,8 +8949,13 @@ class BoreBillSaaSApp {
             this.confirmAndSendWhatsAppFromModal();
         });
 
+        let histSearchDebounceTimer;
         document.getElementById('historySearchInput')?.addEventListener('input', (e) => {
-            this.renderHistoryList(e.target.value);
+            clearTimeout(histSearchDebounceTimer);
+            histSearchDebounceTimer = setTimeout(() => {
+                this.historyPage = 1;
+                this.renderHistoryList(e.target.value);
+            }, 75);
         });
         document.getElementById('clearAllHistoryBtn')?.addEventListener('click', () => {
             if (!this.history || this.history.length === 0) {

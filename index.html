@@ -45,7 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=57">
+    <link rel="stylesheet" href="styles.css?v=58">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Plate for iPhone PWA (Prevents iOS 26/27 Liquid Glass Status Bar Blur) -->
@@ -271,6 +271,7 @@
                                         <h3 id="custCardMainHeading">Customer</h3>
                                         <span class="cust-opt-tag filled" id="custStatusTag" style="display:none;">✓</span>
                                         <span class="wiz-scc-bills-tag" id="selCustBillsBadge" style="display: none;">0 Bills</span>
+                                        <span class="wiz-scc-due-badge" id="selCustDueBadge" style="display: none;">🔴 Due: ₹0</span>
                                     </div>
                                     <div class="wiz-scc-sub-inline">
                                         <span class="wiz-scc-meta" id="customerPreviewSub">📞 Mobile</span>
@@ -596,6 +597,14 @@
                                 <input type="number" id="advancePaidAmount" value="" placeholder="₹" min="0" inputmode="numeric">
                             </div>
                         </div>
+
+                        <!-- Live Calculated Pending / Balance Due Pill -->
+                        <div class="advance-due-calc-pill" id="advanceBalanceDueBadge" style="display: none;">
+                            <div class="adcb-left">
+                                <span class="adcb-label">🔴 Balance Due:</span>
+                            </div>
+                            <strong class="adcb-amount" id="advanceLiveDueAmount">₹0</strong>
+                        </div>
                     </div>
 
                     <!-- Inline Drawer 3: Optional Notes / Remarks (Opens only when user taps "+ Note / Remark") -->
@@ -623,7 +632,10 @@
                                 <span id="openBillPreviewBtnText">Preview & Save Bill</span>
                             </div>
                             <div class="bps-right">
-                                <strong id="previewBtnLiveTotal">₹0</strong>
+                                <div class="bps-amounts-col">
+                                    <strong id="previewBtnLiveTotal">₹0</strong>
+                                    <span class="preview-btn-due-tag" id="previewBtnBalanceDue" style="display: none;">Due: ₹0</span>
+                                </div>
                                 <i data-lucide="arrow-right" class="icon-sm"></i>
                             </div>
                         </button>
@@ -2094,6 +2106,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=57"></script>
+    <script src="app.js?v=58"></script>
 </body>
 </html>

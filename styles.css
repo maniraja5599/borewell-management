@@ -501,13 +501,22 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .live-bar-balance {
-    display: inline-block;
-    font-size: 0.64rem;
-    background: var(--danger);
-    color: #fff;
-    padding: 2.5px 7px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.68rem;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 3px 8px;
     border-radius: 99px;
     font-weight: 700;
+    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
+    letter-spacing: 0.2px;
+}
+
+.live-bar-balance.fully-paid {
+    background: #16a34a;
+    box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
 }
 
 .live-bar-details-grid {
@@ -6026,6 +6035,129 @@ html.ios-standalone body.keyboard-open .app-main {
     background: rgba(255, 255, 255, 0.2);
     padding: 3px 9px;
     border-radius: 99px;
+}
+
+.bps-amounts-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.preview-btn-due-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 1.5px 7px;
+    border-radius: 99px;
+    letter-spacing: 0.2px;
+    line-height: 1.2;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.preview-btn-due-tag.fully-paid {
+    background: #16a34a;
+}
+
+/* Advance & Extras Live Calculated Due Pill */
+.advance-due-calc-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    border-radius: 9px;
+    color: #991b1b;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.advance-due-calc-pill.fully-paid {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.advance-due-calc-pill strong {
+    font-size: 0.95rem;
+    font-weight: 800;
+    font-family: var(--font-display, inherit);
+}
+
+/* Selected Customer Past Pending Due Badge */
+.wiz-scc-due-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    padding: 2px 7px;
+    border-radius: 99px;
+    letter-spacing: 0.2px;
+}
+
+/* Customer Picker Card Due Tag */
+.wiz-cust-due-chip {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 1px 6px;
+    border-radius: 6px;
+    margin-left: 4px;
+}
+
+/* High-Performance Smooth Pagination "Load More" Button */
+.pagination-load-more-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px 24px;
+    gap: 6px;
+}
+
+.btn-pagination-load-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #ffffff;
+    color: var(--brand-primary);
+    border: 1.5px solid var(--brand-primary);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease, transform 0.1s ease;
+    width: 100%;
+    max-width: 320px;
+}
+
+.btn-pagination-load-more:hover {
+    background: rgba(5, 150, 105, 0.06);
+}
+
+.btn-pagination-load-more:active {
+    background: rgba(5, 150, 105, 0.12);
+    transform: scale(0.98);
+}
+
+.pagination-count-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted);
 }
 
 .preview-stage-top-bar {
