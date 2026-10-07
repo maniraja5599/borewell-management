@@ -392,12 +392,12 @@ class BoreBillSaaSApp {
         const postSaveBox = document.getElementById('postSaveShareContainer');
         const exportGrid = document.getElementById('billExportActionsGrid');
 
-        // 1. Drilling Depth + Compact Rate / Slab Rate Dropdown bar opens after Customer + Service Site
+        // 1. Drilling Depth + Compact Rate / Slab Rate Dropdown bar opens after Customer is selected
         if (drillSection) {
-            drillSection.style.display = (hasServiceSite || isEditingSaved) ? 'block' : 'none';
+            drillSection.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'block' : 'none';
         }
         if (rateBataWrap) {
-            rateBataWrap.style.display = (hasServiceSite || isEditingSaved) ? 'flex' : 'none';
+            rateBataWrap.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'flex' : 'none';
         }
 
         // 2. PVC Casing Pipes & "Preview & Save Bill" CTA open once Drilling Depth (ft) is entered
@@ -477,58 +477,80 @@ class BoreBillSaaSApp {
     jumpToNextBillField() {
         const activeEl = document.activeElement;
 
-        // Sequence of logical input fields on tab-bill:
-        // 1. Service Site (custLocation)
-        // 2. Drilling Depth (totalDepth)
-        // 3. 7" Casing Pipe (pvc7Length)
-        // 4. 10" Casing Pipe (pvc10Length)
-        // 5. Advance Paid (advancePaidAmount) - if drawer open or entered
-        // 6. Preview & Save (openBillPreviewBtn)
-        const sequence = [
-            document.getElementById('custLocation'),
-            document.getElementById('totalDepth'),
-            document.getElementById('pvc7Length'),
-            document.getElementById('pvc10Length'),
-            document.getElementById('advancePaidAmount'),
-            document.getElementById('openBillPreviewBtn')
-        ].filter(el => {
-            if (!el) return false;
-            if (el.disabled) return false;
-            return el.offsetParent !== null;
-        });
+        const custSearchEl = document.getElementById('quickCustSearchInput');
+        const locEl = document.getElementById('custLocation');
+        const depthEl = document.getElementById('totalDepth');
+        const dateEl = document.getElementById('billDateInput');
+        const pvc7El = document.getElementById('pvc7Length');
+        const pvc10El = document.getElementById('pvc10Length');
+        const advEl = document.getElementById('advancePaidAmount');
+        const previewBtn = document.getElementById('openBillPreviewBtn');
 
-        if (sequence.length === 0) return;
+        const isAdvVisible = Boolean(advEl && advEl.offsetParent !== null);
 
         let nextEl = null;
-        const currentIdx = sequence.indexOf(activeEl);
 
-        if (currentIdx !== -1) {
-            if (currentIdx < sequence.length - 1) {
-                nextEl = sequence[currentIdx + 1];
-            } else {
-                nextEl = sequence[sequence.length - 1];
-            }
+        // Sequence requested by user:
+        // Customer selection / Site -> Total Drilling -> Bill Date -> 7" Casing Pipe -> 10" Casing Pipe -> Advance Paid -> Preview & Save
+        if (activeEl === custSearchEl || activeEl === locEl) {
+            nextEl = depthEl;
+        } else if (activeEl === depthEl || activeEl?.id === 'oldBoreDepth' || activeEl?.id === 'oldBoreRateInput' || activeEl?.id === 'baseDrillingRate' || activeEl?.id === 'billBoreBataInput') {
+            nextEl = dateEl;
+        } else if (activeEl === dateEl) {
+            nextEl = pvc7El;
+        } else if (activeEl === pvc7El || activeEl?.id === 'pvc7RateInput') {
+            nextEl = pvc10El;
+        } else if (activeEl === pvc10El || activeEl?.id === 'pvc10RateInput') {
+            nextEl = isAdvVisible ? advEl : previewBtn;
+        } else if (activeEl === advEl || activeEl?.id === 'discountAmount' || activeEl?.id === 'collarCapCost' || activeEl?.id === 'transportSurveyCost' || activeEl?.id === 'customExtraAmount') {
+            nextEl = previewBtn;
+        } else if (activeEl === previewBtn) {
+            previewBtn?.click();
+            return;
         } else {
-            // If currently no input is focused, jump to first empty required field or first field
-            const emptyField = sequence.find(el => el.tagName === 'INPUT' && !String(el.value || '').trim());
-            nextEl = emptyField || sequence[0];
+            // Nothing currently focused: pick logical next based on what's empty
+            const hasCust = Boolean(document.getElementById('custName')?.value);
+            const hasDepth = Number(depthEl?.value) > 0;
+            if (!hasCust) {
+                nextEl = custSearchEl || locEl;
+            } else if (!hasDepth) {
+                nextEl = depthEl;
+            } else if (!dateEl?.value) {
+                nextEl = dateEl;
+            } else if (!pvc7El?.value) {
+                nextEl = pvc7El;
+            } else {
+                nextEl = previewBtn;
+            }
         }
 
         if (nextEl) {
-            if (nextEl.id === 'openBillPreviewBtn') {
+            if (nextEl === previewBtn) {
                 nextEl.click();
             } else {
+                // Ensure section is visible
+                if (nextEl === depthEl || nextEl === dateEl) {
+                    const drillSection = document.getElementById('progDrillingSection');
+                    const rateBataWrap = document.getElementById('drillingRateBataWrap');
+                    if (drillSection) drillSection.style.display = 'block';
+                    if (rateBataWrap) rateBataWrap.style.display = 'flex';
+                } else if (nextEl === pvc7El || nextEl === pvc10El) {
+                    const casingSection = document.getElementById('progCasingSection');
+                    if (casingSection) casingSection.style.display = 'block';
+                }
+
                 nextEl.focus();
-                if (typeof nextEl.select === 'function' && nextEl.tagName === 'INPUT') {
+                if (typeof nextEl.select === 'function' && nextEl.tagName === 'INPUT' && nextEl.type !== 'date') {
                     setTimeout(() => {
                         try { nextEl.select(); } catch (_) {}
                     }, 25);
                 }
                 nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                const wrap = nextEl.closest('.simple-big-input-wrap') || nextEl.closest('.srbb-input-box') || nextEl;
+                const wrap = nextEl.closest('.simple-big-input-wrap') || nextEl.closest('.srbb-input-box') || nextEl.closest('.casing-box') || nextEl;
                 this.triggerOneShotPulse(wrap, 'sticky-val-pop');
             }
             this.updateQuickTabJumpLabel(nextEl);
+            this.updateQuickTabJumpPosition();
         }
     }
 
@@ -549,21 +571,65 @@ class BoreBillSaaSApp {
 
         const id = activeEl?.id;
         if (id === 'quickCustSearchInput' || id === 'custLocation') {
-            lbl.textContent = 'Depth';
-        } else if (id === 'totalDepth') {
-            lbl.textContent = '7" Pipe';
-        } else if (id === 'baseDrillingRate' || id === 'billBoreBataInput') {
+            lbl.textContent = 'Drilling';
+        } else if (id === 'totalDepth' || id === 'oldBoreDepth' || id === 'oldBoreRateInput' || id === 'baseDrillingRate' || id === 'billBoreBataInput') {
+            lbl.textContent = 'Date';
+        } else if (id === 'billDateInput') {
             lbl.textContent = '7" Pipe';
         } else if (id === 'pvc7Length' || id === 'pvc7RateInput') {
             lbl.textContent = '10" Pipe';
         } else if (id === 'pvc10Length' || id === 'pvc10RateInput') {
             const advInp = document.getElementById('advancePaidAmount');
-            const advVisible = advInp && advInp.offsetParent !== null;
+            const advVisible = Boolean(advInp && advInp.offsetParent !== null);
             lbl.textContent = advVisible ? 'Advance' : 'Preview';
-        } else if (id === 'advancePaidAmount' || id === 'discountAmount' || id === 'collarCapCost' || id === 'transportSurveyCost') {
+        } else if (id === 'advancePaidAmount' || id === 'discountAmount' || id === 'collarCapCost' || id === 'transportSurveyCost' || id === 'customExtraAmount') {
+            lbl.textContent = 'Preview';
+        } else if (id === 'openBillPreviewBtn') {
             lbl.textContent = 'Preview';
         } else {
-            lbl.textContent = 'Next';
+            const hasCust = Boolean(document.getElementById('custName')?.value);
+            const hasDepth = Number(document.getElementById('totalDepth')?.value) > 0;
+            if (!hasCust) {
+                lbl.textContent = 'Customer';
+            } else if (!hasDepth) {
+                lbl.textContent = 'Drilling';
+            } else {
+                lbl.textContent = 'Next';
+            }
+        }
+    }
+
+    updateQuickTabJumpPosition() {
+        const btn = document.getElementById('billQuickTabJumpBtn');
+        if (!btn) return;
+
+        const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
+        if (curTab !== 'tab-bill' || this.isBillPreviewOpen) {
+            return;
+        }
+
+        if (window.visualViewport) {
+            const vv = window.visualViewport;
+            // Visual viewport height shrinks when virtual keyboard is displayed
+            const keyboardHeight = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
+
+            if (keyboardHeight > 80) {
+                btn.classList.add('keyboard-docked');
+                btn.style.bottom = `${Math.round(keyboardHeight + 10)}px`;
+                btn.style.zIndex = '9999';
+            } else {
+                btn.classList.remove('keyboard-docked');
+                btn.style.bottom = '';
+                btn.style.zIndex = '9999';
+            }
+        } else if (document.body.classList.contains('keyboard-open')) {
+            btn.classList.add('keyboard-docked');
+            btn.style.bottom = 'calc(14px + env(safe-area-inset-bottom, 0px))';
+            btn.style.zIndex = '9999';
+        } else {
+            btn.classList.remove('keyboard-docked');
+            btn.style.bottom = '';
+            btn.style.zIndex = '9999';
         }
     }
 
@@ -4611,7 +4677,7 @@ class BoreBillSaaSApp {
                     const panel = document.getElementById('quickCustPickerPanel');
                     if (panel) panel.style.display = 'none';
                     this.calculateAndRender();
-                    this.showToast(`👤 ${cust.name} selected — now enter Service Site Location!`);
+                    this.showToast(`👤 ${cust.name} selected — now enter Drilling Depth!`);
                 }
             });
         });
@@ -4624,7 +4690,7 @@ class BoreBillSaaSApp {
         if (custGstEl) {
             custGstEl.value = (cust.gstNumber || '').trim().toUpperCase();
         }
-        const cleanInitialSite = (initialSite || '').trim();
+        const cleanInitialSite = (initialSite || cust.village || cust.place || '').trim();
         const locInput = document.getElementById('custLocation');
         if (locInput) {
             locInput.value = cleanInitialSite;
@@ -4638,20 +4704,27 @@ class BoreBillSaaSApp {
         if (pickerPanel) {
             pickerPanel.style.display = 'none';
         }
+
+        // Immediately reveal Drilling section upon customer selection
+        const drillSection = document.getElementById('progDrillingSection');
+        const rateBataWrap = document.getElementById('drillingRateBataWrap');
+        if (drillSection) drillSection.style.display = 'block';
+        if (rateBataWrap) rateBataWrap.style.display = 'flex';
+
         this.calculateAndRender();
         this.updateBillPhoneValidationUI(false);
         this.renderCustomerSiteSuggestions();
         this.renderQuickCustomerPicker(document.getElementById('quickCustSearchInput')?.value || '');
-        if (locInput && !cleanInitialSite) {
-            setTimeout(() => locInput.focus(), 80);
-        } else if (cleanInitialSite) {
-            const isRepair = this.state.drillingType === 'repair';
-            const oldBoreInput = document.getElementById('oldBoreDepth');
-            const depthInput = document.getElementById('totalDepth');
-            const nextTarget = (isRepair && oldBoreInput && !oldBoreInput.value) ? oldBoreInput : depthInput;
-            if (nextTarget && !nextTarget.value) {
-                setTimeout(() => nextTarget.focus(), 80);
-            }
+
+        const isRepair = this.state.drillingType === 'repair';
+        const oldBoreInput = document.getElementById('oldBoreDepth');
+        const depthInput = document.getElementById('totalDepth');
+        const nextTarget = (isRepair && oldBoreInput && !oldBoreInput.value) ? oldBoreInput : depthInput;
+        if (nextTarget) {
+            setTimeout(() => {
+                nextTarget.focus();
+                try { nextTarget.select(); } catch (_) {}
+            }, 80);
         }
     }
 
@@ -7562,23 +7635,24 @@ class BoreBillSaaSApp {
         }
 
         // Keyboard "Next" / "Enter" Sequential Flow:
-        // Old Bore (#oldBoreDepth) -> Drilling Depth (#totalDepth) -> Base Rate (#baseDrillingRate, e.g. 90) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length) -> Done
-        // (Skips Bore Bata #billBoreBataInput and PVC Pipe Prices #pvc7RateInput / #pvc10RateInput!)
+        // Customer / Site -> Drilling Depth (#totalDepth) -> Bill Date (#billDateInput) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length) -> Advance / Preview
         const oldBoreDepthEl = document.getElementById('oldBoreDepth');
         const oldBoreRateEl = document.getElementById('oldBoreRateInput');
         const totalDepthEl = document.getElementById('totalDepth');
         const baseRateEl = document.getElementById('baseDrillingRate');
+        const dateInputEl = document.getElementById('billDateInput');
         const pvc7LenEl = document.getElementById('pvc7Length');
         const pvc10LenEl = document.getElementById('pvc10Length');
-        const seqFlowInputIds = ['custLocation', 'oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'];
+        const seqFlowInputIds = ['custLocation', 'oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billDateInput', 'pvc7Length', 'pvc10Length', 'advancePaidAmount'];
 
-        [oldBoreDepthEl, oldBoreRateEl, totalDepthEl, baseRateEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
+        [oldBoreDepthEl, oldBoreRateEl, totalDepthEl, baseRateEl, dateInputEl, pvc7LenEl, pvc10LenEl].forEach(inp => {
             if (!inp) return;
             inp.addEventListener('focus', () => {
                 document.body.classList.add('keyboard-open');
                 this.startIosViewportSyncLoop(480);
                 const card = inp.closest('.casing-box') || inp.closest('.simple-work-card') || inp;
                 setTimeout(() => this.scrollElementAboveKeyboard(card), 240);
+                this.updateQuickTabJumpPosition();
             });
             inp.addEventListener('blur', () => {
                 setTimeout(() => {
@@ -7587,6 +7661,7 @@ class BoreBillSaaSApp {
                         document.body.classList.remove('keyboard-open');
                     }
                     this.syncIosTopSafeBarColor();
+                    this.updateQuickTabJumpPosition();
                 }, 180);
             });
         });
@@ -7618,7 +7693,9 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
-                if (baseRateEl) {
+                if (dateInputEl) {
+                    dateInputEl.focus();
+                } else if (baseRateEl) {
                     baseRateEl.focus();
                     try { baseRateEl.select(); } catch (err) { /* ignore */ }
                 }
@@ -7629,12 +7706,25 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
+                if (dateInputEl) {
+                    dateInputEl.focus();
+                } else if (pvc7LenEl) {
+                    pvc7LenEl.focus();
+                }
+            }
+        });
+
+        dateInputEl?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
                 const casingSec = document.getElementById('progCasingSection');
                 if (casingSec && casingSec.style.display === 'none') {
                     casingSec.style.display = 'block';
                 }
                 if (pvc7LenEl) {
                     pvc7LenEl.focus();
+                    try { pvc7LenEl.select(); } catch (err) { /* ignore */ }
                 }
             }
         });
@@ -7653,21 +7743,29 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
-                document.body.classList.remove('keyboard-open');
-                pvc10LenEl.blur();
+                const advInp = document.getElementById('advancePaidAmount');
+                if (advInp && advInp.offsetParent !== null) {
+                    advInp.focus();
+                } else {
+                    document.getElementById('openBillPreviewBtn')?.click();
+                }
             }
         });
 
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
+                this.updateQuickTabJumpPosition();
                 const activeEl = document.activeElement;
                 if (!activeEl) return;
                 if (activeEl.id === 'custLocation') {
                     this.scrollServiceSiteAboveKeyboard();
-                } else if (['oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
+                } else if (['oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billDateInput', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
                     const card = activeEl.closest('.casing-box') || activeEl.closest('.simple-work-card') || activeEl;
                     this.scrollElementAboveKeyboard(card);
                 }
+            });
+            window.visualViewport.addEventListener('scroll', () => {
+                this.updateQuickTabJumpPosition();
             });
         }
 
@@ -8535,21 +8633,48 @@ class BoreBillSaaSApp {
         });
 
         // Kutty Floating Quick-Tab Jump Button (Moves cursor to Next Field like a Tab key)
-        document.getElementById('billQuickTabJumpBtn')?.addEventListener('click', (e) => {
-            e.preventDefault();
+        const tabJumpBtn = document.getElementById('billQuickTabJumpBtn');
+        let lastJumpTapTime = 0;
+        const handleJumpAction = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const now = Date.now();
+            if (now - lastJumpTapTime < 200) return;
+            lastJumpTapTime = now;
             this.jumpToNextBillField();
-        });
+        };
 
-        // Track active focus on bill page to keep tab jump button label updated
+        if (tabJumpBtn) {
+            tabJumpBtn.addEventListener('pointerdown', handleJumpAction);
+            tabJumpBtn.addEventListener('touchstart', handleJumpAction, { passive: false });
+            tabJumpBtn.addEventListener('click', handleJumpAction);
+        }
+
+        // Track active focus and keyboard state on bill page to keep tab jump button label and position updated
         document.addEventListener('focusin', (e) => {
             if (e.target && e.target.closest('#tab-bill')) {
                 this.updateQuickTabJumpLabel(e.target);
+                this.updateQuickTabJumpPosition();
+                setTimeout(() => this.updateQuickTabJumpPosition(), 150);
+                setTimeout(() => this.updateQuickTabJumpPosition(), 350);
             }
         });
         document.addEventListener('focusout', () => {
             setTimeout(() => {
                 this.updateQuickTabJumpLabel();
-            }, 60);
+                this.updateQuickTabJumpPosition();
+            }, 120);
+        });
+
+        // Click top date badge to focus date
+        document.getElementById('controlLiveDateWrap')?.addEventListener('click', () => {
+            const dateInput = document.getElementById('billDateInput');
+            if (dateInput) {
+                dateInput.focus();
+                try { dateInput.showPicker(); } catch (_) {}
+            }
         });
 
         // Inline Sheets

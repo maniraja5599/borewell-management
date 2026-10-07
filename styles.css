@@ -6125,43 +6125,55 @@ html.ios-standalone body.keyboard-open .app-main {
     position: fixed;
     right: 14px;
     bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    z-index: 95;
+    z-index: 9999;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 6px 13px;
-    height: 35px;
-    background: rgba(15, 23, 42, 0.94);
+    gap: 6px;
+    padding: 7px 14px;
+    height: 36px;
+    background: #0f172a;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     color: #ffffff;
-    border: 1.5px solid rgba(16, 185, 129, 0.55);
+    border: 1.5px solid #10b981;
     border-radius: 99px;
-    font-size: 0.76rem;
-    font-weight: 750;
+    font-size: 0.78rem;
+    font-weight: 800;
     letter-spacing: 0.2px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    touch-action: manipulation;
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease, bottom 0.12s ease-out;
 }
 
 .quick-tab-jump-btn:active {
     transform: scale(0.92);
     background: #1e293b;
-    border-color: #10b981;
+    border-color: #34d399;
+}
+
+.quick-tab-jump-btn.keyboard-docked {
+    background: #0f172a !important;
+    border-color: #10b981 !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(16, 185, 129, 0.7) !important;
+}
+
+body.keyboard-open .quick-tab-jump-btn:not([style*="bottom"]) {
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
 }
 
 .qtj-label {
     white-space: nowrap;
+    font-weight: 800;
 }
 
 .qtj-arrow {
     display: inline-block;
-    font-size: 0.92rem;
-    font-weight: 800;
+    font-size: 0.95rem;
+    font-weight: 900;
     color: #34d399;
     line-height: 1;
 }
@@ -6970,6 +6982,31 @@ input[type="number"] {
 #billBoreBataInput {
     width: 68px !important;
     min-width: 64px !important;
+}
+
+.srbb-item.date-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.srbb-input-box.date-box {
+    padding: 3px 6px !important;
+    background: #ffffff !important;
+}
+
+.srbb-input-box.date-box input,
+#billDateInput {
+    width: auto !important;
+    min-width: 104px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    text-align: left !important;
+    padding: 1px 2px !important;
+    color: var(--text-main) !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
 }
 
 .ssdp-sr-input {

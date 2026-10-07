@@ -45,7 +45,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=59">
+    <link rel="stylesheet" href="styles.css?v=60">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Plate for iPhone PWA (Prevents iOS 26/27 Liquid Glass Status Bar Blur) -->
@@ -222,7 +222,6 @@
                     <input type="hidden" id="custName" value="">
                     <input type="hidden" id="custPhone" value="">
                     <input type="hidden" id="billNoInput" value="AB-101">
-                    <input type="hidden" id="billDateInput" value="">
 
                     <!-- Smart Customer Picker Area (Search + Filter Chips + 1-Click Cards + +Add Customer) -->
                     <div class="wiz-customer-picker-box" id="quickCustPickerPanel">
@@ -374,7 +373,7 @@
                         <span class="sbi-unit">ft</span>
                     </div>
 
-                    <!-- Compact Rate, Fixed ₹2000 Bata & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
+                    <!-- Compact Rate, Fixed ₹2000 Bata, Date & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
                     <div class="simple-rate-bata-bar" id="drillingRateBataWrap">
                         <div class="srbb-item">
                             <label for="baseDrillingRate">1–300ft:</label>
@@ -390,6 +389,13 @@
                             <div class="srbb-input-box">
                                 <span>₹</span>
                                 <input type="number" id="billBoreBataInput" value="2000" min="0" inputmode="numeric" tabindex="-1">
+                            </div>
+                        </div>
+                        <div class="srbb-divider"></div>
+                        <div class="srbb-item date-item">
+                            <label for="billDateInput">📅 Date:</label>
+                            <div class="srbb-input-box date-box">
+                                <input type="date" id="billDateInput" enterkeyhint="next" aria-label="Bill Date">
                             </div>
                         </div>
                         <button type="button" class="smart-slab-dd-trigger" id="smartSlabDropdownBtn" tabindex="-1" title="View or Change Slab Rates">
@@ -2111,6 +2117,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=59"></script>
+    <script src="app.js?v=60"></script>
 </body>
 </html>
