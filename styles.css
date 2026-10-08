@@ -122,9 +122,6 @@ html.ios-crios .app-header {
     padding-top: 11px !important;
 }
 
-html.ios-crios .sticky-live-bar {
-    top: 0px !important;
-}
 
 .ios-status-bar-shield,
 .ios-pwa-safe-top-bar {
@@ -208,6 +205,20 @@ svg.lucide {
 .text-danger { color: var(--danger); }
 .cursor-pointer { cursor: pointer; }
 
+/* ==================== FIXED TOP APP SHELL WRAPPER ==================== */
+.app-top-header-wrap {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1010;
+    background-color: var(--brand-primary);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
 /* ==================== TOP APP BAR ==================== */
 .app-header {
     position: relative;
@@ -234,14 +245,6 @@ html.ios-standalone .app-header {
     border-top: none;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-}
-
-body.live-bar-hidden .app-header,
-html.ios-standalone body.live-bar-hidden .app-header {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 1006;
 }
 
 .header-inner {
@@ -353,27 +356,24 @@ html.ios-standalone body.live-bar-hidden .app-header {
 
 /* ==================== STICKY LIVE SUMMARY BAR ==================== */
 .sticky-live-bar {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0px;
+    position: relative;
     z-index: 1005;
     background-color: #0f172a;
     background-image: none;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     color: #ffffff;
-    padding: 9px max(12px, var(--safe-right)) 9px max(12px, var(--safe-left));
+    padding: 8px max(12px, var(--safe-right)) 8px max(12px, var(--safe-left));
     border-top: none;
     border-bottom: 2px solid var(--brand-accent);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
-/* On iOS, anchor .sticky-live-bar at top: var(--ios-pwa-safe-top) (78px) and compensate for visualViewport.offsetTop when keyboard opens */
 html.ios-standalone .sticky-live-bar {
-    top: var(--safe-top);
+    top: auto;
     margin-top: 0;
-    padding-top: 9px;
-    padding-bottom: 9px;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 .live-bar-inner {
@@ -457,41 +457,6 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-balance.fully-paid {
     background: #16a34a;
     box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
-}
-
-/* Quick Jump Next Button inside Sticky Top Live Bar — 100% immune to virtual keyboard hiding */
-.live-bar-next-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 3px 8px;
-    height: 25px;
-    background: #10b981;
-    color: #ffffff;
-    border: 1px solid #34d399;
-    border-radius: 99px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
-    transition: transform 0.1s ease, background 0.15s ease;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.live-bar-next-pill:active {
-    transform: scale(0.93);
-    background: #059669;
-}
-
-.live-bar-next-pill .lbn-arrow {
-    font-size: 0.74rem;
-    font-weight: 900;
 }
 
 .live-bar-details-grid {

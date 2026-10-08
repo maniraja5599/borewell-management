@@ -559,9 +559,7 @@ class BoreBillSaaSApp {
     updateQuickTabJumpLabel(activeEl = document.activeElement) {
         const floatBtn = document.getElementById('billQuickTabJumpBtn');
         const floatLbl = document.getElementById('billQuickTabJumpLabel');
-        const topBtn = document.getElementById('liveBarQuickNextBtn');
-        const topLbl = document.getElementById('liveBarQuickNextLabel');
-        if (!floatBtn && !topBtn) return;
+        if (!floatBtn) return;
 
         const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
         const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
@@ -574,13 +572,11 @@ class BoreBillSaaSApp {
 
         // Before customer selection or if preview open / not bill tab / readonly -> HIDE
         if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved || !hasCust) {
-            if (floatBtn) floatBtn.style.display = 'none';
-            if (topBtn) topBtn.style.display = 'none';
+            floatBtn.style.display = 'none';
             return;
         }
 
-        if (floatBtn) floatBtn.style.display = 'inline-flex';
-        if (topBtn) topBtn.style.display = 'inline-flex';
+        floatBtn.style.display = 'inline-flex';
 
         let nextText = 'Next';
         const id = activeEl?.id;
@@ -611,7 +607,6 @@ class BoreBillSaaSApp {
 
         const plainText = nextText.replace(' ⇥', '');
         if (floatLbl) floatLbl.textContent = plainText;
-        if (topLbl) topLbl.textContent = plainText;
     }
 
     updateQuickTabJumpPosition() {
@@ -8903,12 +8898,6 @@ class BoreBillSaaSApp {
             tabJumpBtn.addEventListener('click', handleJumpAction);
         }
 
-        const liveBarNextBtn = document.getElementById('liveBarQuickNextBtn');
-        if (liveBarNextBtn) {
-            liveBarNextBtn.addEventListener('pointerdown', handleJumpAction);
-            liveBarNextBtn.addEventListener('touchstart', handleJumpAction, { passive: false });
-            liveBarNextBtn.addEventListener('click', handleJumpAction);
-        }
 
         // Track active focus and keyboard state on bill page to keep tab jump button label and position updated
         document.addEventListener('focusin', (e) => {

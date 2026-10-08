@@ -48,68 +48,67 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=68">
+    <link rel="stylesheet" href="styles.css?v=69">
 </head>
 <body>
 
-    <!-- ==================== TOP APP SHELL HEADER ==================== -->
-    <header class="app-header">
-        <div class="header-inner">
-            <div class="brand-identity" id="openBrandTabBtn" title="Tap to customize Company Brand & Logo">
-                <div class="brand-logo-wrap" id="headerLogoWrap">
-                    <img id="headerLogoImg" src="" alt="Logo" style="display: none;">
-                    <span id="headerLogoFallback" class="logo-fallback-icon">
-                        <i data-lucide="truck"></i>
-                    </span>
-                </div>
-                <div class="brand-titles">
-                    <h1 id="headerCompanyName" class="company-name">SRI ANJANEYA BOREWELLS</h1>
-                    <p id="headerCompanyTagline" class="company-tagline">ஆழமான நம்பிக்கை! • Deep Trust</p>
-                </div>
-            </div>
-            <div class="header-controls">
-                <button type="button" class="pwa-install-btn" id="installPwaBtn" style="display: none;" title="Install BoreBill Pro App">
-                    <i data-lucide="download" class="icon-xs"></i>
-                    <span>App</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- ==================== STICKY LIVE SUMMARY BAR (TAB 1) ==================== -->
-    <div class="sticky-live-bar" id="stickyLiveBar">
-        <div class="live-bar-inner">
-            <div class="live-bar-top">
-                <div class="live-bar-left">
-                    <div class="live-doc-indicator">
-                        <span class="live-doc-tag" id="stickyDocTypeTag">FINAL BILL</span>
-                        <span class="live-bar-label" data-i18n="netPayableLabel">NET TOTAL</span>
-                        <span class="live-avg-pill" id="liveSummaryPerFt">₹0/ft avg</span>
+    <!-- ==================== FIXED TOP APP SHELL & LIVE BAR WRAPPER ==================== -->
+    <div class="app-top-header-wrap" id="appTopHeaderWrap">
+        <!-- ==================== TOP APP SHELL HEADER ==================== -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-identity" id="openBrandTabBtn" title="Tap to customize Company Brand & Logo">
+                    <div class="brand-logo-wrap" id="headerLogoWrap">
+                        <img id="headerLogoImg" src="" alt="Logo" style="display: none;">
+                        <span id="headerLogoFallback" class="logo-fallback-icon">
+                            <i data-lucide="truck"></i>
+                        </span>
+                    </div>
+                    <div class="brand-titles">
+                        <h1 id="headerCompanyName" class="company-name">SRI ANJANEYA BOREWELLS</h1>
+                        <p id="headerCompanyTagline" class="company-tagline">ஆழமான நம்பிக்கை! • Deep Trust</p>
                     </div>
                 </div>
-                <div class="live-bar-right">
-                    <button type="button" class="live-bar-next-pill" id="liveBarQuickNextBtn" aria-label="Jump to Next Field" style="display: none;" title="Jump to Next Field">
-                        <span id="liveBarQuickNextLabel">Next</span>
-                        <span class="lbn-arrow">⇥</span>
+                <div class="header-controls">
+                    <button type="button" class="pwa-install-btn" id="installPwaBtn" style="display: none;" title="Install BoreBill Pro App">
+                        <i data-lucide="download" class="icon-xs"></i>
+                        <span>App</span>
                     </button>
-                    <div class="live-bar-amount" id="liveTotalBannerAmount">₹0</div>
-                    <span class="live-bar-balance" id="liveBalanceBadge" style="display: none;">Bal: ₹0</span>
                 </div>
             </div>
-            <div class="live-bar-details-grid">
-                <div class="live-detail-pill" id="stickyDrillPill">
-                    <span class="ld-left">
-                        <i data-lucide="arrow-down-to-line" class="icon-xs"></i>
-                        <span id="liveSummaryDepthBadge">Depth: 0 ft (6.5")</span>
-                    </span>
-                    <strong class="ld-val" id="liveStickyDrillCost">₹0</strong>
+        </header>
+
+        <!-- ==================== STICKY LIVE SUMMARY BAR (TAB 1) ==================== -->
+        <div class="sticky-live-bar" id="stickyLiveBar">
+            <div class="live-bar-inner">
+                <div class="live-bar-top">
+                    <div class="live-bar-left">
+                        <div class="live-doc-indicator">
+                            <span class="live-doc-tag" id="stickyDocTypeTag">FINAL BILL</span>
+                            <span class="live-bar-label" data-i18n="netPayableLabel">NET TOTAL</span>
+                            <span class="live-avg-pill" id="liveSummaryPerFt">₹0/ft avg</span>
+                        </div>
+                    </div>
+                    <div class="live-bar-right">
+                        <div class="live-bar-amount" id="liveTotalBannerAmount">₹0</div>
+                        <span class="live-bar-balance" id="liveBalanceBadge" style="display: none;">Bal: ₹0</span>
+                    </div>
                 </div>
-                <div class="live-detail-pill" id="stickyPipePill">
-                    <span class="ld-left">
-                        <i data-lucide="cylinder" class="icon-xs"></i>
-                        <span id="liveStickyPipeText">7": 0ft • 10": 0ft</span>
-                    </span>
-                    <strong class="ld-val" id="liveStickyPipeCost">₹0</strong>
+                <div class="live-bar-details-grid">
+                    <div class="live-detail-pill" id="stickyDrillPill">
+                        <span class="ld-left">
+                            <i data-lucide="arrow-down-to-line" class="icon-xs"></i>
+                            <span id="liveSummaryDepthBadge">Depth: 0 ft (6.5")</span>
+                        </span>
+                        <strong class="ld-val" id="liveStickyDrillCost">₹0</strong>
+                    </div>
+                    <div class="live-detail-pill" id="stickyPipePill">
+                        <span class="ld-left">
+                            <i data-lucide="cylinder" class="icon-xs"></i>
+                            <span id="liveStickyPipeText">7": 0ft • 10": 0ft</span>
+                        </span>
+                        <strong class="ld-val" id="liveStickyPipeCost">₹0</strong>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2132,6 +2131,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=68"></script>
+    <script src="app.js?v=69"></script>
 </body>
 </html>
