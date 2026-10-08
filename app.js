@@ -624,7 +624,7 @@ class BoreBillSaaSApp {
             }
         } else if (document.body.classList.contains('keyboard-open')) {
             btn.classList.add('keyboard-docked');
-            btn.style.bottom = 'calc(14px + env(safe-area-inset-bottom, 0px))';
+            btn.style.bottom = 'calc(14px + var(--safe-bottom, 0px))';
             btn.style.zIndex = '9999';
         } else {
             btn.classList.remove('keyboard-docked');
@@ -675,11 +675,14 @@ class BoreBillSaaSApp {
         try {
             const ua = navigator.userAgent || '';
             const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            const isCriOS = isIOS && /CriOS/i.test(ua);
             const isStandalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
             const root = document.documentElement;
             if (isIOS) {
                 root.classList.add('ios-device');
-                root.classList.add('ios-notched');
+                if (isCriOS) {
+                    root.classList.add('ios-crios');
+                }
             }
             if (isStandalone) {
                 root.classList.add('pwa-standalone');
@@ -721,7 +724,7 @@ class BoreBillSaaSApp {
             root.classList.remove('ios-live-bar-stuck');
             return;
         }
-        const safeTop = parseFloat(getComputedStyle(root).getPropertyValue('--ios-pwa-safe-top')) || 0;
+        const safeTop = parseFloat(getComputedStyle(root).getPropertyValue('--safe-top')) || 0;
         const rect = liveBar.getBoundingClientRect();
         const isStuck = ((window.scrollY || 0) > 12) && (rect.top <= safeTop + vvTop + 6);
         root.classList.toggle('ios-live-bar-stuck', isStuck);
