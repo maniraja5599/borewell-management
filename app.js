@@ -617,46 +617,9 @@ class BoreBillSaaSApp {
     updateQuickTabJumpPosition() {
         const btn = document.getElementById('billQuickTabJumpBtn');
         if (!btn) return;
-
-        const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
-        if (curTab !== 'tab-bill' || this.isBillPreviewOpen) {
-            btn.classList.remove('keyboard-docked');
-            btn.style.removeProperty('bottom');
-            this.lockedKeyboardDockBottom = null;
-            return;
-        }
-
-        const isInputFocused = Boolean(document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName));
-        const isKb = document.body.classList.contains('keyboard-open') || isInputFocused;
-
-        if (!isKb) {
-            btn.classList.remove('keyboard-docked');
-            btn.style.removeProperty('bottom');
-            this.lockedKeyboardDockBottom = null;
-            return;
-        }
-
-        // If keyboard is open and position is already locked for this entry session, KEEP IT FIXED!
-        // Never change position when swipe-up/scrolling occurs!
-        if (this.lockedKeyboardDockBottom !== null) {
-            btn.classList.add('keyboard-docked');
-            btn.style.setProperty('bottom', `${this.lockedKeyboardDockBottom}px`, 'important');
-            return;
-        }
-
-        // First time keyboard appears: calculate dock bottom once and lock it
-        let dockBottom = 16;
-        if (window.visualViewport) {
-            const vv = window.visualViewport;
-            const kbHeight = Math.max(0, window.innerHeight - vv.height);
-            dockBottom = kbHeight > 60 ? (kbHeight + 12) : 16;
-        } else {
-            dockBottom = 16;
-        }
-
-        this.lockedKeyboardDockBottom = Math.round(dockBottom);
-        btn.classList.add('keyboard-docked');
-        btn.style.setProperty('bottom', `${this.lockedKeyboardDockBottom}px`, 'important');
+        // Permanently anchored at Center Right via CSS (top: 50%; right: 14px; transform: translateY(-50%))
+        // Rock-solid fixed in one spot — zero movement on swipe-up or typing!
+        btn.style.removeProperty('bottom');
     }
 
     goToWizardStep(step = 1, scroll = false) {
