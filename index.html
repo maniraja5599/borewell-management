@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=62">
+    <link rel="stylesheet" href="styles.css?v=63">
 </head>
 <body>
 
@@ -368,10 +368,20 @@
                         </div>
                     </div>
 
-                    <!-- Main Big Drilling Depth Input (Clean, No Clutter, Keyboard Next -> Base Rate -> 7" PVC -> 10" PVC) -->
-                    <div class="simple-big-input-wrap hero">
-                        <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next">
-                        <span class="sbi-unit">ft</span>
+                    <!-- Main Big Drilling Depth Input + Kutty Slab Rate Buffer Pill (±5 ft grace) -->
+                    <div class="drilling-depth-row">
+                        <div class="simple-big-input-wrap hero drilling-hero-input">
+                            <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next">
+                            <span class="sbi-unit">ft</span>
+                        </div>
+                        <div class="drilling-buffer-pill" id="drillingBufferPill" title="Slab Grace Buffer (e.g. 5 ft grace before shifting to next slab rate)">
+                            <span class="dbp-label">Buffer</span>
+                            <div class="dbp-box">
+                                <span class="dbp-sign">±</span>
+                                <input type="number" id="drillingSlabBufferInput" value="5" min="0" max="99" step="1" inputmode="numeric" tabindex="-1" aria-label="Slab Grace Buffer in feet">
+                                <span class="dbp-unit">ft</span>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Compact Rate, Fixed ₹2000 Bata, Date & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
@@ -2118,6 +2128,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=62"></script>
+    <script src="app.js?v=63"></script>
 </body>
 </html>

@@ -1249,6 +1249,7 @@ class BoreBillSaaSApp {
             balancePayable,
             avgPerFoot,
             slabDetails: slabCalc.slabDetails,
+            slabBufferFt: typeof this.rates.slabBufferFt === 'number' ? this.rates.slabBufferFt : 5,
             drillingCost
         };
 
@@ -5407,10 +5408,12 @@ class BoreBillSaaSApp {
         const pvc7Instant = document.getElementById('pvc7RateInput');
         const pvc10Instant = document.getElementById('pvc10RateInput');
         const bataInstant = document.getElementById('billBoreBataInput');
+        const bufferInstant = document.getElementById('drillingSlabBufferInput');
         if (oldBoreInstant) oldBoreInstant.value = r.oldBoreRate || 40;
         if (pvc7Instant) pvc7Instant.value = r.pvc7Rate;
         if (pvc10Instant) pvc10Instant.value = r.pvc10Rate;
         if (bataInstant) bataInstant.value = bataVal;
+        if (bufferInstant) bufferInstant.value = r.slabBufferFt ?? 5;
 
         // Quick Rate Drawer inputs
         document.getElementById('quickPvc7Rate').value = r.pvc7Rate;
@@ -6958,6 +6961,12 @@ class BoreBillSaaSApp {
         if (document.getElementById('billBoreBataInput')) {
             document.getElementById('billBoreBataInput').value = s.boreBataCost !== undefined ? s.boreBataCost : (this.rates.boreBataRate ?? 2000);
         }
+        if (s.slabBufferFt !== undefined) {
+            this.rates.slabBufferFt = s.slabBufferFt;
+        }
+        if (document.getElementById('drillingSlabBufferInput')) {
+            document.getElementById('drillingSlabBufferInput').value = this.rates.slabBufferFt ?? 5;
+        }
         document.getElementById('gstEnabledToggle').checked = Boolean(s.gstEnabled);
         const custGstRow = document.getElementById('custGstInlineRow');
         if (custGstRow) {
@@ -7076,6 +7085,9 @@ class BoreBillSaaSApp {
             if (custGstEl) custGstEl.value = '';
             document.getElementById('totalDepth').value = '';
             document.getElementById('oldBoreDepth').value = '';
+            if (document.getElementById('drillingSlabBufferInput')) {
+                document.getElementById('drillingSlabBufferInput').value = this.rates.slabBufferFt ?? 5;
+            }
             document.getElementById('pvc7Length').value = '';
             document.getElementById('pvc10Length').value = '';
             document.getElementById('collarCapCost').value = '';
@@ -8547,6 +8559,9 @@ class BoreBillSaaSApp {
                     this.calculateAndRender();
                 } else if (inp.id === 'customSlabStepInput') {
                     inp.value = 1;
+                } else if (inp.id === 'drillingSlabBufferInput') {
+                    inp.value = this.rates.slabBufferFt ?? 5;
+                    this.calculateAndRender();
                 }
             }
         });
@@ -8557,7 +8572,7 @@ class BoreBillSaaSApp {
             'pvc7Length', 'pvc10Length', 'pvc7RateInput', 'pvc10RateInput',
             'custName', 'custPhone', 'custLocation', 'custGstInput', 'billNoInput', 'billDateInput',
             'collarCapCost', 'transportSurveyCost', 'customExtraLabel', 'customExtraAmount',
-            'discountAmount', 'advancePaidAmount', 'billCustomNoteInput'
+            'discountAmount', 'advancePaidAmount', 'billCustomNoteInput', 'drillingSlabBufferInput'
         ];
         liveInputIds.forEach(id => {
             document.getElementById(id)?.addEventListener('input', (e) => {
@@ -8584,9 +8599,42 @@ class BoreBillSaaSApp {
                     this.renderSavedExtrasUI({ showDropdown: false });
                 } else if (id === 'billCustomNoteInput') {
                     this.renderSavedNotesUI();
+                } else if (id === 'drillingSlabBufferInput') {
+                    const rawVal = (e.target.value || '').trim();
+                    const val = rawVal === '' ? 0 : Math.max(0, parseInt(rawVal, 10) || 0);
+                    this.rates.slabBufferFt = val;
+                    const qBuf = document.getElementById('quickSlabBuffer');
+                    if (qBuf) qBuf.value = val;
+                    const mBuf = document.getElementById('masterSlabBuffer');
+                    if (mBuf) mBuf.value = val;
+                    const activeProf = this.getActiveRateProfile();
+                    if (activeProf && activeProf.rates) {
+                        activeProf.rates.slabBufferFt = val;
+                        this.saveToStorage('borebill_rate_profiles', this.rateProfiles);
+                    }
+                    this.saveToStorage('borebill_rates', this.rates);
                 }
                 this.calculateAndRender();
             });
+        });
+
+        // Drilling Slab Buffer Input — No keyboard shortcuts work on this (strictly skips tab sequence)
+        document.getElementById('drillingSlabBufferInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                e.target.blur();
+                this.calculateAndRender();
+            }
+        });
+
+        document.getElementById('drillingBufferPill')?.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'INPUT') {
+                const inp = document.getElementById('drillingSlabBufferInput');
+                if (inp) {
+                    inp.focus();
+                    try { inp.select(); } catch (_) {}
+                }
+            }
         });
 
         // Smart Extra Charges — Auto-save on blur/change & Smart Dropdown on Custom Extra Label
@@ -8699,6 +8747,9 @@ class BoreBillSaaSApp {
             }
             if (document.getElementById('pvc10RateInput')) {
                 document.getElementById('pvc10RateInput').value = this.rates.pvc10Rate || 700;
+            }
+            if (document.getElementById('drillingSlabBufferInput')) {
+                document.getElementById('drillingSlabBufferInput').value = this.rates.slabBufferFt ?? 5;
             }
             document.getElementById('pvc7Length').value = '';
             document.getElementById('pvc10Length').value = '';

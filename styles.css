@@ -5345,6 +5345,89 @@ html.ios-standalone body.keyboard-open .app-main {
     background: #ffffff;
 }
 
+.drilling-depth-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.drilling-depth-row .drilling-hero-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.drilling-buffer-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 3px 8px;
+    background: #fffbeb;
+    border: 1.5px solid #fde68a;
+    border-radius: 11px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+
+.drilling-buffer-pill:focus-within {
+    border-color: #d97706;
+    background: #ffffff;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.16);
+}
+
+.dbp-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #92400e;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.dbp-box {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.dbp-sign {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #b45309;
+}
+
+.dbp-box input {
+    width: 28px;
+    height: 22px;
+    border: 1px solid #fcd34d;
+    border-radius: 5px;
+    background: #ffffff;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #b45309;
+    text-align: center;
+    padding: 0;
+    outline: none;
+    transition: all 0.15s ease;
+}
+
+.dbp-box input:focus {
+    border-color: #d97706;
+    box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+}
+
+.dbp-unit {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #92400e;
+}
+
 .simple-big-input-wrap.compact {
     height: 38px;
     width: 115px;
