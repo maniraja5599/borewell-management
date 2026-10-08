@@ -698,8 +698,29 @@ class BoreBillSaaSApp {
         }
     }
 
+    syncTopHeaderWrapLock() {
+        if (this._headerLockRafId) return;
+        this._headerLockRafId = requestAnimationFrame(() => {
+            this._headerLockRafId = null;
+            const headerWrap = document.querySelector('.app-top-header-wrap');
+            if (!headerWrap) return;
+
+            const vv = window.visualViewport;
+            // Keep fixed top bar completely pinned in New Bill (tab-bill)
+            const isBillTab = (!this.state || !this.state.activeTab || this.state.activeTab === 'tab-bill');
+            const offsetTop = (vv && isBillTab) ? Math.max(0, Math.round(vv.offsetTop || 0)) : 0;
+
+            if (offsetTop > 0) {
+                headerWrap.style.transform = `translate3d(0, ${offsetTop}px, 0)`;
+            } else if (headerWrap.style.transform) {
+                headerWrap.style.transform = '';
+            }
+        });
+    }
+
     startIosViewportSyncLoop() {
         this.syncIosTopSafeBarColor();
+        this.syncTopHeaderWrapLock();
     }
 
     init() {
@@ -730,6 +751,7 @@ class BoreBillSaaSApp {
             this.switchTab(this.state.activeTab, false, false);
         }
         this.syncIosTopSafeBarColor();
+        this.syncTopHeaderWrapLock();
         this.calculateAndRender();
         this.renderCustomerSiteSuggestions();
         this.renderSavedExtrasUI();
@@ -742,27 +764,42 @@ class BoreBillSaaSApp {
             setTimeout(() => {
                 window.scrollTo({ top: savedScrollY, behavior: 'instant' });
                 this.syncIosTopSafeBarColor();
+                this.syncTopHeaderWrapLock();
             }, 40);
         }
         window.addEventListener('scroll', () => {
             sessionStorage.setItem('borebill_scroll_y', String(Math.round(window.scrollY || 0)));
             this.syncIosTopSafeBarColor();
+            this.syncTopHeaderWrapLock();
+        }, { passive: true });
+        window.addEventListener('touchmove', () => {
+            this.syncTopHeaderWrapLock();
         }, { passive: true });
         if (window.visualViewport) {
             window.visualViewport.addEventListener('scroll', () => {
                 this.syncIosTopSafeBarColor();
+                this.syncTopHeaderWrapLock();
             }, { passive: true });
             window.visualViewport.addEventListener('resize', () => {
                 this.syncIosTopSafeBarColor();
+                this.syncTopHeaderWrapLock();
             }, { passive: true });
         }
         document.addEventListener('focusin', () => {
             this.syncIosTopSafeBarColor();
+            this.syncTopHeaderWrapLock();
+            setTimeout(() => this.syncTopHeaderWrapLock(), 50);
+            setTimeout(() => this.syncTopHeaderWrapLock(), 150);
+            setTimeout(() => this.syncTopHeaderWrapLock(), 300);
         }, { passive: true });
         document.addEventListener('focusout', () => {
             setTimeout(() => {
                 this.syncIosTopSafeBarColor();
-            }, 100);
+                this.syncTopHeaderWrapLock();
+            }, 60);
+            setTimeout(() => {
+                this.syncTopHeaderWrapLock();
+            }, 200);
         }, { passive: true });
     }
 
@@ -7067,6 +7104,7 @@ class BoreBillSaaSApp {
             liveBar.style.display = hideLiveBar ? 'none' : 'block';
         }
         this.syncIosTopSafeBarColor();
+        this.syncTopHeaderWrapLock();
         if (persist) {
             this.state.activeTab = tabId;
             this.persistCurrentSession();
@@ -7738,6 +7776,9 @@ class BoreBillSaaSApp {
             inp.addEventListener('focus', () => {
                 document.body.classList.add('keyboard-open');
                 this.updateQuickTabJumpPosition();
+                this.syncTopHeaderWrapLock();
+                setTimeout(() => this.syncTopHeaderWrapLock(), 80);
+                setTimeout(() => this.syncTopHeaderWrapLock(), 250);
             });
             inp.addEventListener('blur', () => {
                 setTimeout(() => {
@@ -7746,6 +7787,7 @@ class BoreBillSaaSApp {
                         document.body.classList.remove('keyboard-open');
                     }
                     this.syncIosTopSafeBarColor();
+                    this.syncTopHeaderWrapLock();
                     this.updateQuickTabJumpPosition();
                 }, 180);
             });
@@ -8815,8 +8857,11 @@ class BoreBillSaaSApp {
             if (e.target && e.target.closest('#tab-bill')) {
                 this.updateQuickTabJumpLabel(e.target);
                 this.updateQuickTabJumpPosition();
+                this.syncTopHeaderWrapLock();
                 setTimeout(() => this.updateQuickTabJumpPosition(), 100);
                 setTimeout(() => this.updateQuickTabJumpPosition(), 280);
+                setTimeout(() => this.syncTopHeaderWrapLock(), 100);
+                setTimeout(() => this.syncTopHeaderWrapLock(), 280);
             }
         });
         document.addEventListener('focusout', () => {
@@ -8829,6 +8874,7 @@ class BoreBillSaaSApp {
                 }
                 this.updateQuickTabJumpLabel();
                 this.updateQuickTabJumpPosition();
+                this.syncTopHeaderWrapLock();
             }, 100);
         });
 

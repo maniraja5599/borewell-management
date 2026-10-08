@@ -218,6 +218,9 @@ svg.lucide {
     width: 100%;
     z-index: 1010;
     background-color: var(--brand-primary);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 /* ==================== TOP APP BAR ==================== */
@@ -5101,7 +5104,7 @@ body.keyboard-open .bottom-nav {
 body.keyboard-open .app-main,
 html.ios-device body.keyboard-open .app-main,
 html.ios-standalone body.keyboard-open .app-main {
-    padding-bottom: 150px !important;
+    padding-bottom: max(280px, 45vh) !important;
 }
 
 
