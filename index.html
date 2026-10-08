@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=64">
+    <link rel="stylesheet" href="styles.css?v=65">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Shield for iPhone / iOS 26 (Permanently covers notch / Dynamic Island area with solid brand color, eliminating Liquid Glass blur) -->
@@ -90,6 +90,10 @@
                     </div>
                 </div>
                 <div class="live-bar-right">
+                    <button type="button" class="live-bar-next-pill" id="liveBarQuickNextBtn" aria-label="Jump to Next Field" style="display: none;" title="Jump to Next Field">
+                        <span id="liveBarQuickNextLabel">Next</span>
+                        <span class="lbn-arrow">⇥</span>
+                    </button>
                     <div class="live-bar-amount" id="liveTotalBannerAmount">₹0</div>
                     <span class="live-bar-balance" id="liveBalanceBadge" style="display: none;">Bal: ₹0</span>
                 </div>
@@ -2130,6 +2134,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=64"></script>
+    <script src="app.js?v=65"></script>
 </body>
 </html>

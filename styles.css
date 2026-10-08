@@ -116,8 +116,8 @@ html.ios-crios .bottom-nav::after {
     display: none !important;
 }
 
-html.ios-crios .quick-tab-jump-btn {
-    bottom: 70px !important;
+html.ios-crios:not(.keyboard-open) .quick-tab-jump-btn:not(.keyboard-docked) {
+    bottom: 70px;
 }
 
 html.ios-crios .app-header {
@@ -509,6 +509,41 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-balance.fully-paid {
     background: #16a34a;
     box-shadow: 0 2px 5px rgba(22, 163, 74, 0.35);
+}
+
+/* Quick Jump Next Button inside Sticky Top Live Bar — 100% immune to virtual keyboard hiding */
+.live-bar-next-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 3px 8px;
+    height: 25px;
+    background: #10b981;
+    color: #ffffff;
+    border: 1px solid #34d399;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+    transition: transform 0.1s ease, background 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.live-bar-next-pill:active {
+    transform: scale(0.93);
+    background: #059669;
+}
+
+.live-bar-next-pill .lbn-arrow {
+    font-size: 0.74rem;
+    font-weight: 900;
 }
 
 .live-bar-details-grid {
@@ -5595,21 +5630,44 @@ html.ios-standalone body.keyboard-open .app-main {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: nowrap !important;
     gap: 4px;
+    width: 100%;
+    min-width: 0;
 }
 
 .spvc-top label {
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .spvc-cost {
     font-family: var(--font-display);
-    font-size: 0.78rem;
+    font-size: 0.68rem;
     font-weight: 800;
-    color: var(--brand-primary-dark);
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 1.5px 5px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+}
+
+.spvc-cost.has-cost {
+    color: #15803d;
+    background: #dcfce7;
+    border-color: rgba(22, 163, 74, 0.3);
 }
 
 .spvc-rate-row {
@@ -6233,6 +6291,7 @@ html.ios-standalone body.keyboard-open .app-main {
     background: #0f172a !important;
     border-color: #10b981 !important;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(16, 185, 129, 0.7) !important;
+    z-index: 10015 !important;
 }
 
 body.keyboard-open .quick-tab-jump-btn:not([style*="bottom"]) {
@@ -6944,23 +7003,43 @@ input[type="number"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
     gap: 4px;
+    width: 100%;
+    min-width: 0;
 }
 
 .spvc-top label {
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .spvc-cost {
     font-family: var(--font-display);
-    font-size: 0.82rem;
+    font-size: 0.68rem;
     font-weight: 800;
-    color: var(--brand-primary-dark);
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 1.5px 5px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
+    transition: all 0.15s ease;
+}
+
+.spvc-cost.has-cost {
+    color: #15803d;
+    background: #dcfce7;
+    border-color: rgba(22, 163, 74, 0.3);
 }
 
 .spvc-rate-row {
@@ -7171,11 +7250,12 @@ input[type="number"] {
     }
 
     .spvc-top label {
-        font-size: 0.76rem;
+        font-size: 0.70rem;
     }
 
     .spvc-cost {
-        font-size: 0.75rem;
+        font-size: 0.64rem;
+        padding: 1px 4px;
     }
 
     .spvc-rate-row {

@@ -556,9 +556,11 @@ class BoreBillSaaSApp {
     }
 
     updateQuickTabJumpLabel(activeEl = document.activeElement) {
-        const btn = document.getElementById('billQuickTabJumpBtn');
-        const lbl = document.getElementById('billQuickTabJumpLabel');
-        if (!btn || !lbl) return;
+        const floatBtn = document.getElementById('billQuickTabJumpBtn');
+        const floatLbl = document.getElementById('billQuickTabJumpLabel');
+        const topBtn = document.getElementById('liveBarQuickNextBtn');
+        const topLbl = document.getElementById('liveBarQuickNextLabel');
+        if (!floatBtn && !topBtn) return;
 
         const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
         const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
@@ -571,37 +573,44 @@ class BoreBillSaaSApp {
 
         // Before customer selection or if preview open / not bill tab / readonly -> HIDE
         if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved || !hasCust) {
-            btn.style.display = 'none';
+            if (floatBtn) floatBtn.style.display = 'none';
+            if (topBtn) topBtn.style.display = 'none';
             return;
         }
 
-        btn.style.display = 'inline-flex';
+        if (floatBtn) floatBtn.style.display = 'inline-flex';
+        if (topBtn) topBtn.style.display = 'inline-flex';
 
+        let nextText = 'Next';
         const id = activeEl?.id;
         if (id === 'totalDepth' || id === 'oldBoreDepth') {
-            lbl.textContent = 'Rate ⇥';
+            nextText = 'Rate ⇥';
         } else if (id === 'baseDrillingRate' || id === 'oldBoreRateInput' || id === 'billBoreBataInput') {
-            lbl.textContent = '7" Pipe ⇥';
+            nextText = '7" Pipe ⇥';
         } else if (id === 'pvc7Length' || id === 'pvc7RateInput') {
-            lbl.textContent = '10" Pipe ⇥';
+            nextText = '10" Pipe ⇥';
         } else if (id === 'pvc10Length' || id === 'pvc10RateInput') {
-            lbl.textContent = 'Preview ⇥';
+            nextText = 'Preview ⇥';
         } else if (id === 'openBillPreviewBtn') {
-            lbl.textContent = 'Preview ⇥';
+            nextText = 'Preview ⇥';
         } else {
             const depthVal = (document.getElementById('totalDepth')?.value || '').trim();
             const pvc7Val = (document.getElementById('pvc7Length')?.value || '').trim();
             const pvc10Val = (document.getElementById('pvc10Length')?.value || '').trim();
             if (!depthVal) {
-                lbl.textContent = 'Feet ⇥';
+                nextText = 'Feet ⇥';
             } else if (!pvc7Val) {
-                lbl.textContent = '7" Pipe ⇥';
+                nextText = '7" Pipe ⇥';
             } else if (!pvc10Val) {
-                lbl.textContent = '10" Pipe ⇥';
+                nextText = '10" Pipe ⇥';
             } else {
-                lbl.textContent = 'Preview ⇥';
+                nextText = 'Preview ⇥';
             }
         }
+
+        const plainText = nextText.replace(' ⇥', '');
+        if (floatLbl) floatLbl.textContent = plainText;
+        if (topLbl) topLbl.textContent = plainText;
     }
 
     updateQuickTabJumpPosition() {
@@ -613,27 +622,31 @@ class BoreBillSaaSApp {
             return;
         }
 
+        const isInputFocused = Boolean(document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName));
+        const isKb = document.body.classList.contains('keyboard-open') || isInputFocused;
+
         if (window.visualViewport) {
             const vv = window.visualViewport;
             // Visual viewport height shrinks when virtual keyboard is displayed
-            const keyboardHeight = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
+            const keyboardHeight = Math.max(0, window.innerHeight - vv.height);
 
-            if (keyboardHeight > 80) {
+            if (keyboardHeight > 60 || isKb) {
                 btn.classList.add('keyboard-docked');
-                btn.style.bottom = `${Math.round(keyboardHeight + 10)}px`;
-                btn.style.zIndex = '9999';
+                const dockBottom = keyboardHeight > 60 ? (keyboardHeight + 12) : 14;
+                btn.style.setProperty('bottom', `${Math.round(dockBottom)}px`, 'important');
+                btn.style.zIndex = '10015';
             } else {
                 btn.classList.remove('keyboard-docked');
-                btn.style.bottom = '';
+                btn.style.removeProperty('bottom');
                 btn.style.zIndex = '9999';
             }
-        } else if (document.body.classList.contains('keyboard-open')) {
+        } else if (isKb) {
             btn.classList.add('keyboard-docked');
-            btn.style.bottom = 'calc(14px + var(--safe-bottom, 0px))';
-            btn.style.zIndex = '9999';
+            btn.style.setProperty('bottom', 'calc(14px + var(--safe-bottom, 0px))', 'important');
+            btn.style.zIndex = '10015';
         } else {
             btn.classList.remove('keyboard-docked');
-            btn.style.bottom = '';
+            btn.style.removeProperty('bottom');
             btn.style.zIndex = '9999';
         }
     }
@@ -1385,9 +1398,18 @@ class BoreBillSaaSApp {
             liveOldBoreCostEl.textContent = this.formatINR(res.oldBoreCost || 0);
         }
         document.getElementById('hintPvc7Rate').textContent = this.formatINR(this.rates.pvc7Rate);
-        document.getElementById('liveInlinePvc7Cost').textContent = this.formatINR(res.pvc7Cost);
+        const pvc7CostEl = document.getElementById('liveInlinePvc7Cost');
+        if (pvc7CostEl) {
+            pvc7CostEl.textContent = this.formatINR(res.pvc7Cost || 0);
+            pvc7CostEl.classList.toggle('has-cost', (res.pvc7Cost || 0) > 0);
+        }
+
         document.getElementById('hintPvc10Rate').textContent = this.formatINR(this.rates.pvc10Rate);
-        document.getElementById('liveInlinePvc10Cost').textContent = this.formatINR(res.pvc10Cost);
+        const pvc10CostEl = document.getElementById('liveInlinePvc10Cost');
+        if (pvc10CostEl) {
+            pvc10CostEl.textContent = this.formatINR(res.pvc10Cost || 0);
+            pvc10CostEl.classList.toggle('has-cost', (res.pvc10Cost || 0) > 0);
+        }
         document.getElementById('gstPillPercent').textContent = this.rates.gstPercentage;
 
         // Show/hide Optional Client GSTIN row right below 18% GST toggle when GST is ON/OFF
@@ -8907,20 +8929,36 @@ class BoreBillSaaSApp {
             tabJumpBtn.addEventListener('click', handleJumpAction);
         }
 
+        const liveBarNextBtn = document.getElementById('liveBarQuickNextBtn');
+        if (liveBarNextBtn) {
+            liveBarNextBtn.addEventListener('pointerdown', handleJumpAction);
+            liveBarNextBtn.addEventListener('touchstart', handleJumpAction, { passive: false });
+            liveBarNextBtn.addEventListener('click', handleJumpAction);
+        }
+
         // Track active focus and keyboard state on bill page to keep tab jump button label and position updated
         document.addEventListener('focusin', (e) => {
+            const isInput = e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
+            if (isInput) {
+                document.body.classList.add('keyboard-open');
+            }
             if (e.target && e.target.closest('#tab-bill')) {
                 this.updateQuickTabJumpLabel(e.target);
                 this.updateQuickTabJumpPosition();
-                setTimeout(() => this.updateQuickTabJumpPosition(), 150);
-                setTimeout(() => this.updateQuickTabJumpPosition(), 350);
+                setTimeout(() => this.updateQuickTabJumpPosition(), 100);
+                setTimeout(() => this.updateQuickTabJumpPosition(), 280);
             }
         });
         document.addEventListener('focusout', () => {
             setTimeout(() => {
+                const active = document.activeElement;
+                const isStillInput = active && ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName);
+                if (!isStillInput) {
+                    document.body.classList.remove('keyboard-open');
+                }
                 this.updateQuickTabJumpLabel();
                 this.updateQuickTabJumpPosition();
-            }, 120);
+            }, 100);
         });
 
         // Click top date badge to focus date
