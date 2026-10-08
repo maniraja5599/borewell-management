@@ -103,12 +103,12 @@ html.ios-crios {
 }
 
 html.ios-crios body {
-    padding-bottom: 74px !important;
+    padding-bottom: 60px !important;
 }
 
 html.ios-crios .bottom-nav {
-    height: 60px !important;
-    min-height: 60px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     padding-bottom: 0px !important;
 }
 
@@ -126,45 +126,7 @@ html.ios-crios .sticky-live-bar {
     top: 0px !important;
 }
 
-/* ==================== SOLID TOP SAFE-AREA STATUS BAR SHIELD ==================== */
-/* On iPhone / iOS 26, this fixed shield permanently covers the notch / dynamic island
-   area (0px to env(safe-area-inset-top)) with the solid app header color and gradient.
-   It prevents WebKit Liquid Glass blur and stops any content from showing/blur-tinting underneath. */
-.ios-status-bar-shield {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: env(safe-area-inset-top, 0px);
-    background-color: var(--brand-primary);
-    background-image: var(--brand-gradient);
-    z-index: 10020;
-    pointer-events: none;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Overscroll top shield: pulling down on iPhone displays solid brand color above top:0 */
-.ios-status-bar-shield::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    height: 350px;
-    background-color: var(--brand-primary);
-    background-image: var(--brand-gradient);
-    pointer-events: none;
-}
-
-html.ios-crios .ios-status-bar-shield {
-    display: none !important;
-}
-
+.ios-status-bar-shield,
 .ios-pwa-safe-top-bar {
     display: none !important;
 }
@@ -198,7 +160,7 @@ body {
     line-height: 1.4;
     width: 100%;
     min-height: 100dvh;
-    padding-bottom: calc(72px + var(--safe-bottom));
+    padding-bottom: calc(62px + var(--safe-bottom));
     overscroll-behavior-y: none;
     touch-action: pan-x pan-y;
     -webkit-user-select: none;
@@ -261,17 +223,6 @@ svg.lucide {
     overflow-x: clip;
 }
 
-/* Overscroll top shield so pulling down on iPhone never shows a light gap behind the status bar */
-.app-header::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    height: 180px;
-    background-color: var(--brand-primary);
-    pointer-events: none;
-}
 
 /* On iOS standalone PWA, extend top padding to match status bar cleanly */
 html.ios-standalone .app-header {
@@ -4160,10 +4111,10 @@ html.ios-standalone .sticky-live-bar {
     bottom: 0;
     left: 0;
     right: 0;
-    height: calc(60px + var(--safe-bottom));
-    min-height: calc(60px + var(--safe-bottom));
+    height: calc(52px + var(--safe-bottom));
+    min-height: calc(52px + var(--safe-bottom));
     padding-top: 2px;
-    padding-bottom: var(--safe-bottom);
+    padding-bottom: max(4px, calc(var(--safe-bottom) - 6px));
     padding-left: var(--safe-left);
     padding-right: var(--safe-right);
     background-color: #ffffff;
@@ -4172,7 +4123,7 @@ html.ios-standalone .sticky-live-bar {
     border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: space-around;
-    align-items: flex-start;
+    align-items: center;
     z-index: 1000;
     box-shadow: 0 -2px 12px rgba(15, 23, 42, 0.07);
     -webkit-transform: translateZ(0);
@@ -4186,7 +4137,7 @@ html.ios-standalone .sticky-live-bar {
     top: 100%;
     left: 0;
     right: 0;
-    height: 80px;
+    height: 40px;
     background: #ffffff;
     pointer-events: none;
 }
@@ -4204,13 +4155,13 @@ body.keyboard-open .bottom-nav {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
     color: var(--text-muted);
     cursor: pointer;
     position: relative;
-    height: 58px;
-    min-height: 58px;
-    padding: 2px 0;
+    height: 48px;
+    min-height: 48px;
+    padding: 0;
 }
 
 .b-nav-icon {
