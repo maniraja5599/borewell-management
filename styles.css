@@ -119,7 +119,7 @@ html.ios-crios .bottom-nav::after {
 
 html.ios-crios .app-header {
     margin-top: 0px !important;
-    padding-top: 11px !important;
+    padding-top: 15px !important;
 }
 
 
@@ -226,20 +226,26 @@ svg.lucide {
     background-color: var(--brand-primary);
     background-image: var(--brand-gradient);
     color: #ffffff;
-    padding-top: calc(11px + var(--safe-top));
-    padding-bottom: 11px;
+    padding-top: calc(16px + max(var(--safe-top), 0px));
+    padding-bottom: 12px;
     padding-left: max(12px, var(--safe-left));
     padding-right: max(12px, var(--safe-right));
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     overflow-x: clip;
 }
 
+/* On Android standalone PWA, ensure clean breathing space below the Android status bar */
+html.android-standalone .app-header,
+html.android-device.pwa-standalone .app-header {
+    padding-top: calc(18px + max(var(--safe-top), 0px));
+    padding-bottom: 12px;
+}
 
-/* On iOS standalone PWA, extend top padding to match status bar cleanly */
+/* On iOS standalone PWA, extend top padding comfortably below Dynamic Island / Notch (minimum 44px status bar) */
 html.ios-standalone .app-header {
     margin-top: 0;
-    padding-top: calc(11px + var(--safe-top));
-    padding-bottom: 11px;
+    padding-top: calc(18px + max(var(--safe-top), 44px));
+    padding-bottom: 12px;
     background-color: var(--brand-primary);
     background-image: none;
     border-top: none;

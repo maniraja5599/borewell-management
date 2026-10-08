@@ -660,6 +660,7 @@ class BoreBillSaaSApp {
             const ua = navigator.userAgent || '';
             const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             const isCriOS = isIOS && /CriOS/i.test(ua);
+            const isAndroid = /Android/i.test(ua);
             const isStandalone = (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
             const root = document.documentElement;
             if (isIOS) {
@@ -668,10 +669,16 @@ class BoreBillSaaSApp {
                     root.classList.add('ios-crios');
                 }
             }
+            if (isAndroid) {
+                root.classList.add('android-device');
+            }
             if (isStandalone) {
                 root.classList.add('pwa-standalone');
                 if (isIOS) {
                     root.classList.add('ios-standalone');
+                }
+                if (isAndroid) {
+                    root.classList.add('android-standalone');
                 }
             }
         } catch (e) {
