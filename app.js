@@ -475,50 +475,52 @@ class BoreBillSaaSApp {
     }
 
     jumpToNextBillField() {
-        const activeEl = document.activeElement;
+        const hasCust = Boolean(
+            (document.getElementById('custName')?.value || '').trim() ||
+            (document.getElementById('custPhone')?.value || '').trim()
+        );
+        if (!hasCust) {
+            const panel = document.getElementById('quickCustPickerPanel');
+            if (panel) panel.style.display = 'block';
+            document.getElementById('quickCustSearchInput')?.focus();
+            return;
+        }
 
-        const custSearchEl = document.getElementById('quickCustSearchInput');
-        const locEl = document.getElementById('custLocation');
+        const activeEl = document.activeElement;
         const depthEl = document.getElementById('totalDepth');
-        const dateEl = document.getElementById('billDateInput');
+        const baseRateEl = document.getElementById('baseDrillingRate');
         const pvc7El = document.getElementById('pvc7Length');
         const pvc10El = document.getElementById('pvc10Length');
-        const advEl = document.getElementById('advancePaidAmount');
         const previewBtn = document.getElementById('openBillPreviewBtn');
-
-        const isAdvVisible = Boolean(advEl && advEl.offsetParent !== null);
 
         let nextEl = null;
 
         // Sequence requested by user:
-        // Customer selection / Site -> Total Drilling -> Bill Date -> 7" Casing Pipe -> 10" Casing Pipe -> Advance Paid -> Preview & Save
-        if (activeEl === custSearchEl || activeEl === locEl) {
-            nextEl = depthEl;
-        } else if (activeEl === depthEl || activeEl?.id === 'oldBoreDepth' || activeEl?.id === 'oldBoreRateInput' || activeEl?.id === 'baseDrillingRate' || activeEl?.id === 'billBoreBataInput') {
-            nextEl = dateEl;
-        } else if (activeEl === dateEl) {
+        // Customer selected -> Drilling Feet (#totalDepth) -> Drilling Rate (#baseDrillingRate) -> 7" PVC (#pvc7Length) -> 10" PVC (#pvc10Length) -> Preview
+        if (activeEl === depthEl || activeEl?.id === 'oldBoreDepth') {
+            nextEl = baseRateEl;
+        } else if (activeEl === baseRateEl || activeEl?.id === 'oldBoreRateInput' || activeEl?.id === 'billBoreBataInput') {
             nextEl = pvc7El;
         } else if (activeEl === pvc7El || activeEl?.id === 'pvc7RateInput') {
             nextEl = pvc10El;
         } else if (activeEl === pvc10El || activeEl?.id === 'pvc10RateInput') {
-            nextEl = isAdvVisible ? advEl : previewBtn;
-        } else if (activeEl === advEl || activeEl?.id === 'discountAmount' || activeEl?.id === 'collarCapCost' || activeEl?.id === 'transportSurveyCost' || activeEl?.id === 'customExtraAmount') {
             nextEl = previewBtn;
         } else if (activeEl === previewBtn) {
             previewBtn?.click();
             return;
         } else {
-            // Nothing currently focused: pick logical next based on what's empty
-            const hasCust = Boolean(document.getElementById('custName')?.value);
-            const hasDepth = Number(depthEl?.value) > 0;
-            if (!hasCust) {
-                nextEl = custSearchEl || locEl;
-            } else if (!hasDepth) {
+            // Focus is outside (e.g. site, or button tapped directly)
+            const depthVal = (depthEl?.value || '').trim();
+            const pvc7Val = (pvc7El?.value || '').trim();
+            const pvc10Val = (pvc10El?.value || '').trim();
+            if (!depthVal) {
                 nextEl = depthEl;
-            } else if (!dateEl?.value) {
-                nextEl = dateEl;
-            } else if (!pvc7El?.value) {
+            } else if (!baseRateEl?.value) {
+                nextEl = baseRateEl;
+            } else if (!pvc7Val) {
                 nextEl = pvc7El;
+            } else if (!pvc10Val) {
+                nextEl = pvc10El;
             } else {
                 nextEl = previewBtn;
             }
@@ -528,17 +530,16 @@ class BoreBillSaaSApp {
             if (nextEl === previewBtn) {
                 nextEl.click();
             } else {
-                // Ensure section is visible
-                if (nextEl === depthEl || nextEl === dateEl) {
-                    const drillSection = document.getElementById('progDrillingSection');
-                    const rateBataWrap = document.getElementById('drillingRateBataWrap');
-                    if (drillSection) drillSection.style.display = 'block';
-                    if (rateBataWrap) rateBataWrap.style.display = 'flex';
-                } else if (nextEl === pvc7El || nextEl === pvc10El) {
-                    const casingSection = document.getElementById('progCasingSection');
-                    if (casingSection) casingSection.style.display = 'block';
+                const drillSec = document.getElementById('progDrillingSection');
+                const rateWrap = document.getElementById('drillingRateBataWrap');
+                if (nextEl === depthEl || nextEl === baseRateEl) {
+                    if (drillSec) drillSec.style.display = 'block';
+                    if (rateWrap) rateWrap.style.display = 'flex';
                 }
-
+                const casingSec = document.getElementById('progCasingSection');
+                if (nextEl === pvc7El || nextEl === pvc10El) {
+                    if (casingSec) casingSec.style.display = 'block';
+                }
                 nextEl.focus();
                 if (typeof nextEl.select === 'function' && nextEl.tagName === 'INPUT' && nextEl.type !== 'date') {
                     setTimeout(() => {
@@ -562,7 +563,14 @@ class BoreBillSaaSApp {
         const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
         const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
 
-        if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved) {
+        // Check customer selected
+        const hasCust = Boolean(
+            (document.getElementById('custName')?.value || '').trim() ||
+            (document.getElementById('custPhone')?.value || '').trim()
+        );
+
+        // Before customer selection or if preview open / not bill tab / readonly -> HIDE
+        if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved || !hasCust) {
             btn.style.display = 'none';
             return;
         }
@@ -570,31 +578,28 @@ class BoreBillSaaSApp {
         btn.style.display = 'inline-flex';
 
         const id = activeEl?.id;
-        if (id === 'quickCustSearchInput' || id === 'custLocation') {
-            lbl.textContent = 'Drilling';
-        } else if (id === 'totalDepth' || id === 'oldBoreDepth' || id === 'oldBoreRateInput' || id === 'baseDrillingRate' || id === 'billBoreBataInput') {
-            lbl.textContent = 'Date';
-        } else if (id === 'billDateInput') {
-            lbl.textContent = '7" Pipe';
+        if (id === 'totalDepth' || id === 'oldBoreDepth') {
+            lbl.textContent = 'Rate ⇥';
+        } else if (id === 'baseDrillingRate' || id === 'oldBoreRateInput' || id === 'billBoreBataInput') {
+            lbl.textContent = '7" Pipe ⇥';
         } else if (id === 'pvc7Length' || id === 'pvc7RateInput') {
-            lbl.textContent = '10" Pipe';
+            lbl.textContent = '10" Pipe ⇥';
         } else if (id === 'pvc10Length' || id === 'pvc10RateInput') {
-            const advInp = document.getElementById('advancePaidAmount');
-            const advVisible = Boolean(advInp && advInp.offsetParent !== null);
-            lbl.textContent = advVisible ? 'Advance' : 'Preview';
-        } else if (id === 'advancePaidAmount' || id === 'discountAmount' || id === 'collarCapCost' || id === 'transportSurveyCost' || id === 'customExtraAmount') {
-            lbl.textContent = 'Preview';
+            lbl.textContent = 'Preview ⇥';
         } else if (id === 'openBillPreviewBtn') {
-            lbl.textContent = 'Preview';
+            lbl.textContent = 'Preview ⇥';
         } else {
-            const hasCust = Boolean(document.getElementById('custName')?.value);
-            const hasDepth = Number(document.getElementById('totalDepth')?.value) > 0;
-            if (!hasCust) {
-                lbl.textContent = 'Customer';
-            } else if (!hasDepth) {
-                lbl.textContent = 'Drilling';
+            const depthVal = (document.getElementById('totalDepth')?.value || '').trim();
+            const pvc7Val = (document.getElementById('pvc7Length')?.value || '').trim();
+            const pvc10Val = (document.getElementById('pvc10Length')?.value || '').trim();
+            if (!depthVal) {
+                lbl.textContent = 'Feet ⇥';
+            } else if (!pvc7Val) {
+                lbl.textContent = '7" Pipe ⇥';
+            } else if (!pvc10Val) {
+                lbl.textContent = '10" Pipe ⇥';
             } else {
-                lbl.textContent = 'Next';
+                lbl.textContent = 'Preview ⇥';
             }
         }
     }
@@ -7299,6 +7304,143 @@ class BoreBillSaaSApp {
     }
 
     setupEventListeners() {
+        // Global PC Keyboard Shortcuts (Escape to dismiss modals/drawers/preview, Enter for preview save/share)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                // 1. Delete Confirm Modal
+                const delOverlay = document.getElementById('deleteConfirmModalOverlay');
+                if (delOverlay && delOverlay.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeDeleteConfirmModal();
+                    return;
+                }
+
+                // 2. Add / Edit Customer Popup Modal
+                const crmDrawer = document.getElementById('crmCustomerFormDrawer');
+                if (crmDrawer && crmDrawer.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeCustomerPopupModal();
+                    return;
+                }
+
+                // 3. Customer Khata / Detail Modal
+                const custModal = document.getElementById('custDetailModalOverlay');
+                if (custModal && custModal.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeCustomerDetailModal();
+                    return;
+                }
+
+                // 4. WhatsApp Preview Modal
+                const waModal = document.getElementById('whatsappPreviewModalOverlay');
+                if (waModal && waModal.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeWhatsAppPreviewModal();
+                    return;
+                }
+
+                // 5. Bill Detail Modal
+                const billModal = document.getElementById('billDetailModalOverlay');
+                if (billModal && billModal.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeBillDetailModal();
+                    return;
+                }
+
+                // 6. Record Payment Modal
+                const payModal = document.getElementById('recordPaymentModalOverlay');
+                if (payModal && payModal.style.display !== 'none') {
+                    e.preventDefault();
+                    this.closeRecordPaymentModal();
+                    return;
+                }
+
+                // 7. Rate Detail Modal
+                const rateModal = document.getElementById('rateDetailModalOverlay');
+                if (rateModal && rateModal.style.display !== 'none') {
+                    e.preventDefault();
+                    rateModal.style.display = 'none';
+                    return;
+                }
+
+                // 8. Rate Studio (if open)
+                const rateStudio = document.getElementById('rateStudioDrawer');
+                if (rateStudio && (rateStudio.classList.contains('active') || rateStudio.style.display === 'block')) {
+                    e.preventDefault();
+                    this.toggleRateStudio(false);
+                    return;
+                }
+
+                // 9. Company Studio (if open)
+                const compStudio = document.getElementById('companyEditStudioCard');
+                if (compStudio && compStudio.style.display !== 'none') {
+                    e.preventDefault();
+                    compStudio.style.display = 'none';
+                    const editBtn = document.getElementById('toggleCompanyEditBtn');
+                    const editBtnTxt = document.getElementById('toggleCompanyEditBtnText');
+                    editBtn?.classList.remove('active');
+                    if (editBtnTxt) editBtnTxt.textContent = 'Edit Details';
+                    return;
+                }
+
+                // 10. Open Dropdowns & Drawers
+                let closedAnyDrawer = false;
+                [
+                    'quickCustPickerPanel',
+                    'inlinePriceDrawer',
+                    'extraChargesDrawer',
+                    'billNotesDrawer',
+                    'previewFooterEditDrawer',
+                    'smartSiteDropdownList',
+                    'smartSlabDropdownPanel',
+                    'customExtraSmartDropdown'
+                ].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.style.display !== 'none') {
+                        el.style.display = 'none';
+                        closedAnyDrawer = true;
+                    }
+                });
+                if (closedAnyDrawer) {
+                    e.preventDefault();
+                    return;
+                }
+
+                // 11. If Bill Preview is Open -> Return to Bill Editor
+                if (this.isBillPreviewOpen) {
+                    e.preventDefault();
+                    const backBtn = document.getElementById('backToEditFromPreviewTopBtn') || document.getElementById('backToEditFromPreviewBtn');
+                    if (backBtn) {
+                        backBtn.click();
+                        return;
+                    }
+                }
+
+                // 12. If an input is focused, blur it to exit edit mode
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
+            } else if ((e.key === 'Enter' || e.keyCode === 13) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                // If WhatsApp Preview Modal is open:
+                const waModal = document.getElementById('whatsappPreviewModalOverlay');
+                if (waModal && waModal.style.display !== 'none' && document.activeElement?.id !== 'waPreviewMessageInput') {
+                    e.preventDefault();
+                    document.getElementById('confirmSendWhatsappBtn')?.click();
+                    return;
+                }
+
+                // If Bill Preview is open and user isn't in a text input/textarea:
+                if (this.isBillPreviewOpen && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+                    e.preventDefault();
+                    if (this.isBillSavedAndReadyToShare) {
+                        document.getElementById('shareWhatsappBtn')?.click();
+                    } else {
+                        document.getElementById('saveBillHistoryBtn')?.click();
+                    }
+                }
+            }
+        });
+
         // Universal Delete Confirmation Modal Listeners
         document.getElementById('closeDelConfirmBtn')?.addEventListener('click', () => this.closeDeleteConfirmModal());
         document.getElementById('cancelDelConfirmBtn')?.addEventListener('click', () => this.closeDeleteConfirmModal());
@@ -7565,6 +7707,23 @@ class BoreBillSaaSApp {
             }, 75);
         });
 
+        document.getElementById('quickCustSearchInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                const firstCard = document.querySelector('#quickCustList .wiz-cust-card');
+                if (firstCard) {
+                    firstCard.click();
+                    setTimeout(() => {
+                        const depthEl = document.getElementById('totalDepth');
+                        if (depthEl) {
+                            depthEl.focus();
+                            try { depthEl.select(); } catch (_) {}
+                        }
+                    }, 60);
+                }
+            }
+        });
+
         document.getElementById('editSelectedCustomerBtn')?.addEventListener('click', () => {
             const activeCust = this.findActiveBillCustomer();
             if (activeCust && activeCust.id) {
@@ -7617,6 +7776,11 @@ class BoreBillSaaSApp {
                     const val = (locInputEl.value || '').trim();
                     if (val) {
                         this.applySelectedServiceSite(val, { closeDropdown: true, toast: true });
+                    }
+                    const depthEl = document.getElementById('totalDepth');
+                    if (depthEl) {
+                        depthEl.focus();
+                        try { depthEl.select(); } catch (_) {}
                     }
                 }
             });
@@ -7696,9 +7860,9 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
-                if (dateInputEl) {
-                    dateInputEl.focus();
-                } else if (baseRateEl) {
+                const rateBataWrap = document.getElementById('drillingRateBataWrap');
+                if (rateBataWrap) rateBataWrap.style.display = 'flex';
+                if (baseRateEl) {
                     baseRateEl.focus();
                     try { baseRateEl.select(); } catch (err) { /* ignore */ }
                 }
@@ -7709,10 +7873,13 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
-                if (dateInputEl) {
-                    dateInputEl.focus();
-                } else if (pvc7LenEl) {
+                const casingSec = document.getElementById('progCasingSection');
+                if (casingSec && casingSec.style.display === 'none') {
+                    casingSec.style.display = 'block';
+                }
+                if (pvc7LenEl) {
                     pvc7LenEl.focus();
+                    try { pvc7LenEl.select(); } catch (err) { /* ignore */ }
                 }
             }
         });
@@ -7738,6 +7905,18 @@ class BoreBillSaaSApp {
                 this.calculateAndRender();
                 if (pvc10LenEl) {
                     pvc10LenEl.focus();
+                    try { pvc10LenEl.select(); } catch (err) { /* ignore */ }
+                }
+            }
+        });
+
+        document.getElementById('pvc7RateInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
+                if (pvc10LenEl) {
+                    pvc10LenEl.focus();
+                    try { pvc10LenEl.select(); } catch (err) { /* ignore */ }
                 }
             }
         });
@@ -7746,12 +7925,15 @@ class BoreBillSaaSApp {
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
                 this.calculateAndRender();
-                const advInp = document.getElementById('advancePaidAmount');
-                if (advInp && advInp.offsetParent !== null) {
-                    advInp.focus();
-                } else {
-                    document.getElementById('openBillPreviewBtn')?.click();
-                }
+                document.getElementById('openBillPreviewBtn')?.click();
+            }
+        });
+
+        document.getElementById('pvc10RateInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.calculateAndRender();
+                document.getElementById('openBillPreviewBtn')?.click();
             }
         });
 
@@ -7985,6 +8167,25 @@ class BoreBillSaaSApp {
             }
             const meta = this.getCountryCodeMeta(activeCode);
             this.updateCrmPhoneValidationUI((e.target.value || '').length >= meta.minLen);
+        });
+
+        document.getElementById('crmCustName')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                document.getElementById('crmCustPhone')?.focus();
+            }
+        });
+        document.getElementById('crmCustPhone')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                document.getElementById('crmCustVillage')?.focus();
+            }
+        });
+        document.getElementById('crmCustVillage')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                document.getElementById('saveCrmCustomerBtn')?.click();
+            }
         });
 
         document.getElementById('saveCrmCustomerBtn')?.addEventListener('click', () => {
