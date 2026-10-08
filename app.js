@@ -4792,16 +4792,16 @@ class BoreBillSaaSApp {
         document.documentElement.setAttribute('data-theme', themeName);
 
         const themeColorMap = {
-            emerald: '#064e3b',
-            royal: '#1e3a8a',
-            crimson: '#881337',
-            amber: '#78350f',
+            emerald: '#15803d',
+            royal: '#1d4ed8',
+            crimson: '#b91c1c',
+            amber: '#b45309',
             violet: '#4c1d95',
             slate: '#0f172a'
         };
         const metaTheme = document.getElementById('metaThemeColor');
         if (metaTheme) {
-            metaTheme.setAttribute('content', themeColorMap[themeName] || '#064e3b');
+            metaTheme.setAttribute('content', themeColorMap[themeName] || '#15803d');
         }
 
         const compName = (b.companyName || '').trim() || 'MY BOREWELL COMPANY';

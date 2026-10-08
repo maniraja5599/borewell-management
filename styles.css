@@ -91,7 +91,7 @@ html.ios-standalone {
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --ios-pwa-safe-top: env(safe-area-inset-top, 0px);
-    background-color: var(--brand-primary);
+    background-color: var(--brand-primary) !important;
 }
 
 /* Chrome on iOS (CriOS): Chrome provides its own bottom navigation bar and top URL bar,
@@ -129,13 +129,47 @@ html.ios-crios .sticky-live-bar {
     top: 0px !important;
 }
 
-/* Legacy plate completely hidden so it never overlays or blurs the status area */
-.ios-pwa-safe-top-bar {
+/* ==================== SOLID TOP SAFE-AREA STATUS BAR SHIELD ==================== */
+/* On iPhone / iOS 26, this fixed shield permanently covers the notch / dynamic island
+   area (0px to env(safe-area-inset-top)) with the solid app header color and gradient.
+   It prevents WebKit Liquid Glass blur and stops any content from showing/blur-tinting underneath. */
+.ios-status-bar-shield {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: env(safe-area-inset-top, 0px);
+    background-color: var(--brand-primary);
+    background-image: var(--brand-gradient);
+    z-index: 10020;
+    pointer-events: none;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Overscroll top shield: pulling down on iPhone displays solid brand color above top:0 */
+.ios-status-bar-shield::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: 350px;
+    background-color: var(--brand-primary);
+    background-image: var(--brand-gradient);
+    pointer-events: none;
+}
+
+html.ios-crios .ios-status-bar-shield {
     display: none !important;
 }
 
-html.ios-standalone.ios-live-bar-stuck {
-    background-color: #0f172a;
+.ios-pwa-safe-top-bar {
+    display: none !important;
 }
 
 * {
@@ -147,11 +181,16 @@ html.ios-standalone.ios-live-bar-stuck {
 
 html {
     width: 100%;
-    background-color: var(--brand-primary);
+    background-color: var(--brand-primary) !important;
     overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     touch-action: pan-x pan-y;
+}
+
+html.ios-device,
+html.ios-standalone {
+    background-color: var(--brand-primary) !important;
 }
 
 body {
@@ -6168,8 +6207,8 @@ html.ios-standalone body.keyboard-open .app-main {
     padding: 7px 14px;
     height: 36px;
     background: #0f172a;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     color: #ffffff;
     border: 1.5px solid #10b981;
     border-radius: 99px;
