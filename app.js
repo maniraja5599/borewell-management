@@ -547,7 +547,11 @@ class BoreBillSaaSApp {
                         try { nextEl.select(); } catch (_) {}
                     }, 25);
                 }
-                nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const r = nextEl.getBoundingClientRect();
+                const vHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+                if (r.top < 120 || r.bottom > vHeight - 20) {
+                    nextEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
                 const wrap = nextEl.closest('.simple-big-input-wrap') || nextEl.closest('.srbb-input-box') || nextEl.closest('.casing-box') || nextEl;
                 this.triggerOneShotPulse(wrap, 'sticky-val-pop');
             }
@@ -2687,45 +2691,12 @@ class BoreBillSaaSApp {
     scrollElementAboveKeyboard(targetEl) {
         if (!targetEl) return;
         document.body.classList.add('keyboard-open');
-
-        // Target the actual focused input rather than huge parent cards
-        const inputEl = (targetEl.tagName === 'INPUT' || targetEl.tagName === 'SELECT' || targetEl.tagName === 'TEXTAREA')
-            ? targetEl
-            : (targetEl.querySelector('input:focus, select:focus, textarea:focus') || targetEl);
-
-        const vv = window.visualViewport;
-        const vvTop = vv ? (vv.offsetTop || 0) : 0;
-        const vvHeight = vv ? vv.height : window.innerHeight;
-        const liveBar = document.getElementById('stickyLiveBar');
-        const liveBarBottom = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
-            ? liveBar.getBoundingClientRect().bottom
-            : (vvTop + 80);
-
-        const safeVisibleTop = Math.max(vvTop + 80, liveBarBottom + 8);
-        const safeVisibleBottom = vvTop + vvHeight - 16;
-        const rect = inputEl.getBoundingClientRect();
-
-        // If input is ALREADY comfortably visible inside open viewport, DO NOT scroll (keep page 100% stable)
-        if (rect.top >= safeVisibleTop && rect.bottom <= safeVisibleBottom) {
-            return;
-        }
-
-        // Only scroll if cut off at the bottom by keyboard, but NEVER push input above safeVisibleTop
-        if (rect.bottom > safeVisibleBottom) {
-            const neededDelta = rect.bottom - safeVisibleBottom + 8;
-            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop - 8);
-            const scrollDelta = Math.min(neededDelta, maxAllowedDelta);
-            if (scrollDelta > 6) {
-                window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
-            }
-        }
+        // Do NOT scroll page up when keyboard opens — keep screen rock-solid stable
     }
 
     scrollServiceSiteAboveKeyboard() {
-        const siteSection = document.getElementById('serviceSiteSection');
-        if (!siteSection || siteSection.style.display === 'none') return;
-        const locInput = document.getElementById('custLocation') || siteSection;
-        this.scrollElementAboveKeyboard(locInput);
+        document.body.classList.add('keyboard-open');
+        // Do NOT scroll page up when keyboard opens
     }
 
     applySelectedServiceSite(siteValue, { closeDropdown = true, toast = true } = {}) {
@@ -7713,7 +7684,6 @@ class BoreBillSaaSApp {
                 this.isEditingServiceSite = true;
                 document.body.classList.add('keyboard-open');
                 this.renderCustomerSiteSuggestions({ showDropdown: true });
-                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 200);
             });
 
             locInputEl.addEventListener('click', () => {
@@ -7767,7 +7737,6 @@ class BoreBillSaaSApp {
             if (!inp) return;
             inp.addEventListener('focus', () => {
                 document.body.classList.add('keyboard-open');
-                setTimeout(() => this.scrollElementAboveKeyboard(inp), 200);
                 this.updateQuickTabJumpPosition();
             });
             inp.addEventListener('blur', () => {
@@ -7894,13 +7863,6 @@ class BoreBillSaaSApp {
                     this.lockedKeyboardDockBottom = null;
                 }
                 this.updateQuickTabJumpPosition();
-                const activeEl = document.activeElement;
-                if (!activeEl) return;
-                if (activeEl.id === 'custLocation') {
-                    this.scrollServiceSiteAboveKeyboard();
-                } else if (['oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billDateInput', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
-                    this.scrollElementAboveKeyboard(activeEl);
-                }
             });
             // DO NOT update button position on scroll — button remains 100% fixed on swipe-up!
         }
@@ -8525,7 +8487,6 @@ class BoreBillSaaSApp {
                 } else if (id === 'custLocation') {
                     this.updateBillPhoneValidationUI(false);
                     this.renderCustomerSiteSuggestions({ showDropdown: true });
-                    this.scrollServiceSiteAboveKeyboard();
                 } else if (id === 'custName') {
                     this.updateBillPhoneValidationUI(false);
                     this.renderCustomerSiteSuggestions();
@@ -8581,7 +8542,6 @@ class BoreBillSaaSApp {
         const customExtraAmtEl = document.getElementById('customExtraAmount');
         customExtraLabelEl?.addEventListener('focus', () => {
             this.renderSavedExtrasUI({ showDropdown: true });
-            this.scrollElementAboveKeyboard(customExtraLabelEl);
         });
         customExtraLabelEl?.addEventListener('click', () => {
             this.renderSavedExtrasUI({ showDropdown: true });
@@ -8761,7 +8721,6 @@ class BoreBillSaaSApp {
                     const noteInp = document.getElementById('billCustomNoteInput');
                     if (noteInp) {
                         noteInp.focus();
-                        this.scrollElementAboveKeyboard(dr);
                     }
                 }, 60);
             }
