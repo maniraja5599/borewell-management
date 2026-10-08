@@ -326,6 +326,7 @@ class BoreBillSaaSApp {
         this.currentWizardStep = Math.max(1, Math.min(2, parseInt(this.state.currentWizardStep, 10) || 1));
         this.wizCustFilter = 'ALL';
         this.lastResult = null;
+        this.lockedKeyboardDockBottom = null;
         this.init();
     }
 
@@ -619,36 +620,43 @@ class BoreBillSaaSApp {
 
         const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
         if (curTab !== 'tab-bill' || this.isBillPreviewOpen) {
+            btn.classList.remove('keyboard-docked');
+            btn.style.removeProperty('bottom');
+            this.lockedKeyboardDockBottom = null;
             return;
         }
 
         const isInputFocused = Boolean(document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName));
         const isKb = document.body.classList.contains('keyboard-open') || isInputFocused;
 
-        if (window.visualViewport) {
-            const vv = window.visualViewport;
-            // Visual viewport height shrinks when virtual keyboard is displayed
-            const keyboardHeight = Math.max(0, window.innerHeight - vv.height);
-
-            if (keyboardHeight > 60 || isKb) {
-                btn.classList.add('keyboard-docked');
-                const dockBottom = keyboardHeight > 60 ? (keyboardHeight + 12) : 14;
-                btn.style.setProperty('bottom', `${Math.round(dockBottom)}px`, 'important');
-                btn.style.zIndex = '10015';
-            } else {
-                btn.classList.remove('keyboard-docked');
-                btn.style.removeProperty('bottom');
-                btn.style.zIndex = '9999';
-            }
-        } else if (isKb) {
-            btn.classList.add('keyboard-docked');
-            btn.style.setProperty('bottom', 'calc(14px + var(--safe-bottom, 0px))', 'important');
-            btn.style.zIndex = '10015';
-        } else {
+        if (!isKb) {
             btn.classList.remove('keyboard-docked');
             btn.style.removeProperty('bottom');
-            btn.style.zIndex = '9999';
+            this.lockedKeyboardDockBottom = null;
+            return;
         }
+
+        // If keyboard is open and position is already locked for this entry session, KEEP IT FIXED!
+        // Never change position when swipe-up/scrolling occurs!
+        if (this.lockedKeyboardDockBottom !== null) {
+            btn.classList.add('keyboard-docked');
+            btn.style.setProperty('bottom', `${this.lockedKeyboardDockBottom}px`, 'important');
+            return;
+        }
+
+        // First time keyboard appears: calculate dock bottom once and lock it
+        let dockBottom = 16;
+        if (window.visualViewport) {
+            const vv = window.visualViewport;
+            const kbHeight = Math.max(0, window.innerHeight - vv.height);
+            dockBottom = kbHeight > 60 ? (kbHeight + 12) : 16;
+        } else {
+            dockBottom = 16;
+        }
+
+        this.lockedKeyboardDockBottom = Math.round(dockBottom);
+        btn.classList.add('keyboard-docked');
+        btn.style.setProperty('bottom', `${this.lockedKeyboardDockBottom}px`, 'important');
     }
 
     goToWizardStep(step = 1, scroll = false) {
@@ -7973,6 +7981,11 @@ class BoreBillSaaSApp {
 
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
+                const vv = window.visualViewport;
+                const kbHeight = Math.max(0, window.innerHeight - (vv ? vv.height : window.innerHeight));
+                if (kbHeight <= 40) {
+                    this.lockedKeyboardDockBottom = null;
+                }
                 this.updateQuickTabJumpPosition();
                 const activeEl = document.activeElement;
                 if (!activeEl) return;
@@ -7983,9 +7996,7 @@ class BoreBillSaaSApp {
                     this.scrollElementAboveKeyboard(card);
                 }
             });
-            window.visualViewport.addEventListener('scroll', () => {
-                this.updateQuickTabJumpPosition();
-            });
+            // DO NOT update button position on scroll — button remains 100% fixed on swipe-up!
         }
 
         const clearCustomerInputs = () => {
@@ -8955,6 +8966,7 @@ class BoreBillSaaSApp {
                 const isStillInput = active && ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName);
                 if (!isStillInput) {
                     document.body.classList.remove('keyboard-open');
+                    this.lockedKeyboardDockBottom = null;
                 }
                 this.updateQuickTabJumpLabel();
                 this.updateQuickTabJumpPosition();

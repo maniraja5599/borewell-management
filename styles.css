@@ -6278,7 +6278,9 @@ html.ios-standalone body.keyboard-open .app-main {
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease, bottom 0.12s ease-out;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .quick-tab-jump-btn:active {

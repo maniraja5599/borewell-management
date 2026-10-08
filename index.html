@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=65">
+    <link rel="stylesheet" href="styles.css?v=66">
 </head>
 <body>
     <!-- Solid Opaque Top Safe-Area Shield for iPhone / iOS 26 (Permanently covers notch / Dynamic Island area with solid brand color, eliminating Liquid Glass blur) -->
@@ -678,12 +678,6 @@
                     <i data-lucide="arrow-right" class="icon-sm"></i>
                 </button>
             </div><!-- /#billEditorFormsContainer -->
-
-            <!-- Floating Kutty Quick-Tab Jump Button (Moves cursor to Next Field like a Tab button) -->
-            <button type="button" class="quick-tab-jump-btn" id="billQuickTabJumpBtn" aria-label="Next Field (Tab)" title="Jump to Next Field">
-                <span class="qtj-label" id="billQuickTabJumpLabel">Next</span>
-                <span class="qtj-arrow">⇥</span>
-            </button>
 
             <!-- 4. Printable / Exportable Official Bill Receipt Card (Shown when user taps Preview & Save) -->
             <div class="bill-preview-wrapper" id="billReceiptPreviewWrapper" style="display: none;">
@@ -2131,9 +2125,15 @@
         </button>
     </nav>
 
+    <!-- Floating Kutty Quick-Tab Jump Button (Direct child of body — 100% fixed to viewport, never scrolls on swipe-up) -->
+    <button type="button" class="quick-tab-jump-btn" id="billQuickTabJumpBtn" aria-label="Next Field (Tab)" title="Jump to Next Field" style="display: none;">
+        <span class="qtj-label" id="billQuickTabJumpLabel">Next</span>
+        <span class="qtj-arrow">⇥</span>
+    </button>
+
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=65"></script>
+    <script src="app.js?v=66"></script>
 </body>
 </html>
