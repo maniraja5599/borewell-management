@@ -687,56 +687,15 @@ class BoreBillSaaSApp {
     }
 
     syncIosTopSafeBarColor() {
-        const root = document.documentElement;
-        const vv = window.visualViewport;
-        const activeEl = document.activeElement;
-        const activeTag = activeEl?.tagName || '';
-        const isInputActive = Boolean(
-            activeEl &&
-            (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') &&
-            !activeEl.readOnly &&
-            activeEl.type !== 'hidden' &&
-            activeEl.type !== 'checkbox' &&
-            activeEl.type !== 'radio'
-        );
-        const isKeyboardShrunk = Boolean(vv && (window.innerHeight - vv.height > 80));
-        let vvTop = 0;
-        if (vv && (isInputActive || isKeyboardShrunk)) {
-            vvTop = Math.max(0, Math.round(vv.offsetTop || 0));
-        }
-        root.style.setProperty('--vv-offset-top', `${vvTop}px`);
-
         const liveBar = document.getElementById('stickyLiveBar');
         const isLiveBarVisible = Boolean(liveBar && liveBar.style.display !== 'none');
         if (document.body) {
             document.body.classList.toggle('live-bar-hidden', !isLiveBarVisible);
         }
-        if (!isLiveBarVisible) {
-            root.classList.remove('ios-live-bar-stuck');
-            return;
-        }
-        const safeTop = parseFloat(getComputedStyle(root).getPropertyValue('--safe-top')) || 0;
-        const rect = liveBar.getBoundingClientRect();
-        const isStuck = ((window.scrollY || 0) > 12) && (rect.top <= safeTop + vvTop + 6);
-        root.classList.toggle('ios-live-bar-stuck', isStuck);
     }
 
-    startIosViewportSyncLoop(durationMs = 480) {
-        if (this._iosVvRafId) {
-            cancelAnimationFrame(this._iosVvRafId);
-            this._iosVvRafId = null;
-        }
-        const startTs = performance.now();
-        const tick = (now) => {
-            this.syncIosTopSafeBarColor();
-            if (now - startTs < durationMs) {
-                this._iosVvRafId = requestAnimationFrame(tick);
-            } else {
-                this._iosVvRafId = null;
-                this.syncIosTopSafeBarColor();
-            }
-        };
-        this._iosVvRafId = requestAnimationFrame(tick);
+    startIosViewportSyncLoop() {
+        this.syncIosTopSafeBarColor();
     }
 
     init() {
@@ -794,13 +753,12 @@ class BoreBillSaaSApp {
             }, { passive: true });
         }
         document.addEventListener('focusin', () => {
-            this.startIosViewportSyncLoop(480);
+            this.syncIosTopSafeBarColor();
         }, { passive: true });
         document.addEventListener('focusout', () => {
-            this.startIosViewportSyncLoop(480);
             setTimeout(() => {
                 this.syncIosTopSafeBarColor();
-            }, 260);
+            }, 100);
         }, { passive: true });
     }
 
@@ -2729,7 +2687,11 @@ class BoreBillSaaSApp {
     scrollElementAboveKeyboard(targetEl) {
         if (!targetEl) return;
         document.body.classList.add('keyboard-open');
-        this.syncIosTopSafeBarColor();
+
+        // Target the actual focused input rather than huge parent cards
+        const inputEl = (targetEl.tagName === 'INPUT' || targetEl.tagName === 'SELECT' || targetEl.tagName === 'TEXTAREA')
+            ? targetEl
+            : (targetEl.querySelector('input:focus, select:focus, textarea:focus') || targetEl);
 
         const vv = window.visualViewport;
         const vvTop = vv ? (vv.offsetTop || 0) : 0;
@@ -2737,15 +2699,21 @@ class BoreBillSaaSApp {
         const liveBar = document.getElementById('stickyLiveBar');
         const liveBarBottom = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
             ? liveBar.getBoundingClientRect().bottom
-            : (vvTop + 76);
+            : (vvTop + 80);
 
-        const safeVisibleTop = Math.max(vvTop + 76, liveBarBottom + 8);
+        const safeVisibleTop = Math.max(vvTop + 80, liveBarBottom + 8);
         const safeVisibleBottom = vvTop + vvHeight - 16;
-        const rect = targetEl.getBoundingClientRect();
+        const rect = inputEl.getBoundingClientRect();
 
+        // If input is ALREADY comfortably visible inside open viewport, DO NOT scroll (keep page 100% stable)
+        if (rect.top >= safeVisibleTop && rect.bottom <= safeVisibleBottom) {
+            return;
+        }
+
+        // Only scroll if cut off at the bottom by keyboard, but NEVER push input above safeVisibleTop
         if (rect.bottom > safeVisibleBottom) {
-            const neededDelta = rect.bottom - safeVisibleBottom;
-            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop);
+            const neededDelta = rect.bottom - safeVisibleBottom + 8;
+            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop - 8);
             const scrollDelta = Math.min(neededDelta, maxAllowedDelta);
             if (scrollDelta > 6) {
                 window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
@@ -2756,31 +2724,8 @@ class BoreBillSaaSApp {
     scrollServiceSiteAboveKeyboard() {
         const siteSection = document.getElementById('serviceSiteSection');
         if (!siteSection || siteSection.style.display === 'none') return;
-        document.body.classList.add('keyboard-open');
-        this.syncIosTopSafeBarColor();
-
         const locInput = document.getElementById('custLocation') || siteSection;
-        const vv = window.visualViewport;
-        const vvTop = vv ? (vv.offsetTop || 0) : 0;
-        const vvHeight = vv ? vv.height : window.innerHeight;
-        const liveBar = document.getElementById('stickyLiveBar');
-        const liveBarBottom = (liveBar && liveBar.style.display !== 'none' && liveBar.offsetHeight > 0)
-            ? liveBar.getBoundingClientRect().bottom
-            : (vvTop + 76);
-
-        const safeVisibleTop = Math.max(vvTop + 76, liveBarBottom + 8);
-        const safeVisibleBottom = vvTop + vvHeight - 16;
-        const rect = locInput.getBoundingClientRect();
-        const desiredBottom = rect.bottom + 110;
-
-        if (desiredBottom > safeVisibleBottom) {
-            const neededDelta = desiredBottom - safeVisibleBottom;
-            const maxAllowedDelta = Math.max(0, rect.top - safeVisibleTop);
-            const scrollDelta = Math.min(neededDelta, maxAllowedDelta);
-            if (scrollDelta > 6) {
-                window.scrollBy({ top: scrollDelta, behavior: 'smooth' });
-            }
-        }
+        this.scrollElementAboveKeyboard(locInput);
     }
 
     applySelectedServiceSite(siteValue, { closeDropdown = true, toast = true } = {}) {
@@ -7767,9 +7712,8 @@ class BoreBillSaaSApp {
             locInputEl.addEventListener('focus', () => {
                 this.isEditingServiceSite = true;
                 document.body.classList.add('keyboard-open');
-                this.startIosViewportSyncLoop(480);
                 this.renderCustomerSiteSuggestions({ showDropdown: true });
-                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 240);
+                setTimeout(() => this.scrollServiceSiteAboveKeyboard(), 200);
             });
 
             locInputEl.addEventListener('click', () => {
@@ -7823,9 +7767,7 @@ class BoreBillSaaSApp {
             if (!inp) return;
             inp.addEventListener('focus', () => {
                 document.body.classList.add('keyboard-open');
-                this.startIosViewportSyncLoop(480);
-                const card = inp.closest('.casing-box') || inp.closest('.simple-work-card') || inp;
-                setTimeout(() => this.scrollElementAboveKeyboard(card), 240);
+                setTimeout(() => this.scrollElementAboveKeyboard(inp), 200);
                 this.updateQuickTabJumpPosition();
             });
             inp.addEventListener('blur', () => {
@@ -7957,8 +7899,7 @@ class BoreBillSaaSApp {
                 if (activeEl.id === 'custLocation') {
                     this.scrollServiceSiteAboveKeyboard();
                 } else if (['oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billDateInput', 'pvc7Length', 'pvc10Length'].includes(activeEl.id)) {
-                    const card = activeEl.closest('.casing-box') || activeEl.closest('.simple-work-card') || activeEl;
-                    this.scrollElementAboveKeyboard(card);
+                    this.scrollElementAboveKeyboard(activeEl);
                 }
             });
             // DO NOT update button position on scroll — button remains 100% fixed on swipe-up!

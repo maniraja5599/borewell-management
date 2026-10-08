@@ -171,6 +171,8 @@ select,
 .bill-receipt-card {
     -webkit-user-select: text;
     user-select: text;
+    scroll-margin-top: calc(var(--safe-top, 0px) + 125px);
+    scroll-margin-bottom: 24px;
 }
 
 button,
@@ -215,8 +217,6 @@ svg.lucide {
     width: 100%;
     z-index: 1010;
     background-color: var(--brand-primary);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
 }
 
 /* ==================== TOP APP BAR ==================== */
@@ -5091,13 +5091,10 @@ body.keyboard-open .bottom-nav {
 }
 
 /* Mobile Keyboard-Aware Scroll Space so Input + Suggestions move above Keyboard */
-body.keyboard-open .app-main {
-    padding-bottom: 36vh !important;
-}
-
+body.keyboard-open .app-main,
 html.ios-device body.keyboard-open .app-main,
 html.ios-standalone body.keyboard-open .app-main {
-    padding-bottom: calc(140px + var(--safe-bottom)) !important;
+    padding-bottom: 150px !important;
 }
 
 
