@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=80">
+    <link rel="stylesheet" href="styles.css?v=81">
 </head>
 <body>
 
@@ -2335,10 +2335,15 @@
         </button>
     </nav>
 
+    <!-- Floating Kutty Quick-Tab Jump Button (Direct child of body — 100% fixed to viewport center right) -->
+    <button type="button" class="quick-tab-jump-btn" id="billQuickTabJumpBtn" aria-label="Next Field (Tab)" title="Jump to Next Field" style="display: none;">
+        <span class="qtj-label" id="billQuickTabJumpLabel">Next</span>
+        <span class="qtj-arrow">⇥</span>
+    </button>
 
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=80"></script>
+    <script src="app.js?v=81"></script>
 </body>
 </html>

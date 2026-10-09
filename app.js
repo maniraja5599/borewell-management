@@ -571,11 +571,67 @@ class BoreBillSaaSApp {
 
     updateQuickTabJumpLabel(activeEl = document.activeElement) {
         const floatBtn = document.getElementById('billQuickTabJumpBtn');
-        if (floatBtn) floatBtn.style.display = 'none';
+        const floatLbl = document.getElementById('billQuickTabJumpLabel');
+        if (!floatBtn) return;
+
+        const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
+        const curTab = document.querySelector('.b-nav-item.active')?.dataset.tab || 'tab-bill';
+
+        // Check customer selected
+        const hasCust = Boolean(
+            (document.getElementById('custName')?.value || '').trim() ||
+            (document.getElementById('custPhone')?.value || '').trim()
+        );
+
+        // Before customer selection or if preview open / not bill tab / readonly -> HIDE
+        if (curTab !== 'tab-bill' || this.isBillPreviewOpen || isReadOnlySaved || !hasCust) {
+            floatBtn.style.display = 'none';
+            return;
+        }
+
+        // Get dynamic names for Casing 1 and Casing 2
+        const casing1Title = (this.brand?.casing1Name || '7" Casing Pipe').replace(/ Pipe/i, '').trim();
+        const casing2Title = (this.brand?.casing2Name || '10" Casing Pipe').replace(/ Pipe/i, '').trim();
+
+        floatBtn.style.display = 'inline-flex';
+
+        let nextText = 'Next';
+        const id = activeEl?.id;
+        if (id === 'totalDepth' || id === 'oldBoreDepth') {
+            nextText = 'Rate ⇥';
+        } else if (id === 'baseDrillingRate' || id === 'oldBoreRateInput' || id === 'billBoreBataInput') {
+            nextText = `${casing1Title} ⇥`;
+        } else if (id === 'pvc7Length' || id === 'pvc7RateInput') {
+            nextText = `${casing2Title} ⇥`;
+        } else if (id === 'pvc10Length' || id === 'pvc10RateInput') {
+            nextText = 'Preview ⇥';
+        } else if (id === 'openBillPreviewBtn') {
+            nextText = 'Preview ⇥';
+        } else {
+            const depthVal = (document.getElementById('totalDepth')?.value || '').trim();
+            const pvc7Val = (document.getElementById('pvc7Length')?.value || '').trim();
+            const pvc10Val = (document.getElementById('pvc10Length')?.value || '').trim();
+            if (!depthVal) {
+                nextText = 'Feet ⇥';
+            } else if (!pvc7Val) {
+                nextText = `${casing1Title} ⇥`;
+            } else if (!pvc10Val) {
+                nextText = `${casing2Title} ⇥`;
+            } else {
+                nextText = 'Preview ⇥';
+            }
+        }
+
+        const plainText = nextText.replace(' ⇥', '');
+        if (floatLbl) floatLbl.textContent = plainText;
     }
 
     updateQuickTabJumpPosition() {
-        // Quick next button removed
+        const btn = document.getElementById('billQuickTabJumpBtn');
+        if (!btn) return;
+        // Permanently anchored at Center Right via CSS (top: 50%; right: 14px; transform: translateY(-50%))
+        // Rock-solid fixed in one spot — zero movement on swipe-up or typing!
+        btn.style.removeProperty('bottom');
     }
 
     goToWizardStep(step = 1, scroll = false) {
@@ -1712,6 +1768,8 @@ class BoreBillSaaSApp {
         document.querySelectorAll('#previewFooterEditDrawer [data-quick-footer]').forEach(chip => {
             chip.classList.toggle('active', (chip.dataset.quickFooter || '').trim() === footerNote);
         });
+
+        this.updateQuickTabJumpLabel();
     }
 
     renderInlineSmartSlabDropdown(res = this.lastResult, { skipRowsRebuild = false } = {}) {
@@ -8936,6 +8994,26 @@ class BoreBillSaaSApp {
             this.showToast(`➕ Ready for New Bill (#${document.getElementById('billNoInput')?.value})`);
         });
 
+        // Kutty Floating Quick-Tab Jump Button (Moves cursor to Next Field like a Tab key)
+        const tabJumpBtn = document.getElementById('billQuickTabJumpBtn');
+        let lastJumpTapTime = 0;
+        const handleJumpAction = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const now = Date.now();
+            if (now - lastJumpTapTime < 200) return;
+            lastJumpTapTime = now;
+            this.jumpToNextBillField();
+        };
+
+        if (tabJumpBtn) {
+            tabJumpBtn.addEventListener('pointerdown', handleJumpAction);
+            tabJumpBtn.addEventListener('touchstart', handleJumpAction, { passive: false });
+            tabJumpBtn.addEventListener('click', handleJumpAction);
+        }
+
         // Track active focus and keyboard state on bill page
         document.addEventListener('focusin', (e) => {
             const isInput = e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
@@ -8943,7 +9021,11 @@ class BoreBillSaaSApp {
                 document.body.classList.add('keyboard-open');
             }
             if (e.target && e.target.closest('#tab-bill')) {
+                this.updateQuickTabJumpLabel(e.target);
+                this.updateQuickTabJumpPosition();
                 this.syncTopHeaderWrapLock();
+                setTimeout(() => this.updateQuickTabJumpPosition(), 100);
+                setTimeout(() => this.updateQuickTabJumpPosition(), 280);
                 setTimeout(() => this.syncTopHeaderWrapLock(), 100);
                 setTimeout(() => this.syncTopHeaderWrapLock(), 280);
             }
@@ -8956,6 +9038,8 @@ class BoreBillSaaSApp {
                     document.body.classList.remove('keyboard-open');
                     this.lockedKeyboardDockBottom = null;
                 }
+                this.updateQuickTabJumpLabel();
+                this.updateQuickTabJumpPosition();
                 this.syncTopHeaderWrapLock();
             }, 100);
         });
