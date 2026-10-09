@@ -589,6 +589,37 @@ class BoreBillSaaSApp {
             return;
         }
 
+        // Must NOT appear during customer selection / searching or site input
+        const isCustomerSectionFocus = Boolean(
+            activeEl && (
+                activeEl.id === 'quickCustSearchInput' ||
+                activeEl.id === 'custName' ||
+                activeEl.id === 'custPhone' ||
+                activeEl.id === 'custLocation' ||
+                activeEl.closest('#quickCustPickerPanel') ||
+                activeEl.closest('#customerCard') ||
+                activeEl.closest('.cust-popup-backdrop')
+            )
+        );
+
+        // Sequence IDs where Quick Next is active
+        const allowedSeqIds = [
+            'totalDepth', 'oldBoreDepth',
+            'baseDrillingRate', 'oldBoreRateInput', 'billBoreBataInput',
+            'pvc7Length', 'pvc7RateInput',
+            'pvc10Length', 'pvc10RateInput',
+            'openBillPreviewBtn'
+        ];
+
+        const depthEntered = Boolean((document.getElementById('totalDepth')?.value || '').trim() || (document.getElementById('oldBoreDepth')?.value || '').trim());
+        const isFocusInBillSeq = Boolean(activeEl?.id && allowedSeqIds.includes(activeEl.id));
+
+        // User explicit rule: Do NOT show during customer selection. Show once drilling depth input box is clicked / focused or engaged in drilling & casing sequence.
+        if (isCustomerSectionFocus || (!isFocusInBillSeq && !depthEntered)) {
+            floatBtn.style.display = 'none';
+            return;
+        }
+
         // Get dynamic names for Casing 1 and Casing 2
         const casing1Title = (this.brand?.casing1Name || '7" Casing Pipe').replace(/ Pipe/i, '').trim();
         const casing2Title = (this.brand?.casing2Name || '10" Casing Pipe').replace(/ Pipe/i, '').trim();
@@ -612,7 +643,7 @@ class BoreBillSaaSApp {
             const pvc7Val = (document.getElementById('pvc7Length')?.value || '').trim();
             const pvc10Val = (document.getElementById('pvc10Length')?.value || '').trim();
             if (!depthVal) {
-                nextText = 'Feet ⇥';
+                nextText = 'Rate ⇥';
             } else if (!pvc7Val) {
                 nextText = `${casing1Title} ⇥`;
             } else if (!pvc10Val) {

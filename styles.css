@@ -6184,10 +6184,10 @@ html.ios-standalone body.keyboard-open .app-main {
 .quick-tab-jump-btn {
     position: fixed;
     right: 14px;
-    top: 50%;
+    top: 52%;
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
-    z-index: 10015;
+    z-index: 990;
     display: inline-flex;
     align-items: center;
     justify-content: center;
