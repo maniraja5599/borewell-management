@@ -7187,6 +7187,11 @@ class BoreBillSaaSApp {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         if (tabId === 'tab-brand') {
+            const activeSeg = document.querySelector('.settings-nav-segmented .set-seg-btn.active');
+            const viewId = activeSeg?.dataset.view || 'set-view-company';
+            if (typeof this.switchSettingsView === 'function') {
+                this.switchSettingsView(viewId);
+            }
             this.syncCasingNamesUI();
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 try { window.lucide.createIcons(); } catch (_) {}
@@ -9426,8 +9431,9 @@ class BoreBillSaaSApp {
         });
 
         // Settings Hub Segmented View Switcher (Instant Tab Views without long page scrolling)
-        const switchSettingsView = (viewId) => {
-            document.querySelectorAll('.settings-view-panel').forEach(panel => {
+        this.switchSettingsView = (viewId) => {
+            const panels = document.querySelectorAll('.settings-view-panel');
+            panels.forEach(panel => {
                 panel.style.display = panel.id === viewId ? 'block' : 'none';
             });
             document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
@@ -9441,13 +9447,14 @@ class BoreBillSaaSApp {
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
+        const switchSettingsView = this.switchSettingsView;
 
         document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const targetBtn = e.currentTarget || btn;
                 const viewId = targetBtn.dataset.view;
                 if (viewId) {
-                    switchSettingsView(viewId);
+                    this.switchSettingsView(viewId);
                 }
             });
         });
