@@ -159,6 +159,7 @@ const I18N_DICTIONARY = {
         navCustomers: "Customers",
         navHistory: "Bills",
         navRates: "Rates",
+        navSettings: "Settings",
         navCompany: "Company"
     }
 };
@@ -9406,6 +9407,34 @@ class BoreBillSaaSApp {
             toggleCompanyStudio(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             this.showToast('🏢 Company Profile Saved & Applied!');
+        });
+
+        // Settings Hub Sub-Nav Pills
+        document.querySelectorAll('.settings-nav-pills .set-nav-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.settings-nav-pills .set-nav-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                const targetId = pill.dataset.scrollTo;
+                if (!targetId) return;
+
+                if (targetId === 'companyEditStudioCard') {
+                    // Open edit studio if closed, and scroll to casing spec section
+                    toggleCompanyStudio(true);
+                    setTimeout(() => {
+                        const casingSec = document.getElementById('brandCasing1Name');
+                        if (casingSec) {
+                            casingSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            casingSec.focus();
+                        }
+                    }, 100);
+                    return;
+                }
+
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
         });
 
         // Export Actions & Unified WhatsApp Preview Modal Listeners

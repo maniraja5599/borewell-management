@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=76">
+    <link rel="stylesheet" href="styles.css?v=77">
 </head>
 <body>
 
@@ -1410,9 +1410,41 @@
         </section>
 
         <!-- ====================================================================
-             TAB 5: WHITE-LABEL COMPANY BRANDING & BACKUP SUITE
+             TAB 5: SETTINGS HUB (COMPANY PROFILE, CASING, THEMES & DATA VAULT)
              ==================================================================== -->
         <section class="tab-panel" id="tab-brand">
+            <!-- Settings Hub Header & Quick Navigation Bar -->
+            <div class="settings-hub-head">
+                <div class="shh-title-row">
+                    <div class="shh-title-left">
+                        <span class="shh-icon"><i data-lucide="settings-2"></i></span>
+                        <div>
+                            <h2 class="shh-title">Settings &amp; Company Hub</h2>
+                            <p class="shh-sub">Company profile, casing specs, branding &amp; data backup</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-nav-pills">
+                    <button type="button" class="set-nav-pill active" data-scroll-to="companyLiveHeroCard">
+                        <i data-lucide="building-2" class="icon-xs"></i>
+                        <span>Company</span>
+                    </button>
+                    <button type="button" class="set-nav-pill" data-scroll-to="companyEditStudioCard" id="setNavCasingPill">
+                        <i data-lucide="cylinder" class="icon-xs"></i>
+                        <span>Casing Specs</span>
+                    </button>
+                    <button type="button" class="set-nav-pill" data-scroll-to="companyThemeCard">
+                        <i data-lucide="palette" class="icon-xs"></i>
+                        <span>Theme</span>
+                    </button>
+                    <button type="button" class="set-nav-pill" data-scroll-to="companyDataVaultCard">
+                        <i data-lucide="database-backup" class="icon-xs"></i>
+                        <span>Data Vault</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Top KPI Strip for Company & Numbering Status -->
             <div class="kpi-grid-3">
                 <div class="kpi-card">
@@ -1511,7 +1543,7 @@
                 </div>
 
                 <!-- Integrated Theme Color & Logo Actions Section -->
-                <div class="bsc-appearance-section">
+                <div class="bsc-appearance-section" id="companyThemeCard">
                     <div class="bsc-appear-head">
                         <span class="bsc-appear-title">
                             <i data-lucide="palette" class="icon-xs text-brand"></i>
@@ -1743,7 +1775,7 @@
             </div>
 
             <!-- 3. App Data Vault & Backup Studio -->
-            <div class="ui-card">
+            <div class="ui-card" id="companyDataVaultCard">
                 <div class="page-head-row">
                     <div>
                         <h3 class="page-title"><i data-lucide="database-backup" class="icon-sm text-brand"></i> <span data-i18n="backupRestoreTitle">Data Vault & Backup</span></h3>
@@ -2231,8 +2263,8 @@
             <span class="b-nav-label" data-i18n="navRates">Rates</span>
         </button>
         <button type="button" class="b-nav-item" data-tab="tab-brand">
-            <span class="b-nav-icon"><i data-lucide="building-2"></i></span>
-            <span class="b-nav-label" data-i18n="navCompany">Company</span>
+            <span class="b-nav-icon"><i data-lucide="settings"></i></span>
+            <span class="b-nav-label" data-i18n="navSettings">Settings</span>
         </button>
     </nav>
 
@@ -2240,6 +2272,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=76"></script>
+    <script src="app.js?v=77"></script>
 </body>
 </html>

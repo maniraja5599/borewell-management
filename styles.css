@@ -9358,3 +9358,89 @@ input.is-select-all-ready,
 .csd-save-btn:hover {
     background: #047857;
 }
+
+/* ==================== SETTINGS HUB HEADER & NAVIGATION ==================== */
+.settings-hub-head {
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.shh-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.shh-title-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.shh-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--brand-primary-soft, #ecfdf5);
+    color: var(--brand-primary, #059669);
+    flex-shrink: 0;
+}
+
+.shh-title {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.shh-sub {
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+    margin: 2px 0 0 0;
+}
+
+.settings-nav-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+}
+
+.settings-nav-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.set-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.set-nav-pill:hover,
+.set-nav-pill.active {
+    background: var(--brand-primary, #059669);
+    border-color: var(--brand-primary, #059669);
+    color: #ffffff;
+}
