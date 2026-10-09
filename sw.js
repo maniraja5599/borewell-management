@@ -1,9 +1,9 @@
-const CACHE_NAME = 'borebill-pro-v74';
+const CACHE_NAME = 'borebill-pro-v75';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=74',
-  './app.js?v=74',
+  './styles.css?v=75',
+  './app.js?v=75',
   './manifest.json',
   './icon.svg'
 ];

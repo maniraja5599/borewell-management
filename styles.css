@@ -6178,56 +6178,7 @@ html.ios-standalone body.keyboard-open .app-main {
     margin-left: 4px;
 }
 
-/* Kutty Quick-Tab Jump Button for Bill Page — Permanently Fixed at Center Right (Screen Mid-Right) */
-.quick-tab-jump-btn {
-    position: fixed;
-    right: 14px;
-    top: 50%;
-    -webkit-transform: translateY(-50%);
-    transform: translateY(-50%);
-    z-index: 10015;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 7px 14px;
-    height: 38px;
-    background: #0f172a;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    color: #ffffff;
-    border: 1.5px solid #10b981;
-    border-radius: 99px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    letter-spacing: 0.2px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    transition: transform 0.12s ease, background-color 0.15s ease, box-shadow 0.15s ease;
-}
 
-.quick-tab-jump-btn:active {
-    -webkit-transform: translateY(-50%) scale(0.92);
-    transform: translateY(-50%) scale(0.92);
-    background: #1e293b;
-    border-color: #34d399;
-}
-
-.qtj-label {
-    white-space: nowrap;
-    font-weight: 800;
-}
-
-.qtj-arrow {
-    display: inline-block;
-    font-size: 0.95rem;
-    font-weight: 900;
-    color: #34d399;
-    line-height: 1;
-}
 
 /* High-Performance Smooth Pagination "Load More" Button */
 .pagination-load-more-wrap {
