@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=78">
+    <link rel="stylesheet" href="styles.css?v=79">
 </head>
 <body>
 
@@ -1545,46 +1545,7 @@
                     </div>
                 </div>
 
-                <!-- Integrated Theme Color & Logo Actions Section -->
-                <div class="bsc-appearance-section" id="companyThemeCard">
-                    <div class="bsc-appear-head">
-                        <span class="bsc-appear-title">
-                            <i data-lucide="palette" class="icon-xs text-brand"></i>
-                            <span data-i18n="billThemeColor">App & Bill Theme Color</span>
-                        </span>
-                        <div class="logo-btn-row">
-                            <label for="logoFileInput" class="bsc-mini-link cursor-pointer">
-                                <i data-lucide="upload" class="icon-xs"></i>
-                                <span data-i18n="uploadCompanyLogo">Upload Logo</span>
-                            </label>
-                            <input type="file" id="logoFileInput" accept="image/*" style="display: none;">
-                            <button type="button" class="bsc-mini-link danger" id="removeLogoBtn" data-i18n="removeLogo">Remove</button>
-                        </div>
-                    </div>
-
-                    <div class="theme-swatches-grid" id="themeSwatches">
-                        <button type="button" class="theme-swatch active" data-theme="emerald" style="--swatch-color: #15803d;">
-                            <span class="ts-dot"></span>
-                            <span>Emerald</span>
-                        </button>
-                        <button type="button" class="theme-swatch" data-theme="royal" style="--swatch-color: #1d4ed8;">
-                            <span class="ts-dot"></span>
-                            <span>Royal Blue</span>
-                        </button>
-                        <button type="button" class="theme-swatch" data-theme="crimson" style="--swatch-color: #b91c1c;">
-                            <span class="ts-dot"></span>
-                            <span>Rig Red</span>
-                        </button>
-                        <button type="button" class="theme-swatch" data-theme="amber" style="--swatch-color: #b45309;">
-                            <span class="ts-dot"></span>
-                            <span>Earth Gold</span>
-                        </button>
-                        <button type="button" class="theme-swatch" data-theme="slate" style="--swatch-color: #0f172a;">
-                            <span class="ts-dot"></span>
-                            <span>Slate Dark</span>
-                        </button>
-                    </div>
-                </div>
+                <!-- End Business Meta Spec Strip -->
 
                 <!-- Quotation & Final Bill Separate Footer Notes Preview -->
                 <div class="bsc-footer-note bsc-dual-footer-notes">
@@ -1791,34 +1752,34 @@
                     <div class="company-form-box" style="margin-top: 10px;">
                         <div class="form-row-2">
                             <div class="field-group">
-                                <label for="brandCasing1Name">Pipe 1 Type / Size</label>
-                                <input type="text" id="brandCasing1Name" placeholder="e.g. 7&quot; Casing Pipe" value="7&quot; Casing Pipe">
+                                <label for="setCasing1Name">Pipe 1 Type / Size</label>
+                                <input type="text" id="setCasing1Name" placeholder="e.g. 7&quot; Casing Pipe" value="7&quot; Casing Pipe">
                             </div>
                             <div class="field-group">
-                                <label for="brandCasing1Rate">Pipe 1 Default Rate (₹/ft)</label>
-                                <input type="number" id="brandCasing1Rate" placeholder="320" value="320" min="0">
+                                <label for="setCasing1Rate">Pipe 1 Default Rate (₹/ft)</label>
+                                <input type="number" id="setCasing1Rate" placeholder="400" value="400" min="0">
                             </div>
                         </div>
 
                         <div class="form-row-2" style="margin-top: 8px;">
                             <div class="field-group">
-                                <label for="brandCasing2Name">Pipe 2 Type / Size</label>
-                                <input type="text" id="brandCasing2Name" placeholder="e.g. 10&quot; Casing Pipe" value="10&quot; Casing Pipe">
+                                <label for="setCasing2Name">Pipe 2 Type / Size</label>
+                                <input type="text" id="setCasing2Name" placeholder="e.g. 10&quot; Casing Pipe" value="10&quot; Casing Pipe">
                             </div>
                             <div class="field-group">
-                                <label for="brandCasing2Rate">Pipe 2 Default Rate (₹/ft)</label>
-                                <input type="number" id="brandCasing2Rate" placeholder="480" value="480" min="0">
+                                <label for="setCasing2Rate">Pipe 2 Default Rate (₹/ft)</label>
+                                <input type="number" id="setCasing2Rate" placeholder="700" value="700" min="0">
                             </div>
                         </div>
 
                         <div class="csd-presets-wrap" style="margin-top: 12px;">
                             <span class="csd-presets-label" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">QUICK POPULAR PRESETS:</span>
-                            <div class="csd-chips-row" id="brandCasingPresetChips">
-                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="10&quot; PVC Casing">7" &amp; 10" PVC</button>
-                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="8&quot; MS Casing">7" PVC &amp; 8" MS</button>
-                                <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-p2="10&quot; MS Casing">8" &amp; 10" MS</button>
-                                <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-p2="7&quot; PVC Casing">6" &amp; 7" PVC</button>
-                                <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-p2="10&quot; Heavy Casing">7" &amp; 10" Heavy</button>
+                            <div class="csd-chips-row" id="setCasingPresetChips">
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-r1="400" data-p2="10&quot; PVC Casing" data-r2="700">7" &amp; 10" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-r1="400" data-p2="8&quot; MS Casing" data-r2="550">7" PVC &amp; 8" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-r1="550" data-p2="10&quot; MS Casing" data-r2="750">8" &amp; 10" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-r1="350" data-p2="7&quot; PVC Casing" data-r2="400">6" &amp; 7" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-r1="420" data-p2="10&quot; Heavy Casing" data-r2="720">7" &amp; 10" Heavy</button>
                             </div>
                         </div>
 
@@ -2377,6 +2338,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=78"></script>
+    <script src="app.js?v=79"></script>
 </body>
 </html>

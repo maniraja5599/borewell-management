@@ -4718,6 +4718,16 @@ class BoreBillSaaSApp {
         if (bR1 && document.activeElement !== bR1) bR1.value = this.rates.pvc7Rate || 400;
         const bR2 = document.getElementById('brandCasing2Rate');
         if (bR2 && document.activeElement !== bR2) bR2.value = this.rates.pvc10Rate || 700;
+
+        // Settings View 2 inputs
+        const s1 = document.getElementById('setCasing1Name');
+        if (s1 && document.activeElement !== s1) s1.value = c1;
+        const s2 = document.getElementById('setCasing2Name');
+        if (s2 && document.activeElement !== s2) s2.value = c2;
+        const sR1 = document.getElementById('setCasing1Rate');
+        if (sR1 && document.activeElement !== sR1) sR1.value = this.rates.pvc7Rate || 400;
+        const sR2 = document.getElementById('setCasing2Rate');
+        if (sR2 && document.activeElement !== sR2) sR2.value = this.rates.pvc10Rate || 700;
     }
 
     applyCasingSettings(p1Name, p1Rate, p2Name, p2Rate) {
@@ -4767,21 +4777,21 @@ class BoreBillSaaSApp {
             this.brand.finalBillTermsNote = cleanBillTerms;
         }
 
-        const casing1El = document.getElementById('brandCasing1Name');
+        const casing1El = document.getElementById('setCasing1Name') || document.getElementById('brandCasing1Name');
         if (casing1El && casing1El.value.trim()) {
             this.brand.casing1Name = casing1El.value.trim();
         }
-        const casing2El = document.getElementById('brandCasing2Name');
+        const casing2El = document.getElementById('setCasing2Name') || document.getElementById('brandCasing2Name');
         if (casing2El && casing2El.value.trim()) {
             this.brand.casing2Name = casing2El.value.trim();
         }
-        const casing1RateEl = document.getElementById('brandCasing1Rate');
+        const casing1RateEl = document.getElementById('setCasing1Rate') || document.getElementById('brandCasing1Rate');
         if (casing1RateEl && parseFloat(casing1RateEl.value) > 0) {
             this.rates.pvc7Rate = parseFloat(casing1RateEl.value);
             const r1Inp = document.getElementById('pvc7RateInput');
             if (r1Inp) r1Inp.value = this.rates.pvc7Rate;
         }
-        const casing2RateEl = document.getElementById('brandCasing2Rate');
+        const casing2RateEl = document.getElementById('setCasing2Rate') || document.getElementById('brandCasing2Rate');
         if (casing2RateEl && parseFloat(casing2RateEl.value) > 0) {
             this.rates.pvc10Rate = parseFloat(casing2RateEl.value);
             const r2Inp = document.getElementById('pvc10RateInput');
@@ -7176,6 +7186,12 @@ class BoreBillSaaSApp {
         if (scroll) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        if (tabId === 'tab-brand') {
+            this.syncCasingNamesUI();
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch (_) {}
+            }
+        }
         this.updateQuickTabJumpLabel();
     }
 
@@ -9417,24 +9433,51 @@ class BoreBillSaaSApp {
             document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.view === viewId);
             });
+            if (viewId === 'set-view-casing') {
+                this.syncCasingNamesUI();
+            }
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                try { window.lucide.createIcons(); } catch (_) {}
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const viewId = btn.dataset.view;
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget || btn;
+                const viewId = targetBtn.dataset.view;
                 if (viewId) {
                     switchSettingsView(viewId);
                 }
             });
         });
 
+        // Quick Casing Presets in Settings View 2
+        document.querySelectorAll('#setCasingPresetChips .csd-preset-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const p1 = chip.dataset.p1 || '';
+                const r1 = parseFloat(chip.dataset.r1) || 400;
+                const p2 = chip.dataset.p2 || '';
+                const r2 = parseFloat(chip.dataset.r2) || 700;
+                const s1 = document.getElementById('setCasing1Name');
+                const sR1 = document.getElementById('setCasing1Rate');
+                const s2 = document.getElementById('setCasing2Name');
+                const sR2 = document.getElementById('setCasing2Rate');
+                if (s1 && p1) s1.value = p1;
+                if (sR1 && r1) sR1.value = r1;
+                if (s2 && p2) s2.value = p2;
+                if (sR2 && r2) sR2.value = r2;
+                this.applyCasingSettings(p1, r1, p2, r2);
+                this.showToast(`🔧 Preset applied: ${p1} & ${p2}`);
+            });
+        });
+
         // Save Casing Specifications from Settings Casing View
         document.getElementById('saveCasingFromSettingsBtn')?.addEventListener('click', () => {
-            const p1 = document.getElementById('brandCasing1Name')?.value || '';
-            const r1 = parseFloat(document.getElementById('brandCasing1Rate')?.value) || 400;
-            const p2 = document.getElementById('brandCasing2Name')?.value || '';
-            const r2 = parseFloat(document.getElementById('brandCasing2Rate')?.value) || 700;
+            const p1 = (document.getElementById('setCasing1Name')?.value || document.getElementById('brandCasing1Name')?.value || '').trim();
+            const r1 = parseFloat(document.getElementById('setCasing1Rate')?.value ?? document.getElementById('brandCasing1Rate')?.value) || 400;
+            const p2 = (document.getElementById('setCasing2Name')?.value || document.getElementById('brandCasing2Name')?.value || '').trim();
+            const r2 = parseFloat(document.getElementById('setCasing2Rate')?.value ?? document.getElementById('brandCasing2Rate')?.value) || 700;
             this.applyCasingSettings(p1, r1, p2, r2);
             this.showToast(`✅ Casing specs updated: ${this.getCasing1ShortName()} & ${this.getCasing2ShortName()}`);
         });
