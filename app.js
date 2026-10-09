@@ -9409,32 +9409,34 @@ class BoreBillSaaSApp {
             this.showToast('🏢 Company Profile Saved & Applied!');
         });
 
-        // Settings Hub Sub-Nav Pills
-        document.querySelectorAll('.settings-nav-pills .set-nav-pill').forEach(pill => {
-            pill.addEventListener('click', () => {
-                document.querySelectorAll('.settings-nav-pills .set-nav-pill').forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                const targetId = pill.dataset.scrollTo;
-                if (!targetId) return;
+        // Settings Hub Segmented View Switcher (Instant Tab Views without long page scrolling)
+        const switchSettingsView = (viewId) => {
+            document.querySelectorAll('.settings-view-panel').forEach(panel => {
+                panel.style.display = panel.id === viewId ? 'block' : 'none';
+            });
+            document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === viewId);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
 
-                if (targetId === 'companyEditStudioCard') {
-                    // Open edit studio if closed, and scroll to casing spec section
-                    toggleCompanyStudio(true);
-                    setTimeout(() => {
-                        const casingSec = document.getElementById('brandCasing1Name');
-                        if (casingSec) {
-                            casingSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            casingSec.focus();
-                        }
-                    }, 100);
-                    return;
-                }
-
-                const targetEl = document.getElementById(targetId);
-                if (targetEl) {
-                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const viewId = btn.dataset.view;
+                if (viewId) {
+                    switchSettingsView(viewId);
                 }
             });
+        });
+
+        // Save Casing Specifications from Settings Casing View
+        document.getElementById('saveCasingFromSettingsBtn')?.addEventListener('click', () => {
+            const p1 = document.getElementById('brandCasing1Name')?.value || '';
+            const r1 = parseFloat(document.getElementById('brandCasing1Rate')?.value) || 400;
+            const p2 = document.getElementById('brandCasing2Name')?.value || '';
+            const r2 = parseFloat(document.getElementById('brandCasing2Rate')?.value) || 700;
+            this.applyCasingSettings(p1, r1, p2, r2);
+            this.showToast(`✅ Casing specs updated: ${this.getCasing1ShortName()} & ${this.getCasing2ShortName()}`);
         });
 
         // Export Actions & Unified WhatsApp Preview Modal Listeners

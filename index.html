@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=77">
+    <link rel="stylesheet" href="styles.css?v=78">
 </head>
 <body>
 
@@ -1413,40 +1413,43 @@
              TAB 5: SETTINGS HUB (COMPANY PROFILE, CASING, THEMES & DATA VAULT)
              ==================================================================== -->
         <section class="tab-panel" id="tab-brand">
-            <!-- Settings Hub Header & Quick Navigation Bar -->
+            <!-- Settings Hub Premium Top Card -->
             <div class="settings-hub-head">
                 <div class="shh-title-row">
                     <div class="shh-title-left">
-                        <span class="shh-icon"><i data-lucide="settings-2"></i></span>
+                        <span class="shh-icon"><i data-lucide="sliders"></i></span>
                         <div>
-                            <h2 class="shh-title">Settings &amp; Company Hub</h2>
-                            <p class="shh-sub">Company profile, casing specs, branding &amp; data backup</p>
+                            <h2 class="shh-title">Settings</h2>
+                            <p class="shh-sub">Company profile, casing specs, branding &amp; data vault</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="settings-nav-pills">
-                    <button type="button" class="set-nav-pill active" data-scroll-to="companyLiveHeroCard">
+                <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
+                <div class="settings-nav-segmented">
+                    <button type="button" class="set-seg-btn active" data-view="set-view-company">
                         <i data-lucide="building-2" class="icon-xs"></i>
                         <span>Company</span>
                     </button>
-                    <button type="button" class="set-nav-pill" data-scroll-to="companyEditStudioCard" id="setNavCasingPill">
+                    <button type="button" class="set-seg-btn" data-view="set-view-casing">
                         <i data-lucide="cylinder" class="icon-xs"></i>
-                        <span>Casing Specs</span>
+                        <span>Casing</span>
                     </button>
-                    <button type="button" class="set-nav-pill" data-scroll-to="companyThemeCard">
+                    <button type="button" class="set-seg-btn" data-view="set-view-theme">
                         <i data-lucide="palette" class="icon-xs"></i>
                         <span>Theme</span>
                     </button>
-                    <button type="button" class="set-nav-pill" data-scroll-to="companyDataVaultCard">
+                    <button type="button" class="set-seg-btn" data-view="set-view-vault">
                         <i data-lucide="database-backup" class="icon-xs"></i>
-                        <span>Data Vault</span>
+                        <span>Backup</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Top KPI Strip for Company & Numbering Status -->
-            <div class="kpi-grid-3">
+            <!-- VIEW 1: COMPANY PROFILE (Default View) -->
+            <div class="settings-view-panel" id="set-view-company">
+                <!-- Top KPI Strip for Company & Numbering Status -->
+                <div class="kpi-grid-3">
                 <div class="kpi-card">
                     <div class="kpi-top">
                         <span class="kpi-lbl">Next Quote #</span>
@@ -1773,49 +1776,151 @@
                     </button>
                 </div>
             </div>
+            <!-- END VIEW 1: COMPANY PROFILE -->
 
-            <!-- 3. App Data Vault & Backup Studio -->
-            <div class="ui-card" id="companyDataVaultCard">
-                <div class="page-head-row">
-                    <div>
-                        <h3 class="page-title"><i data-lucide="database-backup" class="icon-sm text-brand"></i> <span data-i18n="backupRestoreTitle">Data Vault & Backup</span></h3>
-                        <p class="page-sub" data-i18n="backupRestoreSub">Export or restore all customers, bills, rates & company branding</p>
-                    </div>
-                </div>
-
-                <div class="vault-stats-strip">
-                    <div class="vs-pill">
-                        <span class="vs-lbl">Customers</span>
-                        <strong class="vs-val" id="vaultStatCustomers">0</strong>
-                    </div>
-                    <div class="vs-pill">
-                        <span class="vs-lbl">Saved Bills</span>
-                        <strong class="vs-val" id="vaultStatBills">0</strong>
-                    </div>
-                    <div class="vs-pill">
-                        <span class="vs-lbl">Rate Cards</span>
-                        <strong class="vs-val" id="vaultStatRates">2</strong>
-                    </div>
-                </div>
-
-                <div class="backup-grid-2">
-                    <button type="button" class="backup-tile-btn export" id="exportDataJsonBtn">
-                        <i data-lucide="download" class="icon-sm"></i>
-                        <div class="bt-txt">
-                            <strong>Export Backup</strong>
-                            <small>Save .JSON file</small>
+            <!-- VIEW 2: CASING SPECIFICATION & RATES -->
+            <div class="settings-view-panel" id="set-view-casing" style="display: none;">
+                <div class="ui-card">
+                    <div class="page-head-row">
+                        <div>
+                            <h3 class="page-title"><i data-lucide="cylinder" class="icon-sm text-brand"></i> Casing Pipes Specification</h3>
+                            <p class="page-sub">Configure custom casing pipe sizes (e.g. 7" PVC, 8" MS, 10" MS) and default rates. Synced across New Bill, Receipt, PDF and WhatsApp.</p>
                         </div>
-                    </button>
-                    <label for="importDataJsonInput" class="backup-tile-btn restore cursor-pointer">
-                        <i data-lucide="upload" class="icon-sm"></i>
-                        <div class="bt-txt">
-                            <strong>Restore Data</strong>
-                            <small>Load .JSON file</small>
+                    </div>
+
+                    <div class="company-form-box" style="margin-top: 10px;">
+                        <div class="form-row-2">
+                            <div class="field-group">
+                                <label for="brandCasing1Name">Pipe 1 Type / Size</label>
+                                <input type="text" id="brandCasing1Name" placeholder="e.g. 7&quot; Casing Pipe" value="7&quot; Casing Pipe">
+                            </div>
+                            <div class="field-group">
+                                <label for="brandCasing1Rate">Pipe 1 Default Rate (₹/ft)</label>
+                                <input type="number" id="brandCasing1Rate" placeholder="320" value="320" min="0">
+                            </div>
                         </div>
-                    </label>
-                    <input type="file" id="importDataJsonInput" accept=".json" style="display: none;">
+
+                        <div class="form-row-2" style="margin-top: 8px;">
+                            <div class="field-group">
+                                <label for="brandCasing2Name">Pipe 2 Type / Size</label>
+                                <input type="text" id="brandCasing2Name" placeholder="e.g. 10&quot; Casing Pipe" value="10&quot; Casing Pipe">
+                            </div>
+                            <div class="field-group">
+                                <label for="brandCasing2Rate">Pipe 2 Default Rate (₹/ft)</label>
+                                <input type="number" id="brandCasing2Rate" placeholder="480" value="480" min="0">
+                            </div>
+                        </div>
+
+                        <div class="csd-presets-wrap" style="margin-top: 12px;">
+                            <span class="csd-presets-label" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">QUICK POPULAR PRESETS:</span>
+                            <div class="csd-chips-row" id="brandCasingPresetChips">
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="10&quot; PVC Casing">7" &amp; 10" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="8&quot; MS Casing">7" PVC &amp; 8" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-p2="10&quot; MS Casing">8" &amp; 10" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-p2="7&quot; PVC Casing">6" &amp; 7" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-p2="10&quot; Heavy Casing">7" &amp; 10" Heavy</button>
+                            </div>
+                        </div>
+
+                        <div class="save-bar-bottom" style="margin-top: 14px;">
+                            <button type="button" class="btn-brand-full" id="saveCasingFromSettingsBtn">
+                                <i data-lucide="check-circle-2" class="icon-sm"></i>
+                                <span>Save Casing Specifications</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            <!-- END VIEW 2: CASING SPECIFICATION -->
+
+            <!-- VIEW 3: THEME COLOR & LOGO -->
+            <div class="settings-view-panel" id="set-view-theme" style="display: none;">
+                <div class="ui-card">
+                    <div class="page-head-row">
+                        <div>
+                            <h3 class="page-title"><i data-lucide="palette" class="icon-sm text-brand"></i> App &amp; Bill Theme Color</h3>
+                            <p class="page-sub">Customize executive color palette and company bill logo</p>
+                        </div>
+                        <div class="logo-btn-row">
+                            <label for="logoFileInput" class="bsc-mini-link cursor-pointer">
+                                <i data-lucide="upload" class="icon-xs"></i>
+                                <span data-i18n="uploadCompanyLogo">Upload Logo</span>
+                            </label>
+                            <button type="button" class="bsc-mini-link danger" id="removeLogoBtn" data-i18n="removeLogo">Remove</button>
+                        </div>
+                    </div>
+
+                    <div class="theme-swatches-grid" id="themeSwatches" style="margin-top: 14px;">
+                        <button type="button" class="theme-swatch active" data-theme="emerald" style="--swatch-color: #15803d;">
+                            <span class="ts-dot"></span>
+                            <span>Emerald Green</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="royal" style="--swatch-color: #1d4ed8;">
+                            <span class="ts-dot"></span>
+                            <span>Royal Blue</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="crimson" style="--swatch-color: #b91c1c;">
+                            <span class="ts-dot"></span>
+                            <span>Rig Red</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="amber" style="--swatch-color: #b45309;">
+                            <span class="ts-dot"></span>
+                            <span>Earth Gold</span>
+                        </button>
+                        <button type="button" class="theme-swatch" data-theme="slate" style="--swatch-color: #0f172a;">
+                            <span class="ts-dot"></span>
+                            <span>Slate Dark</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- END VIEW 3: THEME COLOR -->
+
+            <!-- VIEW 4: DATA VAULT & BACKUP -->
+            <div class="settings-view-panel" id="set-view-vault" style="display: none;">
+                <div class="ui-card" id="companyDataVaultCard">
+                    <div class="page-head-row">
+                        <div>
+                            <h3 class="page-title"><i data-lucide="database-backup" class="icon-sm text-brand"></i> <span data-i18n="backupRestoreTitle">Data Vault &amp; Backup</span></h3>
+                            <p class="page-sub" data-i18n="backupRestoreSub">Export or restore all customers, bills, rates &amp; company branding</p>
+                        </div>
+                    </div>
+
+                    <div class="vault-stats-strip">
+                        <div class="vs-pill">
+                            <span class="vs-lbl">Customers</span>
+                            <strong class="vs-val" id="vaultStatCustomers">0</strong>
+                        </div>
+                        <div class="vs-pill">
+                            <span class="vs-lbl">Saved Bills</span>
+                            <strong class="vs-val" id="vaultStatBills">0</strong>
+                        </div>
+                        <div class="vs-pill">
+                            <span class="vs-lbl">Rate Cards</span>
+                            <strong class="vs-val" id="vaultStatRates">2</strong>
+                        </div>
+                    </div>
+
+                    <div class="backup-grid-2">
+                        <button type="button" class="backup-tile-btn export" id="exportDataJsonBtn">
+                            <i data-lucide="download" class="icon-sm"></i>
+                            <div class="bt-txt">
+                                <strong>Export Backup</strong>
+                                <small>Save .JSON file</small>
+                            </div>
+                        </button>
+                        <label for="importDataJsonInput" class="backup-tile-btn restore cursor-pointer">
+                            <i data-lucide="upload" class="icon-sm"></i>
+                            <div class="bt-txt">
+                                <strong>Restore Data</strong>
+                                <small>Load .JSON file</small>
+                            </div>
+                        </label>
+                        <input type="file" id="importDataJsonInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            <!-- END VIEW 4: DATA VAULT -->
         </section>
 
     </main>
@@ -2259,11 +2364,11 @@
             <span class="b-nav-badge" id="navHistoryCount">0</span>
         </button>
         <button type="button" class="b-nav-item" data-tab="tab-rates">
-            <span class="b-nav-icon"><i data-lucide="sliders-horizontal"></i></span>
+            <span class="b-nav-icon"><i data-lucide="calculator"></i></span>
             <span class="b-nav-label" data-i18n="navRates">Rates</span>
         </button>
         <button type="button" class="b-nav-item" data-tab="tab-brand">
-            <span class="b-nav-icon"><i data-lucide="settings"></i></span>
+            <span class="b-nav-icon"><i data-lucide="sliders"></i></span>
             <span class="b-nav-label" data-i18n="navSettings">Settings</span>
         </button>
     </nav>
@@ -2272,6 +2377,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=77"></script>
+    <script src="app.js?v=78"></script>
 </body>
 </html>

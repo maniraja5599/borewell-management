@@ -9359,11 +9359,11 @@ input.is-select-all-ready,
     background: #047857;
 }
 
-/* ==================== SETTINGS HUB HEADER & NAVIGATION ==================== */
+/* ==================== SETTINGS HUB HEADER & SEGMENTED TABS ==================== */
 .settings-hub-head {
     background: #ffffff;
     border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 12px 14px;
     margin-bottom: 12px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -9373,7 +9373,7 @@ input.is-select-all-ready,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .shh-title-left {
@@ -9395,7 +9395,7 @@ input.is-select-all-ready,
 }
 
 .shh-title {
-    font-size: 0.96rem;
+    font-size: 1rem;
     font-weight: 800;
     color: var(--text-main, #0f172a);
     margin: 0;
@@ -9408,39 +9408,54 @@ input.is-select-all-ready,
     margin: 2px 0 0 0;
 }
 
-.settings-nav-pills {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
+.settings-nav-segmented {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    gap: 3px;
 }
 
-.settings-nav-pills::-webkit-scrollbar {
-    display: none;
-}
-
-.set-nav-pill {
+.set-seg-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
-    padding: 5px 11px;
-    background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 20px;
-    font-size: 0.73rem;
+    padding: 8px 4px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.76rem;
     font-weight: 700;
     color: #475569;
     cursor: pointer;
+    transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
-    transition: all 0.15s ease;
 }
 
-.set-nav-pill:hover,
-.set-nav-pill.active {
-    background: var(--brand-primary, #059669);
-    border-color: var(--brand-primary, #059669);
-    color: #ffffff;
+.set-seg-btn:hover {
+    color: var(--text-main, #0f172a);
+}
+
+.set-seg-btn.active {
+    background: #ffffff;
+    color: var(--brand-primary, #059669);
+    font-weight: 800;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.settings-view-panel {
+    animation: setViewFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes setViewFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
