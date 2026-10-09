@@ -189,6 +189,8 @@ class BoreBillSaaSApp {
             nextQuoteSeq: 101,
             termsNote: '⚠️ மண் & பாறை கடினம் மற்றும் டீசல் விலைக்கு ஏற்ப இறுதி கட்டணம் மாறுபடலாம். • Prices subject to rock strata & depth.',
             finalBillTermsNote: 'Thank you !',
+            casing1Name: '7" Casing Pipe',
+            casing2Name: '10" Casing Pipe',
             theme: 'emerald',
             logoDataUrl: ''
         };
@@ -213,6 +215,12 @@ class BoreBillSaaSApp {
         this.brand = this.loadFromStorage('borebill_brand', this.defaultBrand);
         if (this.brand.finalBillTermsNote === undefined) {
             this.brand.finalBillTermsNote = this.defaultBrand.finalBillTermsNote;
+        }
+        if (this.brand.casing1Name === undefined) {
+            this.brand.casing1Name = this.defaultBrand.casing1Name;
+        }
+        if (this.brand.casing2Name === undefined) {
+            this.brand.casing2Name = this.defaultBrand.casing2Name;
         }
         if (this.brand.website === undefined) {
             this.brand.website = '';
@@ -1243,7 +1251,9 @@ class BoreBillSaaSApp {
 
         const stickyPipeText = document.getElementById('liveStickyPipeText');
         if (stickyPipeText) {
-            stickyPipeText.textContent = `7": ${res.pvc7Length || 0}ft • 10": ${res.pvc10Length || 0}ft`;
+            const c1Short = this.getCasing1ShortName();
+            const c2Short = this.getCasing2ShortName();
+            stickyPipeText.textContent = `${c1Short}: ${res.pvc7Length || 0}ft • ${c2Short}: ${res.pvc10Length || 0}ft`;
         }
 
         const stickyPipeCost = document.getElementById('liveStickyPipeCost');
@@ -1595,11 +1605,13 @@ class BoreBillSaaSApp {
             `;
         }
 
+        const c1Name = this.getCasing1Name();
+        const c2Name = this.getCasing2Name();
         document.getElementById('rcptDrillingTotal').textContent = this.formatINR(res.drillingCost);
-        document.getElementById('rcptPvc7Label').textContent = `7" Casing Pipe (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
+        document.getElementById('rcptPvc7Label').textContent = `${c1Name} (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
         document.getElementById('rcptPvc7Amount').textContent = this.formatINR(res.pvc7Cost);
 
-        document.getElementById('rcptPvc10Label').textContent = `10" Casing Pipe (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;
+        document.getElementById('rcptPvc10Label').textContent = `${c2Name} (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;
         document.getElementById('rcptPvc10Amount').textContent = this.formatINR(res.pvc10Cost);
 
         document.getElementById('rcptBataAmount').textContent = this.formatINR(res.boreBataCost);
@@ -4650,6 +4662,82 @@ class BoreBillSaaSApp {
         return billNote;
     }
 
+    getCasing1Name() {
+        return (this.brand?.casing1Name || '7" Casing Pipe').trim();
+    }
+
+    getCasing2Name() {
+        return (this.brand?.casing2Name || '10" Casing Pipe').trim();
+    }
+
+    getCasing1ShortName() {
+        const name = this.getCasing1Name();
+        const m = name.match(/\d+(?:\.\d+)?["″]/);
+        return m ? m[0] : (name.length > 10 ? name.slice(0, 8) : name);
+    }
+
+    getCasing2ShortName() {
+        const name = this.getCasing2Name();
+        const m = name.match(/\d+(?:\.\d+)?["″]/);
+        return m ? m[0] : (name.length > 10 ? name.slice(0, 8) : name);
+    }
+
+    syncCasingNamesUI() {
+        const c1 = this.getCasing1Name();
+        const c2 = this.getCasing2Name();
+        const c1Short = this.getCasing1ShortName();
+        const c2Short = this.getCasing2ShortName();
+
+        // New bill stage 3 labels
+        const lbl1 = document.getElementById('labelPvc7Name');
+        if (lbl1) lbl1.textContent = c1;
+        const lbl2 = document.getElementById('labelPvc10Name');
+        if (lbl2) lbl2.textContent = c2;
+
+        // Company Card spec
+        const specEl = document.getElementById('brandCardCasingSpecText');
+        if (specEl) specEl.textContent = `${c1Short} & ${c2Short}`;
+
+        // Casing drawer inputs
+        const in1 = document.getElementById('inlineCasing1NameInput');
+        if (in1 && document.activeElement !== in1) in1.value = c1;
+        const in2 = document.getElementById('inlineCasing2NameInput');
+        if (in2 && document.activeElement !== in2) in2.value = c2;
+        const inR1 = document.getElementById('inlineCasing1RateInput');
+        if (inR1 && document.activeElement !== inR1) inR1.value = this.rates.pvc7Rate || 400;
+        const inR2 = document.getElementById('inlineCasing2RateInput');
+        if (inR2 && document.activeElement !== inR2) inR2.value = this.rates.pvc10Rate || 700;
+
+        // Company edit studio inputs
+        const b1 = document.getElementById('brandCasing1Name');
+        if (b1 && document.activeElement !== b1) b1.value = c1;
+        const b2 = document.getElementById('brandCasing2Name');
+        if (b2 && document.activeElement !== b2) b2.value = c2;
+        const bR1 = document.getElementById('brandCasing1Rate');
+        if (bR1 && document.activeElement !== bR1) bR1.value = this.rates.pvc7Rate || 400;
+        const bR2 = document.getElementById('brandCasing2Rate');
+        if (bR2 && document.activeElement !== bR2) bR2.value = this.rates.pvc10Rate || 700;
+    }
+
+    applyCasingSettings(p1Name, p1Rate, p2Name, p2Rate) {
+        if (p1Name) this.brand.casing1Name = p1Name.trim();
+        if (p2Name) this.brand.casing2Name = p2Name.trim();
+        if (p1Rate !== undefined && !isNaN(p1Rate) && p1Rate > 0) {
+            this.rates.pvc7Rate = p1Rate;
+            const r1Inp = document.getElementById('pvc7RateInput');
+            if (r1Inp) r1Inp.value = p1Rate;
+        }
+        if (p2Rate !== undefined && !isNaN(p2Rate) && p2Rate > 0) {
+            this.rates.pvc10Rate = p2Rate;
+            const r2Inp = document.getElementById('pvc10RateInput');
+            if (r2Inp) r2Inp.value = p2Rate;
+        }
+        this.saveToStorage('borebill_brand', this.brand);
+        this.saveToStorage('borebill_rates', this.rates);
+        this.syncCasingNamesUI();
+        this.calculateAndRender();
+    }
+
     syncBrandFromInputs(saveStorage = true) {
         const nameEl = document.getElementById('brandCompanyName');
         if (!nameEl) return;
@@ -4677,8 +4765,31 @@ class BoreBillSaaSApp {
             }
             this.brand.finalBillTermsNote = cleanBillTerms;
         }
+
+        const casing1El = document.getElementById('brandCasing1Name');
+        if (casing1El && casing1El.value.trim()) {
+            this.brand.casing1Name = casing1El.value.trim();
+        }
+        const casing2El = document.getElementById('brandCasing2Name');
+        if (casing2El && casing2El.value.trim()) {
+            this.brand.casing2Name = casing2El.value.trim();
+        }
+        const casing1RateEl = document.getElementById('brandCasing1Rate');
+        if (casing1RateEl && parseFloat(casing1RateEl.value) > 0) {
+            this.rates.pvc7Rate = parseFloat(casing1RateEl.value);
+            const r1Inp = document.getElementById('pvc7RateInput');
+            if (r1Inp) r1Inp.value = this.rates.pvc7Rate;
+        }
+        const casing2RateEl = document.getElementById('brandCasing2Rate');
+        if (casing2RateEl && parseFloat(casing2RateEl.value) > 0) {
+            this.rates.pvc10Rate = parseFloat(casing2RateEl.value);
+            const r2Inp = document.getElementById('pvc10RateInput');
+            if (r2Inp) r2Inp.value = this.rates.pvc10Rate;
+        }
+
         if (saveStorage) {
             this.saveToStorage('borebill_brand', this.brand);
+            this.saveToStorage('borebill_rates', this.rates);
         }
     }
 
@@ -4845,6 +4956,8 @@ class BoreBillSaaSApp {
         document.querySelectorAll('.theme-swatch').forEach(sw => {
             sw.classList.toggle('active', sw.dataset.theme === themeName);
         });
+
+        this.syncCasingNamesUI();
     }
 
     handleLogoUpload(file) {
@@ -5812,11 +5925,13 @@ class BoreBillSaaSApp {
         }
 
         const otherLines = [];
+        const c1Name = this.getCasing1Name();
+        const c2Name = this.getCasing2Name();
         if (res.pvc7Length > 0) {
-            otherLines.push(`• 7" Casing Pipe (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+            otherLines.push(`• ${c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
         }
         if (res.pvc10Length > 0) {
-            otherLines.push(`• 10" Casing Pipe (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
+            otherLines.push(`• ${c2Name} (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
         }
         if (res.boreBataCost > 0) {
             otherLines.push(`• Bore Bata : *${this.formatINR(res.boreBataCost)}*`);
@@ -7765,7 +7880,7 @@ class BoreBillSaaSApp {
         });
 
         totalDepthEl?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
                 const rateBataWrap = document.getElementById('drillingRateBataWrap');
@@ -7778,7 +7893,7 @@ class BoreBillSaaSApp {
         });
 
         baseRateEl?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
                 const casingSec = document.getElementById('progCasingSection');
@@ -7789,11 +7904,17 @@ class BoreBillSaaSApp {
                     pvc7LenEl.focus();
                     try { pvc7LenEl.select(); } catch (err) { /* ignore */ }
                 }
+            } else if (e.key === 'Tab' && e.shiftKey) {
+                e.preventDefault();
+                if (totalDepthEl) {
+                    totalDepthEl.focus();
+                    try { totalDepthEl.select(); } catch (err) { /* ignore */ }
+                }
             }
         });
 
         dateInputEl?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
                 const casingSec = document.getElementById('progCasingSection');
@@ -7808,18 +7929,24 @@ class BoreBillSaaSApp {
         });
 
         pvc7LenEl?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
                 if (pvc10LenEl) {
                     pvc10LenEl.focus();
                     try { pvc10LenEl.select(); } catch (err) { /* ignore */ }
                 }
+            } else if (e.key === 'Tab' && e.shiftKey) {
+                e.preventDefault();
+                if (baseRateEl) {
+                    baseRateEl.focus();
+                    try { baseRateEl.select(); } catch (err) { /* ignore */ }
+                }
             }
         });
 
         document.getElementById('pvc7RateInput')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
                 if (pvc10LenEl) {
@@ -7830,18 +7957,30 @@ class BoreBillSaaSApp {
         });
 
         pvc10LenEl?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
-                document.getElementById('openBillPreviewBtn')?.click();
+                const prevBtn = document.getElementById('openBillPreviewBtn');
+                if (prevBtn) {
+                    prevBtn.click();
+                }
+            } else if (e.key === 'Tab' && e.shiftKey) {
+                e.preventDefault();
+                if (pvc7LenEl) {
+                    pvc7LenEl.focus();
+                    try { pvc7LenEl.select(); } catch (err) { /* ignore */ }
+                }
             }
         });
 
         document.getElementById('pvc10RateInput')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.keyCode === 13) {
+            if (e.key === 'Enter' || e.keyCode === 13 || (e.key === 'Tab' && !e.shiftKey)) {
                 e.preventDefault();
                 this.calculateAndRender();
-                document.getElementById('openBillPreviewBtn')?.click();
+                const prevBtn = document.getElementById('openBillPreviewBtn');
+                if (prevBtn) {
+                    prevBtn.click();
+                }
             }
         });
 
@@ -9197,6 +9336,66 @@ class BoreBillSaaSApp {
                 this.calculateAndRender();
                 this.showToast(val ? `🧾 Final Bill Note updated!` : '🚫 Final Bill Footer Note hidden');
             });
+        });
+
+        // Company Casing Spec Presets
+        document.querySelectorAll('#brandCasingPresetChips .csd-preset-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const p1 = chip.dataset.p1 || '';
+                const p2 = chip.dataset.p2 || '';
+                const c1Inp = document.getElementById('brandCasing1Name');
+                const c2Inp = document.getElementById('brandCasing2Name');
+                if (c1Inp && p1) c1Inp.value = p1;
+                if (c2Inp && p2) c2Inp.value = p2;
+                this.syncBrandFromInputs(true);
+                this.applyBrandToUI();
+                this.calculateAndRender();
+                this.showToast(`🔧 Casing Spec: ${p1} & ${p2}`);
+            });
+        });
+
+        // Casing Settings Drawer (in Stage 3 Casing Section)
+        document.getElementById('casingSettingsTriggerBtn')?.addEventListener('click', () => {
+            const drawer = document.getElementById('casingSettingsDrawer');
+            if (!drawer) return;
+            const willOpen = drawer.style.display === 'none';
+            drawer.style.display = willOpen ? 'block' : 'none';
+            if (willOpen) {
+                this.syncCasingNamesUI();
+            }
+        });
+
+        document.getElementById('closeCasingSettingsDrawerBtn')?.addEventListener('click', () => {
+            const drawer = document.getElementById('casingSettingsDrawer');
+            if (drawer) drawer.style.display = 'none';
+        });
+
+        document.querySelectorAll('#casingDrawerPresetsGrid .csd-preset-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const p1 = chip.dataset.p1 || '';
+                const r1 = parseFloat(chip.dataset.r1) || 400;
+                const p2 = chip.dataset.p2 || '';
+                const r2 = parseFloat(chip.dataset.r2) || 700;
+                const in1 = document.getElementById('inlineCasing1NameInput');
+                const inR1 = document.getElementById('inlineCasing1RateInput');
+                const in2 = document.getElementById('inlineCasing2NameInput');
+                const inR2 = document.getElementById('inlineCasing2RateInput');
+                if (in1) in1.value = p1;
+                if (inR1) inR1.value = r1;
+                if (in2) in2.value = p2;
+                if (inR2) inR2.value = r2;
+            });
+        });
+
+        document.getElementById('saveCasingSettingsDrawerBtn')?.addEventListener('click', () => {
+            const p1 = document.getElementById('inlineCasing1NameInput')?.value || '';
+            const r1 = parseFloat(document.getElementById('inlineCasing1RateInput')?.value) || 400;
+            const p2 = document.getElementById('inlineCasing2NameInput')?.value || '';
+            const r2 = parseFloat(document.getElementById('inlineCasing2RateInput')?.value) || 700;
+            this.applyCasingSettings(p1, r1, p2, r2);
+            const drawer = document.getElementById('casingSettingsDrawer');
+            if (drawer) drawer.style.display = 'none';
+            this.showToast(`✅ Casing customized: ${this.getCasing1ShortName()} & ${this.getCasing2ShortName()}`);
         });
 
         document.getElementById('saveBrandProfileBtn')?.addEventListener('click', () => {

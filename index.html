@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=75">
+    <link rel="stylesheet" href="styles.css?v=76">
 </head>
 <body>
 
@@ -409,7 +409,7 @@
                         <div class="srbb-item date-item">
                             <label for="billDateInput">📅 Date:</label>
                             <div class="srbb-input-box date-box">
-                                <input type="date" id="billDateInput" enterkeyhint="next" aria-label="Bill Date">
+                                <input type="date" id="billDateInput" enterkeyhint="next" tabindex="-1" aria-label="Bill Date">
                             </div>
                         </div>
                         <button type="button" class="smart-slab-dd-trigger" id="smartSlabDropdownBtn" tabindex="-1" title="View or Change Slab Rates">
@@ -438,8 +438,79 @@
                 <!-- STAGE 3: SIMPLE CASING PIPES (Auto-opens as soon as Drilling Depth is entered) -->
                 <div class="ui-card prog-reveal-card simple-work-card" id="progCasingSection" style="display: none;">
                     <div class="simple-card-head">
-                        <span class="simple-card-title">3. Casing Pipes</span>
+                        <div class="sc-head-left">
+                            <span class="simple-card-title">3. Casing Pipes</span>
+                            <button type="button" class="casing-settings-trigger-btn" id="casingSettingsTriggerBtn" title="Customize Casing Names & Rates" aria-label="Casing Pipe Settings">
+                                <i data-lucide="settings-2" class="icon-xs"></i>
+                                <span>Settings</span>
+                            </button>
+                        </div>
                         <strong class="simple-card-amount" id="liveInlineCasingTotalBadge">₹0</strong>
+                    </div>
+
+                    <!-- Casing Pipe Settings Drawer (Syncs 100% with Company Settings) -->
+                    <div class="casing-settings-drawer" id="casingSettingsDrawer" style="display: none;">
+                        <div class="csd-head">
+                            <div class="csd-title-wrap">
+                                <i data-lucide="settings-2" class="icon-xs text-brand"></i>
+                                <strong>Casing Pipe Customizer & Default Rates</strong>
+                            </div>
+                            <button type="button" class="icon-close-btn" id="closeCasingSettingsDrawerBtn" title="Close Settings">
+                                <i data-lucide="x" class="icon-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="csd-presets-wrap">
+                            <span class="csd-presets-lbl">Quick Presets:</span>
+                            <div class="csd-presets-grid" id="casingDrawerPresetsGrid">
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; Casing Pipe" data-r1="400" data-p2="10&quot; Casing Pipe" data-r2="700">7" & 10" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-r1="400" data-p2="8&quot; MS Casing" data-r2="550">7" PVC & 8" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-r1="550" data-p2="10&quot; MS Casing" data-r2="750">8" & 10" MS</button>
+                                <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-r1="350" data-p2="7&quot; PVC Casing" data-r2="400">6" & 7" PVC</button>
+                                <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-r1="420" data-p2="10&quot; Heavy Casing" data-r2="720">7" & 10" Heavy</button>
+                            </div>
+                        </div>
+
+                        <div class="csd-inputs-grid">
+                            <div class="csd-card">
+                                <div class="csd-card-title">Pipe 1 (Primary)</div>
+                                <div class="field-group">
+                                    <label for="inlineCasing1NameInput">Header / Pipe Name</label>
+                                    <input type="text" id="inlineCasing1NameInput" value="7&quot; Casing Pipe" placeholder="e.g. 7&quot; Casing Pipe">
+                                </div>
+                                <div class="field-group">
+                                    <label for="inlineCasing1RateInput">Default Rate (₹/ft)</label>
+                                    <div class="csd-rate-box">
+                                        <span>₹</span>
+                                        <input type="number" id="inlineCasing1RateInput" value="400" min="1">
+                                        <small>/ft</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="csd-card">
+                                <div class="csd-card-title">Pipe 2 (Secondary)</div>
+                                <div class="field-group">
+                                    <label for="inlineCasing2NameInput">Header / Pipe Name</label>
+                                    <input type="text" id="inlineCasing2NameInput" value="10&quot; Casing Pipe" placeholder="e.g. 10&quot; Casing Pipe">
+                                </div>
+                                <div class="field-group">
+                                    <label for="inlineCasing2RateInput">Default Rate (₹/ft)</label>
+                                    <div class="csd-rate-box">
+                                        <span>₹</span>
+                                        <input type="number" id="inlineCasing2RateInput" value="700" min="1">
+                                        <small>/ft</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="csd-actions">
+                            <button type="button" class="btn-brand-sm" id="saveCasingSettingsDrawerBtn">
+                                <i data-lucide="check" class="icon-xs"></i>
+                                <span>Save & Apply (Sync with Company)</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="simple-pvc-grid">
@@ -1433,6 +1504,10 @@
                         <span class="bsc-spec-lbl">UPI / GPay</span>
                         <strong class="bsc-spec-val" id="brandCardUpiText">Not Set</strong>
                     </div>
+                    <div class="bsc-spec-cell">
+                        <span class="bsc-spec-lbl">Casing Spec</span>
+                        <strong class="bsc-spec-val text-brand" id="brandCardCasingSpecText">7" & 10"</strong>
+                    </div>
                 </div>
 
                 <!-- Integrated Theme Color & Logo Actions Section -->
@@ -1616,6 +1691,45 @@
                                 <button type="button" class="fsb-preset-chip" data-bill-note="Thank you ! Makers Of Green India !">🌱 Makers Of Green India</button>
                                 <button type="button" class="fsb-preset-chip clear-chip" data-bill-note="">🚫 None (Empty)</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group 4: Casing Pipes Specification & Default Rates -->
+                <div class="rate-category-label" style="margin-top: 10px;">4. Casing Pipes Specification & Default Rates</div>
+                <div class="company-form-box">
+                    <p class="section-subtext" style="margin-bottom: 12px; font-size: 0.8rem; color: var(--text-muted);">Configure custom casing pipe sizes (e.g. 7" PVC, 8" MS, 10" MS) and default rates. Synced everywhere across New Bill, Receipt, PDF and WhatsApp.</p>
+                    
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label for="brandCasing1Name">Pipe 1 Type / Size</label>
+                            <input type="text" id="brandCasing1Name" placeholder="e.g. 7&quot; Casing Pipe" value="7&quot; Casing Pipe">
+                        </div>
+                        <div class="field-group">
+                            <label for="brandCasing1Rate">Pipe 1 Default Rate (₹/ft)</label>
+                            <input type="number" id="brandCasing1Rate" placeholder="320" value="320" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-row-2" style="margin-top: 8px;">
+                        <div class="field-group">
+                            <label for="brandCasing2Name">Pipe 2 Type / Size</label>
+                            <input type="text" id="brandCasing2Name" placeholder="e.g. 10&quot; Casing Pipe" value="10&quot; Casing Pipe">
+                        </div>
+                        <div class="field-group">
+                            <label for="brandCasing2Rate">Pipe 2 Default Rate (₹/ft)</label>
+                            <input type="number" id="brandCasing2Rate" placeholder="480" value="480" min="0">
+                        </div>
+                    </div>
+
+                    <div class="csd-presets-wrap" style="margin-top: 10px;">
+                        <span class="csd-presets-label" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">QUICK PRESETS:</span>
+                        <div class="csd-chips-row" id="brandCasingPresetChips">
+                            <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="10&quot; PVC Casing">7" &amp; 10" PVC</button>
+                            <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="8&quot; MS Casing">7" PVC &amp; 8" MS</button>
+                            <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-p2="10&quot; MS Casing">8" &amp; 10" MS</button>
+                            <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-p2="7&quot; PVC Casing">6" &amp; 7" PVC</button>
+                            <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-p2="10&quot; Heavy Casing">7" &amp; 10" Heavy</button>
                         </div>
                     </div>
                 </div>
@@ -2126,6 +2240,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=75"></script>
+    <script src="app.js?v=76"></script>
 </body>
 </html>
