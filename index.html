@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=83">
+    <link rel="stylesheet" href="styles.css?v=84">
 </head>
 <body>
 
@@ -1493,15 +1493,29 @@
                             <img id="brandTabLogoImg" src="" alt="Uploaded Logo" style="display: none;">
                             <span id="brandTabLogoFallback">🚜</span>
                         </div>
-                        <label for="logoFileInput" class="bsc-logo-cam-btn" title="Upload Company Logo">
+                        <label for="logoFileInput" class="bsc-logo-cam-btn" title="Upload or Change Logo">
                             <i data-lucide="camera" class="icon-xs"></i>
                         </label>
                     </div>
                     <div class="bsc-title-block">
-                        <h2 id="brandCardNameText">SRI ANJANEYA BOREWELLS</h2>
+                        <div class="bsc-name-action-row">
+                            <h2 id="brandCardNameText">SRI ANJANEYA BOREWELLS</h2>
+                            <div class="bsc-logo-quick-btns">
+                                <label for="logoFileInput" class="bsc-logo-action-chip" title="Upload New Company Logo">
+                                    <i data-lucide="upload" class="icon-xs"></i>
+                                    <span>Logo</span>
+                                </label>
+                                <button type="button" class="bsc-logo-action-chip danger" id="removeLogoBtn" title="Remove Company Logo">
+                                    <i data-lucide="trash-2" class="icon-xs"></i>
+                                </button>
+                            </div>
+                        </div>
                         <p id="brandCardTaglineText">ஆழமான நம்பிக்கை! • High Power Compressor Drilling</p>
                     </div>
                 </div>
+
+                <!-- Hidden file input for logo upload -->
+                <input type="file" id="logoFileInput" accept="image/png, image/jpeg, image/webp, image/svg+xml" style="display: none;">
 
                 <!-- Contact & Location Details Grid -->
                 <div class="bsc-contact-grid">
@@ -1795,44 +1809,129 @@
             </div>
             <!-- END VIEW 2: CASING SPECIFICATION -->
 
-            <!-- VIEW 3: THEME COLOR & LOGO -->
+            <!-- VIEW 3: THEME COLOR PALETTE (Enhanced Studio) -->
             <div class="settings-view-panel" id="set-view-theme" style="display: none;">
-                <div class="ui-card">
+                <div class="ui-card theme-studio-card">
                     <div class="page-head-row">
                         <div>
-                            <h3 class="page-title"><i data-lucide="palette" class="icon-sm text-brand"></i> App &amp; Bill Theme Color</h3>
-                            <p class="page-sub">Customize executive color palette and company bill logo</p>
+                            <h3 class="page-title"><i data-lucide="palette" class="icon-sm text-brand"></i> Application &amp; Bill Color Palette</h3>
+                            <p class="page-sub">Choose your signature enterprise theme color across app bars, bill receipts, badges &amp; PDF exports</p>
                         </div>
-                        <div class="logo-btn-row">
-                            <label for="logoFileInput" class="bsc-mini-link cursor-pointer">
-                                <i data-lucide="upload" class="icon-xs"></i>
-                                <span data-i18n="uploadCompanyLogo">Upload Logo</span>
-                            </label>
-                            <button type="button" class="bsc-mini-link danger" id="removeLogoBtn" data-i18n="removeLogo">Remove</button>
+                        <div class="theme-active-indicator-pill">
+                            <span class="tai-dot"></span>
+                            <span class="tai-text" id="activeThemeBadgeLabel">Active: Emerald Green</span>
                         </div>
                     </div>
 
-                    <div class="theme-swatches-grid" id="themeSwatches" style="margin-top: 14px;">
-                        <button type="button" class="theme-swatch active" data-theme="emerald" style="--swatch-color: #15803d;">
-                            <span class="ts-dot"></span>
-                            <span>Emerald Green</span>
+                    <!-- Enhanced 6 Curated Theme Cards Grid -->
+                    <div class="theme-presets-grid" id="themeSwatches">
+                        <!-- 1. Emerald Green -->
+                        <button type="button" class="theme-preset-card active" data-theme="emerald" style="--th-primary: #15803d; --th-dark: #14532d; --th-accent: #facc15; --th-soft: #f0fdf4;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #15803d;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Emerald Green</strong>
+                            <small class="tpc-desc">Default • Agriculture &amp; Fresh Earth</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #14532d;"></span>
+                                <span class="tpb-main" style="background: #15803d;"></span>
+                                <span class="tpb-gold" style="background: #facc15;"></span>
+                            </div>
                         </button>
-                        <button type="button" class="theme-swatch" data-theme="royal" style="--swatch-color: #1d4ed8;">
-                            <span class="ts-dot"></span>
-                            <span>Royal Blue</span>
+
+                        <!-- 2. Royal Blue -->
+                        <button type="button" class="theme-preset-card" data-theme="royal" style="--th-primary: #1d4ed8; --th-dark: #1e3a8a; --th-accent: #fbbf24; --th-soft: #eff6ff;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #1d4ed8;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Royal Blue</strong>
+                            <small class="tpc-desc">Professional Corporate &amp; Water Flow</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #1e3a8a;"></span>
+                                <span class="tpb-main" style="background: #1d4ed8;"></span>
+                                <span class="tpb-gold" style="background: #fbbf24;"></span>
+                            </div>
                         </button>
-                        <button type="button" class="theme-swatch" data-theme="crimson" style="--swatch-color: #b91c1c;">
-                            <span class="ts-dot"></span>
-                            <span>Rig Red</span>
+
+                        <!-- 3. Crimson Rig Red -->
+                        <button type="button" class="theme-preset-card" data-theme="crimson" style="--th-primary: #b91c1c; --th-dark: #7f1d1d; --th-accent: #fde047; --th-soft: #fef2f2;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #b91c1c;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Rig Red</strong>
+                            <small class="tpc-desc">Heavy Machinery &amp; High Energy</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #7f1d1d;"></span>
+                                <span class="tpb-main" style="background: #b91c1c;"></span>
+                                <span class="tpb-gold" style="background: #fde047;"></span>
+                            </div>
                         </button>
-                        <button type="button" class="theme-swatch" data-theme="amber" style="--swatch-color: #b45309;">
-                            <span class="ts-dot"></span>
-                            <span>Earth Gold</span>
+
+                        <!-- 4. Amber Gold -->
+                        <button type="button" class="theme-preset-card" data-theme="amber" style="--th-primary: #b45309; --th-dark: #78350f; --th-accent: #fde68a; --th-soft: #fffbeb;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #b45309;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Earth Gold</strong>
+                            <small class="tpc-desc">Borewell Soil &amp; Mineral Warmth</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #78350f;"></span>
+                                <span class="tpb-main" style="background: #b45309;"></span>
+                                <span class="tpb-gold" style="background: #fde68a;"></span>
+                            </div>
                         </button>
-                        <button type="button" class="theme-swatch" data-theme="slate" style="--swatch-color: #0f172a;">
-                            <span class="ts-dot"></span>
-                            <span>Slate Dark</span>
+
+                        <!-- 5. Deep Purple / Violet -->
+                        <button type="button" class="theme-preset-card" data-theme="violet" style="--th-primary: #7c3aed; --th-dark: #4c1d95; --th-accent: #facc15; --th-soft: #f5f3ff;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #7c3aed;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Royal Violet</strong>
+                            <small class="tpc-desc">Modern Fintech &amp; Executive Tech</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #4c1d95;"></span>
+                                <span class="tpb-main" style="background: #7c3aed;"></span>
+                                <span class="tpb-gold" style="background: #facc15;"></span>
+                            </div>
                         </button>
+
+                        <!-- 6. Slate Titanium -->
+                        <button type="button" class="theme-preset-card" data-theme="slate" style="--th-primary: #0f172a; --th-dark: #020617; --th-accent: #38bdf8; --th-soft: #f8fafc;">
+                            <div class="tpc-header">
+                                <span class="tpc-color-circle" style="background: #0f172a;"></span>
+                                <span class="tpc-check-badge">✓ Active</span>
+                            </div>
+                            <strong class="tpc-name">Slate Dark</strong>
+                            <small class="tpc-desc">Industrial Titanium &amp; Stealth Dark</small>
+                            <div class="tpc-preview-bar">
+                                <span class="tpb-accent" style="background: #020617;"></span>
+                                <span class="tpb-main" style="background: #0f172a;"></span>
+                                <span class="tpb-gold" style="background: #38bdf8;"></span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Live Mini Bill Mockup Preview Strip -->
+                    <div class="theme-live-preview-box">
+                        <div class="tlp-header">
+                            <span class="tlp-tag">LIVE BILL THEME PREVIEW</span>
+                            <small>Instantly reflected across header, receipt and PDF share</small>
+                        </div>
+                        <div class="tlp-sample-card">
+                            <div class="tlp-sample-top">
+                                <div class="tlp-sample-brand">
+                                    <span class="tlp-sample-badge">#AB-101</span>
+                                    <strong id="tlpSampleCompanyName">SRI ANJANEYA BOREWELLS</strong>
+                                </div>
+                                <span class="tlp-sample-pill">PAID ₹85,000</span>
+                            </div>
+                            <div class="tlp-sample-bar"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2338,6 +2437,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=83"></script>
+    <script src="app.js?v=84"></script>
 </body>
 </html>

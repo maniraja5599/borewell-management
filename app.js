@@ -4962,7 +4962,26 @@ class BoreBillSaaSApp {
         setInputIfNotFocused('brandTermsNote', quoteTermsNote);
         setInputIfNotFocused('brandFinalBillTermsNote', finalBillTermsNote);
 
-        document.querySelectorAll('.theme-swatch').forEach(sw => {
+        const themeLabels = {
+            emerald: 'Emerald Green',
+            royal: 'Royal Blue',
+            crimson: 'Rig Red',
+            amber: 'Earth Gold',
+            violet: 'Royal Violet',
+            slate: 'Slate Dark'
+        };
+
+        const activeLbl = document.getElementById('activeThemeBadgeLabel');
+        if (activeLbl) {
+            activeLbl.textContent = `Active: ${themeLabels[themeName] || themeName}`;
+        }
+
+        const tlpName = document.getElementById('tlpSampleCompanyName');
+        if (tlpName) {
+            tlpName.textContent = compName;
+        }
+
+        document.querySelectorAll('.theme-swatch, .theme-preset-card').forEach(sw => {
             sw.classList.toggle('active', sw.dataset.theme === themeName);
         });
 
@@ -9211,12 +9230,13 @@ class BoreBillSaaSApp {
             });
         });
 
-        document.querySelectorAll('.theme-swatch').forEach(sw => {
+        document.querySelectorAll('.theme-swatch, .theme-preset-card').forEach(sw => {
             sw.addEventListener('click', () => {
                 this.brand.theme = sw.dataset.theme;
                 this.saveToStorage('borebill_brand', this.brand);
                 this.applyBrandToUI();
-                this.showToast(`🎨 Theme changed to ${sw.textContent.trim()}`);
+                const themeTitle = sw.querySelector('.tpc-name')?.textContent || sw.textContent.trim();
+                this.showToast(`🎨 Theme changed to ${themeTitle}`);
             });
         });
 
