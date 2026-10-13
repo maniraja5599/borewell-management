@@ -4812,8 +4812,12 @@ class BoreBillSaaSApp {
             royal: '#1d4ed8',
             crimson: '#b91c1c',
             amber: '#b45309',
-            violet: '#4c1d95',
-            slate: '#0f172a'
+            violet: '#7c3aed',
+            slate: '#0f172a',
+            teal: '#0f766e',
+            copper: '#c2410c',
+            indigo: '#4338ca',
+            graphite: '#334155'
         };
         const metaTheme = document.getElementById('metaThemeColor');
         if (metaTheme) {
@@ -4968,7 +4972,11 @@ class BoreBillSaaSApp {
             crimson: 'Rig Red',
             amber: 'Earth Gold',
             violet: 'Royal Violet',
-            slate: 'Slate Dark'
+            slate: 'Slate Dark',
+            teal: 'Aqua Teal',
+            copper: 'Copper Bronze',
+            indigo: 'Deep Indigo',
+            graphite: 'Graphite Pro'
         };
 
         const activeLbl = document.getElementById('activeThemeBadgeLabel');
