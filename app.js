@@ -1313,7 +1313,7 @@ class BoreBillSaaSApp {
                 advDueBadge.className = 'advance-due-calc-pill';
                 advDueAmt.textContent = this.formatINR(res.balancePayable);
                 const lbl = advDueBadge.querySelector('.adcb-label');
-                if (lbl) lbl.textContent = '🔴 Balance Due:';
+                if (lbl) lbl.textContent = 'Balance Due:';
             } else {
                 advDueBadge.style.display = 'none';
             }
@@ -3498,7 +3498,7 @@ class BoreBillSaaSApp {
                     <div class="cbc-head-right">
                         ${isInvoice
                             ? (hasDue
-                                ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
                                 : `<span class="status-pill paid static-badge">✅ Paid</span>`)
                             : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                         }
@@ -4252,7 +4252,7 @@ class BoreBillSaaSApp {
                         <div class="cbc-head-right">
                             ${isInvoice
                                 ? (hasDue
-                                    ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                    ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
                                     : `<span class="status-pill paid static-badge">✅ Paid</span>`)
                                 : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                             }
@@ -4553,7 +4553,7 @@ class BoreBillSaaSApp {
             const agg = this.getCustomerAggregates(c, billsIndex);
             const { pastSites } = this.getCustomerSiteSuggestions(c);
             const sitesSub = pastSites.length > 0 ? ` • 📍 +${pastSites.length} site` : '';
-            const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">🔴 Due: ${this.formatINR(agg.totalPending)}</span>` : '';
+            const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">Due: ${this.formatINR(agg.totalPending)}</span>` : '';
 
             return `
             <button type="button" class="wiz-cust-card ${isSelected ? 'is-selected' : ''}" data-id="${c.id}">
@@ -6840,7 +6840,7 @@ class BoreBillSaaSApp {
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>
                         ${isInvoice
                             ? (hasDue
-                                ? `<span class="status-pill due static-badge">🔴 Due: ${this.formatINR(pendingAmt)}</span>`
+                                ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
                                 : `<span class="status-pill paid static-badge">✅ Paid${lastPayDate ? ` (${lastPayDate})` : ''}</span>`)
                             : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                         }
