@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=90">
+    <link rel="stylesheet" href="styles.css?v=91">
 </head>
 <body>
 
@@ -1443,7 +1443,7 @@
                         </div>
                     </div>
 
-                    <!-- 1. Base Slab Range & Aligned Quick Shift Card -->
+                    <!-- 1. Base Slab Range & Aligned Step Controls Card -->
                     <div class="slab-builder-top-card" style="margin-top: 8px;">
                         <div class="sbtc-base-bar">
                             <span class="sbtc-lbl">1st Base Slab:</span>
@@ -1451,58 +1451,54 @@
                                 <button type="button" class="sbtc-pill" data-base-span="100">1–100 ft</button>
                                 <button type="button" class="sbtc-pill" data-base-span="200">1–200 ft</button>
                                 <button type="button" class="sbtc-pill active" data-base-span="300">1–300 ft</button>
+                                <button type="button" class="sbtc-pill" data-base-span="500">1–500 ft</button>
                             </div>
                         </div>
 
-                        <div class="sbtc-divider"></div>
-
-                        <!-- 2. Cleanly Aligned Quick Shift & 1-Step Controls -->
-                        <div class="sbtc-quick-shift-box">
-                            <div class="sqs-top-row">
-                                <span class="sbtc-lbl" data-i18n="bulkAdjustAllSlabs">Quick Shift:</span>
-                                <div class="sqs-chips-grid">
-                                    <button type="button" class="bulk-chip minus" id="slabBulkMinus10">−₹10</button>
-                                    <button type="button" class="bulk-chip minus" id="slabBulkMinus5">−₹5</button>
-                                    <button type="button" class="bulk-chip plus" id="slabBulkPlus5">+₹5</button>
-                                    <button type="button" class="bulk-chip plus" id="slabBulkPlus10">+₹10</button>
+                        <!-- 2. Clean Step-only Adjuster Controls (Revealed after Base Slab) -->
+                        <div id="stage4StepAdjusterBox" style="display: none;">
+                            <div class="sbtc-divider"></div>
+                            <div class="sbtc-quick-shift-box">
+                                <div class="sqs-step-row">
+                                    <button type="button" class="sqs-step-btn minus" id="slabCustomDeductBtn">− Step</button>
+                                    <div class="sqs-step-input-wrap" title="Step Increment (Default 1)">
+                                        <span>±₹</span>
+                                        <input type="number" id="customSlabStepInput" value="1" min="1" step="1" class="mini-num-input" inputmode="numeric">
+                                    </div>
+                                    <button type="button" class="sqs-step-btn plus" id="slabCustomAddBtn">+ Step</button>
                                 </div>
-                            </div>
-                            <div class="sqs-step-row">
-                                <button type="button" class="sqs-step-btn minus" id="slabCustomDeductBtn">− Step</button>
-                                <div class="sqs-step-input-wrap" title="Step Increment (Default 1)">
-                                    <span>±₹</span>
-                                    <input type="number" id="customSlabStepInput" value="1" min="1" step="1" class="mini-num-input" inputmode="numeric">
-                                </div>
-                                <button type="button" class="sqs-step-btn plus" id="slabCustomAddBtn">+ Step</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Aligned 4-Column Slab Builder Header -->
-                    <div class="slab-builder-table-head">
-                        <span class="sbth-col-range">DEPTH SLAB (FT)</span>
-                        <span class="sbth-col-step">+ STEP (₹)</span>
-                        <span class="sbth-col-rate">RATE (₹/FT)</span>
-                        <span class="sbth-col-del"></span>
-                    </div>
+                    <!-- Progressive Subsequent Slabs Box (Revealed after Base Slab is selected) -->
+                    <div id="stage4SubsequentSlabsBox" style="display: none;">
+                        <!-- Aligned 4-Column Slab Builder Header -->
+                        <div class="slab-builder-table-head">
+                            <span class="sbth-col-range">DEPTH SLAB (FT)</span>
+                            <span class="sbth-col-step">+ STEP (₹)</span>
+                            <span class="sbth-col-rate">RATE (₹/FT)</span>
+                            <span class="sbth-col-del"></span>
+                        </div>
 
-                    <!-- Dynamic Step-by-Step Slabs Rows Container -->
-                    <div class="slabs-editor-grid" id="masterSlabsGrid"></div>
+                        <!-- Dynamic Step-by-Step Slabs Rows Container -->
+                        <div class="slabs-editor-grid" id="masterSlabsGrid"></div>
 
-                    <!-- Step-by-Step "+ Add Next 100 ft" & Quick Auto-Fill Bar -->
-                    <div class="slab-builder-add-bar" id="slabBuilderFooterBar">
-                        <button type="button" class="btn-add-next-slab" id="addNextSlabRowBtn">
-                            <span class="bans-left">
-                                <span class="bans-plus-icon">＋</span>
-                                <span id="addNextSlabBtnRangeText">Add Next 100 ft (301–400 ft)</span>
-                            </span>
-                            <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10 → ₹100/ft</span>
-                        </button>
-                        <div class="slab-autofill-strip">
-                            <span class="sas-lbl">Quick Auto-Fill:</span>
-                            <button type="button" class="sas-chip" id="slabFill1000Btn">Up to 1000 ft</button>
-                            <button type="button" class="sas-chip" id="slabFill1500Btn">Up to 1500 ft</button>
-                            <button type="button" class="sas-chip" id="slabFill2200Btn">Up to 2200 ft</button>
+                        <!-- Step-by-Step "+ Add Next 100 ft" & Quick Auto-Fill Bar -->
+                        <div class="slab-builder-add-bar" id="slabBuilderFooterBar">
+                            <button type="button" class="btn-add-next-slab" id="addNextSlabRowBtn">
+                                <span class="bans-left">
+                                    <span class="bans-plus-icon">＋</span>
+                                    <span id="addNextSlabBtnRangeText">Add Next 100 ft (301–400 ft)</span>
+                                </span>
+                                <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10 → ₹100/ft</span>
+                            </button>
+                            <div class="slab-autofill-strip">
+                                <span class="sas-lbl">Quick Auto-Fill:</span>
+                                <button type="button" class="sas-chip" id="slabFill1000Btn">Up to 1000 ft</button>
+                                <button type="button" class="sas-chip" id="slabFill1500Btn">Up to 1500 ft</button>
+                                <button type="button" class="sas-chip" id="slabFill2200Btn">Up to 2200 ft</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2813,6 +2809,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=90"></script>
+    <script src="app.js?v=91"></script>
 </body>
 </html>

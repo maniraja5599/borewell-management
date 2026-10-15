@@ -5476,11 +5476,23 @@ class BoreBillSaaSApp {
         if (s4Card) {
             s4Card.style.display = (stage === 4) ? 'block' : 'none';
             if (stage === 4) {
+                // If editing an existing profile with multiple slabs or previously confirmed base slab, show subsequent builder
+                const hasMultipleSlabs = Array.isArray(this.rates.slabRates) && this.rates.slabRates.length > 1;
+                const isConfirmed = Boolean(this.baseSlabConfirmed || hasMultipleSlabs);
+                this.revealStage4SubsequentSlabs(isConfirmed);
                 this.renderMasterSlabsGrid();
             }
         }
 
         this.refreshIcons();
+    }
+
+    revealStage4SubsequentSlabs(show = true) {
+        this.baseSlabConfirmed = show;
+        const subBox = document.getElementById('stage4SubsequentSlabsBox');
+        const stepBox = document.getElementById('stage4StepAdjusterBox');
+        if (subBox) subBox.style.display = show ? 'block' : 'none';
+        if (stepBox) stepBox.style.display = show ? 'block' : 'none';
     }
 
     switchStudioSubTab(viewMode = 'core') {
@@ -9334,6 +9346,7 @@ class BoreBillSaaSApp {
             }
 
             // Start New Rate Card with Row 1 (Base Slab) ready for step-by-step building
+            this.baseSlabConfirmed = false;
             const curSpan = this.rates.slabRates?.[0]?.span || 300;
             const curBaseRate = this.rates.baseDrillingRate || 90;
             this.rates.slabRates = [{
@@ -9365,10 +9378,11 @@ class BoreBillSaaSApp {
             this.renderMasterSlabsGrid();
         });
 
-        // 1st Base Slab Quick Range Pills (1–100 ft | 1–200 ft | 1–300 ft)
+        // 1st Base Slab Quick Range Pills (1–100 ft | 1–200 ft | 1–300 ft | 1–500 ft)
         document.querySelectorAll('#baseSlabSpanPills .sbtc-pill').forEach(pill => {
             pill.addEventListener('click', () => {
                 const span = parseInt(pill.dataset.baseSpan, 10) || 300;
+                this.revealStage4SubsequentSlabs(true);
                 this.setBaseSlabSpan(span);
                 const baseRateInp = document.querySelector('.slab-edit-input[data-index="0"]');
                 if (baseRateInp) {
@@ -9379,31 +9393,31 @@ class BoreBillSaaSApp {
 
         // Start from Row 1 (Step-by-Step Builder Mode)
         document.getElementById('slabStartFromRow1Btn')?.addEventListener('click', () => {
+            this.revealStage4SubsequentSlabs(true);
             this.startSlabsFromRow1();
         });
 
         // "+ Add Next 100 ft" Step-by-Step Button
         document.getElementById('addNextSlabRowBtn')?.addEventListener('click', () => {
+            this.revealStage4SubsequentSlabs(true);
             this.addNextSlabRow();
         });
 
         // Quick Auto-Fill Buttons (1000 ft / 1500 ft / 2200 ft)
         document.getElementById('slabFill1000Btn')?.addEventListener('click', () => {
+            this.revealStage4SubsequentSlabs(true);
             this.autoFillSlabsUpTo(1000);
         });
         document.getElementById('slabFill1500Btn')?.addEventListener('click', () => {
+            this.revealStage4SubsequentSlabs(true);
             this.autoFillSlabsUpTo(1500);
         });
         document.getElementById('slabFill2200Btn')?.addEventListener('click', () => {
+            this.revealStage4SubsequentSlabs(true);
             this.autoFillSlabsUpTo(2200);
         });
 
-        // Master Slabs Bulk Controls (Quick Shift −₹10/−₹5/+₹5/+₹10 stays as-is; − Step / + Step defaults to 1)
-        document.getElementById('slabBulkMinus10')?.addEventListener('click', () => this.bulkShiftMasterSlabs(-10));
-        document.getElementById('slabBulkMinus5')?.addEventListener('click', () => this.bulkShiftMasterSlabs(-5));
-        document.getElementById('slabBulkPlus5')?.addEventListener('click', () => this.bulkShiftMasterSlabs(5));
-        document.getElementById('slabBulkPlus10')?.addEventListener('click', () => this.bulkShiftMasterSlabs(10));
-
+        // Master Slabs Step Controls (− Step / + Step defaults to 1)
         document.getElementById('slabCustomDeductBtn')?.addEventListener('click', () => {
             const step = Math.max(1, parseFloat(document.getElementById('customSlabStepInput')?.value) || 1);
             this.bulkShiftMasterSlabs(-step);
