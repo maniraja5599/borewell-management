@@ -275,8 +275,8 @@ svg.lucide {
     background-color: var(--brand-primary);
     background-image: var(--brand-gradient);
     color: #ffffff;
-    padding-top: calc(8px + var(--safe-top));
-    padding-bottom: 7px;
+    padding-top: calc(5px + var(--safe-top));
+    padding-bottom: 5px;
     padding-left: max(12px, var(--safe-left));
     padding-right: max(12px, var(--safe-right));
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -286,15 +286,15 @@ svg.lucide {
 /* On Android standalone PWA, sleek and compact below system status bar */
 html.android-standalone .app-header,
 html.android-device.pwa-standalone .app-header {
-    padding-top: calc(8px + var(--safe-top));
-    padding-bottom: 7px;
+    padding-top: calc(5px + var(--safe-top));
+    padding-bottom: 5px;
 }
 
 /* On iOS standalone PWA, sit cleanly below status bar with zero wasted space */
 html.ios-standalone .app-header {
     margin-top: 0;
-    padding-top: calc(6px + var(--safe-top));
-    padding-bottom: 7px;
+    padding-top: calc(5px + var(--safe-top));
+    padding-bottom: 5px;
     background-color: var(--brand-primary);
     background-image: none;
     border-top: none;
@@ -308,21 +308,21 @@ html.ios-standalone .app-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 
 .brand-identity {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     cursor: pointer;
     min-width: 0;
 }
 
 .brand-logo-wrap {
-    width: 31px;
-    height: 31px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
     background: #ffffff;
     border: 1.5px solid var(--brand-accent);
     display: flex;
@@ -344,28 +344,29 @@ html.ios-standalone .app-header {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 1px;
+    gap: 0;
 }
 
 .company-name {
     font-family: var(--font-display);
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     font-weight: 800;
     color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.2;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
 }
 
 .company-tagline {
-    font-size: 0.63rem;
+    font-size: 0.60rem;
     color: var(--brand-accent);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.15;
+    line-height: 1.1;
 }
 
 .header-controls {
@@ -488,37 +489,37 @@ html.ios-standalone .sticky-live-bar {
 .live-bar-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 7px;
     text-align: right;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.16);
-    padding: 3px 10px;
-    border-radius: 9px;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+    padding: 2.5px 8px;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
 .live-bar-amount {
     font-family: var(--font-display);
-    font-size: 1.45rem;
-    font-weight: 850;
+    font-size: 1.24rem;
+    font-weight: 800;
     color: #4ade80;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
 }
 
 .live-bar-balance {
     display: inline-flex;
     align-items: center;
     gap: 2.5px;
-    font-size: 0.65rem;
+    font-size: 0.63rem;
     background: #fef2f2;
     color: #b91c1c;
     border: 1px solid #fca5a5;
-    padding: 2px 7px;
+    padding: 1.5px 6px;
     border-radius: 99px;
     font-weight: 750;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    letter-spacing: 0.15px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    letter-spacing: 0.1px;
     line-height: 1.2;
 }
 
@@ -599,7 +600,8 @@ html.ios-standalone .sticky-live-bar {
     border-radius: var(--radius-lg);
     padding: 11px 12px;
     margin-bottom: 9px;
-    box-shadow: var(--shadow-xs);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    transition: box-shadow 0.16s ease, border-color 0.16s ease;
 }
 
 /* ==================== SAVED BILL VIEW-ONLY / EDIT MODE BANNER ==================== */
@@ -2250,12 +2252,13 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 8px 10px;
-    box-shadow: var(--shadow-xs);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
 .kpi-card.due-kpi {
-    background: var(--danger-light);
-    border-color: var(--danger-border);
+    background: #fef2f2;
+    border-color: #fecaca;
 }
 
 .kpi-top {
@@ -2365,11 +2368,13 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 9px 10px;
-    transition: border-color 0.15s;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: all 0.15s ease;
 }
 
 .khata-card:hover {
     border-color: var(--border-strong);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.07);
 }
 
 .khata-top {
