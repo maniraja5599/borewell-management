@@ -314,22 +314,23 @@ html.ios-standalone .app-header {
 .brand-identity {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     cursor: pointer;
     min-width: 0;
+    flex: 1;
 }
 
 .brand-logo-wrap {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
     background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.32);
 }
 
 .brand-logo-wrap img {
@@ -343,36 +344,154 @@ html.ios-standalone .app-header {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0;
+    gap: 1px;
 }
 
 .company-name {
     font-family: var(--font-display);
-    font-size: 0.82rem;
+    font-size: 0.98rem;
     font-weight: 800;
     color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.15;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-.company-tagline {
+.company-sub-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    line-height: 1;
+}
+
+.csm-loc-tag {
     font-size: 0.60rem;
-    color: var(--brand-accent);
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.1;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1px 6px;
+    border-radius: 99px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     flex-shrink: 0;
+}
+
+/* Smart Interactive Due Ticker Pill in Top Fixed Header */
+.header-due-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.32);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    padding: 3px 9px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.header-due-pill:active {
+    transform: scale(0.96);
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.header-due-pill.has-due {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(248, 113, 113, 0.45);
+}
+
+.header-due-pill.has-due .hdp-icon-dot {
+    background: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.85);
+    animation: duePulse 2s infinite ease-in-out;
+}
+
+.header-due-pill.is-settled .hdp-icon-dot {
+    background: #22c55e;
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.65);
+}
+
+@keyframes duePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.85); }
+}
+
+.hdp-icon-dot {
+    width: 6.5px;
+    height: 6.5px;
+    border-radius: 50%;
+    background: #94a3b8;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.hdp-ticker-roll {
+    position: relative;
+    height: 18px;
+    overflow: hidden;
+    min-width: 72px;
+}
+
+.hdp-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    white-space: nowrap;
+}
+
+.hdp-slide.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hdp-slide.exit-up {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.hdp-lbl {
+    font-size: 0.58rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.04em;
+}
+
+.hdp-amt {
+    font-family: var(--font-display);
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+}
+
+.header-due-pill.has-due .hdp-amt {
+    color: #fecaca;
+}
+
+.header-due-pill.is-settled .hdp-amt {
+    color: #bbf7d0;
 }
 
 .pwa-install-btn {

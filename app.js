@@ -3835,6 +3835,64 @@ class BoreBillSaaSApp {
         return aggResult;
     }
 
+    updateHeaderDueTicker(explicitTotalPending = null) {
+        const pill = document.getElementById('headerDueTickerPill');
+        const totEl = document.getElementById('headerDueTotalAmt');
+        const countEl = document.getElementById('headerDueCountAmt');
+        if (!pill || !totEl || !countEl) return;
+
+        let totalPending = 0;
+        let pendingCount = 0;
+
+        if (explicitTotalPending !== null) {
+            totalPending = explicitTotalPending;
+            this.history.forEach(b => {
+                const snap = b.snapshot || {};
+                if ((snap.docType || 'QUOTATION') === 'INVOICE' && this.getBillPendingAmount(b) > 0) {
+                    pendingCount++;
+                }
+            });
+        } else {
+            this.history.forEach(b => {
+                const snap = b.snapshot || {};
+                if ((snap.docType || 'QUOTATION') === 'INVOICE') {
+                    const due = this.getBillPendingAmount(b);
+                    if (due > 0) {
+                        totalPending += due;
+                        pendingCount++;
+                    }
+                }
+            });
+        }
+
+        const hasDue = totalPending > 0;
+        pill.classList.toggle('has-due', hasDue);
+        pill.classList.toggle('is-settled', !hasDue);
+
+        totEl.textContent = hasDue ? this.formatINR(totalPending) : '₹0 Due';
+        countEl.textContent = hasDue ? `${pendingCount} ${pendingCount === 1 ? 'bill' : 'bills'}` : 'All Paid';
+
+        if (!this._headerTickerTimer) {
+            this._headerTickerTimer = setInterval(() => {
+                const s1 = document.getElementById('headerDueSlide1');
+                const s2 = document.getElementById('headerDueSlide2');
+                if (!s1 || !s2) return;
+                const isS1Active = s1.classList.contains('active');
+                if (isS1Active) {
+                    s1.classList.remove('active');
+                    s1.classList.add('exit-up');
+                    s2.classList.remove('exit-up');
+                    s2.classList.add('active');
+                } else {
+                    s2.classList.remove('active');
+                    s2.classList.add('exit-up');
+                    s1.classList.remove('exit-up');
+                    s1.classList.add('active');
+                }
+            }, 3600);
+        }
+    }
+
     renderCustomerDirectory(query = '') {
         const countBadge = document.getElementById('navCustomerCount');
         if (countBadge) countBadge.textContent = this.customers.length;
@@ -3856,6 +3914,7 @@ class BoreBillSaaSApp {
         if (statBilled) statBilled.textContent = this.formatINR(grandBilledAll);
         if (statPending) statPending.textContent = this.formatINR(grandPendingAll);
 
+        this.updateHeaderDueTicker(grandPendingAll);
         this.renderQuickCustomerPicker();
 
         const listEl = document.getElementById('crmCustomerList');
@@ -4847,8 +4906,22 @@ class BoreBillSaaSApp {
         const quoteTermsNote = this.getDocFooterTermsNote('QUOTATION');
         const finalBillTermsNote = this.getDocFooterTermsNote('INVOICE');
 
-        document.getElementById('headerCompanyName').textContent = compName;
-        document.getElementById('headerCompanyTagline').textContent = tagline;
+        const headerCompEl = document.getElementById('headerCompanyName');
+        if (headerCompEl) {
+            headerCompEl.textContent = compName;
+        }
+        const headerTaglineEl = document.getElementById('headerCompanyTagline');
+        if (headerTaglineEl) {
+            headerTaglineEl.textContent = tagline;
+            headerTaglineEl.style.display = 'none'; // Slogan completely hidden in top fixed bar
+        }
+        const headerSubMeta = document.getElementById('headerCompanySubMeta');
+        const headerLoc = document.getElementById('headerCompanyLocation');
+        if (headerSubMeta && headerLoc) {
+            const locText = (address.split(',')[0] || 'Namakkal').trim();
+            headerLoc.textContent = locText;
+            headerSubMeta.style.display = 'inline-flex';
+        }
 
         document.getElementById('receiptCompanyName').textContent = compName;
         const rcptTaglineEl = document.getElementById('receiptCompanyTagline');
@@ -7853,6 +7926,17 @@ class BoreBillSaaSApp {
 
         document.getElementById('openBrandTabBtn')?.addEventListener('click', () => {
             this.switchTab('tab-brand');
+        });
+
+        // Smart Due Ticker Pill: Tap to view Customer Ledger with Due filter
+        document.getElementById('headerDueTickerPill')?.addEventListener('click', () => {
+            this.switchTab('tab-crm');
+            this.crmFilter = 'due';
+            document.querySelectorAll('#crmFilterPills .cmf-pill').forEach(pill => {
+                pill.classList.toggle('active', pill.dataset.filter === 'due');
+            });
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+            this.showToast('📋 Viewing Customers with Outstanding Dues');
         });
 
         document.getElementById('langSwitchBtn')?.addEventListener('click', () => {
