@@ -1,7 +1,7 @@
 {
-  "name": "BoreBill Pro — Borewell Billing SaaS",
-  "short_name": "BoreBill Pro",
-  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Khata App",
+  "name": "DrillRig Flow — Borewell ERP & Billing SaaS",
+  "short_name": "DrillRig Flow",
+  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Khata ERP",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

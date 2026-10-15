@@ -322,15 +322,14 @@ html.ios-standalone .app-header {
 .brand-logo-wrap {
     width: 28px;
     height: 28px;
-    border-radius: 7px;
-    background: #ffffff;
-    border: 1.5px solid var(--brand-accent);
+    border-radius: 8px;
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
-    color: var(--brand-primary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
 }
 
 .brand-logo-wrap img {
