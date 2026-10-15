@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=88">
+    <link rel="stylesheet" href="styles.css?v=89">
 </head>
 <body>
 
@@ -1441,6 +1441,10 @@
                         <i data-lucide="palette" class="icon-xs"></i>
                         <span>Theme</span>
                     </button>
+                    <button type="button" class="set-seg-btn" data-view="set-view-whatsapp">
+                        <i data-lucide="message-circle" class="icon-xs"></i>
+                        <span>WhatsApp</span>
+                    </button>
                     <button type="button" class="set-seg-btn" data-view="set-view-vault">
                         <i data-lucide="database-backup" class="icon-xs"></i>
                         <span>Backup</span>
@@ -2001,7 +2005,175 @@
             </div>
             <!-- END VIEW 3: THEME COLOR -->
 
-            <!-- VIEW 4: DATA VAULT & BACKUP -->
+            <!-- VIEW 4: WHATSAPP MESSAGE FORMAT CUSTOMIZER -->
+            <div class="settings-view-panel" id="set-view-whatsapp" style="display: none;">
+                <div class="ui-card">
+                    <div class="page-head-row">
+                        <div>
+                            <h3 class="page-title"><i data-lucide="message-circle" class="icon-sm text-brand"></i> WhatsApp Bill Format Designer</h3>
+                            <p class="page-sub">Choose what sections and charges appear when sharing bills on WhatsApp</p>
+                        </div>
+                        <button type="button" class="btn-brand-sm" id="resetWaFormatBtn" style="padding: 6px 12px; font-size: 0.76rem;">Reset Default</button>
+                    </div>
+
+                    <!-- Toggle switches grid -->
+                    <div class="wa-format-grid" id="waFormatTogglesList">
+                        <label class="wa-toggle-item" for="waToggleCompanyHeader">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">🚜</span>
+                                <div>
+                                    <strong>Company Name &amp; Tagline</strong>
+                                    <small>Header line with business name and slogan</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleCompanyHeader" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleAddress">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">📍</span>
+                                <div>
+                                    <strong>Office Address</strong>
+                                    <small>Company workshop / office location</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleAddress" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleGst">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">🏛️</span>
+                                <div>
+                                    <strong>Company &amp; Client GSTIN</strong>
+                                    <small>Include GST identification numbers when set</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleGst" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleSlabBreakup">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">📊</span>
+                                <div>
+                                    <strong>Itemized Slab-wise Drilling</strong>
+                                    <small>Detailed depth bracket charges (e.g. 1-100 ft × rate)</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleSlabBreakup" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waTogglePipes">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">🛠️</span>
+                                <div>
+                                    <strong>Casing Pipe Breakdown</strong>
+                                    <small>Casing 1 &amp; Casing 2 footage and prices</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waTogglePipes" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleExtras">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">🔧</span>
+                                <div>
+                                    <strong>Bata, Collar &amp; Extra Charges</strong>
+                                    <small>Bore bata, welding collar, transport and custom extras</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleExtras" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waTogglePaymentDue">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">💰</span>
+                                <div>
+                                    <strong>Advance Paid &amp; Balance Due</strong>
+                                    <small>Payment status, advance received &amp; remaining due</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waTogglePaymentDue" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleNote">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">📝</span>
+                                <div>
+                                    <strong>Custom Bill Note</strong>
+                                    <small>Site remarks and specific customer instructions</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleNote" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleFooterTerms">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">📜</span>
+                                <div>
+                                    <strong>Footer Terms / Thank You Note</strong>
+                                    <small>Quotation disclaimer or final thank you note</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleFooterTerms" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waToggleContact">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">📞</span>
+                                <div>
+                                    <strong>Website, UPI &amp; Contact Numbers</strong>
+                                    <small>GPay / UPI ID and phone numbers for payment</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waToggleContact" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Live WhatsApp Message Simulation Preview Card -->
+                    <div class="theme-live-preview-box" style="margin-top: 14px;">
+                        <div class="tlp-header">
+                            <span class="tlp-tag">💬 LIVE WHATSAPP MESSAGE PREVIEW</span>
+                            <small>Updates in real-time as you switch controls above</small>
+                        </div>
+                        <div class="wa-chat-wallpaper" style="border-radius: 10px; margin-top: 8px;">
+                            <div class="wa-chat-bubble" id="waSettingsLivePreviewBubble"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END VIEW 4: WHATSAPP FORMAT CUSTOMIZER -->
+
+            <!-- VIEW 5: DATA VAULT & BACKUP -->
             <div class="settings-view-panel" id="set-view-vault" style="display: none;">
                 <div class="ui-card" id="companyDataVaultCard">
                     <div class="page-head-row">
@@ -2472,6 +2644,36 @@
         </div>
     </div>
 
+    <!-- ==================== IOS / MOBILE PWA IMAGE SAVE MODAL ==================== -->
+    <div class="cust-popup-backdrop" id="iosImageSaveModal" style="display: none;">
+        <div class="cust-popup-dialog ios-img-save-modal" role="dialog" aria-modal="true" aria-labelledby="iosImgModalTitle">
+            <div class="cust-popup-head">
+                <div class="cph-left">
+                    <span class="cph-icon" style="background: #ecfdf5; color: #10b981;"><i data-lucide="image" class="icon-xs"></i></span>
+                    <div>
+                        <h4 id="iosImgModalTitle">Save Bill Image</h4>
+                        <p class="cph-sub">Press &amp; hold image below to save to Photos</p>
+                    </div>
+                </div>
+                <button type="button" class="icon-close-btn" id="closeIosImgModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+            </div>
+
+            <div class="cust-popup-body" style="padding: 12px 16px;">
+                <div class="ios-img-help-pill">
+                    <span>💡</span>
+                    <span><strong>iPhone / iPad:</strong> Long press (அழுத்தி பிடிக்கவும்) the bill image below and tap <strong>"Save to Photos"</strong>.</span>
+                </div>
+                <div class="ios-img-preview-box" style="margin-top: 10px;">
+                    <img id="iosImgPreviewElement" src="" alt="HD Bill Receipt">
+                </div>
+            </div>
+
+            <div class="cust-popup-foot">
+                <button type="button" class="btn-secondary-sm" id="dismissIosImgModalBtn" style="width: 100%;">Done</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== BOTTOM NAVIGATION BAR (LUCIDE ICONS) ==================== -->
     <nav class="bottom-nav">
         <button type="button" class="b-nav-item active" data-tab="tab-bill">
@@ -2501,6 +2703,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=88"></script>
+    <script src="app.js?v=89"></script>
 </body>
 </html>

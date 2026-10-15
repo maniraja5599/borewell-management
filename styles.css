@@ -6793,76 +6793,76 @@ html.ios-standalone body.keyboard-open .app-main {
     justify-content: center;
 }
 
-/* Official A4 PDF Export Sheet Rendering Mode */
+/* Official A4 PDF & Image Export Sheet Rendering Mode (Balanced 600px Standard) */
 .pdf-a4-export-sheet {
-    width: 720px !important;
-    max-width: 720px !important;
+    width: 600px !important;
+    max-width: 600px !important;
     background: #ffffff !important;
-    border: 2px solid #cbd5e1 !important;
-    border-radius: 10px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 12px !important;
     box-shadow: none !important;
     overflow: hidden !important;
     font-family: 'Inter', 'Noto Sans Tamil', sans-serif !important;
 }
 
 .pdf-a4-export-sheet .receipt-header {
-    padding: 18px 22px 14px !important;
+    padding: 16px 18px 12px !important;
 }
 
 .pdf-a4-export-sheet .receipt-company-info h2 {
-    font-size: 1.35rem !important;
+    font-size: 1.25rem !important;
     letter-spacing: 0.01em !important;
 }
 
 .pdf-a4-export-sheet .receipt-tagline {
-    font-size: 0.82rem !important;
+    font-size: 0.76rem !important;
     margin-top: 2px !important;
 }
 
 .pdf-a4-export-sheet .receipt-address {
-    font-size: 0.78rem !important;
+    font-size: 0.74rem !important;
     margin-top: 3px !important;
 }
 
 .pdf-a4-export-sheet .receipt-phones-row {
-    font-size: 0.8rem !important;
-    margin-top: 5px !important;
+    font-size: 0.76rem !important;
+    margin-top: 4px !important;
 }
 
 .pdf-a4-export-sheet .receipt-logo-box {
-    width: 58px !important;
-    height: 58px !important;
+    width: 50px !important;
+    height: 50px !important;
 }
 
 .pdf-a4-export-sheet .receipt-customer-box {
-    padding: 10px 22px !important;
+    padding: 10px 18px !important;
 }
 
 .pdf-a4-export-sheet .cust-grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px 16px !important;
-    font-size: 0.82rem !important;
+    gap: 6px 14px !important;
+    font-size: 0.80rem !important;
 }
 
 .pdf-a4-export-sheet .receipt-summary-chips {
-    padding: 10px 22px !important;
-    gap: 10px !important;
+    padding: 9px 18px !important;
+    gap: 8px !important;
 }
 
 .pdf-a4-export-sheet .receipt-slab-section,
 .pdf-a4-export-sheet .receipt-charges-list {
-    padding: 10px 22px !important;
+    padding: 9px 18px !important;
 }
 
 .pdf-a4-export-sheet .slab-row,
 .pdf-a4-export-sheet .charge-line {
-    font-size: 0.82rem !important;
-    padding: 6px 8px !important;
+    font-size: 0.80rem !important;
+    padding: 5px 8px !important;
 }
 
 .pdf-a4-export-sheet .receipt-footer {
-    padding: 12px 22px 16px !important;
+    padding: 12px 18px 14px !important;
 }
 
 /* ==========================================================================
@@ -9719,11 +9719,11 @@ input.is-select-all-ready,
 
 .settings-nav-segmented {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     background: #f1f5f9;
     padding: 4px;
     border-radius: 11px;
-    gap: 4px;
+    gap: 3px;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -9776,4 +9776,149 @@ input.is-select-all-ready,
         transform: translateY(0);
     }
 }
+
+/* ==========================================================================
+   WHATSAPP MESSAGE DESIGN STUDIO & TOGGLES (SETTINGS VIEW 4)
+   ========================================================================== */
+.wa-format-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0 16px;
+}
+
+.wa-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wa-toggle-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.wa-toggle-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.wa-toggle-info .wt-icon {
+    font-size: 1.1rem;
+    line-height: 1.2;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.wa-toggle-info strong {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main, #0f172a);
+    line-height: 1.25;
+}
+
+.wa-toggle-info small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 2px;
+    line-height: 1.25;
+}
+
+/* Modern iOS-style toggle switch */
+.wa-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.wa-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.wa-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 24px;
+}
+
+.wa-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.wa-switch input:checked + .wa-slider {
+    background-color: #10b981;
+}
+
+.wa-switch input:checked + .wa-slider:before {
+    transform: translateX(18px);
+}
+
+/* iOS Image Save Modal */
+.ios-img-save-modal {
+    max-width: 480px;
+}
+
+.ios-img-preview-box {
+    max-height: 55vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: #0f172a;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.ios-img-preview-box img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.ios-img-help-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
 

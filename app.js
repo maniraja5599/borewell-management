@@ -196,6 +196,20 @@ class BoreBillSaaSApp {
             logoDataUrl: ''
         };
 
+        this.defaultWaFormat = {
+            companyHeader: true,
+            address: true,
+            gst: true,
+            slabBreakup: true,
+            pipes: true,
+            extras: true,
+            paymentDue: true,
+            note: true,
+            footerTerms: true,
+            contact: true
+        };
+        this.waFormat = this.loadFromStorage('borebill_wa_format', this.defaultWaFormat);
+
         this.defaultRates = {
             baseDrillingRate: 90,
             oldBoreRate: 40,
@@ -5920,9 +5934,10 @@ class BoreBillSaaSApp {
             .replace(/_([^_\n]+)_/g, '<em>$1</em>');
     }
 
-    buildCleanBillWhatsAppMessage({ billNo, billDate, custName, custPhone, custLocation, custGst, res, paymentStatus = null }) {
+    buildCleanBillWhatsAppMessage({ billNo, billDate, custName, custPhone, custLocation, custGst, res, paymentStatus = null, formatConfig = null }) {
         if (!res) return '';
         const b = this.brand || this.defaultBrand;
+        const cfg = formatConfig || this.waFormat || this.defaultWaFormat;
         const compName = (b.companyName || 'MY BOREWELL COMPANY').trim();
         const tagline = (b.tagline || '').trim();
         const address = (b.address || '').trim();
@@ -5932,15 +5947,32 @@ class BoreBillSaaSApp {
         const cleanCust = (custName && custName !== 'Walk-in Customer') ? custName.trim() : '';
         const cleanPhone = this.formatPhoneWithCountryCode(custPhone || '');
         const cleanLoc = (custLocation || '').trim();
-        const cleanClientGst = res.gstEnabled ? ((custGst || res.custGst || '').trim().toUpperCase()) : '';
+        const cleanClientGst = (res.gstEnabled && cfg.gst !== false) ? ((custGst || res.custGst || '').trim().toUpperCase()) : '';
         const compPhones = this.formatCompanyPhonesWithCountryCode((b.phones || '').trim(), b.phoneCountryCode || this.defaultCountryCode);
 
         const lines = [];
-        lines.push(`*🚜 ${compName}*`);
-        if (tagline) lines.push(`_${tagline}_`);
-        if (address) lines.push(`📍 ${address}`);
-        if (compGst) lines.push(`🏛️ *GSTIN:* ${compGst}`);
-        lines.push(`──────────────────────`);
+
+        // 1. Company Header
+        if (cfg.companyHeader !== false) {
+            lines.push(`*🚜 ${compName}*`);
+            if (tagline) lines.push(`_${tagline}_`);
+        }
+
+        // 2. Office Address
+        if (cfg.address !== false && address) {
+            lines.push(`📍 ${address}`);
+        }
+
+        // 3. Company GST
+        if (cfg.gst !== false && compGst) {
+            lines.push(`🏛️ *GSTIN:* ${compGst}`);
+        }
+
+        if (lines.length > 0) {
+            lines.push(`──────────────────────`);
+        }
+
+        // Bill Header & Customer Information
         lines.push(`*${docLabel} : #${billNo || 'AB-101'}*`);
         if (billDate) lines.push(`📅 *Date:* ${billDate}`);
         if (cleanCust) lines.push(`👤 *Customer:* ${cleanCust}`);
@@ -5951,40 +5983,52 @@ class BoreBillSaaSApp {
         lines.push(`📏 *Total Depth:* *${res.totalDepth || 0} ft*`);
         lines.push(`──────────────────────`);
 
-        if (Array.isArray(res.slabDetails) && res.slabDetails.length > 0) {
+        // 4. Drilling Charges (Slab-wise Breakup)
+        if (cfg.slabBreakup !== false && Array.isArray(res.slabDetails) && res.slabDetails.length > 0) {
             lines.push(`*📊 1. DRILLING CHARGES (SLAB-WISE):*`);
             res.slabDetails.forEach(s => {
                 lines.push(`• ${s.range} : ${s.depth} ft × ₹${s.rate} = *${this.formatINR(s.cost)}*`);
             });
             lines.push(`▸ *Drilling Total : ${this.formatINR(res.drillingCost)}*`);
             lines.push(`──────────────────────`);
+        } else if (cfg.slabBreakup === false) {
+            lines.push(`▸ *Drilling Charges (${res.totalDepth || 0} ft) : ${this.formatINR(res.drillingCost)}*`);
+            lines.push(`──────────────────────`);
         }
 
+        // 5. Casing Pipes & 6. Extra Charges
         const otherLines = [];
         const c1Name = this.getCasing1Name();
         const c2Name = this.getCasing2Name();
-        if (res.pvc7Length > 0) {
-            otherLines.push(`• ${c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+
+        if (cfg.pipes !== false) {
+            if (res.pvc7Length > 0) {
+                otherLines.push(`• ${c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+            }
+            if (res.pvc10Length > 0) {
+                otherLines.push(`• ${c2Name} (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
+            }
         }
-        if (res.pvc10Length > 0) {
-            otherLines.push(`• ${c2Name} (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
+
+        if (cfg.extras !== false) {
+            if (res.boreBataCost > 0) {
+                otherLines.push(`• Bore Bata : *${this.formatINR(res.boreBataCost)}*`);
+            }
+            if (res.collarCapCost > 0) {
+                otherLines.push(`• Collar / Cap / Welding : *${this.formatINR(res.collarCapCost)}*`);
+            }
+            if (res.transportSurveyCost > 0) {
+                otherLines.push(`• Transport / Survey : *${this.formatINR(res.transportSurveyCost)}*`);
+            }
+            if (res.customExtraAmount > 0) {
+                otherLines.push(`• ${res.customExtraLabel || 'Extra Charges'} : *${this.formatINR(res.customExtraAmount)}*`);
+            }
         }
-        if (res.boreBataCost > 0) {
-            otherLines.push(`• Bore Bata : *${this.formatINR(res.boreBataCost)}*`);
-        }
-        if (res.collarCapCost > 0) {
-            otherLines.push(`• Collar / Cap / Welding : *${this.formatINR(res.collarCapCost)}*`);
-        }
-        if (res.transportSurveyCost > 0) {
-            otherLines.push(`• Transport / Survey : *${this.formatINR(res.transportSurveyCost)}*`);
-        }
-        if (res.customExtraAmount > 0) {
-            otherLines.push(`• ${res.customExtraLabel || 'Extra Charges'} : *${this.formatINR(res.customExtraAmount)}*`);
-        }
+
         if (res.discountAmount > 0) {
             otherLines.push(`• Discount : *− ${this.formatINR(res.discountAmount)}*`);
         }
-        if (res.gstEnabled) {
+        if (res.gstEnabled && cfg.gst !== false) {
             otherLines.push(`• GST (${res.gstPercentage}%) : *${this.formatINR(res.gstAmount)}*`);
         }
 
@@ -5994,9 +6038,11 @@ class BoreBillSaaSApp {
             lines.push(`──────────────────────`);
         }
 
+        // Total Amount
         lines.push(`*💰 GRAND TOTAL : ${this.formatINR(res.grandTotal)}*`);
 
-        if (isInvoice) {
+        // 7. Payment Due & Status
+        if (cfg.paymentDue !== false && isInvoice) {
             if (paymentStatus === 'paid') {
                 lines.push(`✅ *Payment Status : PAID*`);
             } else if ((res.advancePaidAmount || 0) > 0) {
@@ -6007,22 +6053,34 @@ class BoreBillSaaSApp {
             }
         }
 
-        let customRemark = (res.customNote || '').trim();
-        if (isInvoice && /பாறை கடினம்|rock strata/i.test(customRemark)) {
-            customRemark = '';
-        }
-        if (customRemark) {
-            lines.push(`📝 *Note:* ${customRemark}`);
+        // 8. Custom Note
+        if (cfg.note !== false) {
+            let customRemark = (res.customNote || '').trim();
+            if (isInvoice && /பாறை கடினம்|rock strata/i.test(customRemark)) {
+                customRemark = '';
+            }
+            if (customRemark) {
+                lines.push(`📝 *Note:* ${customRemark}`);
+            }
         }
 
-        const docFooterNote = this.getDocFooterTermsNote(isInvoice ? 'INVOICE' : 'QUOTATION');
-        lines.push(`──────────────────────`);
+        // 9. Footer Terms & 10. Contact / UPI Info
+        const docFooterNote = cfg.footerTerms !== false ? this.getDocFooterTermsNote(isInvoice ? 'INVOICE' : 'QUOTATION') : '';
+        const hasBottomSection = docFooterNote || (cfg.contact !== false && (b.website || b.upiId || compPhones));
+
+        if (hasBottomSection) {
+            lines.push(`──────────────────────`);
+        }
+
         if (docFooterNote) {
             lines.push(docFooterNote);
         }
-        if (b.website && b.website.trim()) lines.push(`🌐 *Website:* ${b.website.trim()}`);
-        if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
-        if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
+
+        if (cfg.contact !== false) {
+            if (b.website && b.website.trim()) lines.push(`🌐 *Website:* ${b.website.trim()}`);
+            if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
+            if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
+        }
 
         return lines.join('\n');
     }
@@ -6272,22 +6330,78 @@ class BoreBillSaaSApp {
                 scale: 2.5,
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                windowWidth: 800
+                windowWidth: 600
             });
-            const link = document.createElement('a');
+
             const billNo = (document.getElementById('billNoInput')?.value || 'Bill').replace(/[^a-zA-Z0-9_-]/g, '_');
             const compSafe = (this.brand.companyName || 'BoreBill').trim().replace(/\s+/g, '_');
-            link.download = `${compSafe}_${billNo}.png`;
-            link.href = canvas.toDataURL('image/png');
+            const fileName = `${compSafe}_${billNo}.png`;
+
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            // If browser supports Web Share API with Files (iOS Safari, modern mobile browsers)
+            if (canvas.toBlob && navigator.canShare) {
+                try {
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        if (navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: `${this.brand.companyName || 'Borewell'} Bill #${billNo}`,
+                                text: `Bill Receipt #${billNo}`
+                            });
+                            this.showToast('✅ Bill Image Shared / Saved!');
+                            return;
+                        }
+                    }
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') {
+                        // User simply cancelled the iOS share sheet
+                        return;
+                    }
+                    console.warn('Web Share API failed, falling back:', shareErr);
+                }
+            }
+
+            const imgData = canvas.toDataURL('image/png');
+
+            // If iOS device or standalone PWA where programmatic <a download> is blocked
+            if (isIOS) {
+                this.openIosImageSaveModal(imgData);
+                this.showToast('💡 Long press image to Save to Photos');
+                return;
+            }
+
+            // Standard desktop / Android link download
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = imgData;
             link.click();
             this.showToast('✅ Bill Image Saved!');
         } catch (err) {
+            console.error('exportBillAsImage error:', err);
             this.showToast('❌ Could not save image.');
         } finally {
             if (cloneHost && cloneHost.parentNode) {
                 cloneHost.parentNode.removeChild(cloneHost);
             }
         }
+    }
+
+    openIosImageSaveModal(imgDataUrl) {
+        const modal = document.getElementById('iosImageSaveModal');
+        const imgEl = document.getElementById('iosImgPreviewElement');
+        if (!modal || !imgEl) return;
+        imgEl.src = imgDataUrl;
+        modal.style.display = 'flex';
+        this.refreshIcons();
+    }
+
+    closeIosImageSaveModal() {
+        const modal = document.getElementById('iosImageSaveModal');
+        if (modal) modal.style.display = 'none';
     }
 
     async exportBillAsPDF() {
@@ -6304,7 +6418,7 @@ class BoreBillSaaSApp {
         this.showToast('📄 Generating Official A4 PDF...');
         let cloneHost = null;
         try {
-            // 2. Render an A4-proportioned (720px desktop width) clone so mobile screens never stretch or squish the PDF
+            // 2. Render an A4-proportioned (600px width) clone so mobile screens never stretch or squish the PDF
             cloneHost = document.createElement('div');
             cloneHost.className = 'pdf-a4-export-sheet';
             cloneHost.style.position = 'fixed';
@@ -6319,7 +6433,7 @@ class BoreBillSaaSApp {
                 scale: 2.6,
                 useCORS: true,
                 backgroundColor: '#ffffff',
-                windowWidth: 800
+                windowWidth: 600
             });
             const imgData = canvas.toDataURL('image/png');
             const { jsPDF } = window.jspdf;
@@ -6342,9 +6456,9 @@ class BoreBillSaaSApp {
 
             const pageWidth = pdf.internal.pageSize.getWidth();   // 210 mm
             const pageHeight = pdf.internal.pageSize.getHeight(); // 297 mm
-            const margin = 8;
-            const maxW = pageWidth - margin * 2;
-            const maxH = pageHeight - margin * 2;
+            // Centered layout with balanced 175mm width on standard 210mm A4
+            const maxW = 175;
+            const maxH = pageHeight - 16;
 
             let drawW = maxW;
             let drawH = (canvas.height * drawW) / canvas.width;
@@ -6356,7 +6470,7 @@ class BoreBillSaaSApp {
                 drawW = drawW * ratio;
             }
             const xOffset = (pageWidth - drawW) / 2;
-            const yOffset = margin;
+            const yOffset = 10;
 
             pdf.addImage(imgData, 'PNG', xOffset, yOffset, drawW, drawH, undefined, 'FAST');
 
@@ -6366,6 +6480,7 @@ class BoreBillSaaSApp {
             pdf.save(`${safeComp || 'BoreBill'}_${safeBillNo}${safeCust}.pdf`);
             this.showToast('✅ Official A4 PDF Downloaded!');
         } catch (err) {
+            console.error('exportBillAsPDF error:', err);
             this.showToast('❌ PDF generation failed.');
         } finally {
             if (cloneHost && cloneHost.parentNode) {
@@ -9476,12 +9591,116 @@ class BoreBillSaaSApp {
             if (viewId === 'set-view-casing') {
                 this.syncCasingNamesUI();
             }
+            if (viewId === 'set-view-whatsapp') {
+                this.syncWaFormatUI();
+                this.renderWaFormatLivePreview();
+            }
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 try { window.lucide.createIcons(); } catch (_) {}
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         const switchSettingsView = this.switchSettingsView;
+
+        // WhatsApp Format Designer Listeners
+        const waTogglesMap = {
+            waToggleCompanyHeader: 'companyHeader',
+            waToggleAddress: 'address',
+            waToggleGst: 'gst',
+            waToggleSlabBreakup: 'slabBreakup',
+            waTogglePipes: 'pipes',
+            waToggleExtras: 'extras',
+            waTogglePaymentDue: 'paymentDue',
+            waToggleNote: 'note',
+            waToggleFooterTerms: 'footerTerms',
+            waToggleContact: 'contact'
+        };
+
+        this.syncWaFormatUI = () => {
+            Object.entries(waTogglesMap).forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.checked = this.waFormat[key] !== false;
+                }
+            });
+        };
+
+        this.renderWaFormatLivePreview = () => {
+            const bubbleEl = document.getElementById('waSettingsLivePreviewBubble');
+            if (!bubbleEl) return;
+
+            // Generate representative sample bill for the live preview
+            const sampleRes = {
+                docType: 'INVOICE',
+                drillingType: 'new',
+                boreDia: '6.5"',
+                totalDepth: 450,
+                drillingCost: 46500,
+                slabDetails: [
+                    { range: '1–100 ft', depth: 100, rate: 90, cost: 9000 },
+                    { range: '101–200 ft', depth: 100, rate: 95, cost: 9500 },
+                    { range: '201–300 ft', depth: 100, rate: 100, cost: 10000 },
+                    { range: '301–400 ft', depth: 100, rate: 105, cost: 10500 },
+                    { range: '401–450 ft', depth: 50, rate: 110, cost: 5500 }
+                ],
+                pvc7Length: 60,
+                pvc7Rate: 400,
+                pvc7Cost: 24000,
+                pvc10Length: 0,
+                pvc10Rate: 700,
+                pvc10Cost: 0,
+                boreBataCost: 2000,
+                collarCapCost: 1500,
+                transportSurveyCost: 1000,
+                customExtraAmount: 0,
+                discountAmount: 0,
+                gstEnabled: false,
+                gstPercentage: 18,
+                gstAmount: 0,
+                grandTotal: 75000,
+                advancePaidAmount: 25000,
+                balancePayable: 50000,
+                customNote: 'Pump installation scheduled tomorrow'
+            };
+
+            const sampleMsg = this.buildCleanBillWhatsAppMessage({
+                billNo: `${this.brand.billPrefix || 'AB'}-101`,
+                billDate: new Date().toLocaleDateString('en-GB'),
+                custName: 'R. Senthil Kumar',
+                custPhone: '9842100000',
+                custLocation: 'Namakkal Site',
+                custGst: '',
+                res: sampleRes,
+                paymentStatus: 'unpaid',
+                formatConfig: this.waFormat
+            });
+
+            bubbleEl.innerHTML = this.formatWhatsAppBubbleHtml(sampleMsg);
+        };
+
+        Object.entries(waTogglesMap).forEach(([id, key]) => {
+            document.getElementById(id)?.addEventListener('change', (e) => {
+                this.waFormat[key] = e.target.checked;
+                this.saveToStorage('borebill_wa_format', this.waFormat);
+                this.renderWaFormatLivePreview();
+            });
+        });
+
+        document.getElementById('resetWaFormatBtn')?.addEventListener('click', () => {
+            this.waFormat = JSON.parse(JSON.stringify(this.defaultWaFormat));
+            this.saveToStorage('borebill_wa_format', this.waFormat);
+            this.syncWaFormatUI();
+            this.renderWaFormatLivePreview();
+            this.showToast('↺ WhatsApp format reset to default');
+        });
+
+        // iOS Image Save Modal close listeners
+        document.getElementById('closeIosImgModalBtn')?.addEventListener('click', () => {
+            this.closeIosImageSaveModal();
+        });
+        document.getElementById('dismissIosImgModalBtn')?.addEventListener('click', () => {
+            this.closeIosImageSaveModal();
+        });
 
         document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
