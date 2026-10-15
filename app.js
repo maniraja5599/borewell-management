@@ -3889,7 +3889,7 @@ class BoreBillSaaSApp {
                     s1.classList.remove('exit-up');
                     s1.classList.add('active');
                 }
-            }, 3600);
+            }, 4500);
         }
     }
 
@@ -9820,7 +9820,13 @@ class BoreBillSaaSApp {
                 panel.style.display = panel.id === viewId ? 'block' : 'none';
             });
             document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.view === viewId);
+                const isActive = btn.dataset.view === viewId;
+                btn.classList.toggle('active', isActive);
+                if (isActive) {
+                    try {
+                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    } catch (_) {}
+                }
             });
             if (viewId === 'set-view-casing') {
                 this.syncCasingNamesUI();
