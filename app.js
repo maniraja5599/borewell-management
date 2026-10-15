@@ -5391,23 +5391,103 @@ class BoreBillSaaSApp {
         this.activeDetailRateId = null;
     }
 
-    switchStudioSubTab(viewMode = 'core') {
-        document.querySelectorAll('#rateStudioSubTabs .studio-seg-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.view === viewMode);
-        });
-        const corePanel = document.getElementById('studioCorePanel');
-        const slabsPanel = document.getElementById('studioSlabsPanel');
-        if (corePanel) {
-            corePanel.style.display = (viewMode === 'core' || viewMode === 'all') ? 'block' : 'none';
-        }
-        if (slabsPanel) {
-            slabsPanel.style.display = (viewMode === 'slabs' || viewMode === 'all') ? 'block' : 'none';
-            if (viewMode === 'all') {
-                slabsPanel.style.marginTop = '12px';
-            } else {
-                slabsPanel.style.marginTop = '0';
+    setRateStudioStage(targetStage = 1) {
+        this.currentRateStage = Math.max(1, Math.min(4, targetStage));
+        this.syncRateStudioProgressiveUI();
+    }
+
+    syncRateStudioProgressiveUI() {
+        const stage = this.currentRateStage || 1;
+        const nameVal = (document.getElementById('masterProfileName')?.value || '').trim();
+        const baseVal = document.getElementById('masterBaseRate')?.value || '90';
+        const flushVal = document.getElementById('masterOldBoreRate')?.value || '40';
+        const bufVal = document.getElementById('masterSlabBuffer')?.value || '5';
+        const p7Val = document.getElementById('masterPvc7Rate')?.value || '400';
+        const p10Val = document.getElementById('masterPvc10Rate')?.value || '700';
+        const bataVal = document.getElementById('masterBoreBata')?.value || '2000';
+        const gstVal = document.getElementById('masterGstPercent')?.value || '18';
+
+        // 1. Update Stepper Progress Indicators
+        for (let i = 1; i <= 4; i++) {
+            const ind = document.getElementById(`rateStepInd${i}`);
+            if (ind) {
+                ind.classList.toggle('active', i === stage);
+                ind.classList.toggle('completed', i < stage);
             }
         }
+
+        // 2. Stage 1: Rate Card Name
+        const s1Card = document.getElementById('rateStage1Card');
+        const s1Sum = document.getElementById('rateStage1SummaryBar');
+        const s1Title = document.getElementById('rateStage1SummaryTitle');
+        const s1Sub = document.getElementById('rateStage1SummarySub');
+        if (s1Title) s1Title.textContent = nameVal || 'Unnamed Rate Card';
+        const isDef = document.getElementById('masterIsDefaultCheckbox')?.checked;
+        if (s1Sub) s1Sub.textContent = isDef ? '★ Default Price List for New Bills' : 'Saved Rate Card Profile';
+
+        if (stage === 1) {
+            if (s1Card) s1Card.style.display = 'block';
+            if (s1Sum) s1Sum.style.display = 'none';
+        } else {
+            if (s1Card) s1Card.style.display = 'none';
+            if (s1Sum) s1Sum.style.display = 'flex';
+        }
+
+        // 3. Stage 2: Base Rate & Flushing
+        const s2Card = document.getElementById('rateStage2Card');
+        const s2Sum = document.getElementById('rateStage2SummaryBar');
+        const s2Title = document.getElementById('rateStage2SummaryTitle');
+        const s2Sub = document.getElementById('rateStage2SummarySub');
+        if (s2Title) s2Title.textContent = `Base Rate: ₹${baseVal}/ft`;
+        if (s2Sub) s2Sub.textContent = `Old Bore Flush: ₹${flushVal}/ft • Buffer: ${bufVal} ft`;
+
+        if (stage === 2) {
+            if (s2Card) s2Card.style.display = 'block';
+            if (s2Sum) s2Sum.style.display = 'none';
+        } else if (stage > 2) {
+            if (s2Card) s2Card.style.display = 'none';
+            if (s2Sum) s2Sum.style.display = 'flex';
+        } else {
+            if (s2Card) s2Card.style.display = 'none';
+            if (s2Sum) s2Sum.style.display = 'none';
+        }
+
+        // 4. Stage 3: Pipes & Bata
+        const s3Card = document.getElementById('rateStage3Card');
+        const s3Sum = document.getElementById('rateStage3SummaryBar');
+        const s3Title = document.getElementById('rateStage3SummaryTitle');
+        const s3Sub = document.getElementById('rateStage3SummarySub');
+        if (s3Title) s3Title.textContent = `Pipes: 7" ₹${p7Val} • 10" ₹${p10Val}/ft`;
+        if (s3Sub) s3Sub.textContent = `Bata: ₹${bataVal} • GST: ${gstVal}%`;
+
+        if (stage === 3) {
+            if (s3Card) s3Card.style.display = 'block';
+            if (s3Sum) s3Sum.style.display = 'none';
+        } else if (stage > 3) {
+            if (s3Card) s3Card.style.display = 'none';
+            if (s3Sum) s3Sum.style.display = 'flex';
+        } else {
+            if (s3Card) s3Card.style.display = 'none';
+            if (s3Sum) s3Sum.style.display = 'none';
+        }
+
+        // 5. Stage 4: Depth Slabs Editor
+        const s4Card = document.getElementById('rateStage4Card');
+        if (s4Card) {
+            s4Card.style.display = (stage === 4) ? 'block' : 'none';
+            if (stage === 4) {
+                this.renderMasterSlabsGrid();
+            }
+        }
+
+        this.refreshIcons();
+    }
+
+    switchStudioSubTab(viewMode = 'core') {
+        // Compatibility mapper for any legacy call
+        if (viewMode === 'core') this.setRateStudioStage(2);
+        else if (viewMode === 'slabs') this.setRateStudioStage(4);
+        else this.setRateStudioStage(1);
     }
 
     applyRateProfileToBill(profileId, showNotification = true) {
@@ -5454,6 +5534,7 @@ class BoreBillSaaSApp {
         this.rates.slabRates = this.normalizeSlabArray(this.rates.slabRates, this.rates.baseDrillingRate || 90);
         this.populateRateInputsUI(prof);
         this.renderMasterSlabsGrid();
+        this.setRateStudioStage(1);
         this.renderRateProfilesUI();
     }
 
@@ -9170,11 +9251,66 @@ class BoreBillSaaSApp {
             this.renderRateProfilesUI();
         });
 
-        // Segmented Rate Studio Sub-Tabs (Core & Pipe | 19 Depth Slabs | All)
-        document.querySelectorAll('#rateStudioSubTabs .studio-seg-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.switchStudioSubTab(btn.dataset.view);
+        // Progressive Step-by-Step Rate Studio Listeners
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById(`rateStepInd${i}`)?.addEventListener('click', () => {
+                this.setRateStudioStage(i);
             });
+        }
+
+        // Stage 1: Next & Edit & Enter key
+        document.getElementById('rateStage1NextBtn')?.addEventListener('click', () => {
+            const nameEl = document.getElementById('masterProfileName');
+            if (nameEl && !nameEl.value.trim()) {
+                nameEl.value = 'Standard 6.5" Rate';
+            }
+            this.setRateStudioStage(2);
+            setTimeout(() => document.getElementById('masterBaseRate')?.focus(), 120);
+        });
+        document.getElementById('masterProfileName')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('rateStage1NextBtn')?.click();
+            }
+        });
+        document.getElementById('rateStage1EditBtn')?.addEventListener('click', () => {
+            this.setRateStudioStage(1);
+            setTimeout(() => document.getElementById('masterProfileName')?.focus(), 120);
+        });
+
+        // Stage 2: Next & Edit & Enter key
+        document.getElementById('rateStage2NextBtn')?.addEventListener('click', () => {
+            this.setRateStudioStage(3);
+            setTimeout(() => document.getElementById('masterPvc7Rate')?.focus(), 120);
+        });
+        ['masterBaseRate', 'masterOldBoreRate', 'masterSlabBuffer'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('rateStage2NextBtn')?.click();
+                }
+            });
+        });
+        document.getElementById('rateStage2EditBtn')?.addEventListener('click', () => {
+            this.setRateStudioStage(2);
+            setTimeout(() => document.getElementById('masterBaseRate')?.focus(), 120);
+        });
+
+        // Stage 3: Next & Edit & Enter key
+        document.getElementById('rateStage3NextBtn')?.addEventListener('click', () => {
+            this.setRateStudioStage(4);
+        });
+        ['masterPvc7Rate', 'masterPvc10Rate', 'masterBoreBata', 'masterGstPercent'].forEach(id => {
+            document.getElementById(id)?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('rateStage3NextBtn')?.click();
+                }
+            });
+        });
+        document.getElementById('rateStage3EditBtn')?.addEventListener('click', () => {
+            this.setRateStudioStage(3);
+            setTimeout(() => document.getElementById('masterPvc7Rate')?.focus(), 120);
         });
 
         // Multi-Rate Profile Creation & Base Rate Auto-Slab Shift
@@ -9197,7 +9333,7 @@ class BoreBillSaaSApp {
                 modeBadge.classList.add('new-mode');
             }
 
-            // Start New Rate Card with Row 1 (Base Slab) ready for step-by-step "+ Add Next 100 ft" building
+            // Start New Rate Card with Row 1 (Base Slab) ready for step-by-step building
             const curSpan = this.rates.slabRates?.[0]?.span || 300;
             const curBaseRate = this.rates.baseDrillingRate || 90;
             this.rates.slabRates = [{
@@ -9209,10 +9345,10 @@ class BoreBillSaaSApp {
             }];
 
             this.renderMasterSlabsGrid();
-            this.switchStudioSubTab('all');
+            this.setRateStudioStage(1);
             this.renderRateProfilesUI();
             setTimeout(() => nameEl?.focus(), 220);
-            this.showToast('➕ Set Base Slab (1–100 / 200 / 300 ft) & tap "＋ Add Next 100 ft"!');
+            this.showToast('➕ Step 1: Enter Rate Card Name');
         });
 
         document.getElementById('masterBaseRate')?.addEventListener('input', (e) => {
