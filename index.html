@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=97">
+    <link rel="stylesheet" href="styles.css?v=98">
 </head>
 <body>
 
@@ -1862,46 +1862,7 @@
                     </div>
                 </div>
 
-                <!-- Group 4: Casing Pipes Specification & Default Rates -->
-                <div class="rate-category-label" style="margin-top: 10px;">4. Casing Pipes Specification & Default Rates</div>
-                <div class="company-form-box">
-                    <p class="section-subtext" style="margin-bottom: 12px; font-size: 0.8rem; color: var(--text-muted);">Configure custom casing pipe sizes (e.g. 7" PVC, 8" MS, 10" MS) and default rates. Synced everywhere across New Bill, Receipt, PDF and WhatsApp.</p>
-                    
-                    <div class="form-row-2">
-                        <div class="field-group">
-                            <label for="brandCasing1Name">Pipe 1 Type / Size</label>
-                            <input type="text" id="brandCasing1Name" placeholder="e.g. 7&quot; Casing Pipe" value="7&quot; Casing Pipe">
-                        </div>
-                        <div class="field-group">
-                            <label for="brandCasing1Rate">Pipe 1 Default Rate (₹/ft)</label>
-                            <input type="number" id="brandCasing1Rate" placeholder="320" value="320" min="0">
-                        </div>
-                    </div>
-
-                    <div class="form-row-2" style="margin-top: 8px;">
-                        <div class="field-group">
-                            <label for="brandCasing2Name">Pipe 2 Type / Size</label>
-                            <input type="text" id="brandCasing2Name" placeholder="e.g. 10&quot; Casing Pipe" value="10&quot; Casing Pipe">
-                        </div>
-                        <div class="field-group">
-                            <label for="brandCasing2Rate">Pipe 2 Default Rate (₹/ft)</label>
-                            <input type="number" id="brandCasing2Rate" placeholder="480" value="480" min="0">
-                        </div>
-                    </div>
-
-                    <div class="csd-presets-wrap" style="margin-top: 10px;">
-                        <span class="csd-presets-label" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">QUICK PRESETS:</span>
-                        <div class="csd-chips-row" id="brandCasingPresetChips">
-                            <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="10&quot; PVC Casing">7" &amp; 10" PVC</button>
-                            <button type="button" class="csd-preset-chip" data-p1="7&quot; PVC Casing" data-p2="8&quot; MS Casing">7" PVC &amp; 8" MS</button>
-                            <button type="button" class="csd-preset-chip" data-p1="8&quot; MS Casing" data-p2="10&quot; MS Casing">8" &amp; 10" MS</button>
-                            <button type="button" class="csd-preset-chip" data-p1="6&quot; PVC Casing" data-p2="7&quot; PVC Casing">6" &amp; 7" PVC</button>
-                            <button type="button" class="csd-preset-chip" data-p1="7&quot; Heavy Casing" data-p2="10&quot; Heavy Casing">7" &amp; 10" Heavy</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="save-bar-bottom">
+                <div class="save-bar-bottom" style="margin-top: 14px;">
                     <button type="button" class="btn-brand-full" id="saveBrandProfileBtn">
                         <i data-lucide="check-circle-2" class="icon-sm"></i>
                         <span data-i18n="saveCompanyBranding">Save Company Profile</span>
@@ -2852,6 +2813,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=97"></script>
+    <script src="app.js?v=98"></script>
 </body>
 </html>

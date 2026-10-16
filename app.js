@@ -7965,12 +7965,12 @@ class BoreBillSaaSApp {
         // Interactive Dynamic Top Marquee Click Dispatcher (Contextual Navigation)
         document.getElementById('topDynamicMarquee')?.addEventListener('click', () => {
             const activeSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
-            const idx = parseInt(activeSlide?.dataset.slideIndex || '0', 10);
+            const idx = parseInt(activeSlide?.dataset.slideIndex || (this._topMarqueeCurrentIndex ?? '0'), 10);
             if (idx === 1) {
                 // Outstanding Due Slide -> Open Customer Ledger with Due filter
-                this.switchTab('tab-crm');
+                this.switchTab('tab-customers');
                 this.crmFilter = 'due';
-                document.querySelectorAll('#crmFilterPills .cmf-pill').forEach(pill => {
+                document.querySelectorAll('#crmFilterPills .f-chip').forEach(pill => {
                     pill.classList.toggle('active', pill.dataset.filter === 'due');
                 });
                 this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
