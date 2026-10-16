@@ -321,16 +321,21 @@ html.ios-standalone .app-header {
 }
 
 .brand-logo-wrap {
-    width: 32px;
-    height: 32px;
-    border-radius: 9px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     flex-shrink: 0;
-    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.32);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.36);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-identity:active .brand-logo-wrap {
+    transform: scale(0.94);
 }
 
 .brand-logo-wrap img {
