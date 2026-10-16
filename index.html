@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=96">
+    <link rel="stylesheet" href="styles.css?v=97">
 </head>
 <body>
 
@@ -69,19 +69,21 @@
 
                 <!-- 🔄 Dynamic Multi-Slide Top Header Ticker Banner (Swipe-Up Rotator) -->
                 <div class="header-dynamic-marquee" id="topDynamicMarquee" title="Tap to view details">
-                    <!-- Slide 1: Company Profile (Compact & Elegant) -->
+                    <!-- Slide 1: Company Name (Pure, Bold & Clean - No Address) -->
                     <div class="marquee-slide active slide-company" id="marqueeSlide0" data-slide-index="0">
-                        <div class="slide-left">
-                            <span class="slide-kicker" id="marqueeLocKicker">📍 Namakkal • Tamil Nadu</span>
+                        <div class="slide-content-wrap">
                             <span class="slide-main-title" id="headerCompanyName">ANJANEYA BOREWELLS</span>
                         </div>
-                        <span class="slide-badge badge-pro">PRO</span>
+                        <span class="slide-badge badge-pro">
+                            <span class="sb-dot"></span>
+                            <span>PRO</span>
+                        </span>
                     </div>
 
                     <!-- Slide 2: Outstanding Balance Due Alert -->
                     <div class="marquee-slide slide-due" id="marqueeSlide1" data-slide-index="1">
-                        <div class="slide-left">
-                            <span class="slide-kicker">🔴 Outstanding Dues</span>
+                        <div class="slide-content-wrap">
+                            <span class="slide-due-icon">⏳</span>
                             <span class="slide-main-title" id="marqueeDueBillsCount">0 Unpaid Bills</span>
                         </div>
                         <span class="slide-badge badge-due" id="marqueeDueTotalBadge">₹0 DUE</span>
@@ -89,8 +91,8 @@
 
                     <!-- Slide 3: Live Work Summary / Today Activity -->
                     <div class="marquee-slide slide-work" id="marqueeSlide2" data-slide-index="2">
-                        <div class="slide-left">
-                            <span class="slide-kicker">⚡ Today Activity</span>
+                        <div class="slide-content-wrap">
+                            <span class="slide-work-icon">🚜</span>
                             <span class="slide-main-title" id="marqueeTodayWorkTitle">0 Bores Drilled</span>
                         </div>
                         <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
@@ -98,11 +100,11 @@
 
                     <!-- Slide 4: Smart SaaS Quick Notification -->
                     <div class="marquee-slide slide-notify" id="marqueeSlide3" data-slide-index="3">
-                        <div class="slide-left">
-                            <span class="slide-kicker">🔔 Instant WhatsApp</span>
+                        <div class="slide-content-wrap">
+                            <span class="slide-notify-icon">💬</span>
                             <span class="slide-main-title">Share PDF &amp; JPG Bill</span>
                         </div>
-                        <span class="slide-badge badge-notify">1-TAP</span>
+                        <span class="slide-badge badge-notify">WHATSAPP</span>
                     </div>
                 </div>
 
@@ -2850,6 +2852,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=96"></script>
+    <script src="app.js?v=97"></script>
 </body>
 </html>
