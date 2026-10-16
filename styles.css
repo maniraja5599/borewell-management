@@ -311,7 +311,6 @@ html.ios-standalone .app-header {
     gap: 8px;
 }
 
-.brand-identity {
 .brand-identity-mini {
     display: flex;
     align-items: center;
