@@ -3836,11 +3836,10 @@ class BoreBillSaaSApp {
     }
 
     updateHeaderDueTicker(explicitTotalPending = null) {
-        const pill = document.getElementById('headerDueTickerPill');
-        const totEl = document.getElementById('headerDueTotalAmt');
-        const countEl = document.getElementById('headerDueCountAmt');
-        if (!pill || !totEl || !countEl) return;
+        this.updateTopHeaderDynamicMarquee(explicitTotalPending);
+    }
 
+    updateTopHeaderDynamicMarquee(explicitTotalPending = null) {
         let totalPending = 0;
         let pendingCount = 0;
 
@@ -3865,31 +3864,64 @@ class BoreBillSaaSApp {
             });
         }
 
-        const hasDue = totalPending > 0;
-        pill.classList.toggle('has-due', hasDue);
-        pill.classList.toggle('is-settled', !hasDue);
+        // 1. Update Slide 2: Outstanding Dues
+        const dueCountEl = document.getElementById('marqueeDueBillsCount');
+        const dueBadgeEl = document.getElementById('marqueeDueTotalBadge');
+        if (dueCountEl) {
+            dueCountEl.textContent = totalPending > 0
+                ? `${pendingCount} ${pendingCount === 1 ? 'Unpaid Bill' : 'Unpaid Bills'}`
+                : 'All Accounts Paid';
+        }
+        if (dueBadgeEl) {
+            dueBadgeEl.textContent = totalPending > 0
+                ? `${this.formatINR(totalPending)} DUE`
+                : 'SETTLED';
+            dueBadgeEl.style.background = totalPending > 0 ? '#ef4444' : '#16a34a';
+        }
 
-        totEl.textContent = hasDue ? this.formatINR(totalPending) : '₹0 Due';
-        countEl.textContent = hasDue ? `${pendingCount} ${pendingCount === 1 ? 'bill' : 'bills'}` : 'All Paid';
-
-        if (!this._headerTickerTimer) {
-            this._headerTickerTimer = setInterval(() => {
-                const s1 = document.getElementById('headerDueSlide1');
-                const s2 = document.getElementById('headerDueSlide2');
-                if (!s1 || !s2) return;
-                const isS1Active = s1.classList.contains('active');
-                if (isS1Active) {
-                    s1.classList.remove('active');
-                    s1.classList.add('exit-up');
-                    s2.classList.remove('exit-up');
-                    s2.classList.add('active');
-                } else {
-                    s2.classList.remove('active');
-                    s2.classList.add('exit-up');
-                    s1.classList.remove('exit-up');
-                    s1.classList.add('active');
+        // 2. Update Slide 3: Today Activity
+        const todayWorkTitle = document.getElementById('marqueeTodayWorkTitle');
+        const todayDepthBadge = document.getElementById('marqueeTodayDepthBadge');
+        if (todayWorkTitle && todayDepthBadge) {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            let todayBores = 0;
+            let todayDepth = 0;
+            (this.history || []).forEach(b => {
+                const dateRaw = b.billDate || b.date || '';
+                if (dateRaw.startsWith(todayStr) || (b.createdAt && b.createdAt.startsWith(todayStr))) {
+                    todayBores++;
+                    todayDepth += (b.snapshot?.totalDepth || 0);
                 }
-            }, 4500);
+            });
+            if (todayBores > 0) {
+                todayWorkTitle.textContent = `${todayBores} ${todayBores === 1 ? 'Bore Drilled' : 'Bores Drilled'}`;
+                todayDepthBadge.textContent = `${todayDepth} FT`;
+            } else {
+                const totalBoresAll = (this.history || []).length;
+                todayWorkTitle.textContent = `${totalBoresAll} Total Bills`;
+                todayDepthBadge.textContent = 'READY';
+            }
+        }
+
+        // 3. Start Multi-Slide Swipe-Up Rotator Timer (4.2 seconds loop)
+        if (!this._topMarqueeTimer) {
+            this._topMarqueeCurrentIndex = 0;
+            this._topMarqueeTimer = setInterval(() => {
+                const slides = document.querySelectorAll('.header-dynamic-marquee .marquee-slide');
+                if (!slides || slides.length === 0) return;
+                const prevIdx = this._topMarqueeCurrentIndex || 0;
+                const nextIdx = (prevIdx + 1) % slides.length;
+                this._topMarqueeCurrentIndex = nextIdx;
+
+                slides.forEach((s, idx) => {
+                    s.classList.remove('active', 'exit-up');
+                    if (idx === prevIdx) {
+                        s.classList.add('exit-up');
+                    } else if (idx === nextIdx) {
+                        s.classList.add('active');
+                    }
+                });
+            }, 4200);
         }
     }
 
@@ -4915,12 +4947,10 @@ class BoreBillSaaSApp {
             headerTaglineEl.textContent = tagline;
             headerTaglineEl.style.display = 'none'; // Slogan completely hidden in top fixed bar
         }
-        const headerSubMeta = document.getElementById('headerCompanySubMeta');
-        const headerLoc = document.getElementById('headerCompanyLocation');
-        if (headerSubMeta && headerLoc) {
+        const headerLocKicker = document.getElementById('marqueeLocKicker');
+        if (headerLocKicker) {
             const locText = (address.split(',')[0] || 'Namakkal').trim();
-            headerLoc.textContent = locText;
-            headerSubMeta.style.display = 'inline-flex';
+            headerLocKicker.textContent = `📍 ${locText} • Tamil Nadu`;
         }
 
         document.getElementById('receiptCompanyName').textContent = compName;
@@ -7928,15 +7958,41 @@ class BoreBillSaaSApp {
             this.switchTab('tab-brand');
         });
 
-        // Smart Due Ticker Pill: Tap to view Customer Ledger with Due filter
-        document.getElementById('headerDueTickerPill')?.addEventListener('click', () => {
-            this.switchTab('tab-crm');
-            this.crmFilter = 'due';
-            document.querySelectorAll('#crmFilterPills .cmf-pill').forEach(pill => {
-                pill.classList.toggle('active', pill.dataset.filter === 'due');
-            });
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-            this.showToast('📋 Viewing Customers with Outstanding Dues');
+        document.getElementById('headerSettingsQuickBtn')?.addEventListener('click', () => {
+            this.switchTab('tab-brand');
+        });
+
+        // Interactive Dynamic Top Marquee Click Dispatcher (Contextual Navigation)
+        document.getElementById('topDynamicMarquee')?.addEventListener('click', () => {
+            const activeSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
+            const idx = parseInt(activeSlide?.dataset.slideIndex || '0', 10);
+            if (idx === 1) {
+                // Outstanding Due Slide -> Open Customer Ledger with Due filter
+                this.switchTab('tab-crm');
+                this.crmFilter = 'due';
+                document.querySelectorAll('#crmFilterPills .cmf-pill').forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.filter === 'due');
+                });
+                this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+                this.showToast('📋 Viewing Customers with Outstanding Dues');
+            } else if (idx === 2) {
+                // Today Work Summary -> Open Saved Bills History
+                this.switchTab('tab-history');
+                this.showToast('📂 Viewing Bills History');
+            } else if (idx === 3) {
+                // Notification -> Open WhatsApp format designer in Settings
+                this.switchTab('tab-brand');
+                if (typeof this.switchSettingsView === 'function') {
+                    this.switchSettingsView('set-view-whatsapp');
+                }
+                this.showToast('💬 WhatsApp Bill Designer');
+            } else {
+                // Company Slide -> Open Settings Profile
+                this.switchTab('tab-brand');
+                if (typeof this.switchSettingsView === 'function') {
+                    this.switchSettingsView('set-view-company');
+                }
+            }
         });
 
         document.getElementById('langSwitchBtn')?.addEventListener('click', () => {

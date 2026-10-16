@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=94">
+    <link rel="stylesheet" href="styles.css?v=95">
 </head>
 <body>
 
@@ -57,35 +57,60 @@
         <!-- ==================== TOP APP SHELL HEADER ==================== -->
         <header class="app-header">
             <div class="header-inner">
-                <div class="brand-identity" id="openBrandTabBtn" title="Tap to customize Company Brand & Profile">
+                <!-- 3D Brand Logo Button -->
+                <div class="brand-identity-mini" id="openBrandTabBtn" title="Tap to customize Company Brand & Profile">
                     <div class="brand-logo-wrap" id="headerLogoWrap">
                         <img id="headerLogoImg" src="" alt="Logo" style="display: none;">
                         <span id="headerLogoFallback" class="logo-fallback-icon">
                             <img src="icon.svg" alt="DrillRig Flow 3D Logo" style="width: 100%; height: 100%; object-fit: contain;">
                         </span>
                     </div>
-                    <div class="brand-titles">
-                        <h1 id="headerCompanyName" class="company-name">ANJANEYA BOREWELLS</h1>
-                        <span class="company-sub-meta" id="headerCompanySubMeta" style="display: none;">
-                            <span class="csm-loc-tag" id="headerCompanyLocation">Namakkal</span>
-                        </span>
+                </div>
+
+                <!-- 🔄 Dynamic Multi-Slide Top Header Ticker Banner (Swipe-Up Rotator) -->
+                <div class="header-dynamic-marquee" id="topDynamicMarquee" title="Tap to view details">
+                    <!-- Slide 1: Company Profile (Compact & Elegant) -->
+                    <div class="marquee-slide active slide-company" id="marqueeSlide0" data-slide-index="0">
+                        <div class="slide-left">
+                            <span class="slide-kicker" id="marqueeLocKicker">📍 Namakkal • Tamil Nadu</span>
+                            <span class="slide-main-title" id="headerCompanyName">ANJANEYA BOREWELLS</span>
+                        </div>
+                        <span class="slide-badge badge-pro">PRO</span>
+                    </div>
+
+                    <!-- Slide 2: Outstanding Balance Due Alert -->
+                    <div class="marquee-slide slide-due" id="marqueeSlide1" data-slide-index="1">
+                        <div class="slide-left">
+                            <span class="slide-kicker">🔴 Outstanding Dues</span>
+                            <span class="slide-main-title" id="marqueeDueBillsCount">0 Unpaid Bills</span>
+                        </div>
+                        <span class="slide-badge badge-due" id="marqueeDueTotalBadge">₹0 DUE</span>
+                    </div>
+
+                    <!-- Slide 3: Live Work Summary / Today Activity -->
+                    <div class="marquee-slide slide-work" id="marqueeSlide2" data-slide-index="2">
+                        <div class="slide-left">
+                            <span class="slide-kicker">⚡ Today Activity</span>
+                            <span class="slide-main-title" id="marqueeTodayWorkTitle">0 Bores Drilled</span>
+                        </div>
+                        <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
+                    </div>
+
+                    <!-- Slide 4: Smart SaaS Quick Notification -->
+                    <div class="marquee-slide slide-notify" id="marqueeSlide3" data-slide-index="3">
+                        <div class="slide-left">
+                            <span class="slide-kicker">🔔 Instant WhatsApp</span>
+                            <span class="slide-main-title">Share PDF &amp; JPG Bill</span>
+                        </div>
+                        <span class="slide-badge badge-notify">1-TAP</span>
                     </div>
                 </div>
+
+                <!-- Right Quick Controls -->
                 <div class="header-controls">
-                    <!-- Smart Interactive Live Due Ticker Pill -->
-                    <div class="header-due-pill" id="headerDueTickerPill" title="Tap to view Customer Ledger & Outstanding Dues">
-                        <span class="hdp-icon-dot"></span>
-                        <div class="hdp-ticker-roll" id="headerDueTickerRoll">
-                            <span class="hdp-slide active" id="headerDueSlide1">
-                                <span class="hdp-lbl">DUE</span>
-                                <strong class="hdp-amt" id="headerDueTotalAmt">₹0</strong>
-                            </span>
-                            <span class="hdp-slide" id="headerDueSlide2">
-                                <span class="hdp-lbl">COUNT</span>
-                                <strong class="hdp-amt" id="headerDueCountAmt">0 bills</strong>
-                            </span>
-                        </div>
-                    </div>
+                    <button type="button" class="header-settings-btn" id="headerSettingsQuickBtn" title="Company Profile & Settings">
+                        <i data-lucide="sliders" class="icon-xs"></i>
+                    </button>
                     <button type="button" class="pwa-install-btn" id="installPwaBtn" style="display: none;" title="Install DrillRig Flow App">
                         <i data-lucide="download" class="icon-xs"></i>
                         <span>App</span>
@@ -2825,6 +2850,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=94"></script>
+    <script src="app.js?v=95"></script>
 </body>
 </html>
