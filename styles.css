@@ -8885,56 +8885,83 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 5px 10px;
+    padding: 5px 9px;
     border-radius: 7px;
-    border: 1px solid #059669;
-    background: #ecfdf5;
-    color: #065f46;
-    font-size: 0.72rem;
-    font-weight: 800;
+    border: 1px solid #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 0.70rem;
+    font-weight: 750;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s ease;
 }
 
 .btn-record-pay-xs:hover {
-    background: #059669;
-    color: #ffffff;
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
 }
 
 .btn-record-pay-xs.has-due-btn {
-    background: #059669;
-    border-color: #047857;
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.22);
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+    font-weight: 800;
+    box-shadow: none;
 }
 
 .btn-record-pay-xs.has-due-btn:hover {
-    background: #047857;
+    background: #d1fae5;
+    border-color: #6ee7b7;
+    color: #065f46;
 }
 
 /* History Card Action Buttons Visual Balance */
 .hist-wa-btn {
-    padding: 5px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
     border-radius: 7px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
-    color: #15803d;
-    font-size: 0.70rem;
-    font-weight: 750;
+    color: #25d366;
     cursor: pointer;
     transition: all 0.15s ease;
+    flex-shrink: 0;
 }
 
 .hist-wa-btn:hover {
-    background: #dcfce7;
-    border-color: #86efac;
+    background: #25d366;
+    border-color: #25d366;
+    color: #ffffff;
+}
+
+.hist-wa-btn .wa-real-svg {
+    width: 15px;
+    height: 15px;
+    display: block;
 }
 
 .hist-detail-btn {
     padding: 5px 9px;
     font-size: 0.70rem;
     font-weight: 700;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.hist-detail-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
 }
 
 /* Subdued Delete Button (Ghost gray by default, subtle red on hover) */
