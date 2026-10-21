@@ -5603,14 +5603,9 @@ html.ios-standalone body.keyboard-open .app-main {
    UNIVERSAL DELETE CONFIRMATION MODAL & UNDO TOAST
    ========================================================================== */
 
-#deleteConfirmModalOverlay {
-    z-index: 3500 !important;
-}
-
 .del-confirm-modal {
     max-width: 305px !important;
     border-top: 4px solid var(--danger) !important;
-    z-index: 3501 !important;
 }
 
 .del-icon-badge {
@@ -7117,69 +7112,11 @@ html.ios-standalone body.keyboard-open .app-main {
     color: var(--brand-primary);
 }
 
-/* Unified Minimal Toolbar Icons */
-.ledger-toolbar .search-ico,
-.search-input-box .search-ico,
-.bills-toolbar-stack .search-ico {
-    display: none !important;
-}
-
-.search-input-box input,
-.wiz-search-input-wrap input,
-#crmSearchInput,
-#historySearchInput {
-    padding-left: 11px !important;
-}
-
-.crm-toolbar-subrow {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-}
-
-.crm-tools-right {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: auto;
-}
-
-.crm-tool-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 30px;
-    padding: 0 9px;
-    border-radius: 7px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    font-size: 0.72rem;
-    font-weight: 750;
-    cursor: pointer;
-    transition: all 0.14s ease;
-}
-
-.crm-tool-btn:hover,
-.crm-tool-btn.active {
-    background: var(--brand-soft);
-    border-color: var(--brand-primary);
-    color: var(--brand-primary);
-}
-
-.crm-filter-popover {
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 11px;
-    margin-top: 8px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+.bills-toolbar-stack {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .search-input-box.has-inline-filter {
@@ -7411,222 +7348,11 @@ input[type="number"] {
     font-variant-numeric: tabular-nums;
 }
 
-/* Fixed Top Strip: Doc Type + Bore Diameter */
-.newbill-top-choice-card {
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
-    border-radius: 14px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-    transition: all 0.2s ease;
-}
-
-.newbill-top-choice-card.is-minimized {
-    padding: 8px 12px;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    cursor: pointer;
-}
-
-.nb-choice-expanded {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.nb-choice-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.nb-choice-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1;
-    min-width: 140px;
-}
-
-.nb-choice-lbl {
-    font-size: 0.76rem;
-    font-weight: 800;
-    color: #334155;
-    letter-spacing: 0.02em;
-}
-
-.nb-pills-wrap {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.nb-pill-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 9px 16px;
-    border-radius: 10px;
-    border: 1.5px solid #cbd5e1;
-    background: #f8fafc;
-    color: #334155;
-    font-size: 0.88rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.16s ease;
-}
-
-.nb-pill-btn:hover {
-    border-color: #94a3b8;
-    background: #ffffff;
-}
-
-.nb-pill-btn.active {
-    background: var(--brand-primary, #15803d);
-    border-color: var(--brand-primary, #15803d);
-    color: #ffffff;
-    box-shadow: 0 3px 8px rgba(21, 128, 61, 0.25);
-}
-
-.nb-doc-header-row,
-.nb-dia-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-}
-
-.nb-dia-pills {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    overflow-x: auto;
-    padding-bottom: 2px;
-}
-
-.nb-dia-pill {
-    padding: 5px 10px;
-    border-radius: 8px;
-    border: 1.5px solid #cbd5e1;
-    background: #f8fafc;
-    color: #334155;
-    font-size: 0.76rem;
-    font-weight: 800;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.14s ease;
-}
-
-.nb-dia-pill.active {
-    background: #0f172a;
-    border-color: #0f172a;
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
-}
-
-.nb-bottom-meta-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding-top: 8px;
-    border-top: 1px dashed #e2e8f0;
-    flex-wrap: wrap;
-}
-
-.nb-work-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    font-size: 0.74rem;
-    font-weight: 750;
-    cursor: pointer;
-}
-
-.nb-work-pill.active {
-    background: #e0f2fe;
-    border-color: #7dd3fc;
-    color: #0369a1;
-}
-
-.nb-bill-no-box {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-/* Compact 1-Line Minimized Mode */
-.nb-choice-compact {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-}
-
-.nb-cc-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.nb-cc-tag {
-    font-size: 0.70rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #dcfce7;
-    color: #15803d;
-    border: 1px solid #86efac;
-    white-space: nowrap;
-}
-
-.nb-cc-tag.quote-tag {
-    background: #e0f2fe;
-    color: #0284c7;
-    border-color: #7dd3fc;
-}
-
-.nb-cc-info {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #334155;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.nb-cc-edit-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #475569;
-    font-size: 0.70rem;
-    font-weight: 750;
-    cursor: pointer;
-    flex-shrink: 0;
+/* 2. PVC Casing Pipe Cards & Rate Input Row — Full Room, Zero Clipping on Any Screen */
+.simple-pvc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
 }
 
 .simple-pvc-card {
@@ -8602,11 +8328,11 @@ input.is-select-all-ready,
 }
 
 .cmr-badge.due {
-    background: #fff5f5;
-    color: #ef4444;
-    border: 1px solid #fee2e2;
-    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.05);
-    font-weight: 750;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.08);
+    font-weight: 850;
     white-space: nowrap;
 }
 
@@ -8734,15 +8460,6 @@ input.is-select-all-ready,
     color: #dc2626;
 }
 
-.cdm-qa-btn.icon-only {
-    flex: 0 0 34px;
-    width: 34px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
 /* 2-Tab Separate View Switcher inside Customer Window */
 .cdm-view-tabs {
     display: grid;
@@ -8810,75 +8527,12 @@ input.is-select-all-ready,
     gap: 12px;
 }
 
-.cdm-clean-card .cdm-cc-head .cc-icon,
-.cdm-clean-card .cdm-kv-row .ckv-icon,
-.cdm-bore-card .cbc-date-icon,
-.cdm-bore-card .cbc-row .cbc-r-icon {
-    display: none !important;
-}
-
-/* Compact Customer Summary Strip (Overall Summary View) */
-.cdm-compact-summary-strip {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px 12px;
+.cdm-clean-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-}
-
-.cdm-css-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 2px;
-}
-
-.cdm-css-lbl {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-}
-
-.cdm-css-val {
-    font-size: 0.94rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.cdm-css-val.due-val {
-    color: #ef4444;
-}
-
-.cdm-css-val.paid-val {
-    color: #10b981;
-}
-
-/* Stable Customer Detail Modal Header & Action Bar */
-.cust-popup-head.cdm-head {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    flex-shrink: 0;
-}
-
-.cdm-quick-actions-bar {
-    position: sticky;
-    top: 0;
-    z-index: 9;
-    flex-shrink: 0;
-}
-
-.cdm-view-tabs {
-    position: sticky;
-    top: 0;
-    z-index: 8;
-    flex-shrink: 0;
+    border-radius: 14px;
+    padding: 13px 14px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
 }
 
 .cdm-cc-head {
@@ -9041,36 +8695,11 @@ input.is-select-all-ready,
     color: #ffffff;
 }
 
-/* Collapsible Bore List Item */
-.clickable-bore-head {
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.14s ease;
-}
-
-.clickable-bore-head:hover {
-    background: #f1f5f9;
-}
-
-.cbc-expand-chevron {
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: #64748b;
-    transition: transform 0.2s ease;
-    margin-left: 2px;
-}
-
-.clickable-bore-head.is-open .cbc-expand-chevron {
-    transform: rotate(180deg);
-}
-
-.cbc-body-collapse {
-    display: none;
-}
-
-.cbc-body-collapse.is-open {
-    display: block;
-    animation: fadeInSlide 0.16s ease;
+/* Clean Bore Detail Card */
+.cdm-bores-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .cdm-bore-card {
@@ -9252,27 +8881,9 @@ input.is-select-all-ready,
    AND NUMBERED (1, 2, 3...) CLEAN RATE LIST + RATE DETAIL MODAL
    ========================================================================== */
 
-/* Standardized Clean Typography & Spacing across Bills & Customer lists */
-.khata-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.crm-minimal-row,
 .khata-card.clickable-bill-card {
-    border-radius: 12px;
-    padding: 12px 14px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    transition: all 0.15s ease;
-}
-
-.crm-minimal-row:hover,
-.khata-card.clickable-bill-card:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
-    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.04);
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
 }
 
 .khata-card.clickable-bill-card:hover {
@@ -10397,41 +10008,39 @@ input.is-select-all-ready,
     display: none;
 }
 
-/* Settings Sub-tabs Seg Button: Balanced Modern Slate */
 .set-seg-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
-    padding: 9px 16px;
-    background: #ffffff;
-    border: 1.5px solid #e2e8f0;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(203, 213, 225, 0.8);
     border-radius: 10px;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 750;
-    color: #475569;
+    color: #334155;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.18s ease;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.set-seg-btn:active {
+    transform: scale(0.96);
+}
+
+.set-seg-btn * {
+    pointer-events: none;
 }
 
 .set-seg-btn:hover {
     color: #0f172a;
-    background: #f8fafc;
+    background: rgba(255, 255, 255, 0.95);
     border-color: #cbd5e1;
-}
-
-.set-seg-btn.active {
-    background: #334155;
-    color: #ffffff;
-    font-weight: 800;
-    border-color: #334155;
-    box-shadow: 0 3px 8px rgba(51, 65, 85, 0.22);
-    transform: translateY(-1px);
 }
 
 /* Distinct Vibrant Colored Icons in Settings Subtabs */
@@ -10451,12 +10060,21 @@ input.is-select-all-ready,
     color: #0284c7 !important; /* Cyan / Sky Blue */
 }
 
+.set-seg-btn.active {
+    background: #0f172a;
+    color: #ffffff;
+    font-weight: 850;
+    border-color: #0f172a;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25), 0 2px 4px rgba(15, 23, 42, 0.15);
+    transform: translateY(-1px);
+}
+
 .set-seg-btn.active .seg-icon-company,
 .set-seg-btn.active .seg-icon-casing,
 .set-seg-btn.active .seg-icon-theme,
 .set-seg-btn.active .seg-icon-whatsapp,
 .set-seg-btn.active .seg-icon-vault {
-    filter: brightness(1.4);
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)) brightness(1.3);
 }
 
 /* Darker crisper buttons in Settings */

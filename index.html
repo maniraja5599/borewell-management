@@ -41,19 +41,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons (Official Modern SaaS Vector Icon Library - Local with CDN Fallback) -->
-    <script src="lucide.min.js"></script>
-    <script>
-        if (typeof window.lucide === 'undefined') {
-            document.write('<script src="https://unpkg.com/lucide@latest"><\/script>');
-        }
-    </script>
+    <!-- Lucide Icons (Official Modern SaaS Vector Icon Library) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=106">
+    <link rel="stylesheet" href="styles.css?v=108">
 </head>
 <body>
 
@@ -204,62 +199,55 @@
 
             <!-- Editable Calculator Forms Container (Hidden when viewing a Saved Bill in Final View mode) -->
             <div id="billEditorFormsContainer">
-            <!-- 1. Fresh Bill Top Choice Strip: Doc Type (Final Bill vs Quotation) + Bore Size & Type -->
-            <div class="newbill-top-choice-card" id="newBillChoiceCard">
-                <!-- Expanded Choice View (First Step) -->
-                <div class="nb-choice-expanded" id="nbChoiceExpanded">
-                    <!-- Row 1: Bill Type (Final Bill vs Quotation) -->
-                    <div class="nb-choice-group nb-choice-doc-group">
-                        <div class="nb-doc-header-row">
-                            <span class="nb-choice-lbl">1. Bill Type</span>
-                            <div class="nb-bill-no-box">
-                                <span class="saved-status-pill" id="autoSeqHintBadge">Auto #AB-101</span>
-                                <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
-                                    <span>Fresh Bill</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="nb-pills-wrap" id="docTypePills">
-                            <button type="button" class="nb-pill-btn doc-pill active" data-doc="INVOICE">
-                                <span>🧾 Final Bill</span>
-                            </button>
-                            <button type="button" class="nb-pill-btn doc-pill" data-doc="QUOTATION">
-                                <span>📋 Quotation</span>
-                            </button>
-                        </div>
+            <!-- 1. Compact Control Strip: Doc Type (Quotation | Final Bill) + Work Type + Bore Size -->
+            <div class="ui-card control-strip-card">
+                <div class="top-mode-bar">
+                    <!-- 2 Choosable Pills: Final Bill (Default) vs Quotation -->
+                    <div class="seg-pill-group" id="docTypePills">
+                        <button type="button" class="seg-pill doc-pill active" data-doc="INVOICE">
+                            <i data-lucide="receipt" class="icon-xs"></i>
+                            <span data-i18n="pillFinalBill">Final Bill</span>
+                        </button>
+                        <button type="button" class="seg-pill doc-pill" data-doc="QUOTATION">
+                            <i data-lucide="file-text" class="icon-xs"></i>
+                            <span data-i18n="pillQuotation">Quotation</span>
+                        </button>
                     </div>
 
-                    <!-- Row 2: Bore Size (Compact Pills with smaller font) & New Bore / Re-Bore directly below -->
-                    <div class="nb-choice-group nb-choice-dia-group">
-                        <div class="nb-dia-header-row">
-                            <span class="nb-choice-lbl">2. Bore Size</span>
-                            <div class="nb-pills-wrap" id="drillingTypeToggle">
-                                <button type="button" class="nb-work-pill active" data-type="new">
-                                    <span>🚜 New Bore</span>
-                                </button>
-                                <button type="button" class="nb-work-pill" data-type="repair">
-                                    <span>🔄 Re-Bore</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="nb-dia-pills" id="boreDiaPills">
-                            <button type="button" class="nb-dia-pill" data-dia='4.75"'>4.75"</button>
-                            <button type="button" class="nb-dia-pill active" data-dia='6.5"'>6.5"</button>
-                            <button type="button" class="nb-dia-pill" data-dia='8"'>8"</button>
-                            <button type="button" class="nb-dia-pill" data-dia='10"'>10"</button>
-                            <button type="button" class="nb-dia-pill" data-dia='12"'>12"</button>
-                        </div>
+                    <!-- Drilling Mode: New Bore vs Re-Bore -->
+                    <div class="seg-pill-group dark-seg" id="drillingTypeToggle">
+                        <button type="button" class="seg-pill mini-seg-btn active" data-type="new">
+                            <i data-lucide="sparkles" class="icon-xs"></i>
+                            <span data-i18n="newBore">New Bore</span>
+                        </button>
+                        <button type="button" class="seg-pill mini-seg-btn" data-type="repair">
+                            <i data-lucide="refresh-cw" class="icon-xs"></i>
+                            <span data-i18n="reBore">Re-Bore</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Compact 1-Line Collapsed View (Shown once customer or details are filled) -->
-                <div class="nb-choice-compact" id="nbChoiceCompact" style="display: none;">
-                    <div class="nb-cc-left">
-                        <span class="nb-cc-tag" id="nbCompactDocTag">FINAL BILL</span>
-                        <span class="nb-cc-info" id="nbCompactInfoTxt">6.5" Bore • New Bore • #AB-101</span>
+                <!-- Bore Diameter Selector Bar + Quick Fresh Bill Button -->
+                <div class="dia-selector-bar">
+                    <span class="mini-label" data-i18n="boreSize">Bore Dia:</span>
+                    <div class="dia-pills" id="boreDiaPills">
+                        <button type="button" class="dia-pill" data-dia='4.75"'>4.75"</button>
+                        <button type="button" class="dia-pill active" data-dia='6.5"'>6.5"</button>
+                        <button type="button" class="dia-pill" data-dia='8"'>8"</button>
+                        <button type="button" class="dia-pill" data-dia='10"'>10"</button>
+                        <button type="button" class="dia-pill" data-dia='12"'>12"</button>
                     </div>
-                    <button type="button" class="nb-cc-edit-btn" id="nbCompactEditBtn" title="Change Bill Type or Bore Size">
-                        <span>Edit</span>
+                </div>
+
+                <!-- Live Doc Number & Fresh Bill Quick Bar -->
+                <div class="control-doc-meta-bar">
+                    <div class="cdm-left">
+                        <span class="saved-status-pill" id="autoSeqHintBadge">Auto #AB-101</span>
+                        <span class="cdm-date-txt" id="controlLiveDateBadge">Today</span>
+                    </div>
+                    <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
+                        <i data-lucide="sparkles" class="icon-xs"></i>
+                        <span>Fresh Bill</span>
                     </button>
                 </div>
             </div>
@@ -1102,59 +1090,16 @@
                     </div>
                 </div>
 
-                <!-- Search & Filter Bar (All | Pending Balance | Settled) + Due Sort & Date Range Filter -->
+                <!-- Search & Filter Bar (All | Pending Balance | Settled) -->
                 <div class="ledger-toolbar">
                     <div class="search-input-box">
+                        <i data-lucide="search" class="icon-xs search-ico"></i>
                         <input type="search" id="crmSearchInput" placeholder="Search customer name, mobile, village...">
                     </div>
-                    
-                    <div class="crm-toolbar-subrow">
-                        <div class="filter-chip-group" id="crmFilterPills">
-                            <button type="button" class="f-chip active" data-filter="all" data-i18n="filterAll">All</button>
-                            <button type="button" class="f-chip" data-filter="due" data-i18n="filterPendingDue">Pending Due</button>
-                            <button type="button" class="f-chip" data-filter="settled" data-i18n="filterSettled">No Due</button>
-                        </div>
-
-                        <div class="crm-tools-right">
-                            <button type="button" class="crm-tool-btn" id="crmSortDueBtn" title="Sort by Due Amount (High to Low)">
-                                <span>↕ Due Sort</span>
-                            </button>
-                            <button type="button" class="crm-tool-btn" id="crmFilterToggleBtn" title="Date Range Filter">
-                                <span>📅 Filter</span>
-                                <span class="sif-badge" id="crmFilterBadge" style="display: none;">0</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Customer Date Range & Period Filter Popover -->
-                    <div class="crm-filter-popover" id="crmFilterDropdownPanel" style="display: none;">
-                        <div class="bfp-section">
-                            <div class="bfp-sec-head">
-                                <span>📅 Filter by Date / Activity Period</span>
-                            </div>
-                            <div class="bfp-pills-row" id="crmDatePresetPills">
-                                <button type="button" class="bfp-pill active" data-crmpreset="all">All</button>
-                                <button type="button" class="bfp-pill" data-crmpreset="this_month">This Month</button>
-                                <button type="button" class="bfp-pill" data-crmpreset="last_month">Last Month</button>
-                                <button type="button" class="bfp-pill" data-crmpreset="6months">6 Months</button>
-                                <button type="button" class="bfp-pill" data-crmpreset="custom">Custom Range</button>
-                            </div>
-                            <div class="bfp-date-range-row" id="crmCustomDateRow" style="display: none;">
-                                <div class="bfp-date-field">
-                                    <label for="crmDateFrom">From Date</label>
-                                    <input type="date" id="crmDateFrom">
-                                </div>
-                                <div class="bfp-date-field">
-                                    <label for="crmDateTo">To Date</label>
-                                    <input type="date" id="crmDateTo">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bfp-footer">
-                            <button type="button" class="btn-secondary-sm" id="resetCrmFiltersBtn">↺ Reset</button>
-                            <button type="button" class="btn-brand-sm" id="closeCrmFilterPanelBtn">✓ Done</button>
-                        </div>
+                    <div class="filter-chip-group" id="crmFilterPills">
+                        <button type="button" class="f-chip active" data-filter="all" data-i18n="filterAll">All</button>
+                        <button type="button" class="f-chip" data-filter="due" data-i18n="filterPendingDue">Pending Due</button>
+                        <button type="button" class="f-chip" data-filter="settled" data-i18n="filterSettled">No Due</button>
                     </div>
                 </div>
 
@@ -2514,18 +2459,22 @@
             <!-- 2. Clean Quick Actions Bar -->
             <div class="cdm-quick-actions-bar">
                 <button type="button" class="cdm-qa-btn primary" id="cdmNewBillBtn">
+                    <i data-lucide="file-plus-2" class="icon-xs"></i>
                     <span>+ New Bill</span>
                 </button>
                 <button type="button" class="cdm-qa-btn whatsapp" id="cdmWhatsAppRemindBtn">
-                    <span id="cdmWhatsAppRemindTxt">Remind</span>
+                    <i data-lucide="message-circle" class="icon-xs"></i>
+                    <span id="cdmWhatsAppRemindTxt">WhatsApp</span>
                 </button>
                 <a href="#" class="cdm-qa-btn call" id="cdmCallBtn">
+                    <i data-lucide="phone-call" class="icon-xs"></i>
                     <span>Call</span>
                 </a>
                 <button type="button" class="cdm-qa-btn edit" id="cdmEditCustomerBtn">
+                    <i data-lucide="pencil" class="icon-xs"></i>
                     <span>Edit</span>
                 </button>
-                <button type="button" class="cdm-qa-btn danger icon-only" id="cdmDeleteCustomerBtn" title="Delete Customer">
+                <button type="button" class="cdm-qa-btn danger" id="cdmDeleteCustomerBtn" title="Delete Customer">
                     <i data-lucide="trash-2" class="icon-xs"></i>
                 </button>
             </div>
@@ -2533,10 +2482,10 @@
             <!-- 3. Separate View Switcher Tabs (1. Summary Overview | 2. Bore-by-Bore Details) -->
             <div class="cdm-view-tabs" id="cdmViewTabs">
                 <button type="button" class="cdm-vtab active" data-cdmview="overview" id="cdmTabOverviewBtn">
-                    <span>Overall Summary</span>
+                    <span>📊 Overall Summary</span>
                 </button>
                 <button type="button" class="cdm-vtab" data-cdmview="bores" id="cdmTabBoresBtn">
-                    <span>Bore Details</span>
+                    <span>🚜 Bore Details</span>
                     <span class="cdm-vtab-badge" id="cdmTabBoresCountBadge">0</span>
                 </button>
             </div>
@@ -2545,45 +2494,51 @@
             <div class="cdm-scroll-body">
                 <!-- VIEW 1: CLEAN OVERALL SUMMARY (Payments + Drilling & Pipes) -->
                 <div class="cdm-view-pane" id="cdmOverviewPane">
-                    <!-- A. Compact 1-Line Trio Summary -->
-                    <div class="cdm-compact-summary-strip">
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Billed</span>
-                            <strong class="cdm-css-val" id="cdmTotalBilled">₹0</strong>
+                    <!-- A. Payment Summary Card -->
+                    <div class="cdm-clean-card">
+                        <div class="cdm-cc-head">
+                            <span>💳 Payment Summary</span>
+                            <span class="cdm-sec-pill" id="cdmBookingBreakdownPill">0 Bills • 0 Quotes</span>
                         </div>
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Paid</span>
-                            <strong class="cdm-css-val paid-val" id="cdmTotalPaid">₹0</strong>
-                        </div>
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Due</span>
-                            <strong class="cdm-css-val due-val" id="cdmTotalDue">₹0</strong>
+                        <div class="cdm-pay-trio">
+                            <div class="cdm-pt-item">
+                                <span class="cdm-pt-lbl">Total Billed</span>
+                                <strong class="cdm-pt-val" id="cdmTotalBilled">₹0</strong>
+                            </div>
+                            <div class="cdm-pt-item is-paid">
+                                <span class="cdm-pt-lbl">Paid Amount</span>
+                                <strong class="cdm-pt-val text-green" id="cdmTotalPaid">₹0</strong>
+                            </div>
+                            <div class="cdm-pt-item is-due" id="cdmDueStatBox">
+                                <span class="cdm-pt-lbl">Pending Due</span>
+                                <strong class="cdm-pt-val text-danger" id="cdmTotalDue">₹0</strong>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- B. Borewell & Pipe Totals Card (Clean Vertical Rows without icons) -->
+                    <!-- B. Borewell & Pipe Totals Card (Clean Vertical Rows) -->
                     <div class="cdm-clean-card">
                         <div class="cdm-cc-head">
-                            <span>Borewell &amp; Pipe Summary</span>
-                            <span class="cdm-sec-pill" id="cdmSitesCountPill">0 Sites</span>
+                            <span>⛏️ Borewell &amp; Pipe Summary</span>
+                            <span class="cdm-sec-pill" id="cdmSitesCountPill">📍 0 Sites</span>
                         </div>
                         <div class="cdm-kv-list">
                             <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Bores Done</span>
+                                <span class="ckv-label">🚜 Total Bores Done</span>
                                 <div class="ckv-right">
                                     <strong id="cdmTotalBoresCount">0 Bores</strong>
                                     <small id="cdmBoresTypeSub">New: 0 • Re-Bore: 0</small>
                                 </div>
                             </div>
                             <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Depth Drilled</span>
+                                <span class="ckv-label">📏 Total Depth Drilled</span>
                                 <div class="ckv-right">
                                     <strong class="text-brand" id="cdmTotalDrilledFt">0 ft</strong>
                                     <small id="cdmTotalDrillCostSub">Drilling Cost: ₹0</small>
                                 </div>
                             </div>
                             <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Casing Installed</span>
+                                <span class="ckv-label">🟦 Total Casing Pipe Installed</span>
                                 <div class="ckv-right">
                                     <strong id="cdmTotalPipeFt">0 ft</strong>
                                     <small id="cdmPipeBreakdownSub">7": 0 ft • 10": 0 ft</small>
@@ -2594,7 +2549,7 @@
 
                     <!-- Button to Switch to Bore-by-Bore View -->
                     <button type="button" class="cdm-goto-bores-btn" id="cdmGotoBoresViewBtn">
-                        <span>View Each Bore Detail Separately</span>
+                        <span>🚜 View Each Bore Detail Separately</span>
                         <span>→</span>
                     </button>
                 </div>
@@ -2861,6 +2816,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=106"></script>
+    <script src="app.js?v=108"></script>
 </body>
 </html>

@@ -396,9 +396,9 @@ class BoreBillSaaSApp {
         const cName = (document.getElementById('custName')?.value || this.state.custName || '').trim();
         const cLoc = (document.getElementById('custLocation')?.value || this.state.custLocation || '').trim();
         const hasCustomer = Boolean(cName);
-        const hasServiceSite = Boolean(cLoc);
+        const hasServiceSite = hasCustomer && Boolean(cLoc);
         const rawDepth = res ? res.totalDepth : (parseInt(document.getElementById('totalDepth')?.value, 10) || this.state.totalDepth || 0);
-        const hasDrillingDepth = (Number(rawDepth) > 0);
+        const hasDrillingDepth = hasServiceSite && (Number(rawDepth) > 0);
         const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
         const isEditingSaved = Boolean(this.loadedHistoryBillId && !this.isSavedBillReadOnly);
 
@@ -419,10 +419,10 @@ class BoreBillSaaSApp {
 
         // 1. Drilling Depth + Compact Rate / Slab Rate Dropdown bar opens after Customer is selected
         if (drillSection) {
-            drillSection.style.display = (hasCustomer || isEditingSaved) ? 'block' : 'none';
+            drillSection.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'block' : 'none';
         }
         if (rateBataWrap) {
-            rateBataWrap.style.display = (hasCustomer || isEditingSaved) ? 'flex' : 'none';
+            rateBataWrap.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'flex' : 'none';
         }
 
         // 2. PVC Casing Pipes & "Preview & Save Bill" CTA open once Drilling Depth (ft) is entered
@@ -725,7 +725,6 @@ class BoreBillSaaSApp {
         this.renderSavedExtrasUI();
         this.renderSavedNotesUI();
         this.refreshIcons();
-        setTimeout(() => this.refreshIcons(), 80);
 
         // Restore exact scroll position where user left off
         const savedScrollY = parseInt(sessionStorage.getItem('borebill_scroll_y') || '0', 10);
@@ -1423,37 +1422,9 @@ class BoreBillSaaSApp {
 
         const billNoVal = document.getElementById('billNoInput')?.value || 'AB-101';
         document.getElementById('receiptBillNo').textContent = `No: #${billNoVal}`;
-        // Sync 1-Line Compact View for Fresh Bill Step 1
-        const compactCard = document.getElementById('newBillChoiceCard');
-        const compactBox = document.getElementById('nbChoiceCompact');
-        const expandedBox = document.getElementById('nbChoiceExpanded');
-        const compactDocTag = document.getElementById('nbCompactDocTag');
-        const compactInfoTxt = document.getElementById('nbCompactInfoTxt');
-        const isRepairMode = res.drillingType === 'repair';
-        const docLabel = res.docType === 'INVOICE' ? 'FINAL BILL' : 'QUOTATION';
-        const workLabel = isRepairMode ? 'Re-Bore' : 'New Bore';
-
-        if (compactDocTag) {
-            compactDocTag.textContent = docLabel;
-            compactDocTag.className = `nb-cc-tag ${res.docType === 'INVOICE' ? '' : 'quote-tag'}`;
-        }
-        if (compactInfoTxt) {
-            compactInfoTxt.textContent = `${res.boreDia} Bore • ${workLabel} • #${billNoVal}`;
-        }
-
-        const hasStartedEnteringBill = Boolean(hasCustomer || res.totalDepth > 0 || res.pvc7Length > 0 || res.pvc10Length > 0);
-        if (this.nbForceExpandChoice) {
-            if (compactBox) compactBox.style.display = 'none';
-            if (expandedBox) expandedBox.style.display = 'flex';
-            compactCard?.classList.remove('is-minimized');
-        } else if (hasStartedEnteringBill) {
-            if (compactBox) compactBox.style.display = 'flex';
-            if (expandedBox) expandedBox.style.display = 'none';
-            compactCard?.classList.add('is-minimized');
-        } else {
-            if (compactBox) compactBox.style.display = 'none';
-            if (expandedBox) expandedBox.style.display = 'flex';
-            compactCard?.classList.remove('is-minimized');
+        const autoSeqBadge = document.getElementById('autoSeqHintBadge');
+        if (autoSeqBadge) {
+            autoSeqBadge.textContent = `${res.docType === 'INVOICE' ? 'Bill' : 'Quote'} #${billNoVal}`;
         }
 
         const rawDate = document.getElementById('billDateInput')?.value;
@@ -3959,31 +3930,10 @@ class BoreBillSaaSApp {
         this._aggCache = new Map();
 
         const q = query.toLowerCase().trim();
-        let filtered = this.customers.filter(c => {
+        const filtered = this.customers.filter(c => {
             const agg = this.getCustomerAggregates(c, billsIndex);
             if (this.crmFilter === 'due' && agg.totalPending <= 0) return false;
             if (this.crmFilter === 'settled' && agg.totalPending > 0) return false;
-
-            // Date Period Filtering
-            if (this.crmDatePreset && this.crmDatePreset !== 'all') {
-                const dates = (agg.matchingBills || []).map(b => b.billDate || (b.createdAt ? b.createdAt.slice(0, 10) : '')).filter(Boolean);
-                if (dates.length === 0) return false;
-                const now = new Date();
-                const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
-                const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString().slice(0, 10);
-
-                if (this.crmDatePreset === 'this_month') {
-                    if (!dates.some(d => d.startsWith(curMonth))) return false;
-                } else if (this.crmDatePreset === 'last_month') {
-                    if (!dates.some(d => d.startsWith(lastMonth))) return false;
-                } else if (this.crmDatePreset === '6months') {
-                    if (!dates.some(d => d >= sixMonthsAgo)) return false;
-                } else if (this.crmDatePreset === 'custom' && (this.crmCustomFrom || this.crmCustomTo)) {
-                    if (!dates.some(d => (!this.crmCustomFrom || d >= this.crmCustomFrom) && (!this.crmCustomTo || d <= this.crmCustomTo))) return false;
-                }
-            }
 
             if (!q) return true;
             const { allSites } = this.getCustomerSiteSuggestions(c);
@@ -3994,15 +3944,6 @@ class BoreBillSaaSApp {
                 allSites.some(s => s.toLowerCase().includes(q))
             );
         });
-
-        // Due Sort (Highest Due to Lowest Due)
-        if (this.crmSortDueDesc) {
-            filtered.sort((a, b) => {
-                const aggA = this.getCustomerAggregates(a, billsIndex);
-                const aggB = this.getCustomerAggregates(b, billsIndex);
-                return (aggB.totalPending || 0) - (aggA.totalPending || 0);
-            });
-        }
 
         if (filtered.length === 0) {
             listEl.innerHTML = `<p class="page-sub" style="text-align:center; padding: 20px 0;">No customers matching filter. Tap "Add Customer" to create one.</p>`;
@@ -4148,7 +4089,7 @@ class BoreBillSaaSApp {
             this.cdmSelectedBoreId = 'all';
         } else if (!this.cdmActiveBoreFilter || !isSameCustomer) {
             this.cdmActiveBoreFilter = 'all';
-            this.cdmSelectedBoreId = 'all'; // Default to all bores in list view
+            this.cdmSelectedBoreId = null; // Will default to latest bore if >1 bores
         }
 
         const agg = this.getCustomerAggregates(cust);
@@ -4287,9 +4228,9 @@ class BoreBillSaaSApp {
 
         const totalInList = items.length;
 
-        // Default to showing all bores in clean list view by default
+        // Default to showing the newest single bore when there are multiple bores so each bore is viewed cleanly and separately
         if (!this.cdmSelectedBoreId || (this.cdmSelectedBoreId !== 'all' && !items.some(x => x.id === this.cdmSelectedBoreId))) {
-            this.cdmSelectedBoreId = 'all';
+            this.cdmSelectedBoreId = items[0].id;
         }
 
         // Render Bore Selector Bar if there is more than 1 bore/record
@@ -4379,39 +4320,37 @@ class BoreBillSaaSApp {
 
             return `
                 <div class="cdm-bore-card ${isInvoice ? (hasDue ? 'is-unpaid-bore' : 'is-paid-bore') : 'is-quote-bore'}">
-                    <!-- Bore Header (Accordion Trigger) -->
-                    <div class="cbc-head clickable-bore-head" data-toggle-bore="${item.id}" title="Tap to view full bore breakdown & actions">
+                    <!-- Bore Header -->
+                    <div class="cbc-head">
                         <div class="cbc-head-left">
                             <span class="cbc-bore-num-badge ${isInvoice ? '' : 'quote-badge'}">
                                 ${isInvoice ? `BORE #${boreSeqNum}` : `QUOTE #${boreSeqNum}`}
                             </span>
                             <span class="cbc-bill-no">#${this.escapeHtml(item.billNo || '')}</span>
-                            <span class="cbc-date">${dateStr}</span>
+                            <span class="cbc-date">📅 ${dateStr}</span>
                         </div>
                         <div class="cbc-head-right">
                             ${isInvoice
                                 ? (hasDue
                                     ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
-                                    : `<span class="status-pill paid static-badge">Paid</span>`)
-                                : `<span class="status-pill quote static-badge">Quote</span>`
+                                    : `<span class="status-pill paid static-badge">✅ Paid</span>`)
+                                : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                             }
-                            <span class="cbc-expand-chevron">▾</span>
                         </div>
                     </div>
 
-                    <!-- Clean Uncluttered Row-by-Row Breakdown (Collapsible) -->
-                    <div class="cbc-body-collapse" id="cbcBody_${item.id}">
-                        <div class="cbc-clean-rows">
+                    <!-- Clean Uncluttered Row-by-Row Breakdown -->
+                    <div class="cbc-clean-rows">
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Site Location</span>
+                            <span class="cbc-r-lbl">📍 Site Location</span>
                             <span class="cbc-r-val">${this.escapeHtml(siteName)}</span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Bore Type &amp; Base Rate</span>
+                            <span class="cbc-r-lbl">⚙️ Bore Type &amp; Base Rate</span>
                             <span class="cbc-r-val">${workTypeLabel} <small>(Base ₹${snap.baseDrillingRate || 90}/ft)</small></span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Depth Drilled</span>
+                            <span class="cbc-r-lbl">⛏️ Depth Drilled</span>
                             <span class="cbc-r-val">
                                 ${depthFt.toLocaleString('en-IN')} ft
                                 ${isRepair && oldBoreFt > 0 ? `<small>(Flush ${oldBoreFt} ft)</small>` : ''}
@@ -4419,48 +4358,48 @@ class BoreBillSaaSApp {
                             </span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">7" Casing Pipe</span>
+                            <span class="cbc-r-lbl">🟦 7" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc7Ft} ft <small>(@ ₹${pvc7Rate}/ft)</small> • <strong>${this.formatINR(pvc7Cost)}</strong></span>
                         </div>
                         ${pvc10Ft > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">10" Casing Pipe</span>
+                            <span class="cbc-r-lbl">🟦 10" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc10Ft} ft <small>(@ ₹${pvc10Rate}/ft)</small> • <strong>${this.formatINR(pvc10Cost)}</strong></span>
                         </div>
                         ` : ''}
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Total Pipe Installed</span>
+                            <span class="cbc-r-lbl">📏 Total Pipe Installed</span>
                             <span class="cbc-r-val">${totalPipeFt.toLocaleString('en-IN')} ft • <strong class="text-brand">${this.formatINR(totalPipeCost)}</strong></span>
                         </div>
                         ${extrasTotal > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Bata &amp; Extras</span>
+                            <span class="cbc-r-lbl">🛠️ Bata &amp; Extras</span>
                             <span class="cbc-r-val"><small>${extrasParts.join(', ')}</small> • <strong>${this.formatINR(extrasTotal)}</strong></span>
                         </div>
                         ` : ''}
                         ${discountAmt > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Discount</span>
+                            <span class="cbc-r-lbl">🏷️ Discount</span>
                             <span class="cbc-r-val text-green">−${this.formatINR(discountAmt)}</span>
                         </div>
                         ` : ''}
                         ${gstAmt > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">GST</span>
+                            <span class="cbc-r-lbl">🧾 GST</span>
                             <span class="cbc-r-val">+${this.formatINR(gstAmt)}</span>
                         </div>
                         ` : ''}
                         <div class="cbc-row highlight-row">
-                            <span class="cbc-r-lbl">${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
+                            <span class="cbc-r-lbl">💰 ${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
                             <span class="cbc-r-val" style="font-size: 0.9rem;">${this.formatINR(grandTotal)}</span>
                         </div>
                         ${isInvoice ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Paid Amount</span>
+                            <span class="cbc-r-lbl">✅ Paid Amount</span>
                             <span class="cbc-r-val text-green">${this.formatINR(paidAmt)}</span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">Pending Balance</span>
+                            <span class="cbc-r-lbl">⏳ Pending Balance</span>
                             <span class="cbc-r-val ${hasDue ? 'text-danger' : 'text-green'}">${hasDue ? this.formatINR(pendingAmt) : '₹0 (Settled)'}</span>
                         </div>
                         ` : ''}
@@ -4469,7 +4408,7 @@ class BoreBillSaaSApp {
                     ${isInvoice ? `
                     <div class="cbc-pay-history-box">
                         <div class="cphb-head">
-                            <span>Payments (${payEntries.length})</span>
+                            <span>💳 Payments (${payEntries.length})</span>
                             <button type="button" class="btn-record-pay-xs ${hasDue ? 'has-due-btn' : ''} cdm-bore-pay-btn" data-id="${item.id}">
                                 ${hasDue ? '＋ Add Payment' : 'Edit Payments'}
                             </button>
@@ -4478,7 +4417,7 @@ class BoreBillSaaSApp {
                             ${payEntries.length > 0
                                 ? payEntries.map((p, pIdx) => `
                                     <div class="cphb-row">
-                                        <span class="cphb-r-left">${pIdx + 1}. ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                                        <span class="cphb-r-left">${pIdx + 1}. 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
                                         <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
                                     </div>
                                 `).join('')
@@ -4497,37 +4436,13 @@ class BoreBillSaaSApp {
                                 </button>
                             ` : ''}
                             <button type="button" class="btn-wa-xs cdm-bore-wa-btn" data-id="${item.id}">💬 WA Bill</button>
-                            <button type="button" class="btn-secondary-sm cdm-bore-edit-btn" data-id="${item.id}">Edit</button>
-                            <button type="button" class="btn-brand-sm cdm-bore-view-btn" data-id="${item.id}">Receipt / PDF</button>
+                            <button type="button" class="btn-secondary-sm cdm-bore-edit-btn" data-id="${item.id}">✏️ Edit</button>
+                            <button type="button" class="btn-brand-sm cdm-bore-view-btn" data-id="${item.id}">🧾 Receipt / PDF</button>
                         </div>
-                    </div>
                     </div>
                 </div>
             `;
         }).join('');
-
-        // Wire Collapsible Bore Cards
-        listEl.querySelectorAll('.clickable-bore-head').forEach(head => {
-            head.addEventListener('click', () => {
-                const boreId = head.dataset.toggleBore;
-                const bodyEl = document.getElementById(`cbcBody_${boreId}`);
-                if (!bodyEl) return;
-                const willOpen = !bodyEl.classList.contains('is-open');
-                bodyEl.classList.toggle('is-open', willOpen);
-                head.classList.toggle('is-open', willOpen);
-            });
-        });
-
-        // Automatically expand if single item in list
-        if (visibleItems.length === 1) {
-            const firstId = visibleItems[0].id;
-            const bodyEl = document.getElementById(`cbcBody_${firstId}`);
-            const headEl = listEl.querySelector(`[data-toggle-bore="${firstId}"]`);
-            if (bodyEl && headEl) {
-                bodyEl.classList.add('is-open');
-                headEl.classList.add('is-open');
-            }
-        }
 
         // Wire Bore Card action buttons inside the modal
         listEl.querySelectorAll('.cdm-bore-pay-btn').forEach(btn => {
@@ -4761,9 +4676,6 @@ class BoreBillSaaSApp {
         const rateBataWrap = document.getElementById('drillingRateBataWrap');
         if (drillSection) drillSection.style.display = 'block';
         if (rateBataWrap) rateBataWrap.style.display = 'flex';
-
-        // Auto collapse top choice strip into 1 compact line once customer is chosen
-        this.nbForceExpandChoice = false;
 
         this.calculateAndRender();
         this.updateBillPhoneValidationUI(false);
@@ -9433,92 +9345,6 @@ class BoreBillSaaSApp {
                 this.updateQuickTabJumpPosition();
                 this.syncTopHeaderWrapLock();
             }, 100);
-        });
-
-        // Customer Tab Toolbar: Due Sort & Date Filter
-        document.getElementById('crmSortDueBtn')?.addEventListener('click', () => {
-            this.crmSortDueDesc = !this.crmSortDueDesc;
-            const btn = document.getElementById('crmSortDueBtn');
-            btn?.classList.toggle('active', Boolean(this.crmSortDueDesc));
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-            this.showToast(this.crmSortDueDesc ? '↕ Sorted by Due (Highest first)' : '↺ Normal order restored');
-        });
-
-        document.getElementById('crmFilterToggleBtn')?.addEventListener('click', () => {
-            const panel = document.getElementById('crmFilterDropdownPanel');
-            if (!panel) return;
-            const willOpen = panel.style.display === 'none';
-            panel.style.display = willOpen ? 'flex' : 'none';
-        });
-
-        document.getElementById('closeCrmFilterPanelBtn')?.addEventListener('click', () => {
-            const panel = document.getElementById('crmFilterDropdownPanel');
-            if (panel) panel.style.display = 'none';
-        });
-
-        document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(pill => {
-            pill.addEventListener('click', () => {
-                const preset = pill.dataset.crmpreset || 'all';
-                this.crmDatePreset = preset;
-                document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(p => p.classList.toggle('active', p === pill));
-                const customRow = document.getElementById('crmCustomDateRow');
-                if (customRow) {
-                    customRow.style.display = preset === 'custom' ? 'grid' : 'none';
-                }
-                const badge = document.getElementById('crmFilterBadge');
-                if (badge) {
-                    const hasActive = preset !== 'all';
-                    badge.style.display = hasActive ? 'inline-flex' : 'none';
-                    badge.textContent = '1';
-                }
-                this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-            });
-        });
-
-        document.getElementById('crmDateFrom')?.addEventListener('change', (e) => {
-            this.crmCustomFrom = e.target.value;
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-        });
-
-        document.getElementById('crmDateTo')?.addEventListener('change', (e) => {
-            this.crmCustomTo = e.target.value;
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-        });
-
-        document.getElementById('resetCrmFiltersBtn')?.addEventListener('click', () => {
-            this.crmDatePreset = 'all';
-            this.crmCustomFrom = '';
-            this.crmCustomTo = '';
-            this.crmSortDueDesc = false;
-            document.getElementById('crmSortDueBtn')?.classList.remove('active');
-            document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(p => p.classList.toggle('active', p.dataset.crmpreset === 'all'));
-            const customRow = document.getElementById('crmCustomDateRow');
-            if (customRow) customRow.style.display = 'none';
-            const badge = document.getElementById('crmFilterBadge');
-            if (badge) badge.style.display = 'none';
-            const panel = document.getElementById('crmFilterDropdownPanel');
-            if (panel) panel.style.display = 'none';
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-            this.showToast('↺ Customer filters reset');
-        });
-
-        // Top Step 1 Minimized Bar Click to Edit
-        document.getElementById('nbCompactEditBtn')?.addEventListener('click', () => {
-            this.nbForceExpandChoice = true;
-            this.calculateAndRender();
-        });
-        document.getElementById('newBillChoiceCard')?.addEventListener('click', (e) => {
-            if (e.target.closest('#nbChoiceCompact')) {
-                this.nbForceExpandChoice = true;
-                this.calculateAndRender();
-            }
-        });
-
-        // Tapping options in expanded collapses it if user has already entered something
-        document.querySelectorAll('#docTypePills .nb-pill-btn, #boreDiaPills .nb-dia-pill, #drillingTypeToggle .nb-work-pill').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.nbForceExpandChoice = false;
-            });
         });
 
         // Click top date badge to focus date
