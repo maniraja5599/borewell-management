@@ -4,6 +4,7 @@ const ASSETS = [
   './index.html',
   './styles.css?v=106',
   './app.js?v=106',
+  './lucide.min.js',
   './manifest.json',
   './icon.svg'
 ];

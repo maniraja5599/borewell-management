@@ -41,8 +41,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons (Official Modern SaaS Vector Icon Library) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons (Official Modern SaaS Vector Icon Library - Local with CDN Fallback) -->
+    <script src="lucide.min.js"></script>
+    <script>
+        if (typeof window.lucide === 'undefined') {
+            document.write('<script src="https://unpkg.com/lucide@latest"><\/script>');
+        }
+    </script>
 
     <!-- Export Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>

@@ -396,9 +396,9 @@ class BoreBillSaaSApp {
         const cName = (document.getElementById('custName')?.value || this.state.custName || '').trim();
         const cLoc = (document.getElementById('custLocation')?.value || this.state.custLocation || '').trim();
         const hasCustomer = Boolean(cName);
-        const hasServiceSite = hasCustomer && Boolean(cLoc);
+        const hasServiceSite = Boolean(cLoc);
         const rawDepth = res ? res.totalDepth : (parseInt(document.getElementById('totalDepth')?.value, 10) || this.state.totalDepth || 0);
-        const hasDrillingDepth = hasServiceSite && (Number(rawDepth) > 0);
+        const hasDrillingDepth = (Number(rawDepth) > 0);
         const isReadOnlySaved = Boolean(this.loadedHistoryBillId && this.isSavedBillReadOnly);
         const isEditingSaved = Boolean(this.loadedHistoryBillId && !this.isSavedBillReadOnly);
 
@@ -419,10 +419,10 @@ class BoreBillSaaSApp {
 
         // 1. Drilling Depth + Compact Rate / Slab Rate Dropdown bar opens after Customer is selected
         if (drillSection) {
-            drillSection.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'block' : 'none';
+            drillSection.style.display = (hasCustomer || isEditingSaved) ? 'block' : 'none';
         }
         if (rateBataWrap) {
-            rateBataWrap.style.display = (hasCustomer || hasServiceSite || isEditingSaved) ? 'flex' : 'none';
+            rateBataWrap.style.display = (hasCustomer || isEditingSaved) ? 'flex' : 'none';
         }
 
         // 2. PVC Casing Pipes & "Preview & Save Bill" CTA open once Drilling Depth (ft) is entered
@@ -725,6 +725,7 @@ class BoreBillSaaSApp {
         this.renderSavedExtrasUI();
         this.renderSavedNotesUI();
         this.refreshIcons();
+        setTimeout(() => this.refreshIcons(), 80);
 
         // Restore exact scroll position where user left off
         const savedScrollY = parseInt(sessionStorage.getItem('borebill_scroll_y') || '0', 10);
