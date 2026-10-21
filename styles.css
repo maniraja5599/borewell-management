@@ -498,6 +498,23 @@ html.ios-standalone .app-header {
     border: 1px solid rgba(187, 247, 208, 0.4);
 }
 
+.slide-install .slide-main-title {
+    color: #fed7aa;
+}
+
+.slide-install .badge-install {
+    background: #ea580c;
+    color: #ffffff;
+    border: 1px solid rgba(254, 215, 170, 0.5);
+    box-shadow: 0 0 8px rgba(234, 88, 12, 0.7);
+    animation: installPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes installPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+
 .header-controls {
     display: flex;
     align-items: center;

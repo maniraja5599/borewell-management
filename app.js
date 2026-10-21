@@ -3907,20 +3907,22 @@ class BoreBillSaaSApp {
         if (!this._topMarqueeTimer) {
             this._topMarqueeCurrentIndex = 0;
             this._topMarqueeTimer = setInterval(() => {
-                const slides = document.querySelectorAll('.header-dynamic-marquee .marquee-slide');
-                if (!slides || slides.length === 0) return;
-                const prevIdx = this._topMarqueeCurrentIndex || 0;
-                const nextIdx = (prevIdx + 1) % slides.length;
-                this._topMarqueeCurrentIndex = nextIdx;
+                const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
+                const visibleSlides = allSlides.filter(s => s.style.display !== 'none');
+                if (!visibleSlides || visibleSlides.length === 0) return;
 
-                slides.forEach((s, idx) => {
-                    s.classList.remove('active', 'exit-up');
-                    if (idx === prevIdx) {
-                        s.classList.add('exit-up');
-                    } else if (idx === nextIdx) {
-                        s.classList.add('active');
-                    }
-                });
+                const currentSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
+                let currPos = visibleSlides.indexOf(currentSlide);
+                if (currPos === -1) currPos = 0;
+                const nextPos = (currPos + 1) % visibleSlides.length;
+
+                const prevSlide = visibleSlides[currPos];
+                const nextSlide = visibleSlides[nextPos];
+                this._topMarqueeCurrentIndex = parseInt(nextSlide.dataset.slideIndex || nextPos, 10);
+
+                allSlides.forEach(s => s.classList.remove('active', 'exit-up'));
+                if (prevSlide) prevSlide.classList.add('exit-up');
+                if (nextSlide) nextSlide.classList.add('active');
             }, 4200);
         }
     }
@@ -7998,6 +8000,25 @@ class BoreBillSaaSApp {
                     this.switchSettingsView('set-view-whatsapp');
                 }
                 this.showToast('💬 WhatsApp Bill Designer');
+            } else if (idx === 4) {
+                // Install App Slide -> Trigger PWA Install Prompt or Show Instructions
+                if (window.deferredInstallPrompt) {
+                    window.deferredInstallPrompt.prompt();
+                    window.deferredInstallPrompt.userChoice.then(({ outcome }) => {
+                        if (outcome === 'accepted') {
+                            const slide = document.getElementById('marqueeSlide4');
+                            if (slide) slide.style.display = 'none';
+                        }
+                        window.deferredInstallPrompt = null;
+                    });
+                } else {
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+                    if (isIOS) {
+                        this.showToast('📲 Tap Safari Share button ⎋ and choose "Add to Home Screen"');
+                    } else {
+                        this.showToast('📲 Tap browser menu ⋮ and select "Install app" or "Add to Home Screen"');
+                    }
+                }
             } else {
                 // Company Slide -> Open Settings Profile
                 this.switchTab('tab-brand');
@@ -10292,32 +10313,44 @@ function initPWAAndZoomLock() {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
-    // 6. Native PWA Install Prompt Handler
-    let deferredInstallPrompt = null;
+    // 6. Native PWA Install Prompt Handler & Marquee Install Slide Sync
+    window.deferredInstallPrompt = null;
     const installBtn = document.getElementById('installPwaBtn');
+    const marqueeInstallSlide = document.getElementById('marqueeSlide4');
+
+    // Check if app is already running as installed standalone PWA
+    const isStandalone = (window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if (!isStandalone && marqueeInstallSlide) {
+        marqueeInstallSlide.style.display = 'flex';
+    }
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        deferredInstallPrompt = e;
+        window.deferredInstallPrompt = e;
         if (installBtn) {
             installBtn.style.display = 'inline-flex';
             if (window.lucide) window.lucide.createIcons();
         }
+        if (marqueeInstallSlide && !isStandalone) {
+            marqueeInstallSlide.style.display = 'flex';
+        }
     });
 
     installBtn?.addEventListener('click', async () => {
-        if (!deferredInstallPrompt) return;
-        deferredInstallPrompt.prompt();
-        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (!window.deferredInstallPrompt) return;
+        window.deferredInstallPrompt.prompt();
+        const { outcome } = await window.deferredInstallPrompt.userChoice;
         if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
+            if (installBtn) installBtn.style.display = 'none';
+            if (marqueeInstallSlide) marqueeInstallSlide.style.display = 'none';
         }
-        deferredInstallPrompt = null;
+        window.deferredInstallPrompt = null;
     });
 
     window.addEventListener('appinstalled', () => {
         if (installBtn) installBtn.style.display = 'none';
-        deferredInstallPrompt = null;
+        if (marqueeInstallSlide) marqueeInstallSlide.style.display = 'none';
+        window.deferredInstallPrompt = null;
     });
 }
 

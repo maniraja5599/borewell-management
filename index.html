@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=101">
+    <link rel="stylesheet" href="styles.css?v=102">
 </head>
 <body>
 
@@ -98,13 +98,22 @@
                         <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
                     </div>
 
-                    <!-- Slide 4: Smart SaaS Quick Notification -->
+                    <!-- Slide 4: Smart SaaS Quick Notification / WhatsApp Share -->
                     <div class="marquee-slide slide-notify" id="marqueeSlide3" data-slide-index="3">
                         <div class="slide-content-wrap">
                             <span class="slide-notify-icon">💬</span>
                             <span class="slide-main-title">Share PDF &amp; JPG Bill</span>
                         </div>
                         <span class="slide-badge badge-notify">WHATSAPP</span>
+                    </div>
+
+                    <!-- Slide 5: PWA Install Callout (Active when opened in browser / not installed) -->
+                    <div class="marquee-slide slide-install" id="marqueeSlide4" data-slide-index="4" style="display: none;">
+                        <div class="slide-content-wrap">
+                            <span class="slide-install-icon">📲</span>
+                            <span class="slide-main-title">Install App on Phone</span>
+                        </div>
+                        <span class="slide-badge badge-install">INSTALL</span>
                     </div>
                 </div>
 
@@ -2785,6 +2794,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=101"></script>
+    <script src="app.js?v=102"></script>
 </body>
 </html>
