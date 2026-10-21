@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=103">
+    <link rel="stylesheet" href="styles.css?v=104">
 </head>
 <body>
 
@@ -1588,24 +1588,24 @@
 
                 <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
                 <div class="settings-nav-segmented">
-                    <button type="button" class="set-seg-btn active" data-view="set-view-company">
-                        <i data-lucide="building-2" class="icon-xs"></i>
+                    <button type="button" class="set-seg-btn active set-seg-company" data-view="set-view-company">
+                        <i data-lucide="building-2" class="icon-xs seg-icon-company"></i>
                         <span>Company</span>
                     </button>
-                    <button type="button" class="set-seg-btn" data-view="set-view-casing">
-                        <i data-lucide="cylinder" class="icon-xs"></i>
+                    <button type="button" class="set-seg-btn set-seg-casing" data-view="set-view-casing">
+                        <i data-lucide="cylinder" class="icon-xs seg-icon-casing"></i>
                         <span>Casing</span>
                     </button>
-                    <button type="button" class="set-seg-btn" data-view="set-view-theme">
-                        <i data-lucide="palette" class="icon-xs"></i>
+                    <button type="button" class="set-seg-btn set-seg-theme" data-view="set-view-theme">
+                        <i data-lucide="palette" class="icon-xs seg-icon-theme"></i>
                         <span>Theme</span>
                     </button>
-                    <button type="button" class="set-seg-btn" data-view="set-view-whatsapp">
-                        <i data-lucide="message-circle" class="icon-xs"></i>
+                    <button type="button" class="set-seg-btn set-seg-whatsapp" data-view="set-view-whatsapp">
+                        <i data-lucide="message-circle" class="icon-xs seg-icon-whatsapp"></i>
                         <span>WhatsApp</span>
                     </button>
-                    <button type="button" class="set-seg-btn" data-view="set-view-vault">
-                        <i data-lucide="database-backup" class="icon-xs"></i>
+                    <button type="button" class="set-seg-btn set-seg-vault" data-view="set-view-vault">
+                        <i data-lucide="database-backup" class="icon-xs seg-icon-vault"></i>
                         <span>Backup</span>
                     </button>
                 </div>
@@ -2183,6 +2183,20 @@
                             </div>
                             <div class="wa-switch">
                                 <input type="checkbox" id="waTogglePipes" checked>
+                                <span class="wa-slider"></span>
+                            </div>
+                        </label>
+
+                        <label class="wa-toggle-item" for="waTogglePipeSubtotal">
+                            <div class="wa-toggle-info">
+                                <span class="wt-icon">💰</span>
+                                <div>
+                                    <strong>Casing Pipe Subtotal</strong>
+                                    <small>Show combined total cost of casing pipes in bill</small>
+                                </div>
+                            </div>
+                            <div class="wa-switch">
+                                <input type="checkbox" id="waTogglePipeSubtotal" checked>
                                 <span class="wa-slider"></span>
                             </div>
                         </label>
@@ -2802,6 +2816,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=103"></script>
+    <script src="app.js?v=104"></script>
 </body>
 </html>

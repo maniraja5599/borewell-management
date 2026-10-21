@@ -3610,35 +3610,6 @@ class BoreBillSaaSApp {
                     </div>
                 </div>
                 ` : ''}
-
-                ${slabRows.length > 0 ? `
-                    <details class="cbc-slab-details">
-                        <summary>
-                            <span>📐 View Depth Slab Breakup (${slabRows.length} ${slabRows.length === 1 ? 'Slab' : 'Slabs'})</span>
-                            <span>▾</span>
-                        </summary>
-                        <table class="cbc-slab-table">
-                            <thead>
-                                <tr>
-                                    <th>Depth Slab</th>
-                                    <th>Feet</th>
-                                    <th>Rate/ft</th>
-                                    <th>Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${slabRows.map(sr => `
-                                    <tr>
-                                        <td>${this.escapeHtml(sr.range)}</td>
-                                        <td>${sr.depth} ft</td>
-                                        <td>₹${sr.rate}</td>
-                                        <td>${this.formatINR(sr.cost)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </details>
-                ` : ''}
             </div>
         `;
 
@@ -3993,7 +3964,8 @@ class BoreBillSaaSApp {
 
             let badgeHtml = '';
             if (hasDue) {
-                badgeHtml = `<span class="cmr-badge due">Due ${this.formatINR(agg.totalPending)}</span>`;
+                const boreCountTxt = agg.boresCount > 0 ? `${agg.boresCount}B • ` : '';
+                badgeHtml = `<span class="cmr-badge due">${boreCountTxt}Due ${this.formatINR(agg.totalPending)}</span>`;
             } else if (agg.boresCount > 0) {
                 badgeHtml = `<span class="cmr-badge settled">${agg.boresCount} ${agg.boresCount === 1 ? 'Bore' : 'Bores'} • Paid</span>`;
             } else if (agg.quotesCount > 0) {
@@ -4453,36 +4425,6 @@ class BoreBillSaaSApp {
                             }
                         </div>
                     </div>
-                    ` : ''}
-
-                    <!-- Expandable Depth Slab Breakup Table -->
-                    ${slabRows.length > 0 ? `
-                        <details class="cbc-slab-details">
-                            <summary>
-                                <span>📐 View Depth Slab Breakup (${slabRows.length} ${slabRows.length === 1 ? 'Slab' : 'Slabs'})</span>
-                                <span>▾</span>
-                            </summary>
-                            <table class="cbc-slab-table">
-                                <thead>
-                                    <tr>
-                                        <th>Depth Slab</th>
-                                        <th>Feet</th>
-                                        <th>Rate/ft</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${slabRows.map(sr => `
-                                        <tr>
-                                            <td>${this.escapeHtml(sr.range)}</td>
-                                            <td>${sr.depth} ft</td>
-                                            <td>₹${sr.rate}</td>
-                                            <td>${this.formatINR(sr.cost)}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </details>
                     ` : ''}
 
                     <!-- Bore Card Footer Actions -->
@@ -6216,11 +6158,20 @@ class BoreBillSaaSApp {
         const c2Name = this.getCasing2Name();
 
         if (cfg.pipes !== false) {
+            let totalPipeCost = 0;
+            let pipeCount = 0;
             if (res.pvc7Length > 0) {
                 otherLines.push(`• ${c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+                totalPipeCost += (res.pvc7Cost || 0);
+                pipeCount++;
             }
             if (res.pvc10Length > 0) {
                 otherLines.push(`• ${c2Name} (${res.pvc10Length} ft × ₹${res.pvc10Rate}/ft) : *${this.formatINR(res.pvc10Cost)}*`);
+                totalPipeCost += (res.pvc10Cost || 0);
+                pipeCount++;
+            }
+            if (cfg.pipeSubtotal !== false && totalPipeCost > 0 && pipeCount > 0) {
+                otherLines.push(`  ↳ *Total Casing Pipe Cost : ${this.formatINR(totalPipeCost)}*`);
             }
         }
 
@@ -9945,6 +9896,7 @@ class BoreBillSaaSApp {
             waToggleGst: 'gst',
             waToggleSlabBreakup: 'slabBreakup',
             waTogglePipes: 'pipes',
+            waTogglePipeSubtotal: 'pipeSubtotal',
             waToggleExtras: 'extras',
             waTogglePaymentDue: 'paymentDue',
             waToggleNote: 'note',
