@@ -4350,8 +4350,8 @@ class BoreBillSaaSApp {
 
             return `
                 <div class="cdm-bore-card ${isInvoice ? (hasDue ? 'is-unpaid-bore' : 'is-paid-bore') : 'is-quote-bore'}">
-                    <!-- Bore Header -->
-                    <div class="cbc-head">
+                    <!-- Bore Header (Click to expand/collapse details) -->
+                    <div class="cbc-head clickable-bore-head" data-toggle-bore="${item.id}" style="cursor:pointer;" title="Tap to expand/collapse details">
                         <div class="cbc-head-left">
                             <span class="cbc-bore-num-badge ${isInvoice ? '' : 'quote-badge'}">
                                 ${isInvoice ? `BORE #${boreSeqNum}` : `QUOTE #${boreSeqNum}`}
@@ -4359,17 +4359,20 @@ class BoreBillSaaSApp {
                             <span class="cbc-bill-no">#${this.escapeHtml(item.billNo || '')}</span>
                             <span class="cbc-date">📅 ${dateStr}</span>
                         </div>
-                        <div class="cbc-head-right">
+                        <div class="cbc-head-right" style="display:flex; align-items:center; gap:6px;">
                             ${isInvoice
                                 ? (hasDue
                                     ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
                                     : `<span class="status-pill paid static-badge">✅ Paid</span>`)
                                 : `<span class="status-pill quote static-badge">📋 Quotation</span>`
                             }
+                            <span class="cbc-expand-chevron">▾</span>
                         </div>
                     </div>
 
-                    <!-- Clean Uncluttered Row-by-Row Breakdown -->
+                    <!-- Collapsible Bore Details Container -->
+                    <div class="cbc-body-collapse" id="cbcBody_${item.id}">
+                        <!-- Clean Uncluttered Row-by-Row Breakdown -->
                     <div class="cbc-clean-rows">
                         <div class="cbc-row">
                             <span class="cbc-r-lbl">📍 Site Location</span>
@@ -4470,6 +4473,7 @@ class BoreBillSaaSApp {
                             <button type="button" class="btn-brand-sm cdm-bore-view-btn" data-id="${item.id}">🧾 Receipt / PDF</button>
                         </div>
                     </div>
+                    </div><!-- End cbc-body-collapse -->
                 </div>
             `;
         }).join('');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'borebill-pro-v110';
+const CACHE_NAME = 'borebill-pro-v111';
 const ASSETS = [
   './',
   './index.html',
