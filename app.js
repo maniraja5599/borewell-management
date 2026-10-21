@@ -1254,7 +1254,7 @@ class BoreBillSaaSApp {
             totalBannerEl.textContent = this.formatINR(res.grandTotal);
         }
         document.getElementById('liveSummaryDepthBadge').textContent = `Depth: ${res.totalDepth || 0} ft (${res.boreDia})`;
-        document.getElementById('liveSummaryPerFt').textContent = `₹${Math.round(res.avgPerFoot)}/ft avg`;
+        document.getElementById('liveSummaryPerFt').textContent = `Base: ₹${res.baseDrillingRate || 90}/ft`;
 
         const stickyDrillCost = document.getElementById('liveStickyDrillCost');
         if (stickyDrillCost) {
