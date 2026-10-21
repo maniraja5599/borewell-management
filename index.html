@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=102">
+    <link rel="stylesheet" href="styles.css?v=103">
 </head>
 <body>
 
@@ -956,6 +956,7 @@
                         <div class="receipt-sign-row">
                             <div class="upi-info-text" id="rcptUpiBox" style="display: none;">
                                 <span>💳 UPI / GPay: <strong id="rcptUpiId"></strong></span>
+                                <span id="rcptUpiNameLine" style="display: block; font-size: 0.68rem; color: #475569; margin-top: 1px;">Name: <strong id="rcptUpiName"></strong></span>
                             </div>
                             <div class="sign-box">
                                 <span data-i18n="forCompany">For</span> <strong id="rcptSignCompany">SRI ANJANEYA BOREWELLS</strong>
@@ -1709,6 +1710,13 @@
                             <div class="field-group">
                                 <label for="brandUpiId" data-i18n="upiGpayLabel">UPI ID / GPay Number</label>
                                 <input type="text" id="brandUpiId" placeholder="9659657777@upi">
+                            </div>
+                            <div class="field-group full-col">
+                                <label for="brandUpiName">UPI Account Beneficiary Name (Verification Name)</label>
+                                <input type="text" id="brandUpiName" placeholder="e.g. M. Mani Raja / Sri Anjaneya Borewells">
+                                <small style="display: block; font-size: 0.70rem; color: var(--text-muted); margin-top: 3px;">
+                                    Shown to customers on bill &amp; QR verification so they transfer money to the right bank account.
+                                </small>
                             </div>
 
                             <!-- A. Quotation-Only Footer Disclaimer -->
@@ -2794,6 +2802,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=102"></script>
+    <script src="app.js?v=103"></script>
 </body>
 </html>

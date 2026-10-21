@@ -185,6 +185,7 @@ class BoreBillSaaSApp {
             website: '',
             gstNumber: '',
             upiId: '',
+            upiName: '',
             billPrefix: 'AB',
             nextBillSeq: 101,
             nextQuoteSeq: 101,
@@ -4871,6 +4872,7 @@ class BoreBillSaaSApp {
         this.brand.website = (document.getElementById('brandWebsite')?.value || '').trim();
         this.brand.gstNumber = (document.getElementById('brandGstNumber')?.value || '').trim().toUpperCase();
         this.brand.upiId = (document.getElementById('brandUpiId')?.value || '').trim();
+        this.brand.upiName = (document.getElementById('brandUpiName')?.value || '').trim();
         this.brand.termsNote = (document.getElementById('brandTermsNote')?.value || '').trim();
         const billTermsEl = document.getElementById('brandFinalBillTermsNote');
         if (billTermsEl) {
@@ -5009,7 +5011,10 @@ class BoreBillSaaSApp {
         setCardTxt('brandCardPrefixText', `#${prefix}`);
         setCardTxt('brandCardNextSeqText', `${nextQ.replace(prefix + '-', '')} / ${nextB.replace(prefix + '-', '')}`);
         setCardTxt('brandCardGstText', (b.gstNumber && b.gstNumber.trim()) ? b.gstNumber.trim() : 'Optional');
-        setCardTxt('brandCardUpiText', (b.upiId && b.upiId.trim()) ? b.upiId.trim() : 'Not Set');
+        const upiTxt = (b.upiId && b.upiId.trim()) 
+            ? (b.upiName ? `${b.upiId.trim()} (${b.upiName})` : b.upiId.trim()) 
+            : 'Not Set';
+        setCardTxt('brandCardUpiText', upiTxt);
         setCardTxt('brandCardTermsText', quoteTermsNote || '— None (Hidden on Quotation) —');
         setCardTxt('brandCardFinalBillTermsText', finalBillTermsNote || '— None (Hidden on Final Bill) —');
         const brandCardWebEl = document.getElementById('brandCardWebsiteText');
@@ -5041,6 +5046,16 @@ class BoreBillSaaSApp {
         if (b.upiId && b.upiId.trim()) {
             upiBox.style.display = 'block';
             document.getElementById('rcptUpiId').textContent = b.upiId.trim();
+            const upiNameLine = document.getElementById('rcptUpiNameLine');
+            const upiNameVal = document.getElementById('rcptUpiName');
+            if (upiNameLine && upiNameVal) {
+                if (b.upiName && b.upiName.trim()) {
+                    upiNameVal.textContent = b.upiName.trim();
+                    upiNameLine.style.display = 'block';
+                } else {
+                    upiNameLine.style.display = 'none';
+                }
+            }
         } else {
             upiBox.style.display = 'none';
         }
@@ -5082,6 +5097,7 @@ class BoreBillSaaSApp {
         setInputIfNotFocused('brandWebsite', b.website || '');
         setInputIfNotFocused('brandGstNumber', b.gstNumber || '');
         setInputIfNotFocused('brandUpiId', b.upiId || '');
+        setInputIfNotFocused('brandUpiName', b.upiName || '');
         setInputIfNotFocused('brandTermsNote', quoteTermsNote);
         setInputIfNotFocused('brandFinalBillTermsNote', finalBillTermsNote);
 
@@ -6276,7 +6292,10 @@ class BoreBillSaaSApp {
 
         if (cfg.contact !== false) {
             if (b.website && b.website.trim()) lines.push(`🌐 *Website:* ${b.website.trim()}`);
-            if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
+            if (b.upiId && b.upiId.trim()) {
+                const upiDisplay = b.upiName && b.upiName.trim() ? `${b.upiId.trim()} (${b.upiName.trim()})` : b.upiId.trim();
+                lines.push(`💳 *UPI / GPay:* ${upiDisplay}`);
+            }
             if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
         }
 
@@ -6489,7 +6508,10 @@ class BoreBillSaaSApp {
         }
 
         lines.push(`──────────────────────`);
-        if (b.upiId && b.upiId.trim()) lines.push(`💳 *UPI / GPay:* ${b.upiId.trim()}`);
+        if (b.upiId && b.upiId.trim()) {
+            const upiDisplay = b.upiName && b.upiName.trim() ? `${b.upiId.trim()} (${b.upiName.trim()})` : b.upiId.trim();
+            lines.push(`💳 *UPI / GPay:* ${upiDisplay}`);
+        }
         if (compPhones) lines.push(`📞 *Contact:* ${compPhones}`);
 
         this.openWhatsAppPreviewModal({
@@ -9689,7 +9711,7 @@ class BoreBillSaaSApp {
         const brandInputIds = [
             'brandCompanyName', 'brandCompanyTagline', 'brandCompanyPhones',
             'brandBillPrefix', 'brandNextQuoteSeq', 'brandNextBillSeq',
-            'brandCompanyAddress', 'brandWebsite', 'brandGstNumber', 'brandUpiId',
+            'brandCompanyAddress', 'brandWebsite', 'brandGstNumber', 'brandUpiId', 'brandUpiName',
             'brandTermsNote', 'brandFinalBillTermsNote'
         ];
         brandInputIds.forEach(bId => {
