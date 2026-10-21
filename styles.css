@@ -5603,9 +5603,14 @@ html.ios-standalone body.keyboard-open .app-main {
    UNIVERSAL DELETE CONFIRMATION MODAL & UNDO TOAST
    ========================================================================== */
 
+#deleteConfirmModalOverlay {
+    z-index: 3500 !important;
+}
+
 .del-confirm-modal {
     max-width: 305px !important;
     border-top: 4px solid var(--danger) !important;
+    z-index: 3501 !important;
 }
 
 .del-icon-badge {
@@ -7488,6 +7493,15 @@ input[type="number"] {
     box-shadow: 0 3px 8px rgba(21, 128, 61, 0.25);
 }
 
+.nb-doc-header-row,
+.nb-dia-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+}
+
 .nb-dia-pills {
     display: flex;
     align-items: center;
@@ -7497,12 +7511,12 @@ input[type="number"] {
 }
 
 .nb-dia-pill {
-    padding: 8px 13px;
-    border-radius: 9px;
+    padding: 5px 10px;
+    border-radius: 8px;
     border: 1.5px solid #cbd5e1;
     background: #f8fafc;
     color: #334155;
-    font-size: 0.86rem;
+    font-size: 0.76rem;
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
@@ -8718,6 +8732,15 @@ input.is-select-all-ready,
     background: #fef2f2;
     border-color: #fecaca;
     color: #dc2626;
+}
+
+.cdm-qa-btn.icon-only {
+    flex: 0 0 34px;
+    width: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 2-Tab Separate View Switcher inside Customer Window */

@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=105">
+    <link rel="stylesheet" href="styles.css?v=106">
 </head>
 <body>
 
@@ -199,53 +199,50 @@
 
             <!-- Editable Calculator Forms Container (Hidden when viewing a Saved Bill in Final View mode) -->
             <div id="billEditorFormsContainer">
-            <!-- 1. Fresh Bill Top Choice Strip: Doc Type (Final Bill vs Quotation) + Bore Size (Big Choice) -->
+            <!-- 1. Fresh Bill Top Choice Strip: Doc Type (Final Bill vs Quotation) + Bore Size & Type -->
             <div class="newbill-top-choice-card" id="newBillChoiceCard">
                 <!-- Expanded Choice View (First Step) -->
                 <div class="nb-choice-expanded" id="nbChoiceExpanded">
-                    <div class="nb-choice-row">
-                        <!-- Left: Doc Type (Final Bill vs Quotation) -->
-                        <div class="nb-choice-group">
+                    <!-- Row 1: Bill Type (Final Bill vs Quotation) -->
+                    <div class="nb-choice-group nb-choice-doc-group">
+                        <div class="nb-doc-header-row">
                             <span class="nb-choice-lbl">1. Bill Type</span>
-                            <div class="nb-pills-wrap" id="docTypePills">
-                                <button type="button" class="nb-pill-btn doc-pill active" data-doc="INVOICE">
-                                    <span>🧾 Final Bill</span>
-                                </button>
-                                <button type="button" class="nb-pill-btn doc-pill" data-doc="QUOTATION">
-                                    <span>📋 Quotation</span>
+                            <div class="nb-bill-no-box">
+                                <span class="saved-status-pill" id="autoSeqHintBadge">Auto #AB-101</span>
+                                <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
+                                    <span>Fresh Bill</span>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Right: Bore Dia / Size (4.75" | 6.5" | 8" | 10" | 12") -->
-                        <div class="nb-choice-group">
-                            <span class="nb-choice-lbl">2. Bore Size</span>
-                            <div class="nb-dia-pills" id="boreDiaPills">
-                                <button type="button" class="nb-dia-pill" data-dia='4.75"'>4.75"</button>
-                                <button type="button" class="nb-dia-pill active" data-dia='6.5"'>6.5"</button>
-                                <button type="button" class="nb-dia-pill" data-dia='8"'>8"</button>
-                                <button type="button" class="nb-dia-pill" data-dia='10"'>10"</button>
-                                <button type="button" class="nb-dia-pill" data-dia='12"'>12"</button>
-                            </div>
+                        <div class="nb-pills-wrap" id="docTypePills">
+                            <button type="button" class="nb-pill-btn doc-pill active" data-doc="INVOICE">
+                                <span>🧾 Final Bill</span>
+                            </button>
+                            <button type="button" class="nb-pill-btn doc-pill" data-doc="QUOTATION">
+                                <span>📋 Quotation</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Bottom Meta Row: New Bore vs Re-Bore & Bill No -->
-                    <div class="nb-bottom-meta-row">
-                        <div class="nb-pills-wrap" id="drillingTypeToggle">
-                            <button type="button" class="nb-work-pill active" data-type="new">
-                                <span>🚜 New Bore</span>
-                            </button>
-                            <button type="button" class="nb-work-pill" data-type="repair">
-                                <span>🔄 Re-Bore</span>
-                            </button>
+                    <!-- Row 2: Bore Size (Compact Pills with smaller font) & New Bore / Re-Bore directly below -->
+                    <div class="nb-choice-group nb-choice-dia-group">
+                        <div class="nb-dia-header-row">
+                            <span class="nb-choice-lbl">2. Bore Size</span>
+                            <div class="nb-pills-wrap" id="drillingTypeToggle">
+                                <button type="button" class="nb-work-pill active" data-type="new">
+                                    <span>🚜 New Bore</span>
+                                </button>
+                                <button type="button" class="nb-work-pill" data-type="repair">
+                                    <span>🔄 Re-Bore</span>
+                                </button>
+                            </div>
                         </div>
-
-                        <div class="nb-bill-no-box">
-                            <span class="saved-status-pill" id="autoSeqHintBadge">Auto #AB-101</span>
-                            <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
-                                <span>Fresh Bill</span>
-                            </button>
+                        <div class="nb-dia-pills" id="boreDiaPills">
+                            <button type="button" class="nb-dia-pill" data-dia='4.75"'>4.75"</button>
+                            <button type="button" class="nb-dia-pill active" data-dia='6.5"'>6.5"</button>
+                            <button type="button" class="nb-dia-pill" data-dia='8"'>8"</button>
+                            <button type="button" class="nb-dia-pill" data-dia='10"'>10"</button>
+                            <button type="button" class="nb-dia-pill" data-dia='12"'>12"</button>
                         </div>
                     </div>
                 </div>
@@ -2523,8 +2520,8 @@
                 <button type="button" class="cdm-qa-btn edit" id="cdmEditCustomerBtn">
                     <span>Edit</span>
                 </button>
-                <button type="button" class="cdm-qa-btn danger" id="cdmDeleteCustomerBtn" title="Delete Customer">
-                    <span>Delete</span>
+                <button type="button" class="cdm-qa-btn danger icon-only" id="cdmDeleteCustomerBtn" title="Delete Customer">
+                    <i data-lucide="trash-2" class="icon-xs"></i>
                 </button>
             </div>
 
@@ -2859,6 +2856,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=105"></script>
+    <script src="app.js?v=106"></script>
 </body>
 </html>

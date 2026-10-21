@@ -4147,7 +4147,7 @@ class BoreBillSaaSApp {
             this.cdmSelectedBoreId = 'all';
         } else if (!this.cdmActiveBoreFilter || !isSameCustomer) {
             this.cdmActiveBoreFilter = 'all';
-            this.cdmSelectedBoreId = null; // Will default to latest bore if >1 bores
+            this.cdmSelectedBoreId = 'all'; // Default to all bores in list view
         }
 
         const agg = this.getCustomerAggregates(cust);
@@ -4286,9 +4286,9 @@ class BoreBillSaaSApp {
 
         const totalInList = items.length;
 
-        // Default to showing the newest single bore when there are multiple bores so each bore is viewed cleanly and separately
+        // Default to showing all bores in clean list view by default
         if (!this.cdmSelectedBoreId || (this.cdmSelectedBoreId !== 'all' && !items.some(x => x.id === this.cdmSelectedBoreId))) {
-            this.cdmSelectedBoreId = items[0].id;
+            this.cdmSelectedBoreId = 'all';
         }
 
         // Render Bore Selector Bar if there is more than 1 bore/record
@@ -4760,6 +4760,9 @@ class BoreBillSaaSApp {
         const rateBataWrap = document.getElementById('drillingRateBataWrap');
         if (drillSection) drillSection.style.display = 'block';
         if (rateBataWrap) rateBataWrap.style.display = 'flex';
+
+        // Auto collapse top choice strip into 1 compact line once customer is chosen
+        this.nbForceExpandChoice = false;
 
         this.calculateAndRender();
         this.updateBillPhoneValidationUI(false);
