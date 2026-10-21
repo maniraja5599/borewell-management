@@ -7536,6 +7536,14 @@ class BoreBillSaaSApp {
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
                 try { window.lucide.createIcons(); } catch (_) {}
             }
+            // Smooth glance animation for segmented tabs scroll
+            setTimeout(() => {
+                const segNav = document.querySelector('.settings-nav-segmented');
+                if (segNav && segNav.scrollWidth > segNav.clientWidth) {
+                    segNav.scrollTo({ left: 45, behavior: 'smooth' });
+                    setTimeout(() => segNav.scrollTo({ left: 0, behavior: 'smooth' }), 380);
+                }
+            }, 120);
         }
         this.updateQuickTabJumpLabel();
     }
@@ -9595,27 +9603,13 @@ class BoreBillSaaSApp {
             this.saveOrUpdateRateProfile(true);
         });
 
-        // Brand Tab Listeners (View-First Business Card + Toggleable Edit Studio)
-        const toggleCompanyStudio = (forceState = null) => {
-            const studio = document.getElementById('companyEditStudioCard');
-            const editBtn = document.getElementById('toggleCompanyEditBtn');
-            const editBtnTxt = document.getElementById('toggleCompanyEditBtnText');
-            if (!studio) return;
-            const willOpen = forceState !== null ? forceState : (studio.style.display === 'none');
-            studio.style.display = willOpen ? 'block' : 'none';
-            editBtn?.classList.toggle('active', willOpen);
-            if (editBtnTxt) editBtnTxt.textContent = willOpen ? 'Close Edit' : 'Edit Details';
-            if (willOpen) {
-                setTimeout(() => studio.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        // Brand Tab Listeners (Direct Company Entry + View Preview Button)
+        document.getElementById('jumpToPreviewBtn')?.addEventListener('click', () => {
+            const previewCard = document.getElementById('companyLiveHeroCard');
+            if (previewCard) {
+                previewCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                this.showToast('👁️ Viewing Live Header & Business Card Preview');
             }
-        };
-
-        document.getElementById('toggleCompanyEditBtn')?.addEventListener('click', () => {
-            toggleCompanyStudio();
-        });
-
-        document.getElementById('closeCompanyEditStudioBtn')?.addEventListener('click', () => {
-            toggleCompanyStudio(false);
         });
 
         document.getElementById('logoFileInput')?.addEventListener('change', (e) => {
@@ -9868,7 +9862,6 @@ class BoreBillSaaSApp {
             this.applyBrandToUI();
             this.syncAutoBillNumber(true);
             this.calculateAndRender();
-            toggleCompanyStudio(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
             this.showToast('🏢 Company Profile Saved & Applied!');
         });

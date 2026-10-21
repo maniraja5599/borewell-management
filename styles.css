@@ -9969,10 +9969,10 @@ input.is-select-all-ready,
 .settings-nav-segmented {
     display: flex;
     align-items: center;
-    background: #f1f5f9;
-    padding: 5px;
-    border-radius: 13px;
-    gap: 6px;
+    background: #e2e8f0;
+    padding: 6px;
+    border-radius: 14px;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -9980,6 +9980,9 @@ input.is-select-all-ready,
     -ms-overflow-style: none;
     user-select: none;
     -webkit-user-select: none;
+    scroll-behavior: smooth;
+    box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.06);
+    border: 1px solid #cbd5e1;
 }
 
 .settings-nav-segmented::-webkit-scrollbar {
@@ -9991,23 +9994,24 @@ input.is-select-all-ready,
     align-items: center;
     justify-content: center;
     gap: 7px;
-    padding: 10px 16px;
-    background: transparent;
-    border: none;
-    border-radius: 9px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #64748b;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 750;
+    color: #475569;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 .set-seg-btn:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
 .set-seg-btn * {
@@ -10015,15 +10019,22 @@ input.is-select-all-ready,
 }
 
 .set-seg-btn:hover {
-    color: var(--text-main, #0f172a);
-    background: rgba(255, 255, 255, 0.5);
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.85);
+    border-color: #ffffff;
 }
 
 .set-seg-btn.active {
     background: #ffffff;
     color: var(--brand-primary, #059669);
-    font-weight: 800;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04);
+    font-weight: 850;
+    border-color: rgba(5, 150, 105, 0.25);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15), 0 1px 3px rgba(15, 23, 42, 0.08);
+    transform: translateY(-1px);
+}
+
+.set-seg-btn.active i {
+    stroke-width: 2.5px;
 }
 
 .settings-view-panel {
