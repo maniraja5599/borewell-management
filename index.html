@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=108">
+    <link rel="stylesheet" href="styles.css?v=109">
 </head>
 <body>
 
@@ -1091,15 +1091,60 @@
                 </div>
 
                 <!-- Search & Filter Bar (All | Pending Balance | Settled) -->
+                <!-- Search & Filter Bar (All | Pending Balance | Settled) + Due Sort & Date Range Filter -->
                 <div class="ledger-toolbar">
                     <div class="search-input-box">
                         <i data-lucide="search" class="icon-xs search-ico"></i>
                         <input type="search" id="crmSearchInput" placeholder="Search customer name, mobile, village...">
                     </div>
-                    <div class="filter-chip-group" id="crmFilterPills">
-                        <button type="button" class="f-chip active" data-filter="all" data-i18n="filterAll">All</button>
-                        <button type="button" class="f-chip" data-filter="due" data-i18n="filterPendingDue">Pending Due</button>
-                        <button type="button" class="f-chip" data-filter="settled" data-i18n="filterSettled">No Due</button>
+                    
+                    <div class="crm-toolbar-subrow">
+                        <div class="filter-chip-group" id="crmFilterPills">
+                            <button type="button" class="f-chip active" data-filter="all" data-i18n="filterAll">All</button>
+                            <button type="button" class="f-chip" data-filter="due" data-i18n="filterPendingDue">Pending Due</button>
+                            <button type="button" class="f-chip" data-filter="settled" data-i18n="filterSettled">No Due</button>
+                        </div>
+
+                        <div class="crm-tools-right">
+                            <button type="button" class="crm-tool-btn" id="crmSortDueBtn" title="Sort by Due Amount (High to Low)">
+                                <span>↕ Due Sort</span>
+                            </button>
+                            <button type="button" class="crm-tool-btn" id="crmFilterToggleBtn" title="Date Range Filter">
+                                <span>📅 Filter</span>
+                                <span class="sif-badge" id="crmFilterBadge" style="display: none;">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Date Range & Period Filter Popover -->
+                    <div class="crm-filter-popover" id="crmFilterDropdownPanel" style="display: none;">
+                        <div class="bfp-section">
+                            <div class="bfp-sec-head">
+                                <span>📅 Filter by Date / Activity Period</span>
+                            </div>
+                            <div class="bfp-pills-row" id="crmDatePresetPills">
+                                <button type="button" class="bfp-pill active" data-crmpreset="all">All</button>
+                                <button type="button" class="bfp-pill" data-crmpreset="this_month">This Month</button>
+                                <button type="button" class="bfp-pill" data-crmpreset="last_month">Last Month</button>
+                                <button type="button" class="bfp-pill" data-crmpreset="6months">6 Months</button>
+                                <button type="button" class="bfp-pill" data-crmpreset="custom">Custom Range</button>
+                            </div>
+                            <div class="bfp-date-range-row" id="crmCustomDateRow" style="display: none;">
+                                <div class="bfp-date-field">
+                                    <label for="crmDateFrom">From:</label>
+                                    <input type="date" id="crmDateFrom">
+                                </div>
+                                <div class="bfp-date-field">
+                                    <label for="crmDateTo">To:</label>
+                                    <input type="date" id="crmDateTo">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bfp-actions">
+                            <button type="button" class="bfp-reset-btn" id="resetCrmFiltersBtn">Reset Filters</button>
+                            <button type="button" class="bfp-apply-btn" id="closeCrmFilterPanelBtn">Done</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2459,22 +2504,18 @@
             <!-- 2. Clean Quick Actions Bar -->
             <div class="cdm-quick-actions-bar">
                 <button type="button" class="cdm-qa-btn primary" id="cdmNewBillBtn">
-                    <i data-lucide="file-plus-2" class="icon-xs"></i>
                     <span>+ New Bill</span>
                 </button>
                 <button type="button" class="cdm-qa-btn whatsapp" id="cdmWhatsAppRemindBtn">
-                    <i data-lucide="message-circle" class="icon-xs"></i>
-                    <span id="cdmWhatsAppRemindTxt">WhatsApp</span>
+                    <span id="cdmWhatsAppRemindTxt">Remind</span>
                 </button>
                 <a href="#" class="cdm-qa-btn call" id="cdmCallBtn">
-                    <i data-lucide="phone-call" class="icon-xs"></i>
                     <span>Call</span>
                 </a>
                 <button type="button" class="cdm-qa-btn edit" id="cdmEditCustomerBtn">
-                    <i data-lucide="pencil" class="icon-xs"></i>
                     <span>Edit</span>
                 </button>
-                <button type="button" class="cdm-qa-btn danger" id="cdmDeleteCustomerBtn" title="Delete Customer">
+                <button type="button" class="cdm-qa-btn danger icon-only" id="cdmDeleteCustomerBtn" title="Delete Customer">
                     <i data-lucide="trash-2" class="icon-xs"></i>
                 </button>
             </div>
@@ -2482,10 +2523,10 @@
             <!-- 3. Separate View Switcher Tabs (1. Summary Overview | 2. Bore-by-Bore Details) -->
             <div class="cdm-view-tabs" id="cdmViewTabs">
                 <button type="button" class="cdm-vtab active" data-cdmview="overview" id="cdmTabOverviewBtn">
-                    <span>📊 Overall Summary</span>
+                    <span>Overall Summary</span>
                 </button>
                 <button type="button" class="cdm-vtab" data-cdmview="bores" id="cdmTabBoresBtn">
-                    <span>🚜 Bore Details</span>
+                    <span>Bore Details</span>
                     <span class="cdm-vtab-badge" id="cdmTabBoresCountBadge">0</span>
                 </button>
             </div>
@@ -2494,25 +2535,19 @@
             <div class="cdm-scroll-body">
                 <!-- VIEW 1: CLEAN OVERALL SUMMARY (Payments + Drilling & Pipes) -->
                 <div class="cdm-view-pane" id="cdmOverviewPane">
-                    <!-- A. Payment Summary Card -->
-                    <div class="cdm-clean-card">
-                        <div class="cdm-cc-head">
-                            <span>💳 Payment Summary</span>
-                            <span class="cdm-sec-pill" id="cdmBookingBreakdownPill">0 Bills • 0 Quotes</span>
+                    <!-- A. Compact 1-Line Trio Summary -->
+                    <div class="cdm-compact-summary-strip">
+                        <div class="cdm-css-item">
+                            <span class="cdm-css-lbl">Billed</span>
+                            <strong class="cdm-css-val" id="cdmTotalBilled">₹0</strong>
                         </div>
-                        <div class="cdm-pay-trio">
-                            <div class="cdm-pt-item">
-                                <span class="cdm-pt-lbl">Total Billed</span>
-                                <strong class="cdm-pt-val" id="cdmTotalBilled">₹0</strong>
-                            </div>
-                            <div class="cdm-pt-item is-paid">
-                                <span class="cdm-pt-lbl">Paid Amount</span>
-                                <strong class="cdm-pt-val text-green" id="cdmTotalPaid">₹0</strong>
-                            </div>
-                            <div class="cdm-pt-item is-due" id="cdmDueStatBox">
-                                <span class="cdm-pt-lbl">Pending Due</span>
-                                <strong class="cdm-pt-val text-danger" id="cdmTotalDue">₹0</strong>
-                            </div>
+                        <div class="cdm-css-item">
+                            <span class="cdm-css-lbl">Paid</span>
+                            <strong class="cdm-css-val paid-val" id="cdmTotalPaid">₹0</strong>
+                        </div>
+                        <div class="cdm-css-item">
+                            <span class="cdm-css-lbl">Due</span>
+                            <strong class="cdm-css-val due-val" id="cdmTotalDue">₹0</strong>
                         </div>
                     </div>
 
@@ -2816,6 +2851,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=108"></script>
+    <script src="app.js?v=109"></script>
 </body>
 </html>

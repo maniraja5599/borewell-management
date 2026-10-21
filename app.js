@@ -3930,10 +3930,31 @@ class BoreBillSaaSApp {
         this._aggCache = new Map();
 
         const q = query.toLowerCase().trim();
-        const filtered = this.customers.filter(c => {
+        let filtered = this.customers.filter(c => {
             const agg = this.getCustomerAggregates(c, billsIndex);
             if (this.crmFilter === 'due' && agg.totalPending <= 0) return false;
             if (this.crmFilter === 'settled' && agg.totalPending > 0) return false;
+
+            // Date Period Filtering
+            if (this.crmDatePreset && this.crmDatePreset !== 'all') {
+                const dates = (agg.matchingBills || []).map(b => b.billDate || (b.createdAt ? b.createdAt.slice(0, 10) : '')).filter(Boolean);
+                if (dates.length === 0) return false;
+                const now = new Date();
+                const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+                const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString().slice(0, 10);
+
+                if (this.crmDatePreset === 'this_month') {
+                    if (!dates.some(d => d.startsWith(curMonth))) return false;
+                } else if (this.crmDatePreset === 'last_month') {
+                    if (!dates.some(d => d.startsWith(lastMonth))) return false;
+                } else if (this.crmDatePreset === '6months') {
+                    if (!dates.some(d => d >= sixMonthsAgo)) return false;
+                } else if (this.crmDatePreset === 'custom' && (this.crmCustomFrom || this.crmCustomTo)) {
+                    if (!dates.some(d => (!this.crmCustomFrom || d >= this.crmCustomFrom) && (!this.crmCustomTo || d <= this.crmCustomTo))) return false;
+                }
+            }
 
             if (!q) return true;
             const { allSites } = this.getCustomerSiteSuggestions(c);
@@ -3944,6 +3965,15 @@ class BoreBillSaaSApp {
                 allSites.some(s => s.toLowerCase().includes(q))
             );
         });
+
+        // Due Sort (Highest Due to Lowest Due)
+        if (this.crmSortDueDesc) {
+            filtered.sort((a, b) => {
+                const aggA = this.getCustomerAggregates(a, billsIndex);
+                const aggB = this.getCustomerAggregates(b, billsIndex);
+                return (aggB.totalPending || 0) - (aggA.totalPending || 0);
+            });
+        }
 
         if (filtered.length === 0) {
             listEl.innerHTML = `<p class="page-sub" style="text-align:center; padding: 20px 0;">No customers matching filter. Tap "Add Customer" to create one.</p>`;
@@ -4228,9 +4258,9 @@ class BoreBillSaaSApp {
 
         const totalInList = items.length;
 
-        // Default to showing the newest single bore when there are multiple bores so each bore is viewed cleanly and separately
+        // Default to showing all bores in clean list view by default
         if (!this.cdmSelectedBoreId || (this.cdmSelectedBoreId !== 'all' && !items.some(x => x.id === this.cdmSelectedBoreId))) {
-            this.cdmSelectedBoreId = items[0].id;
+            this.cdmSelectedBoreId = 'all';
         }
 
         // Render Bore Selector Bar if there is more than 1 bore/record
@@ -4443,6 +4473,29 @@ class BoreBillSaaSApp {
                 </div>
             `;
         }).join('');
+
+        // Wire toggle expand/collapse for bore details
+        listEl.querySelectorAll('.clickable-bore-head').forEach(head => {
+            head.addEventListener('click', () => {
+                const boreId = head.dataset.toggleBore;
+                const bodyEl = document.getElementById(`cbcBody_${boreId}`);
+                if (!bodyEl) return;
+                const willOpen = !bodyEl.classList.contains('is-open');
+                bodyEl.classList.toggle('is-open', willOpen);
+                head.classList.toggle('is-open', willOpen);
+            });
+        });
+
+        // Automatically expand if single item in list
+        if (visibleItems.length === 1) {
+            const firstId = visibleItems[0].id;
+            const bodyEl = document.getElementById(`cbcBody_${firstId}`);
+            const headEl = listEl.querySelector(`[data-toggle-bore="${firstId}"]`);
+            if (bodyEl && headEl) {
+                bodyEl.classList.add('is-open');
+                headEl.classList.add('is-open');
+            }
+        }
 
         // Wire Bore Card action buttons inside the modal
         listEl.querySelectorAll('.cdm-bore-pay-btn').forEach(btn => {
@@ -9345,6 +9398,73 @@ class BoreBillSaaSApp {
                 this.updateQuickTabJumpPosition();
                 this.syncTopHeaderWrapLock();
             }, 100);
+        });
+
+        // Customer Tab Toolbar: Due Sort & Date Filter
+        document.getElementById('crmSortDueBtn')?.addEventListener('click', () => {
+            this.crmSortDueDesc = !this.crmSortDueDesc;
+            const btn = document.getElementById('crmSortDueBtn');
+            btn?.classList.toggle('active', Boolean(this.crmSortDueDesc));
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+            this.showToast(this.crmSortDueDesc ? '↕ Sorted by Due (Highest first)' : '↺ Normal order restored');
+        });
+
+        document.getElementById('crmFilterToggleBtn')?.addEventListener('click', () => {
+            const panel = document.getElementById('crmFilterDropdownPanel');
+            if (!panel) return;
+            const willOpen = panel.style.display === 'none';
+            panel.style.display = willOpen ? 'flex' : 'none';
+        });
+
+        document.getElementById('closeCrmFilterPanelBtn')?.addEventListener('click', () => {
+            const panel = document.getElementById('crmFilterDropdownPanel');
+            if (panel) panel.style.display = 'none';
+        });
+
+        document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const preset = pill.dataset.crmpreset || 'all';
+                this.crmDatePreset = preset;
+                document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(p => p.classList.toggle('active', p === pill));
+                const customRow = document.getElementById('crmCustomDateRow');
+                if (customRow) {
+                    customRow.style.display = preset === 'custom' ? 'grid' : 'none';
+                }
+                const badge = document.getElementById('crmFilterBadge');
+                if (badge) {
+                    const hasActive = preset !== 'all';
+                    badge.style.display = hasActive ? 'inline-flex' : 'none';
+                    badge.textContent = '1';
+                }
+                this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+            });
+        });
+
+        document.getElementById('crmDateFrom')?.addEventListener('change', (e) => {
+            this.crmCustomFrom = e.target.value;
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+        });
+
+        document.getElementById('crmDateTo')?.addEventListener('change', (e) => {
+            this.crmCustomTo = e.target.value;
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+        });
+
+        document.getElementById('resetCrmFiltersBtn')?.addEventListener('click', () => {
+            this.crmDatePreset = 'all';
+            this.crmCustomFrom = '';
+            this.crmCustomTo = '';
+            this.crmSortDueDesc = false;
+            document.getElementById('crmSortDueBtn')?.classList.remove('active');
+            document.querySelectorAll('#crmDatePresetPills .bfp-pill').forEach(p => p.classList.toggle('active', p.dataset.crmpreset === 'all'));
+            const customRow = document.getElementById('crmCustomDateRow');
+            if (customRow) customRow.style.display = 'none';
+            const badge = document.getElementById('crmFilterBadge');
+            if (badge) badge.style.display = 'none';
+            const panel = document.getElementById('crmFilterDropdownPanel');
+            if (panel) panel.style.display = 'none';
+            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+            this.showToast('↺ Customer filters reset');
         });
 
         // Click top date badge to focus date
