@@ -1,11 +1,13 @@
-const CACHE_NAME = 'borebill-pro-v112';
+const CACHE_NAME = 'borebill-pro-v114';
 const ASSETS = [
   './',
-  './index.html',
-  './styles.css?v=110',
-  './app.js?v=110',
+  './index.html?v=114',
+  './styles.css?v=114',
+  './app.js?v=114',
   './manifest.json',
-  './icon.svg'
+  './icon.svg',
+  './drillrig_logo.png',
+  './developer_profile.jpg'
 ];
 
 self.addEventListener('install', (event) => {

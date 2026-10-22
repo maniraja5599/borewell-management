@@ -10445,7 +10445,11 @@ function initPWAAndZoomLock() {
 
     // 5. Register Offline-Capable Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js?v=114').then((reg) => {
+            if (reg) {
+                reg.update();
+            }
+        }).catch(() => {});
     }
 
     // 6. Native PWA Install Prompt Handler & Marquee Install Slide Sync
