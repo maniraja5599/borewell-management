@@ -48,18 +48,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=115">
+    <link rel="stylesheet" href="styles.css?v=116">
 </head>
 <body>
 
-    <!-- ==================== APP LAUNCH SPLASH LOADER (WHITE BG, STATIC LOGO + ANIMATED RED DROP DOT) ==================== -->
+    <!-- ==================== APP LAUNCH SPLASH LOADER (WHITE BG, DRILLRIG LOGO + HORIZONTAL GREEN-TO-RED LINE LOADER) ==================== -->
     <div id="appSplashScreen" class="app-splash-screen" aria-hidden="true">
         <div class="splash-inner">
             <div class="splash-logo-box">
                 <img src="drillrig_logo.png" alt="DrillRig." class="splash-logo-img">
             </div>
-            <div class="splash-drill-track">
-                <div class="splash-drop-dot"></div>
+            <!-- Horizontal Green-to-Red Progress Loading Line -->
+            <div class="splash-progress-track">
+                <div class="splash-progress-bar"></div>
             </div>
         </div>
     </div>
@@ -2927,6 +2928,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=115"></script>
+    <script src="app.js?v=116"></script>
 </body>
 </html>

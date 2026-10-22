@@ -1,11 +1,13 @@
-const CACHE_NAME = 'borebill-pro-v115';
+const CACHE_NAME = 'borebill-pro-v116';
 const ASSETS = [
   './',
-  './index.html?v=115',
-  './styles.css?v=115',
-  './app.js?v=115',
+  './index.html?v=116',
+  './styles.css?v=116',
+  './app.js?v=116',
   './manifest.json',
   './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
   './drillrig_logo.png',
   './developer_profile.jpg'
 ];
