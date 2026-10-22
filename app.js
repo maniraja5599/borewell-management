@@ -715,9 +715,9 @@ class BoreBillSaaSApp {
             this.goToWizardStep(restoredStep, false);
         }
 
-        if (this.state.activeTab && this.state.activeTab !== 'tab-bill') {
-            this.switchTab(this.state.activeTab, false, false);
-        }
+        // Always default to New Bill tab on app launch
+        this.state.activeTab = 'tab-bill';
+        this.switchTab('tab-bill', false, false);
         this.syncIosTopSafeBarColor();
         this.syncTopHeaderWrapLock();
         this.calculateAndRender();
@@ -10445,7 +10445,7 @@ function initPWAAndZoomLock() {
 
     // 5. Register Offline-Capable Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=116').then((reg) => {
+        navigator.serviceWorker.register('./sw.js?v=117').then((reg) => {
             if (reg) {
                 reg.update();
             }
