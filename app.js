@@ -177,7 +177,7 @@ class BoreBillSaaSApp {
         this.historyDateTo = '';
 
         this.defaultBrand = {
-            companyName: 'SRI ANJANEYA BOREWELLS',
+            companyName: 'DrillRig.',
             tagline: 'ஆழமான நம்பிக்கை! • High Power Compressor Drilling',
             phones: '+91 96596 57777, +91 94433 73573',
             phoneCountryCode: '+91',
