@@ -107,7 +107,7 @@ const I18N_DICTIONARY = {
         sendTextBreakup: "Send itemized bill",
         saveBillImage: "Save Bill Image",
         hdPngReceipt: "HD PNG Receipt",
-        downloadPdf: "Download A4 PDF",
+        downloadPdf: "Download PDF",
         officialQuotationPdf: "Official Letterhead",
         saveToHistory: "Save Bill",
         keepInBillBook: "Store in Bill Book",
@@ -725,6 +725,17 @@ class BoreBillSaaSApp {
         this.renderSavedExtrasUI();
         this.renderSavedNotesUI();
         this.refreshIcons();
+
+        // Smooth 2.5s App Launch Splash Screen with animated drop dot
+        const splashEl = document.getElementById('appSplashScreen');
+        if (splashEl) {
+            setTimeout(() => {
+                splashEl.classList.add('fade-out');
+                setTimeout(() => {
+                    try { splashEl.remove(); } catch (_) {}
+                }, 400);
+            }, 2500);
+        }
 
         // Restore exact scroll position where user left off
         const savedScrollY = parseInt(sessionStorage.getItem('borebill_scroll_y') || '0', 10);
@@ -3522,19 +3533,19 @@ class BoreBillSaaSApp {
 
                 <div class="cbc-clean-rows">
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">👤 Customer</span>
+                        <span class="cbc-r-lbl">Customer</span>
                         <span class="cbc-r-val">${this.escapeHtml(displayCust)}${phoneStr ? ` <small>(${this.escapeHtml(phoneStr)})</small>` : ''}</span>
                     </div>
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">📍 Site Location</span>
+                        <span class="cbc-r-lbl">Site Location</span>
                         <span class="cbc-r-val">${this.escapeHtml(siteName)}</span>
                     </div>
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">⚙️ Bore Type &amp; Base Rate</span>
+                        <span class="cbc-r-lbl">Bore Type &amp; Rate</span>
                         <span class="cbc-r-val">${workTypeLabel} <small>(Base ₹${snap.baseDrillingRate || 90}/ft)</small></span>
                     </div>
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">⛏️ Depth Drilled</span>
+                        <span class="cbc-r-lbl">Depth Drilled</span>
                         <span class="cbc-r-val">
                             ${depthFt.toLocaleString('en-IN')} ft
                             ${isRepair && oldBoreFt > 0 ? `<small>(Flush ${oldBoreFt} ft)</small>` : ''}
@@ -3542,48 +3553,48 @@ class BoreBillSaaSApp {
                         </span>
                     </div>
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">🟦 7" Casing Pipe</span>
+                        <span class="cbc-r-lbl">7" Casing Pipe</span>
                         <span class="cbc-r-val">${pvc7Ft} ft <small>(@ ₹${pvc7Rate}/ft)</small> • <strong>${this.formatINR(pvc7Cost)}</strong></span>
                     </div>
                     ${pvc10Ft > 0 ? `
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">🟦 10" Casing Pipe</span>
+                        <span class="cbc-r-lbl">10" Casing Pipe</span>
                         <span class="cbc-r-val">${pvc10Ft} ft <small>(@ ₹${pvc10Rate}/ft)</small> • <strong>${this.formatINR(pvc10Cost)}</strong></span>
                     </div>
                     ` : ''}
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">📏 Total Casing Installed</span>
+                        <span class="cbc-r-lbl">Total Casing</span>
                         <span class="cbc-r-val">${totalPipeFt.toLocaleString('en-IN')} ft • <strong class="text-brand">${this.formatINR(totalPipeCost)}</strong></span>
                     </div>
                     ${extrasTotal > 0 ? `
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">🛠️ Bata &amp; Extras</span>
+                        <span class="cbc-r-lbl">Bata &amp; Extras</span>
                         <span class="cbc-r-val"><small>${extrasParts.join(', ')}</small> • <strong>${this.formatINR(extrasTotal)}</strong></span>
                     </div>
                     ` : ''}
                     ${discountAmt > 0 ? `
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">🏷️ Discount</span>
+                        <span class="cbc-r-lbl">Discount</span>
                         <span class="cbc-r-val text-green">−${this.formatINR(discountAmt)}</span>
                     </div>
                     ` : ''}
                     ${gstAmt > 0 ? `
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">🧾 GST</span>
+                        <span class="cbc-r-lbl">GST</span>
                         <span class="cbc-r-val">+${this.formatINR(gstAmt)}</span>
                     </div>
                     ` : ''}
                     <div class="cbc-row highlight-row">
-                        <span class="cbc-r-lbl">💰 ${isInvoice ? 'Total Bill Amount' : 'Estimated Total'}</span>
+                        <span class="cbc-r-lbl">${isInvoice ? 'Total Bill Amount' : 'Estimated Total'}</span>
                         <span class="cbc-r-val" style="font-size: 0.92rem;">${this.formatINR(grandTotal)}</span>
                     </div>
                     ${isInvoice ? `
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">✅ Paid Amount</span>
+                        <span class="cbc-r-lbl">Paid Amount</span>
                         <span class="cbc-r-val text-green">${this.formatINR(paidAmt)}</span>
                     </div>
                     <div class="cbc-row">
-                        <span class="cbc-r-lbl">⏳ Balance Due</span>
+                        <span class="cbc-r-lbl">Balance Due</span>
                         <span class="cbc-r-val ${hasDue ? 'text-danger' : 'text-green'}">${hasDue ? this.formatINR(pendingAmt) : '₹0 (Settled)'}</span>
                     </div>
                     ` : ''}
@@ -4375,15 +4386,15 @@ class BoreBillSaaSApp {
                         <!-- Clean Uncluttered Row-by-Row Breakdown -->
                     <div class="cbc-clean-rows">
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">📍 Site Location</span>
+                            <span class="cbc-r-lbl">Site Location</span>
                             <span class="cbc-r-val">${this.escapeHtml(siteName)}</span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">⚙️ Bore Type &amp; Base Rate</span>
+                            <span class="cbc-r-lbl">Bore Type &amp; Rate</span>
                             <span class="cbc-r-val">${workTypeLabel} <small>(Base ₹${snap.baseDrillingRate || 90}/ft)</small></span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">⛏️ Depth Drilled</span>
+                            <span class="cbc-r-lbl">Depth Drilled</span>
                             <span class="cbc-r-val">
                                 ${depthFt.toLocaleString('en-IN')} ft
                                 ${isRepair && oldBoreFt > 0 ? `<small>(Flush ${oldBoreFt} ft)</small>` : ''}
@@ -4391,48 +4402,48 @@ class BoreBillSaaSApp {
                             </span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🟦 7" Casing Pipe</span>
+                            <span class="cbc-r-lbl">7" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc7Ft} ft <small>(@ ₹${pvc7Rate}/ft)</small> • <strong>${this.formatINR(pvc7Cost)}</strong></span>
                         </div>
                         ${pvc10Ft > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🟦 10" Casing Pipe</span>
+                            <span class="cbc-r-lbl">10" Casing Pipe</span>
                             <span class="cbc-r-val">${pvc10Ft} ft <small>(@ ₹${pvc10Rate}/ft)</small> • <strong>${this.formatINR(pvc10Cost)}</strong></span>
                         </div>
                         ` : ''}
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">📏 Total Pipe Installed</span>
+                            <span class="cbc-r-lbl">Total Pipe Installed</span>
                             <span class="cbc-r-val">${totalPipeFt.toLocaleString('en-IN')} ft • <strong class="text-brand">${this.formatINR(totalPipeCost)}</strong></span>
                         </div>
                         ${extrasTotal > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🛠️ Bata &amp; Extras</span>
+                            <span class="cbc-r-lbl">Bata &amp; Extras</span>
                             <span class="cbc-r-val"><small>${extrasParts.join(', ')}</small> • <strong>${this.formatINR(extrasTotal)}</strong></span>
                         </div>
                         ` : ''}
                         ${discountAmt > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🏷️ Discount</span>
+                            <span class="cbc-r-lbl">Discount</span>
                             <span class="cbc-r-val text-green">−${this.formatINR(discountAmt)}</span>
                         </div>
                         ` : ''}
                         ${gstAmt > 0 ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">🧾 GST</span>
+                            <span class="cbc-r-lbl">GST</span>
                             <span class="cbc-r-val">+${this.formatINR(gstAmt)}</span>
                         </div>
                         ` : ''}
                         <div class="cbc-row highlight-row">
-                            <span class="cbc-r-lbl">💰 ${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
+                            <span class="cbc-r-lbl">${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
                             <span class="cbc-r-val" style="font-size: 0.9rem;">${this.formatINR(grandTotal)}</span>
                         </div>
                         ${isInvoice ? `
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">✅ Paid Amount</span>
+                            <span class="cbc-r-lbl">Paid Amount</span>
                             <span class="cbc-r-val text-green">${this.formatINR(paidAmt)}</span>
                         </div>
                         <div class="cbc-row">
-                            <span class="cbc-r-lbl">⏳ Pending Balance</span>
+                            <span class="cbc-r-lbl">Pending Balance</span>
                             <span class="cbc-r-val ${hasDue ? 'text-danger' : 'text-green'}">${hasDue ? this.formatINR(pendingAmt) : '₹0 (Settled)'}</span>
                         </div>
                         ` : ''}
@@ -7174,8 +7185,11 @@ class BoreBillSaaSApp {
                         <div class="party-avatar">${initials}</div>
                         <div class="party-info">
                             <div class="party-name">#${this.escapeHtml(item.billNo)} — ${this.escapeHtml(displayCust)}</div>
-                            <div class="party-meta">
-                                📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'}) • 📅 ${dateStr || 'N/A'}
+                            <div class="party-meta-row">
+                                <div class="party-meta">
+                                    📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'})
+                                </div>
+                                <span class="party-date-badge">📅 ${dateStr || 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -7393,6 +7407,15 @@ class BoreBillSaaSApp {
         this.calculateAndRender();
         if (switchAndScroll) {
             this.showToast(viewOnly ? `👁️ Viewing #${item.billNo} (Tap "Edit Bill" to modify)` : `✏️ Editing #${item.billNo}`);
+            if (viewOnly) {
+                setTimeout(() => {
+                    const rcptWrap = document.getElementById('billReceiptPreviewWrapper');
+                    if (rcptWrap) {
+                        rcptWrap.style.display = 'block';
+                        rcptWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -8555,6 +8578,20 @@ class BoreBillSaaSApp {
         });
         document.getElementById('cdmGotoBoresViewBtn')?.addEventListener('click', () => {
             this.switchCustomerDetailView('bores');
+        });
+        document.getElementById('cdmOverallReceiptBtn')?.addEventListener('click', () => {
+            const cust = this.customers.find(x => x.id === this.activeDetailCustomerId);
+            if (!cust) return;
+            const agg = this.getCustomerAggregates(cust);
+            if (agg.matchingBills && agg.matchingBills.length > 0) {
+                // Load latest bill from this customer into receipt view
+                const latestBill = agg.matchingBills[0];
+                this.closeCustomerDetailModal();
+                this.loadBillFromHistory(latestBill.id, true, true);
+                this.showToast(`🧾 Displaying Statement / Receipt for ${cust.name}`);
+            } else {
+                this.showToast(`ℹ️ No bills recorded yet for ${cust.name}`);
+            }
         });
         document.querySelectorAll('#cdmBoreFilterPills .cdm-bf-pill').forEach(pill => {
             pill.addEventListener('click', () => {

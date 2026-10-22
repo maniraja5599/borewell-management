@@ -319,8 +319,8 @@ html.ios-standalone .app-header {
 }
 
 .brand-logo-wrap {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
     background: transparent;
     display: flex;
@@ -339,7 +339,9 @@ html.ios-standalone .app-header {
 .brand-logo-wrap img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
 /* ==================== DYNAMIC MULTI-SLIDE TOP HEADER BANNER (LUXURY FINISH) ==================== */
@@ -2148,7 +2150,8 @@ html.ios-standalone .sticky-live-bar {
 .receipt-logo-box img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 2px;
 }
 
 .receipt-company-info {
@@ -2579,10 +2582,13 @@ html.ios-standalone .sticky-live-bar {
     flex-shrink: 0;
 }
 
-.party-info { min-width: 0; }
+.party-info { 
+    min-width: 0; 
+    flex: 1;
+}
 
 .party-name {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 800;
     color: #0f172a;
     display: flex;
@@ -2594,14 +2600,35 @@ html.ios-standalone .sticky-live-bar {
     letter-spacing: -0.01em;
 }
 
+.party-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    flex-wrap: nowrap;
+}
+
 .party-meta {
     font-size: 0.70rem;
     color: #64748b;
-    margin-top: 2px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+}
+
+.party-date-badge {
+    font-size: 0.67rem;
+    font-weight: 700;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 1px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .khata-amounts {
@@ -3981,7 +4008,8 @@ html.ios-standalone .sticky-live-bar {
 .bsc-logo-box img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    padding: 3px;
 }
 
 .bsc-logo-cam-btn {
@@ -10641,4 +10669,144 @@ input.is-select-all-ready,
 .cbc-body-collapse.is-open {
     display: block;
     animation: fadeInSlide 0.16s ease;
+}
+
+/* ==================== APP LAUNCH SPLASH LOADER (2.5 SEC DROP DOT) ==================== */
+.app-splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+    user-select: none;
+    -webkit-user-select: none;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease;
+}
+
+.app-splash-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+}
+
+/* Vertical track simulating drilling depth */
+.splash-drill-track {
+    width: 4px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dot dropping smoothly from top to bottom */
+.splash-drop-dot {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(180deg, #34d399, #10b981);
+    border-radius: 50%;
+    box-shadow: 0 0 16px #34d399, 0 0 28px rgba(16, 185, 129, 0.8);
+    animation: splashDotDrop 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes splashDotDrop {
+    0% {
+        top: -12px;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.6);
+    }
+    15% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1);
+    }
+    85% {
+        top: 72px;
+        opacity: 1;
+        transform: translateX(-50%) scale(0.9);
+    }
+    100% {
+        top: 86px;
+        opacity: 0;
+        transform: translateX(-50%) scale(0.4);
+    }
+}
+
+.splash-logo-box {
+    max-width: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: splashLogoReveal 1s ease-out forwards;
+}
+
+.splash-logo-img {
+    width: 100%;
+    height: auto;
+    max-height: 54px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+}
+
+.splash-sub-text {
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    animation: splashLogoReveal 1.2s ease-out forwards;
+}
+
+@keyframes splashLogoReveal {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Overview Actions Wrap in Customer Detail Modal */
+.cdm-overview-actions-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.cdm-overall-rcpt-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
 }
