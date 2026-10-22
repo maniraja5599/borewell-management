@@ -10445,7 +10445,7 @@ function initPWAAndZoomLock() {
 
     // 5. Register Offline-Capable Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=114').then((reg) => {
+        navigator.serviceWorker.register('./sw.js?v=115').then((reg) => {
             if (reg) {
                 reg.update();
             }

@@ -319,8 +319,8 @@ html.ios-standalone .app-header {
 }
 
 .brand-logo-wrap {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
     background: transparent;
     display: flex;
@@ -339,9 +339,7 @@ html.ios-standalone .app-header {
 .brand-logo-wrap img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+    object-fit: cover;
 }
 
 /* ==================== DYNAMIC MULTI-SLIDE TOP HEADER BANNER (LUXURY FINISH) ==================== */
@@ -2150,8 +2148,7 @@ html.ios-standalone .sticky-live-bar {
 .receipt-logo-box img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    padding: 2px;
+    object-fit: cover;
 }
 
 .receipt-company-info {
@@ -4008,8 +4005,7 @@ html.ios-standalone .sticky-live-bar {
 .bsc-logo-box img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    padding: 3px;
+    object-fit: cover;
 }
 
 .bsc-logo-cam-btn {
@@ -10675,7 +10671,7 @@ input.is-select-all-ready,
     animation: fadeInSlide 0.16s ease;
 }
 
-/* ==================== APP LAUNCH SPLASH LOADER (2.5 SEC DROP DOT) ==================== */
+/* ==================== APP LAUNCH SPLASH LOADER (WHITE BG, STATIC LOGO + RED DROP DOT) ==================== */
 .app-splash-screen {
     position: fixed;
     top: 0;
@@ -10684,7 +10680,7 @@ input.is-select-all-ready,
     bottom: 0;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 50% 30%, #1e293b 0%, #0f172a 100%);
+    background: #ffffff;
     z-index: 999999;
     display: flex;
     align-items: center;
@@ -10708,31 +10704,45 @@ input.is-select-all-ready,
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 20px;
     padding: 24px;
+}
+
+.splash-logo-box {
+    max-width: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.splash-logo-img {
+    width: 100%;
+    height: auto;
+    max-height: 52px;
+    object-fit: contain;
 }
 
 /* Vertical track simulating drilling depth */
 .splash-drill-track {
     width: 4px;
-    height: 80px;
-    background: rgba(255, 255, 255, 0.1);
+    height: 70px;
+    background: #f1f5f9;
     border-radius: 999px;
     position: relative;
     overflow: hidden;
 }
 
-/* Dot dropping smoothly from top to bottom */
+/* Red Dot dropping smoothly from top to bottom */
 .splash-drop-dot {
     position: absolute;
     top: -12px;
     left: 50%;
     transform: translateX(-50%);
-    width: 12px;
-    height: 12px;
-    background: linear-gradient(180deg, #34d399, #10b981);
+    width: 11px;
+    height: 11px;
+    background: #ef4444;
     border-radius: 50%;
-    box-shadow: 0 0 16px #34d399, 0 0 28px rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
     animation: splashDotDrop 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -10747,50 +10757,14 @@ input.is-select-all-ready,
         transform: translateX(-50%) scale(1.1);
     }
     85% {
-        top: 72px;
+        top: 62px;
         opacity: 1;
         transform: translateX(-50%) scale(0.9);
     }
     100% {
-        top: 86px;
+        top: 74px;
         opacity: 0;
         transform: translateX(-50%) scale(0.4);
-    }
-}
-
-.splash-logo-box {
-    max-width: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: splashLogoReveal 1s ease-out forwards;
-}
-
-.splash-logo-img {
-    width: 100%;
-    height: auto;
-    max-height: 54px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
-}
-
-.splash-sub-text {
-    font-size: 0.76rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #94a3b8;
-    animation: splashLogoReveal 1.2s ease-out forwards;
-}
-
-@keyframes splashLogoReveal {
-    0% {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 
