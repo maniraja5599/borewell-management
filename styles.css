@@ -11145,3 +11145,244 @@ input.is-select-all-ready,
     letter-spacing: 0.03em;
     margin-bottom: 8px;
 }
+
+
+/* ==========================================================================
+   DESKTOP & TABLET RESPONSIVE ENHANCEMENTS (min-width: 768px & 1024px)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. TABLET ENHANCEMENTS (>= 768px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+    /* Widen content container for tablet view */
+    .header-inner,
+    .live-bar-inner,
+    .app-main {
+        max-width: 880px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    body {
+        padding-bottom: 84px; /* Ensure space for floating dock nav */
+    }
+
+    /* Floating pill bottom dock navigation for tablets */
+    .bottom-nav {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) translateZ(0) !important;
+        width: 90% !important;
+        max-width: 580px !important;
+        bottom: 14px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+        border: 1px solid rgba(226, 232, 240, 0.9) !important;
+        background: rgba(255, 255, 255, 0.96) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        height: 56px !important;
+        padding: 4px 12px !important;
+    }
+
+    .bottom-nav::after {
+        display: none !important;
+    }
+
+    .b-nav-item {
+        border-radius: 12px;
+        transition: all 0.18s ease;
+    }
+
+    .b-nav-item:hover {
+        background: #f1f5f9;
+    }
+
+    .b-nav-item.active {
+        background: #ecfdf5;
+    }
+
+    /* Multi-column grid for Khata bills and customer lists */
+    .khata-list {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    /* Grid for quick customer cards in New Bill */
+    .quick-cust-list.wiz-cust-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    /* KPI grid roomier padding */
+    .kpi-grid-3 {
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .kpi-stat-box {
+        padding: 12px 14px;
+    }
+
+    /* Customer & Bill modals */
+    .cust-popup-dialog.cust-bore-detail-modal {
+        max-width: 680px !important;
+        border-radius: 20px !important;
+    }
+
+    .cust-modal-inner {
+        max-width: 720px;
+    }
+
+    /* Settings segment buttons */
+    .settings-nav-segmented {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .set-seg-btn {
+        flex: 1 1 calc(16.66% - 8px);
+        min-width: 100px;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   2. DESKTOP ENHANCEMENTS (>= 1024px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+    /* Full desktop container expansion */
+    .header-inner,
+    .live-bar-inner,
+    .app-main {
+        max-width: 1220px;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    body {
+        padding-bottom: 88px;
+    }
+
+    /* Refined floating pill dock nav on Desktop */
+    .bottom-nav {
+        max-width: 640px !important;
+        bottom: 18px !important;
+        height: 58px !important;
+        box-shadow: 0 12px 34px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .b-nav-item {
+        flex-direction: row !important;
+        gap: 8px !important;
+        padding: 6px 14px !important;
+    }
+
+    .b-nav-icon {
+        font-size: 1.15rem;
+    }
+
+    .b-nav-label {
+        font-size: 0.84rem !important;
+        font-weight: 700 !important;
+        display: inline-block !important;
+    }
+
+    /* Bills Ledger & Customer List: 3-column grid on desktop */
+    .khata-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+    }
+
+    .quick-cust-list.wiz-cust-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+    }
+
+    /* Settings Hub clean 2-column layout */
+    .company-form-box {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .company-form-box .field-group.full-width {
+        grid-column: span 2;
+    }
+
+    .clean-pipes-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 16px !important;
+    }
+
+    /* Receipt card sizing on desktop */
+    .bill-receipt-card {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    .preview-stage-top-bar {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .bill-preview-action-stage {
+        max-width: 680px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Sticky live total bar on desktop: sleek wide presentation */
+    .live-bar-inner {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .live-bar-top-row {
+        flex: 1;
+        justify-content: flex-start;
+        gap: 18px;
+    }
+
+    .live-details-strip {
+        flex: 1.2;
+        justify-content: flex-end;
+        margin-top: 0 !important;
+        gap: 12px !important;
+    }
+
+    /* Wider Customer popup detail dialog on desktop */
+    .cust-popup-dialog.cust-bore-detail-modal {
+        max-width: 780px !important;
+    }
+
+    .cbd-summary-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    /* WA preview modal */
+    .wa-preview-modal {
+        max-width: 520px !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   3. LARGE DESKTOP MONITORS (>= 1440px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1440px) {
+    .header-inner,
+    .live-bar-inner,
+    .app-main {
+        max-width: 1360px;
+    }
+
+    .khata-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 18px !important;
+    }
+}
