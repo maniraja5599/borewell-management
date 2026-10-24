@@ -10089,11 +10089,11 @@ input.is-select-all-ready,
 }
 
 .set-seg-btn.active {
-    background: #334155;
-    color: #ffffff;
-    font-weight: 850;
-    border-color: #0f172a;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25), 0 2px 4px rgba(15, 23, 42, 0.15);
+    background: #000000 !important;
+    color: #ffffff !important;
+    font-weight: 850 !important;
+    border-color: #000000 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.20) !important;
     transform: translateY(-1px);
 }
 
@@ -10126,7 +10126,6 @@ input.is-select-all-ready,
     background: #1e293b !important;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3) !important;
-}
 }
 
 .set-seg-btn.active i {
