@@ -11269,26 +11269,69 @@ input.is-select-all-ready,
 
     /* Refined floating pill dock nav on Desktop */
     .bottom-nav {
-        max-width: 640px !important;
-        bottom: 18px !important;
-        height: 58px !important;
-        box-shadow: 0 12px 34px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+        max-width: 650px !important;
+        bottom: 20px !important;
+        height: 60px !important;
+        padding: 6px 14px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        border: 1.5px solid #cbd5e1 !important;
+        box-shadow: 0 14px 38px rgba(15, 23, 42, 0.22), 0 4px 14px rgba(15, 23, 42, 0.10) !important;
+        z-index: 9999 !important;
     }
 
     .b-nav-item {
         flex-direction: row !important;
-        gap: 8px !important;
-        padding: 6px 14px !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 7px !important;
+        padding: 8px 16px !important;
+        border-radius: 14px !important;
+        position: relative !important;
+    }
+
+    /* Remove the top bar artifact in desktop floating dock */
+    .b-nav-item.active::before {
+        display: none !important;
+    }
+
+    .b-nav-item.active {
+        background: #ecfdf5 !important;
+        color: #065f46 !important;
+        box-shadow: inset 0 0 0 1.5px rgba(16, 185, 129, 0.4) !important;
     }
 
     .b-nav-icon {
-        font-size: 1.15rem;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
     }
 
     .b-nav-label {
-        font-size: 0.84rem !important;
+        font-size: 0.88rem !important;
         font-weight: 700 !important;
         display: inline-block !important;
+        line-height: 1 !important;
+    }
+
+    /* Place count badge neatly on the side next to label */
+    .b-nav-badge {
+        position: static !important;
+        margin-left: 3px !important;
+        font-size: 0.70rem !important;
+        font-weight: 800 !important;
+        padding: 2px 7px !important;
+        line-height: 1 !important;
+        border-radius: 99px !important;
+        background: #10b981 !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .b-nav-item.active .b-nav-badge {
+        background: #059669 !important;
     }
 
     /* Bills Ledger & Customer List: 3-column grid on desktop */
@@ -11338,24 +11381,10 @@ input.is-select-all-ready,
         margin-right: auto;
     }
 
-    /* Sticky live total bar on desktop: sleek wide presentation */
+    /* Sticky live total bar on desktop: clean wide presentation */
     .live-bar-inner {
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-    }
-
-    .live-bar-top-row {
-        flex: 1;
-        justify-content: flex-start;
-        gap: 18px;
-    }
-
-    .live-details-strip {
-        flex: 1.2;
-        justify-content: flex-end;
-        margin-top: 0 !important;
-        gap: 12px !important;
+        max-width: 1220px !important;
+        gap: 6px !important;
     }
 
     /* Wider Customer popup detail dialog on desktop */
@@ -11387,4 +11416,47 @@ input.is-select-all-ready,
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 18px !important;
     }
+}
+
+/* Official SaaS Watermark / Powered by Branding on Bills & Exports */
+.receipt-saas-branding {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 10px;
+    padding-top: 7px;
+    border-top: 1px dashed #e2e8f0;
+    font-size: 0.62rem;
+    color: #94a3b8;
+    user-select: none;
+}
+
+.receipt-saas-branding .rsb-label {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.receipt-saas-branding .rsb-logo {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    border-radius: 3px;
+}
+
+.receipt-saas-branding .rsb-name {
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.03em;
+}
+
+.pdf-a4-export-sheet .receipt-saas-branding {
+    margin-top: 12px !important;
+    padding-top: 8px !important;
+    font-size: 0.68rem !important;
+}
+
+.pdf-a4-export-sheet .receipt-saas-branding .rsb-logo {
+    width: 15px !important;
+    height: 15px !important;
 }
