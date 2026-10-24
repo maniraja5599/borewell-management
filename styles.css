@@ -2366,6 +2366,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid #fde68a;
     padding: 5px 8px;
     border-radius: 5px;
+    text-align: center;
 }
 
 .receipt-sign-row {
@@ -7930,6 +7931,7 @@ input[type="number"] {
     border: 1px dashed #86efac;
     color: #166534;
     font-weight: 700;
+    text-align: center;
 }
 
 .bsc-dual-footer-notes {
