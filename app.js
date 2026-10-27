@@ -622,8 +622,10 @@ class BoreBillSaaSApp {
     saveToStorage(key, data) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
+            return true;
         } catch (e) {
-            this.showToast('⚠️ Storage full! Please use smaller logo image.');
+            this.showToast('⚠️ Storage full — NOT saved! Download a backup, then remove old bills or use a smaller logo.');
+            return false;
         }
     }
 
@@ -2376,9 +2378,9 @@ class BoreBillSaaSApp {
             const isSameSelected = currentName && currentName.toLowerCase() === dup.name.toLowerCase();
 
             dupBanner.innerHTML = `
-                <span>⚠️ Mobile <strong>${val.fullPhone}</strong> already registered to <strong>${dup.name}</strong>${dup.village ? ` (${dup.village})` : ''}!</span>
+                <span>⚠️ Mobile <strong>${this.escapeHtml(val.fullPhone)}</strong> already registered to <strong>${this.escapeHtml(dup.name)}</strong>${dup.village ? ` (${this.escapeHtml(dup.village)})` : ''}!</span>
                 <div class="phone-dup-actions">
-                    ${!isSameSelected ? `<button type="button" class="phone-dup-btn primary" id="applyDupCustToBillBtn">Use ${dup.name}</button>` : ''}
+                    ${!isSameSelected ? `<button type="button" class="phone-dup-btn primary" id="applyDupCustToBillBtn">Use ${this.escapeHtml(dup.name)}</button>` : ''}
                     ${(dup.source === 'customer' && currentName && !isSameSelected) ? `<button type="button" class="phone-dup-btn" id="overwriteDupCustFromBillBtn">Update Party</button>` : ''}
                 </div>
             `;
@@ -2468,9 +2470,9 @@ class BoreBillSaaSApp {
             hintEl.style.display = 'block';
 
             dupBanner.innerHTML = `
-                <span>⚠️ Warning: Mobile <strong>${val.fullPhone}</strong> already exists for <strong>${dupCust.name}</strong>${dupCust.village ? ` (${dupCust.village})` : ''}!</span>
+                <span>⚠️ Warning: Mobile <strong>${this.escapeHtml(val.fullPhone)}</strong> already exists for <strong>${this.escapeHtml(dupCust.name)}</strong>${dupCust.village ? ` (${this.escapeHtml(dupCust.village)})` : ''}!</span>
                 <div class="phone-dup-actions">
-                    <button type="button" class="phone-dup-btn primary" id="switchCrmToExistingCustBtn">Edit ${dupCust.name}</button>
+                    <button type="button" class="phone-dup-btn primary" id="switchCrmToExistingCustBtn">Edit ${this.escapeHtml(dupCust.name)}</button>
                 </div>
             `;
             dupBanner.style.display = 'flex';
@@ -2801,8 +2803,8 @@ class BoreBillSaaSApp {
         chipsEl.innerHTML = quickChipItems.map(item => {
             const isAct = currentSite && currentSite.toLowerCase() === item.name.toLowerCase();
             return `
-                <button type="button" class="site-sug-chip ${isAct ? 'active' : ''}" data-site="${item.name}">
-                    ${item.icon} ${item.name}
+                <button type="button" class="site-sug-chip ${isAct ? 'active' : ''}" data-site="${this.escapeHtml(item.name)}">
+                    ${item.icon} ${this.escapeHtml(item.name)}
                 </button>
             `;
         }).join('');
@@ -2836,10 +2838,10 @@ class BoreBillSaaSApp {
         let optionsHtml = '';
         if (currentSite && !exactMatchExists) {
             optionsHtml += `
-                <button type="button" class="smart-site-option" data-pick-site="${currentSite}">
+                <button type="button" class="smart-site-option" data-pick-site="${this.escapeHtml(currentSite)}">
                     <div class="sso-left">
                         <span class="sso-icon">✨</span>
-                        <span class="sso-name">Use "${currentSite}"</span>
+                        <span class="sso-name">Use "${this.escapeHtml(currentSite)}"</span>
                     </div>
                     <span class="sso-badge new-site">+ New Site</span>
                 </button>
@@ -2849,10 +2851,10 @@ class BoreBillSaaSApp {
         filtered.slice(0, 12).forEach(p => {
             const isCurrent = currentSite && p.name.toLowerCase() === q;
             optionsHtml += `
-                <button type="button" class="smart-site-option ${isCurrent ? 'is-active' : ''}" data-pick-site="${p.name}">
+                <button type="button" class="smart-site-option ${isCurrent ? 'is-active' : ''}" data-pick-site="${this.escapeHtml(p.name)}">
                     <div class="sso-left">
                         <span class="sso-icon">${p.icon}</span>
-                        <span class="sso-name">${p.name}</span>
+                        <span class="sso-name">${this.escapeHtml(p.name)}</span>
                     </div>
                     <span class="sso-badge ${p.badgeClass}">${isCurrent ? '✓ Selected' : p.badgeLabel}</span>
                 </button>
@@ -3017,7 +3019,7 @@ class BoreBillSaaSApp {
                     const icon = item.type === 'collar' ? '🔧' : item.type === 'transport' ? '🚚' : '➕';
                     return `
                         <button type="button" class="saved-extra-chip ${isActive ? 'is-active' : ''}" data-extra-idx="${idx}">
-                            <span>${isActive ? '✓ ' : icon + ' '}${item.label} • ${this.formatINR(item.amount)}</span>
+                            <span>${isActive ? '✓ ' : icon + ' '}${this.escapeHtml(item.label)} • ${this.formatINR(item.amount)}</span>
                             ${item.fromSaved ? `<span class="sec-del-x" data-del-extra="${item.id}" title="Remove saved extra">✕</span>` : ''}
                         </button>
                     `;
@@ -3094,7 +3096,7 @@ class BoreBillSaaSApp {
                     <button type="button" class="smart-site-option" data-pick-custom-idx="${i}">
                         <div class="sso-left">
                             <span class="sso-icon">➕</span>
-                            <span class="sso-name">${item.label}</span>
+                            <span class="sso-name">${this.escapeHtml(item.label)}</span>
                         </div>
                         <span class="sso-badge cust-place">${this.formatINR(item.amount)}</span>
                     </button>
@@ -4018,7 +4020,7 @@ class BoreBillSaaSApp {
             return `
                 <div class="crm-minimal-row" data-cust-id="${c.id}" title="Tap to open customer summary & bore details">
                     <div class="cmr-left">
-                        <div class="cmr-avatar">${initials}</div>
+                        <div class="cmr-avatar">${this.escapeHtml(initials)}</div>
                         <div class="cmr-info">
                             <div class="cmr-name">${this.escapeHtml(c.name)}</div>
                             <div class="cmr-sub">
@@ -4622,11 +4624,11 @@ class BoreBillSaaSApp {
                 listEl.innerHTML = `
                     <div class="wiz-no-match-box">
                         <div class="wiz-nm-text">
-                            <strong>No customer found for "${rawQ}"</strong>
+                            <strong>No customer found for "${this.escapeHtml(rawQ)}"</strong>
                             <small>1-click-la puthu customer-a save panni bill-ku select pannalam</small>
                         </div>
                         <button type="button" class="btn-chip-primary" id="wizInstantCreateCustBtn">
-                            ＋ Create "${rawQ.slice(0, 16)}"
+                            ＋ Create "${this.escapeHtml(rawQ.slice(0, 16))}"
                         </button>
                     </div>
                 `;
@@ -4676,7 +4678,7 @@ class BoreBillSaaSApp {
             return `
             <button type="button" class="wiz-cust-card ${isSelected ? 'is-selected' : ''}" data-id="${c.id}">
                 <div class="wiz-cc-left">
-                    <div class="wiz-cc-avatar">${this.getInitials(c.name)}</div>
+                    <div class="wiz-cc-avatar">${this.escapeHtml(this.getInitials(c.name))}</div>
                     <div class="wiz-cc-info">
                         <div class="wiz-cc-name-row">
                             <span class="wiz-cc-name">${this.escapeHtml(c.name)}</span>
@@ -7182,7 +7184,7 @@ class BoreBillSaaSApp {
             <div class="khata-card clickable-bill-card" data-billid="${item.id}">
                 <div class="khata-top">
                     <div class="khata-identity">
-                        <div class="party-avatar">${initials}</div>
+                        <div class="party-avatar">${this.escapeHtml(initials)}</div>
                         <div class="party-info">
                             <div class="party-name">#${this.escapeHtml(item.billNo)} — ${this.escapeHtml(displayCust)}</div>
                             <div class="party-meta-row">
@@ -10350,10 +10352,38 @@ class BoreBillSaaSApp {
         document.getElementById('importDataJsonInput')?.addEventListener('change', (e) => {
             const file = e.target.files?.[0];
             if (!file) return;
+            e.target.value = '';
             const reader = new FileReader();
             reader.onload = (evt) => {
+                let parsed;
                 try {
-                    const parsed = JSON.parse(evt.target.result);
+                    parsed = JSON.parse(evt.target.result);
+                } catch (err) {
+                    this.showToast('❌ Invalid backup JSON file');
+                    return;
+                }
+                const looksLikeBackup = parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+                    (Array.isArray(parsed.history) || Array.isArray(parsed.customers) || (parsed.brand && typeof parsed.brand === 'object'));
+                if (!looksLikeBackup) {
+                    this.showToast('❌ This file is not a DrillRig backup');
+                    return;
+                }
+                const billCount = Array.isArray(parsed.history) ? parsed.history.length : 0;
+                const custCount = Array.isArray(parsed.customers) ? parsed.customers.length : 0;
+                this.confirmDeleteModal({
+                    title: 'Restore Backup?',
+                    itemLabel: `📦 ${file.name} — ${billCount} bills, ${custCount} customers`,
+                    message: 'This will REPLACE all current bills, customers, rates and company details on this device. Download a backup of current data first if needed.',
+                    confirmBtnLabel: 'Yes, Restore',
+                    onConfirm: () => this.applyBackupPayload(parsed)
+                });
+            };
+            reader.readAsText(file);
+        });
+    }
+
+    applyBackupPayload(parsed) {
+                try {
                     if (parsed.brand) {
                         this.brand = { ...this.defaultBrand, ...parsed.brand };
                         this.saveToStorage('borebill_brand', this.brand);
@@ -10394,11 +10424,8 @@ class BoreBillSaaSApp {
                     this.calculateAndRender();
                     this.showToast('✅ Backup Restored Successfully!');
                 } catch (err) {
-                    this.showToast('❌ Invalid backup JSON file');
+                    this.showToast('❌ Restore failed — backup file may be damaged');
                 }
-            };
-            reader.readAsText(file);
-        });
     }
 }
 
@@ -10443,9 +10470,18 @@ function initPWAAndZoomLock() {
         }
     });
 
+    // Ask the browser not to auto-clear our localStorage (Safari/Chrome may evict data of rarely used sites)
+    try {
+        if (navigator.storage && typeof navigator.storage.persist === 'function') {
+            navigator.storage.persisted().then((already) => {
+                if (!already) navigator.storage.persist().catch(() => {});
+            }).catch(() => {});
+        }
+    } catch (_) {}
+
     // 5. Register Offline-Capable Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=119').then((reg) => {
+        navigator.serviceWorker.register('./sw.js?v=124').then((reg) => {
             if (reg) {
                 reg.update();
             }

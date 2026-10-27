@@ -59,3 +59,20 @@
   - Record cash advances given to staff, food/tea allowances, and monthly salary settlement with pending balance.
 - [ ] **Rig Expense Tracker:**
   - Log daily site expenses (Transport, Police/Toll, Maintenance, Food) to calculate **True Net Profit per Bore** (`Bill Total − Pipe Cost − Diesel − Staff Bata/Expenses`).
+
+---
+
+## ☁️ Phase 0 (Before selling as SaaS): Cloud Accounts, Sync & Billing
+> *Today all data lives only in the phone's browser (localStorage). If the phone is lost, the browser data is cleared, or the owner switches phones, every bill and customer is gone. A paid SaaS must fix this first.*
+
+- [ ] **Backend + Login:** Supabase (Postgres + Auth). Phone OTP login (owners know their mobile number, not email passwords).
+- [ ] **Multi-tenant data model:** `companies`, `company_members` (owner / staff role), `customers`, `bills`, `payments`, `rate_profiles`, `saved_extras`, `saved_notes` — every row carries `company_id`, protected by Row Level Security so one rig owner can never see another's data.
+- [ ] **Offline-first sync:** keep the current localStorage/IndexedDB flow for no-signal drilling sites; queue changes and push to the cloud when online. Give every bill/customer a UUID + `updated_at` so two phones don't overwrite each other.
+- [ ] **One-time migration:** on first login, upload the existing localStorage data (the same shape as the JSON backup) into the new account.
+- [ ] **Bill numbers generated server-side** per company, so two devices never issue the same bill number.
+- [ ] **Subscriptions:** Free trial (e.g. 30 days / 25 bills) → monthly/yearly plan via Razorpay (UPI AutoPay). Lock creating new bills (not viewing old ones) when expired.
+- [ ] **Staff accounts:** owner invites drivers/supervisors with limited rights (create bill, no delete, no rate edits).
+- [ ] **Super-admin panel:** list companies, plan status, usage, manual extend trial.
+- [ ] **Legal & trust:** Privacy Policy, Terms, data export/delete on request (DPDP Act 2023), GST invoice for the subscription itself.
+- [ ] **Code health:** split the 10,000-line `app.js` into modules (calc engine, storage/sync, UI per tab) with a small build step (Vite); add unit tests for the slab engine before touching it.
+- [ ] **Ops:** custom domain, error monitoring (Sentry), daily automated DB backups.
