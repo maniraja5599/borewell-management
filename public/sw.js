@@ -1,9 +1,10 @@
-const CACHE_NAME = 'borebill-pro-v125';
-const ASSETS = [
+// DrillRig offline service worker.
+// Built JS/CSS files have content hashes in their names (from Vite), so they never go stale;
+// we fetch network-first and fall back to cache when the rig site has no signal.
+const CACHE_NAME = 'drillrig-v2';
+const PRECACHE = [
   './',
-  './index.html?v=125',
-  './styles.css?v=125',
-  './app.js?v=125',
+  './index.html',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
@@ -12,7 +13,7 @@ const ASSETS = [
   './developer_profile.jpg'
 ];
 
-// Pinned third-party libraries (icons, PDF & image export). Cached so bills can be exported offline at a site.
+// Pinned third-party libraries (icons, PDF & image export), cached so bills can be exported offline.
 const CDN_ASSETS = [
   'https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
@@ -24,9 +25,14 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      await cache.addAll(ASSETS);
-      // CDN files are best-effort: a CDN hiccup must not break install
+      await cache.addAll(PRECACHE);
       await Promise.all(CDN_ASSETS.map((url) => cache.add(new Request(url, { mode: 'cors' })).catch(() => {})));
+      // Also cache the current hashed app bundle so the very first offline launch works
+      try {
+        const html = await (await fetch('./index.html', { cache: 'no-store' })).text();
+        const assets = [...html.matchAll(/(?:src|href)="(\.\/assets\/[^"]+)"/g)].map((m) => m[1]);
+        await cache.addAll(assets);
+      } catch (_) { /* best effort */ }
     })
   );
 });
@@ -45,8 +51,9 @@ self.addEventListener('fetch', (event) => {
   const isSameOrigin = url.origin === self.location.origin;
   const isCdn = CDN_HOSTS.includes(url.hostname);
   if (!isSameOrigin && !isCdn) return;
+  // Vite dev server files: never cache
+  if (isSameOrigin && (url.pathname.includes('/@vite') || url.pathname.includes('/src/') || url.pathname.includes('/node_modules/'))) return;
 
-  // Network-First so latest UI updates load immediately when online; cache fallback when offline
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
@@ -57,12 +64,9 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       })
       .catch(async () => {
-        const hit = await caches.match(event.request);
+        const hit = await caches.match(event.request) || await caches.match(event.request, { ignoreSearch: true });
         if (hit) return hit;
-        // e.g. offline launch of ./index.html when only ./index.html?v=125 was precached
-        const loose = await caches.match(event.request, { ignoreSearch: true });
-        if (loose) return loose;
-        if (event.request.mode === 'navigate') return caches.match('./index.html?v=125');
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
         return Response.error();
       })
   );
