@@ -11459,3 +11459,94 @@ input.is-select-all-ready,
     width: 15px !important;
     height: 15px !important;
 }
+/* ==================== v124 UI POLISH: mobile fit, empty states, accessibility ==================== */
+/* Money & numbers line up in columns */
+.ld-val, .live-total-amount, #liveTotalBannerAmount, .cbc-r-val, .sso-badge, .cmr-badge {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Top control strip: never push "Re-Bore" off-screen on narrow phones */
+.top-mode-bar {
+    flex-wrap: wrap;
+    row-gap: 8px;
+    min-width: 0;
+}
+@media (max-width: 420px) {
+    .top-mode-bar .seg-pill-group {
+        flex: 1 1 auto;
+        justify-content: stretch;
+    }
+    .top-mode-bar .seg-pill-group .seg-pill {
+        flex: 1 1 0;
+    }
+}
+
+/* Sticky bar depth pill: shrink gracefully instead of clipping mid-text */
+.ld-left { min-width: 0; }
+.ld-left > span { overflow: hidden; text-overflow: ellipsis; }
+
+/* Customer list: show full phone on a second line instead of cutting it off */
+@media (max-width: 480px) {
+    .cmr-sub {
+        flex-wrap: wrap;
+        row-gap: 2px;
+        white-space: normal;
+    }
+    .cmr-sub .cmr-dot { display: none; }
+    .cmr-sub .cmr-phone { flex-basis: 100%; }
+}
+
+/* Friendly empty state */
+.empty-state-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 32px 16px 28px;
+}
+.empty-state-icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    font-size: 1.6rem;
+    border-radius: 16px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    margin-bottom: 4px;
+}
+.empty-state-title {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+.empty-state-sub {
+    margin: 0 0 10px;
+    max-width: 280px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #64748b;
+}
+
+/* Keyboard focus rings (accessibility) — only for keyboard users, not taps */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--brand-primary, #15803d);
+    outline-offset: 2px;
+}
+
+/* Respect the phone's "reduce motion" setting */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

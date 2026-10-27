@@ -1,9 +1,9 @@
-const CACHE_NAME = 'borebill-pro-v124';
+const CACHE_NAME = 'borebill-pro-v125';
 const ASSETS = [
   './',
-  './index.html?v=124',
-  './styles.css?v=124',
-  './app.js?v=124',
+  './index.html?v=125',
+  './styles.css?v=125',
+  './app.js?v=125',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
@@ -59,10 +59,10 @@ self.addEventListener('fetch', (event) => {
       .catch(async () => {
         const hit = await caches.match(event.request);
         if (hit) return hit;
-        // e.g. offline launch of ./index.html when only ./index.html?v=124 was precached
+        // e.g. offline launch of ./index.html when only ./index.html?v=125 was precached
         const loose = await caches.match(event.request, { ignoreSearch: true });
         if (loose) return loose;
-        if (event.request.mode === 'navigate') return caches.match('./index.html?v=124');
+        if (event.request.mode === 'navigate') return caches.match('./index.html?v=125');
         return Response.error();
       })
   );

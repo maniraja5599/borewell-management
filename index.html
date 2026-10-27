@@ -48,7 +48,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
-    <link rel="stylesheet" href="styles.css?v=124">
+    <link rel="stylesheet" href="styles.css?v=125">
 </head>
 <body>
 
@@ -163,7 +163,7 @@
                     <div class="live-detail-pill" id="stickyDrillPill">
                         <span class="ld-left">
                             <i data-lucide="arrow-down-to-line" class="icon-xs"></i>
-                            <span id="liveSummaryDepthBadge">Depth: 0 ft (6.5")</span>
+                            <span id="liveSummaryDepthBadge">0 ft • 6.5"</span>
                         </span>
                         <strong class="ld-val" id="liveStickyDrillCost">₹0</strong>
                     </div>
@@ -836,9 +836,9 @@
                             <div class="receipt-company-info">
                                 <h2 id="receiptCompanyName">DrillRig.</h2>
                                 <p id="receiptCompanyTagline" class="receipt-tagline">ஆழமான நம்பிக்கை! • High Power Compressor Drilling</p>
-                                <p id="receiptCompanyAddress" class="receipt-address">6/906-1, Trichy Main Road, Namakkal - 637001</p>
+                                <p id="receiptCompanyAddress" class="receipt-address"></p>
                                 <div class="receipt-phones-row">
-                                    <span>📞 <strong id="receiptCompanyPhone">+91 96596 57777, 94433 73573</strong></span>
+                                    <span>📞 <strong id="receiptCompanyPhone"></strong></span>
                                     <span id="receiptCompanyGstBadge" class="gst-pill-badge" style="display: none;">GSTIN: <span id="receiptCompanyGstNo"></span></span>
                                 </div>
                             </div>
@@ -998,7 +998,7 @@
                             </div>
                             <div class="pfc-field">
                                 <label for="quickPreviewWebsiteInput">🌐 Website (Optional)</label>
-                                <input type="text" id="quickPreviewWebsiteInput" placeholder="e.g. www.srianjaneyaborewells.com" value="">
+                                <input type="text" id="quickPreviewWebsiteInput" placeholder="e.g. www.yourcompany.com" value="">
                             </div>
                         </div>
                         <div class="pfc-presets-row">
@@ -1732,16 +1732,16 @@
                                         <option value="+27">🇿🇦 +27</option>
                                         <option value="+977">🇳🇵 +977</option>
                                     </select>
-                                    <input type="text" id="brandCompanyPhones" value="+91 96596 57777, +91 94433 73573" placeholder="Phone numbers">
+                                    <input type="text" id="brandCompanyPhones" value="" placeholder="Phone numbers">
                                 </div>
                             </div>
                             <div class="field-group full-col">
                                 <label for="brandCompanyAddress" data-i18n="officeAddressLabel">Office Address (Optional)</label>
-                                <input type="text" id="brandCompanyAddress" value="6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001" placeholder="Address (Optional - leave blank if not needed)">
+                                <input type="text" id="brandCompanyAddress" value="" placeholder="Address (Optional - leave blank if not needed)">
                             </div>
                             <div class="field-group full-col">
                                 <label for="brandWebsite">🌐 Website (Optional — shown on Receipt, PDF &amp; Image)</label>
-                                <input type="text" id="brandWebsite" placeholder="e.g. www.srianjaneyaborewells.com" value="">
+                                <input type="text" id="brandWebsite" placeholder="e.g. www.yourcompany.com" value="">
                             </div>
                         </div>
                     </div>
@@ -1790,7 +1790,7 @@
                             </div>
                             <div class="field-group">
                                 <label for="brandUpiId" data-i18n="upiGpayLabel">UPI ID / GPay Number</label>
-                                <input type="text" id="brandUpiId" placeholder="9659657777@upi">
+                                <input type="text" id="brandUpiId" placeholder="yourname@upi">
                             </div>
                             <div class="field-group full-col">
                                 <label for="brandUpiName">UPI Account Beneficiary Name (Verification Name)</label>
@@ -1890,14 +1890,14 @@
                             <span class="bsc-contact-icon"><i data-lucide="phone-call" class="icon-xs"></i></span>
                             <div class="bsc-contact-txt">
                                 <small>Contact Numbers</small>
-                                <strong id="brandCardPhoneText">+91 96596 57777, 94433 73573</strong>
+                                <strong id="brandCardPhoneText">Phone not set</strong>
                             </div>
                         </div>
                         <div class="bsc-contact-card">
                             <span class="bsc-contact-icon"><i data-lucide="map-pin" class="icon-xs"></i></span>
                             <div class="bsc-contact-txt">
                                 <small>Office Address</small>
-                                <strong id="brandCardAddressText">6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001</strong>
+                                <strong id="brandCardAddressText"></strong>
                             </div>
                         </div>
                     </div>
@@ -2965,6 +2965,6 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="app.js?v=124"></script>
+    <script src="app.js?v=125"></script>
 </body>
 </html>

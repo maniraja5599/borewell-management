@@ -177,11 +177,11 @@ class BoreBillSaaSApp {
         this.historyDateTo = '';
 
         this.defaultBrand = {
-            companyName: 'DrillRig.',
-            tagline: 'ஆழமான நம்பிக்கை! • High Power Compressor Drilling',
-            phones: '+91 96596 57777, +91 94433 73573',
+            companyName: 'Your Borewell Company',
+            tagline: 'Borewell Drilling Services',
+            phones: '',
             phoneCountryCode: '+91',
-            address: '6/906-1, Trichy Main Road, Namakkal, Tamil Nadu - 637001',
+            address: '',
             website: '',
             gstNumber: '',
             upiId: '',
@@ -1266,7 +1266,7 @@ class BoreBillSaaSApp {
         if (totalBannerEl) {
             totalBannerEl.textContent = this.formatINR(res.grandTotal);
         }
-        document.getElementById('liveSummaryDepthBadge').textContent = `Depth: ${res.totalDepth || 0} ft (${res.boreDia})`;
+        document.getElementById('liveSummaryDepthBadge').textContent = `${res.totalDepth || 0} ft • ${res.boreDia}`;
         document.getElementById('liveSummaryPerFt').textContent = `Base: ₹${res.baseDrillingRate || 90}/ft`;
 
         const stickyDrillCost = document.getElementById('liveStickyDrillCost');
@@ -4965,8 +4965,8 @@ class BoreBillSaaSApp {
         }
         const headerLocKicker = document.getElementById('marqueeLocKicker');
         if (headerLocKicker) {
-            const locText = (address.split(',')[0] || 'Namakkal').trim();
-            headerLocKicker.textContent = `📍 ${locText} • Tamil Nadu`;
+            const locText = (address.split(',')[0] || '').trim();
+            headerLocKicker.textContent = locText ? `📍 ${locText}` : '';
         }
 
         document.getElementById('receiptCompanyName').textContent = compName;
@@ -4983,6 +4983,8 @@ class BoreBillSaaSApp {
         const rcptPhoneEl = document.getElementById('receiptCompanyPhone');
         if (rcptPhoneEl) {
             rcptPhoneEl.textContent = phones;
+            const phoneRow = rcptPhoneEl.closest('span');
+            if (phoneRow) phoneRow.style.display = phones ? '' : 'none';
         }
         document.getElementById('rcptSignCompany').textContent = compName;
 
@@ -7139,9 +7141,27 @@ class BoreBillSaaSApp {
             );
         });
 
+        const clearAllBtn = document.getElementById('clearAllHistoryBtn');
+        if (clearAllBtn) clearAllBtn.style.display = (this.history || []).length ? '' : 'none';
+
         if (filtered.length === 0) {
             const isQuoteTab = docFilter === 'QUOTATION';
             const hasActiveFilters = (docFilter === 'INVOICE' && payFilter !== 'all') || (this.historyDatePreset && this.historyDatePreset !== 'all') || Boolean(q);
+            const hasAnyOfType = (this.history || []).some(item => (item.snapshot?.docType || 'QUOTATION') === docFilter);
+            if (!hasAnyOfType && !q) {
+                listEl.innerHTML = `
+                    <div class="empty-state-card">
+                        <div class="empty-state-icon">${isQuoteTab ? '📋' : '🧾'}</div>
+                        <p class="empty-state-title">${isQuoteTab ? 'No quotations yet' : 'No bills yet'}</p>
+                        <p class="empty-state-sub">${isQuoteTab ? 'Quotations you share with customers will appear here.' : 'Saved final bills, payments and pending dues will appear here.'}</p>
+                        <button type="button" class="btn-chip-primary" id="emptyStateNewBillBtn">＋ Create ${isQuoteTab ? 'Quotation' : 'Bill'}</button>
+                    </div>
+                `;
+                document.getElementById('emptyStateNewBillBtn')?.addEventListener('click', () => {
+                    document.querySelector('.b-nav-item[data-tab="tab-bill"]')?.click();
+                });
+                return;
+            }
             listEl.innerHTML = `
                 <div style="text-align:center; padding: 28px 14px;">
                     <p class="page-sub" style="margin-bottom: 8px; font-weight: 700;">
@@ -10119,7 +10139,7 @@ class BoreBillSaaSApp {
                 billDate: new Date().toLocaleDateString('en-GB'),
                 custName: 'R. Senthil Kumar',
                 custPhone: '9842100000',
-                custLocation: 'Namakkal Site',
+                custLocation: 'Main Site',
                 custGst: '',
                 res: sampleRes,
                 paymentStatus: 'unpaid',
@@ -10481,7 +10501,7 @@ function initPWAAndZoomLock() {
 
     // 5. Register Offline-Capable Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js?v=124').then((reg) => {
+        navigator.serviceWorker.register('./sw.js?v=125').then((reg) => {
             if (reg) {
                 reg.update();
             }
