@@ -24,6 +24,16 @@ export function hashString(str) {
     return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + ':' + str.length;
 }
 
+/** JSON with object keys sorted, so field order never matters when comparing. */
+export function stableStringify(value) {
+    if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
+    if (value && typeof value === 'object') {
+        return '{' + Object.keys(value).sort().filter((k) => value[k] !== undefined)
+            .map((k) => JSON.stringify(k) + ':' + stableStringify(value[k])).join(',') + '}';
+    }
+    return JSON.stringify(value);
+}
+
 export const recordKey = (kind, id) => `${kind}:${id}`;
 export const hashData = (data) => hashString(JSON.stringify(data));
 
@@ -97,6 +107,33 @@ export function planPull(rows, index, hashes, { firstSync = false } = {}) {
         synced[key] = remoteHash;
     }
     return { apply, keepLocal, synced };
+}
+
+/**
+ * Is this settings document still the app's untouched default?
+ * Used on a phone's first sync: a default left in the cloud by another (empty) phone
+ * must never overwrite real settings on this phone.
+ */
+export function isDefaultSetting(id, data, defaults = {}) {
+    if (data === undefined || data === null) return true;
+    if (id === 'brand') {
+        const def = defaults.brand || {};
+        const name = String(data.companyName || '').trim();
+        return (!name || name === def.companyName) && !String(data.phones || '').trim()
+            && !String(data.address || '').trim() && !data.logoDataUrl;
+    }
+    if (id === 'savedExtras' || id === 'savedNotes') return Array.isArray(data) && data.length === 0;
+    if (defaults[id] !== undefined) return stableStringify(data) === stableStringify(defaults[id]);
+    return false;
+}
+
+/** On first sync, drop cloud settings that are untouched defaults when this phone has real ones. */
+export function dropDefaultCloudSettings(rows, local, defaults = {}) {
+    return rows.filter((row) => {
+        if (row.kind !== 'setting' || row.deleted) return true;
+        const mine = local.settings?.[row.id];
+        return !(isDefaultSetting(row.id, row.data, defaults) && !isDefaultSetting(row.id, mine, defaults));
+    });
 }
 
 /** Apply planned cloud rows to plain copies of the phone's lists/settings. Returns which parts changed. */

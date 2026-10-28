@@ -119,3 +119,41 @@ describe('applyToLocal', () => {
         expect(changed.size).toBe(0);
     });
 });
+
+import { isDefaultSetting, dropDefaultCloudSettings } from '../src/cloud/syncPlan.js';
+
+describe('default settings never overwrite real ones on first sync', () => {
+    const defaults = { brand: { companyName: 'Your Borewell Company' }, waFormat: { note: true } };
+
+    it('recognises an untouched brand', () => {
+        expect(isDefaultSetting('brand', { companyName: 'Your Borewell Company', phones: '' }, defaults)).toBe(true);
+        expect(isDefaultSetting('brand', { companyName: 'SRI ANJANEYA BOREWELLS' }, defaults)).toBe(false);
+        expect(isDefaultSetting('brand', { companyName: 'Your Borewell Company', phones: '96596 57777' }, defaults)).toBe(false);
+    });
+
+    it('a real phone keeps its brand when the cloud only has defaults (and uploads it)', () => {
+        const realPhone = { customers: [], history: [], settings: { brand: { companyName: 'SRI ANJANEYA BOREWELLS', phones: '9659657777' } } };
+        const cloud = [{ kind: 'setting', id: 'brand', data: { companyName: 'Your Borewell Company', phones: '' }, deleted: false, rev: 1 }];
+        const rows = dropDefaultCloudSettings(cloud, realPhone, defaults);
+        expect(rows).toHaveLength(0);
+        const plan = planPull(rows, indexLocal(realPhone), {}, { firstSync: true });
+        const { local } = applyToLocal(realPhone, plan.apply);
+        expect(local.settings.brand.companyName).toBe('SRI ANJANEYA BOREWELLS');
+        expect(planPush(indexLocal(local), plan.synced).map((r) => r.key)).toEqual(['setting:brand']);
+    });
+
+    it('a new empty phone still takes the real brand from the cloud', () => {
+        const newPhone = { settings: { brand: { companyName: 'Your Borewell Company' } } };
+        const cloud = [{ kind: 'setting', id: 'brand', data: { companyName: 'SRI ANJANEYA BOREWELLS' }, deleted: false, rev: 1 }];
+        expect(dropDefaultCloudSettings(cloud, newPhone, defaults)).toHaveLength(1);
+    });
+});
+
+describe('default detection ignores field order', () => {
+    it('treats re-ordered default rates as default', () => {
+        const defaults = { rates: { baseDrillingRate: 90, pvc7Rate: 400, slabRates: [{ start: 1, rate: 90 }] } };
+        const stored = { pvc7Rate: 400, slabRates: [{ rate: 90, start: 1 }], baseDrillingRate: 90 };
+        expect(isDefaultSetting('rates', stored, defaults)).toBe(true);
+        expect(isDefaultSetting('rates', { ...stored, baseDrillingRate: 100 }, defaults)).toBe(false);
+    });
+});

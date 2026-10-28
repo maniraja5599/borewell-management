@@ -6,7 +6,7 @@
 // It hooks the app at two points only: saveToStorage and saveCurrentBillToHistory.
 import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
-import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey } from './syncPlan.js';
+import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
 const PUSH_BATCH = 200;
@@ -174,7 +174,12 @@ async function syncOnce() {
     ensureCustomerIds(app);
 
     const firstSync = !st.firstSyncDone;
-    const rows = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    let rows = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    if (firstSync) {
+        rows = dropDefaultCloudSettings(rows, readLocal(), {
+            brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat
+        });
+    }
     const before = indexLocal(readLocal());
     const plan = planPull(rows, before, st.hashes, { firstSync });
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
@@ -184,6 +189,7 @@ async function syncOnce() {
         else st.hashes[key] = hash;
     }
     if (rows.length) st.lastRev = Math.max(st.lastRev || 0, ...rows.map((r) => Number(r.rev) || 0));
+    // (dropped default settings are not in `rows`; they get overwritten by this phone's push below)
     saveState(st);
 
     const toPush = planPush(indexLocal(readLocal()), st.hashes);
