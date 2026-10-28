@@ -157,3 +157,33 @@ describe('default detection ignores field order', () => {
         expect(isDefaultSetting('rates', { ...stored, baseDrillingRate: 100 }, defaults)).toBe(false);
     });
 });
+
+describe('an unconfigured phone can never overwrite real company settings', () => {
+    const defaults = { brand: { companyName: 'Your Borewell Company' }, rates: { baseDrillingRate: 90 } };
+    const real = { companyName: 'SRI ANJANEYA BOREWELLS', phones: '9659657777' };
+
+    it('does not upload default settings, even when they look edited', () => {
+        const phone = { settings: { brand: { companyName: 'Your Borewell Company', nextBillSeq: 102 }, rates: { baseDrillingRate: 90 } } };
+        expect(planPush(indexLocal(phone), { 'setting:brand': 'old', 'setting:rates': 'old' }, defaults)).toHaveLength(0);
+    });
+
+    it('takes the real cloud brand even when the local default was re-saved', () => {
+        const phone = { settings: { brand: { companyName: 'Your Borewell Company', nextBillSeq: 102 } } };
+        const hashes = { 'setting:brand': 'some-older-hash' }; // local differs from last sync = "changed here"
+        const rows = [{ kind: 'setting', id: 'brand', data: real, deleted: false, rev: 20 }];
+        const plan = planPull(rows, indexLocal(phone), hashes, { defaults });
+        expect(plan.apply.map((r) => r.data.companyName)).toEqual(['SRI ANJANEYA BOREWELLS']);
+    });
+
+    it('still keeps a real local edit over another real cloud value until it is uploaded', () => {
+        const phone = { settings: { brand: { companyName: 'NEW NAME', phones: '1' } } };
+        const rows = [{ kind: 'setting', id: 'brand', data: real, deleted: false, rev: 21 }];
+        const plan = planPull(rows, indexLocal(phone), { 'setting:brand': 'older' }, { defaults });
+        expect(plan.apply).toHaveLength(0);
+        expect(plan.keepLocal).toBe(1);
+    });
+
+    it('never deletes a settings document in the cloud', () => {
+        expect(planPush(indexLocal({ settings: {} }), { 'setting:brand': 'x' }, defaults)).toHaveLength(0);
+    });
+});

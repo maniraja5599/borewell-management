@@ -174,25 +174,25 @@ async function syncOnce() {
     ensureCustomerIds(app);
 
     const firstSync = !st.firstSyncDone;
-    let rows = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
-    if (firstSync) {
-        rows = dropDefaultCloudSettings(rows, readLocal(), {
-            brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat
-        });
+    const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
+    const pulled = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    const rows = dropDefaultCloudSettings(pulled, readLocal(), defaults);
+    // Cloud only had defaults where this phone has real settings: re-upload the real ones.
+    for (const r of pulled) {
+        if (!rows.includes(r)) delete st.hashes[recordKey(r.kind, r.id)];
     }
     const before = indexLocal(readLocal());
-    const plan = planPull(rows, before, st.hashes, { firstSync });
+    const plan = planPull(rows, before, st.hashes, { firstSync, defaults });
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
     writeLocal(app, local, changed);
     for (const [key, hash] of Object.entries(plan.synced)) {
         if (hash === null) delete st.hashes[key];
         else st.hashes[key] = hash;
     }
-    if (rows.length) st.lastRev = Math.max(st.lastRev || 0, ...rows.map((r) => Number(r.rev) || 0));
-    // (dropped default settings are not in `rows`; they get overwritten by this phone's push below)
+    if (pulled.length) st.lastRev = Math.max(st.lastRev || 0, ...pulled.map((r) => Number(r.rev) || 0));
     saveState(st);
 
-    const toPush = planPush(indexLocal(readLocal()), st.hashes);
+    const toPush = planPush(indexLocal(readLocal()), st.hashes, defaults);
     await pushRows(toPush);
 
     if (firstSync) {

@@ -35,7 +35,7 @@ export function stableStringify(value) {
 }
 
 export const recordKey = (kind, id) => `${kind}:${id}`;
-export const hashData = (data) => hashString(JSON.stringify(data));
+export const hashData = (data) => hashString(stableStringify(data));
 
 /**
  * Index the phone's data. local = { customers: [], history: [], settings: { brand: {...}, ... } }
@@ -62,14 +62,20 @@ export function indexLocal(local) {
     return index;
 }
 
-/** Rows to upload: everything changed or deleted since the last sync. */
-export function planPush(index, hashes) {
+/**
+ * Rows to upload: everything changed or deleted since the last sync.
+ * Settings that are still the app's defaults are never uploaded — a phone that was
+ * never set up must not be able to overwrite a company's real settings.
+ */
+export function planPush(index, hashes, defaults = null) {
     const rows = [];
     for (const [key, rec] of index) {
-        if (hashes[key] !== rec.hash) rows.push({ kind: rec.kind, id: rec.id, data: rec.data, deleted: false, key, hash: rec.hash });
+        if (hashes[key] === rec.hash) continue;
+        if (rec.kind === 'setting' && defaults && isDefaultSetting(rec.id, rec.data, defaults)) continue;
+        rows.push({ kind: rec.kind, id: rec.id, data: rec.data, deleted: false, key, hash: rec.hash });
     }
     for (const key of Object.keys(hashes)) {
-        if (index.has(key) || hashes[key] === null) continue;
+        if (index.has(key) || hashes[key] === null || key.startsWith('setting:')) continue;
         const sep = key.indexOf(':');
         rows.push({ kind: key.slice(0, sep), id: key.slice(sep + 1), data: {}, deleted: true, key, hash: null });
     }
@@ -85,7 +91,7 @@ export function planPush(index, hashes) {
  * push its default settings over the company's real ones).
  * Returns { apply: [{ kind, id, data, deleted, key, hash }], keepLocal: n, synced: { key: hash } }
  */
-export function planPull(rows, index, hashes, { firstSync = false } = {}) {
+export function planPull(rows, index, hashes, { firstSync = false, defaults = null } = {}) {
     const apply = [];
     const synced = {};
     let keepLocal = 0;
@@ -98,7 +104,12 @@ export function planPull(rows, index, hashes, { firstSync = false } = {}) {
             continue;
         }
         const knownHash = Object.prototype.hasOwnProperty.call(hashes, key) ? hashes[key] : null;
-        const changedHere = localHash !== knownHash;
+        let changedHere = localHash !== knownHash;
+        if (changedHere && row.kind === 'setting' && defaults && !row.deleted
+            && isDefaultSetting(row.id, index.get(key)?.data, defaults)
+            && !isDefaultSetting(row.id, row.data, defaults)) {
+            changedHere = false; // the phone only has defaults: the company's real settings win
+        }
         if (changedHere && !firstSync) {
             keepLocal++;
             continue;
