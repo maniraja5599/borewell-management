@@ -10013,10 +10013,10 @@ input.is-select-all-ready,
 .settings-nav-segmented {
     display: flex;
     align-items: center;
-    background: #e2e8f0;
-    padding: 6px;
-    border-radius: 14px;
-    gap: 8px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -10025,8 +10025,7 @@ input.is-select-all-ready,
     user-select: none;
     -webkit-user-select: none;
     scroll-behavior: smooth;
-    box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.06);
-    border: 1px solid #cbd5e1;
+    border: 1px solid #e2e8f0;
 }
 
 .settings-nav-segmented::-webkit-scrollbar {
@@ -10037,73 +10036,57 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    padding: 10px 18px;
-    background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(203, 213, 225, 0.8);
-    border-radius: 10px;
-    font-size: 0.84rem;
-    font-weight: 750;
-    color: #334155;
+    gap: 6px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .set-seg-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
 }
 
 .set-seg-btn * {
     pointer-events: none;
 }
 
-.set-seg-btn:hover {
-    color: #0f172a;
-    background: rgba(255, 255, 255, 0.95);
-    border-color: #cbd5e1;
+.set-seg-btn i,
+.set-seg-btn svg {
+    color: #64748b;
+    transition: color 0.15s ease;
 }
 
-/* Distinct Vibrant Colored Icons in Settings Subtabs */
-.seg-icon-company {
-    color: #2563eb !important; /* Royal Blue */
+.set-seg-btn:hover {
+    color: #0f172a;
+    background: #ffffff;
+    border-color: #e2e8f0;
 }
-.seg-icon-casing {
-    color: #d97706 !important; /* Amber / Orange */
-}
-.seg-icon-theme {
-    color: #9333ea !important; /* Vibrant Purple */
-}
-.seg-icon-whatsapp {
-    color: #16a34a !important; /* WhatsApp Green */
-}
-.seg-icon-vault {
-    color: #0284c7 !important; /* Cyan / Sky Blue */
-}
-.seg-icon-support {
-    color: #f59e0b !important; /* Support Amber Gold */
+
+.set-seg-btn:hover i,
+.set-seg-btn:hover svg {
+    color: var(--brand-primary);
 }
 
 .set-seg-btn.active {
-    background: #000000 !important;
-    color: #ffffff !important;
-    font-weight: 850 !important;
-    border-color: #000000 !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.20) !important;
-    transform: translateY(-1px);
+    background: var(--brand-primary);
+    color: #ffffff;
+    border-color: var(--brand-primary);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.16);
 }
 
-.set-seg-btn.active .seg-icon-company,
-.set-seg-btn.active .seg-icon-casing,
-.set-seg-btn.active .seg-icon-theme,
-.set-seg-btn.active .seg-icon-whatsapp,
-.set-seg-btn.active .seg-icon-vault,
-.set-seg-btn.active .seg-icon-support {
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)) brightness(1.3);
+.set-seg-btn.active i,
+.set-seg-btn.active svg {
+    color: #ffffff;
 }
 
 /* Darker crisper buttons in Settings */
@@ -10128,8 +10111,9 @@ input.is-select-all-ready,
     box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3) !important;
 }
 
-.set-seg-btn.active i {
-    stroke-width: 2.5px;
+.set-seg-btn.active i,
+.set-seg-btn.active svg {
+    stroke-width: 2.4px;
 }
 
 .settings-view-panel {
@@ -11548,5 +11532,130 @@ textarea:focus-visible {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* Settings sub-tabs: on phones show all six as a 3×2 grid instead of a hidden side-scroll */
+@media (max-width: 600px) {
+    .settings-nav-segmented {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        overflow: visible;
+    }
+
+    .set-seg-btn {
+        padding: 9px 6px;
+        font-size: 0.78rem;
+        gap: 5px;
+        min-width: 0;
+    }
+}
+
+/* ==================== GOOGLE ACCOUNT CARD (Settings) ==================== */
+.account-card {
+    margin: 12px 0;
+    padding: 12px 14px;
+    background: var(--brand-primary-soft, #f0fdf4);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.acc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.acc-row[hidden] {
+    display: none;
+}
+
+.acc-icon,
+.acc-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #ffffff;
+    color: var(--brand-primary);
+    border: 1px solid #e2e8f0;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.acc-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.acc-text {
+    flex: 1 1 180px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.acc-text strong {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.acc-text span {
+    font-size: 0.74rem;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.acc-gbtn {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.acc-load-btn,
+.acc-signout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.acc-load-btn:hover,
+.acc-signout-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.acc-msg {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+@media (max-width: 600px) {
+    .acc-gbtn {
+        flex: 1 1 100%;
+        justify-content: center;
     }
 }

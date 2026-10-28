@@ -1648,6 +1648,31 @@
                     </div>
                 </div>
 
+                <!-- Google account (optional — the app works fully without signing in) -->
+                <div class="account-card" id="accountCard">
+                    <div class="acc-row" id="accSignedOut">
+                        <span class="acc-icon"><i data-lucide="cloud"></i></span>
+                        <div class="acc-text">
+                            <strong>Sign in with Google</strong>
+                            <span>One account for all your phones. Your bills stay on this phone too.</span>
+                        </div>
+                        <div class="acc-gbtn" id="googleBtnSlot">
+                            <button type="button" class="acc-load-btn" id="accLoadBtn">Continue with Google</button>
+                        </div>
+                    </div>
+                    <div class="acc-row" id="accSignedIn" hidden>
+                        <span class="acc-avatar" id="accAvatar"></span>
+                        <div class="acc-text">
+                            <strong id="accName"></strong>
+                            <span id="accEmail"></span>
+                        </div>
+                        <button type="button" class="acc-signout-btn" id="accSignOutBtn">
+                            <i data-lucide="log-out" class="icon-xs"></i><span>Sign out</span>
+                        </button>
+                    </div>
+                    <p class="acc-msg" id="accMsg" hidden></p>
+                </div>
+
                 <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
                 <div class="settings-nav-segmented">
                     <button type="button" class="set-seg-btn active set-seg-company" data-view="set-view-company">
