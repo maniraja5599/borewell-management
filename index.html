@@ -1669,12 +1669,23 @@
                                 <span class="acc-sync-dot"></span><span id="accSyncText">Cloud sync starting…</span>
                             </button>
                         </div>
-                        <button type="button" class="acc-signout-btn" id="accSignOutBtn">
-                            <i data-lucide="log-out" class="icon-xs"></i><span>Sign out</span>
-                        </button>
+                        <div class="acc-actions">
+                            <button type="button" class="acc-signout-btn" id="accStaffBtn" hidden>
+                                <i data-lucide="users" class="icon-xs"></i><span>Staff</span>
+                            </button>
+                            <button type="button" class="acc-signout-btn" id="accSignOutBtn">
+                                <i data-lucide="log-out" class="icon-xs"></i><span>Sign out</span>
+                            </button>
+                        </div>
                     </div>
+                    <p class="acc-role-line" id="accRole" hidden></p>
+                    <div class="acc-invites" id="accInvites" hidden></div>
                     <p class="acc-msg" id="accMsg" hidden></p>
+                    <div class="staff-panel" id="staffPanel" hidden></div>
                 </div>
+                <p class="driver-settings-note" id="driverSettingsNote">
+                    🔒 Company settings and rates are managed by the owner. Your bills use the company's rates automatically.
+                </p>
 
                 <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
                 <div class="settings-nav-segmented">

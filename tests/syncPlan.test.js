@@ -187,3 +187,27 @@ describe('an unconfigured phone can never overwrite real company settings', () =
         expect(planPush(indexLocal({ settings: {} }), { 'setting:brand': 'x' }, defaults)).toHaveLength(0);
     });
 });
+
+describe('roles', () => {
+    it('a driver never uploads settings', () => {
+        const phone = { settings: { rates: { baseDrillingRate: 120 } } };
+        expect(planPush(indexLocal(phone), {}, null, { skipSettings: true })).toHaveLength(0);
+        expect(planPush(indexLocal(phone), {}, null)).toHaveLength(1);
+    });
+
+    it('a change the server refused is replaced by the company version', () => {
+        const phone = { history: [bill(1, { billNo: 'EDITED-BY-DRIVER' })] };
+        const rows = [{ kind: 'bill', id: '1', data: bill(1, { billNo: 'AB-1' }), deleted: false, rev: 4 }];
+        const normal = planPull(rows, indexLocal(phone), {}, {});
+        expect(normal.apply).toHaveLength(0); // would keep the local edit
+        const forced = planPull(rows, indexLocal(phone), {}, { forceRemote: { 'bill:1': true } });
+        expect(forced.apply[0].data.billNo).toBe('AB-1');
+    });
+
+    it('a refused delete brings the bill back', () => {
+        const phone = { history: [] };
+        const rows = [{ kind: 'bill', id: '7', data: bill(7), deleted: false, rev: 9 }];
+        const plan = planPull(rows, indexLocal(phone), {}, { forceRemote: { 'bill:7': true } });
+        expect(applyToLocal(phone, plan.apply).local.history.map((h) => h.id)).toEqual(['7']);
+    });
+});

@@ -482,6 +482,7 @@ export class HistoryMixin {
                                     📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'})
                                 </div>
                                 <span class="party-date-badge">📅 ${dateStr || 'N/A'}</span>
+                                ${item.createdBy?.name ? `<span class="party-by-badge" title="Made by">👷 ${this.escapeHtml(item.createdBy.name)}</span>` : ''}
                             </div>
                         </div>
                     </div>

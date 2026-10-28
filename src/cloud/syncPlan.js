@@ -67,10 +67,11 @@ export function indexLocal(local) {
  * Settings that are still the app's defaults are never uploaded — a phone that was
  * never set up must not be able to overwrite a company's real settings.
  */
-export function planPush(index, hashes, defaults = null) {
+export function planPush(index, hashes, defaults = null, { skipSettings = false } = {}) {
     const rows = [];
     for (const [key, rec] of index) {
         if (hashes[key] === rec.hash) continue;
+        if (rec.kind === 'setting' && skipSettings) continue;
         if (rec.kind === 'setting' && defaults && isDefaultSetting(rec.id, rec.data, defaults)) continue;
         rows.push({ kind: rec.kind, id: rec.id, data: rec.data, deleted: false, key, hash: rec.hash });
     }
@@ -91,7 +92,7 @@ export function planPush(index, hashes, defaults = null) {
  * push its default settings over the company's real ones).
  * Returns { apply: [{ kind, id, data, deleted, key, hash }], keepLocal: n, synced: { key: hash } }
  */
-export function planPull(rows, index, hashes, { firstSync = false, defaults = null } = {}) {
+export function planPull(rows, index, hashes, { firstSync = false, defaults = null, forceRemote = {} } = {}) {
     const apply = [];
     const synced = {};
     let keepLocal = 0;
@@ -110,6 +111,7 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
             && !isDefaultSetting(row.id, row.data, defaults)) {
             changedHere = false; // the phone only has defaults: the company's real settings win
         }
+        if (changedHere && forceRemote[key]) changedHere = false; // refused by the server: take the company's version
         if (changedHere && !firstSync) {
             keepLocal++;
             continue;
