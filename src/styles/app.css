@@ -11659,3 +11659,47 @@ textarea:focus-visible {
         justify-content: center;
     }
 }
+
+.acc-sync {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    text-align: left;
+    max-width: 100%;
+}
+
+.acc-sync span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.acc-sync-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #94a3b8;
+}
+
+.acc-sync[data-state="ok"] .acc-sync-dot { background: #16a34a; }
+.acc-sync[data-state="syncing"] .acc-sync-dot { background: #2563eb; animation: accPulse 1s ease-in-out infinite; }
+.acc-sync[data-state="offline"] .acc-sync-dot { background: #f59e0b; }
+.acc-sync[data-state="error"] .acc-sync-dot { background: #dc2626; }
+.acc-sync[data-state="error"] { color: #b91c1c; }
+
+@keyframes accPulse {
+    50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .acc-sync[data-state="syncing"] .acc-sync-dot { animation: none; }
+}

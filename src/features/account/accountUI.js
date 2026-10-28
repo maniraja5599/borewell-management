@@ -1,6 +1,7 @@
 // The "Sign in with Google" card at the top of Settings.
 // Sign-in is optional: nothing else in the app depends on it yet.
 import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut } from '../../cloud/auth.js';
+import { startSync, stopSync, syncNow } from '../../cloud/sync.js';
 
 export function initAccountUI(app) {
     const card = document.getElementById('accountCard');
@@ -21,10 +22,39 @@ export function initAccountUI(app) {
         msg.hidden = !text;
     };
 
+    const syncBtn = document.getElementById('accSyncBtn');
+    const syncText = document.getElementById('accSyncText');
+    let lastStatus = null;
+    const timeAgo = (t) => {
+        const s = Math.round((Date.now() - t) / 1000);
+        if (s < 45) return 'just now';
+        const m = Math.round(s / 60);
+        if (m < 60) return `${m} min ago`;
+        const h = Math.round(m / 60);
+        return h < 24 ? `${h} hr ago` : `${Math.round(h / 24)} days ago`;
+    };
+    const paintStatus = () => {
+        if (!lastStatus) return;
+        syncBtn.dataset.state = lastStatus.kind;
+        syncText.textContent = lastStatus.kind === 'ok' ? `Synced ${timeAgo(lastStatus.at)}` : lastStatus.text;
+    };
+    setInterval(paintStatus, 30000);
+    const onStatus = (st) => { lastStatus = st; paintStatus(); };
+    syncBtn.addEventListener('click', () => syncNow());
+
+    let currentId = null;
     const showAccount = (acc) => {
         signedOut.hidden = !!acc;
         signedIn.hidden = !acc;
-        if (!acc) { if (isVisible()) tryRenderButton(); return; }
+        if (!acc) {
+            if (currentId) { stopSync(); currentId = null; }
+            if (isVisible()) tryRenderButton();
+            return;
+        }
+        if (currentId !== acc.id) {
+            currentId = acc.id;
+            startSync(app, acc, onStatus);
+        }
 
         document.getElementById('accName').textContent = acc.name;
         document.getElementById('accEmail').textContent = acc.email;
