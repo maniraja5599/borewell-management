@@ -1,78 +1,131 @@
-# 🚜 DrillRig Flow — Borewell Management ERP & Billing SaaS Roadmap
+# 🚜 DrillRig — Borewell Billing SaaS Roadmap
 
-**Repository:** [https://github.com/maniraja5599/borewell-management](https://github.com/maniraja5599/borewell-management)  
-**Live PWA URL (GitHub Pages):** [https://maniraja5599.github.io/borewell-management/](https://maniraja5599.github.io/borewell-management/)
+**Repository:** [github.com/maniraja5599/borewell-management](https://github.com/maniraja5599/borewell-management)
+**Live app:** [maniraja5599.github.io/borewell-management](https://maniraja5599.github.io/borewell-management/)
 
----
+We work **one step at a time, in order**. A step is finished only when its "Done when" checks pass
+in the real app (tested in the browser), the tests pass, and it is live.
 
-## ✅ Phase 1: Core Billing, Depth Slab Engine & Customer CRM (Completed)
-- [x] **Smart Step-by-Step Depth Slab Rate Builder** (`1–100`, `1–200`, `1–300 ft` base slabs, custom `+Step` increments, Quick Shift, auto-focus & keyboard scroll).
-- [x] **Live Bill & Quotation Calculator** (`New Bore` vs `Re-Bore` flushing, `7"` & `10"` PVC Casing Pipes, Bore Bata, Extras, Discount, GST, Advance & Balance).
-- [x] **Sticky Top Live Summary Bar** with one-shot attention animations (`₹0` initial state, depth & pipe pill highlights).
-- [x] **Clean Customer Book (CRM)** with minimal list rows and a **2-Tab Customer Detail Window**:
-  - **Tab 1:** Overall Payment & Bore/Pipe Summary (`Total Billed`, `Paid`, `Pending Due`, `Total Bores`, `Drilled Feet`, `PVC Pipe Feet`).
-  - **Tab 2:** Separate **Bore-by-Bore Detail View** (`Bore #1`, `Bore #2`, ..., `All`) with full slab breakup and quick actions.
-- [x] **Saved Bills & Quotations Ledger** with date/status filters, high-safety `Clear All` confirmation, and global **Undo** support.
-- [x] **1-Tap WhatsApp Preview, HD Image & A4 PDF Receipt Export**.
-- [x] **iPhone (iOS) & Android Standalone PWA Support** with Dynamic Island / Notch & Home Indicator safe-area protection.
-
----
-
-## 📊 Phase 2: Owner Dashboard & Automated Business Reports (Next Up)
-> *Goal: Give the Borewell Owner instant visibility into work done, collections, and profitability after every bill.*
-
-- [ ] **Owner Summary Dashboard Tab / Modal:**
-  - Filter by **Today / This Week / This Month / Custom Date Range**.
-  - **Drilling Metrics:** Total Bores Completed (`New` vs `Re-Bore`), Total Feet Drilled, Average Depth per Bore.
-  - **Pipe Metrics:** Total `7"` PVC Pipe Feet & `10"` PVC Pipe Feet billed across all sites.
-  - **Financial Metrics:** Total Billed Revenue, Cash/UPI Collected, Total Pending Due (`Unpaid Bills`), Net Profit Estimate.
-- [ ] **Post-Bill Owner Report Card:**
-  - Automatic owner summary card / WhatsApp report after saving a bill (Site, Depth, Pipe Used, Total Bill, Advance Paid, Balance Due).
-- [ ] **Site / Village Wise Analytics:**
-  - See which villages/areas have the most bores, average depth in each village, and pending dues by area.
-- [ ] **1-Tap Monthly PDF / Excel Statement Export** for owner accounting.
+| # | Step | Status |
+|---|------|--------|
+| 0 | Foundation: code split, security fixes, Google login, cloud sync | ✅ Done (28 Oct 2026) |
+| 1 | Staff accounts & roles | ⏭️ Next |
+| 2 | Owner dashboard & reports | ⬜ |
+| 3 | Inventory: PVC pipe stock & diesel | ⬜ |
+| 4 | Crew: bata, advances, salary & expenses → true profit per bore | ⬜ |
+| 5 | Ready to sell: subscriptions, admin panel, legal, domain | ⬜ |
+| 6 | Decide: link with the Flutter app, or keep DrillRig separate | ⬜ |
 
 ---
 
-## 📦 Phase 3: PVC Pipe & Rig Inventory Management
-> *Goal: Track stock of 7" & 10" PVC Casing Pipes, Drilling Bits, Hammers, and Diesel automatically.*
+## ✅ Step 0 — Foundation (done)
 
-- [ ] **PVC Casing Pipe Stock Ledger (`7"` & `10"` Pipes):**
-  - Add Stock Inward entries (Supplier Name, Date, Quantity in Feet / Lengths, Purchase Rate/ft).
-  - **Auto-Deduct Stock on Bill Save:** When a Final Bill is saved with `7"` or `10"` PVC pipe, automatically deduct that many feet from current pipe inventory.
-  - **Low-Stock Alert Banner:** Warn the owner when `7"` or `10"` PVC pipe stock drops below a threshold (e.g., `< 200 ft`).
-- [ ] **Drilling Consumables & Spares Tracker:**
-  - Track Drilling Bits (`6.5"`, `10"`), Hammers, Collars, and Caps usage/life in feet drilled.
-- [ ] **Diesel & Rig Fuel Log:**
-  - Record daily diesel liters filled, compressor/rig hours, and fuel cost per bore/ft.
+- [x] Billing, depth slab engine, customer book, bill book, payments, WhatsApp / image / PDF share, iPhone & Android PWA.
+- [x] Security: customer data escaped in the UI, safe backup restore, pinned offline libraries.
+- [x] Code split from one 10,500-line file into feature modules (Vite build, auto deploy via GitHub Actions).
+- [x] 1,336 automated tests (slab engine golden tests from the original app + sync safety tests).
+- [x] Settings sub-tabs restyled; all six visible on phones.
+- [x] **Google sign-in** (optional; the app still works fully without it).
+- [x] **Cloud sync** (Supabase, separate `drillrig` schema — the Flutter app's tables are not touched):
+  - every save uploads in the background; other phones' changes download automatically; works offline;
+  - first sign-in merges the phone's bills into the company, never loses data;
+  - an unconfigured phone can never overwrite the company's real settings;
+  - bill numbers reserved on the server while online.
 
----
-
-## 👷‍♂️ Phase 4: Staff, Driller Bata & Expense Management
-> *Goal: Manage rig crew attendance, Bore Bata, salary advances, and trip expenses.*
-
-- [ ] **Staff Directory & Roles:**
-  - Maintain profiles for Drillers, Helpers, Drivers, and Support Crew.
-- [ ] **Bore Bata & Commission Auto-Split:**
-  - Automatically log Bore Bata earned by the crew for each completed bore bill.
-- [ ] **Staff Salary, Advance & Khata Ledger:**
-  - Record cash advances given to staff, food/tea allowances, and monthly salary settlement with pending balance.
-- [ ] **Rig Expense Tracker:**
-  - Log daily site expenses (Transport, Police/Toll, Maintenance, Food) to calculate **True Net Profit per Bore** (`Bill Total − Pipe Cost − Diesel − Staff Bata/Expenses`).
+**Known limits (to fix inside later steps):**
+- Two phones editing the *same* bill at the same moment → the last save wins.
+- Two phones that are *both offline* can still hand out the same bill number.
+- Google sign-in is in **testing mode** → only listed Gmail addresses can log in (max 100). Switched to production in Step 5.
 
 ---
 
-## ☁️ Phase 0 (Before selling as SaaS): Cloud Accounts, Sync & Billing
-> *Today all data lives only in the phone's browser (localStorage). If the phone is lost, the browser data is cleared, or the owner switches phones, every bill and customer is gone. A paid SaaS must fix this first.*
+## ⏭️ Step 1 — Staff accounts & roles
 
-- [ ] **Backend + Login:** Supabase (Postgres + Auth). Phone OTP login (owners know their mobile number, not email passwords).
-- [ ] **Multi-tenant data model:** `companies`, `company_members` (owner / staff role), `customers`, `bills`, `payments`, `rate_profiles`, `saved_extras`, `saved_notes` — every row carries `company_id`, protected by Row Level Security so one rig owner can never see another's data.
-- [ ] **Offline-first sync:** keep the current localStorage/IndexedDB flow for no-signal drilling sites; queue changes and push to the cloud when online. Give every bill/customer a UUID + `updated_at` so two phones don't overwrite each other.
-- [ ] **One-time migration:** on first login, upload the existing localStorage data (the same shape as the JSON backup) into the new account.
-- [ ] **Bill numbers generated server-side** per company, so two devices never issue the same bill number.
-- [ ] **Subscriptions:** Free trial (e.g. 30 days / 25 bills) → monthly/yearly plan via Razorpay (UPI AutoPay). Lock creating new bills (not viewing old ones) when expired.
-- [ ] **Staff accounts:** owner invites drivers/supervisors with limited rights (create bill, no delete, no rate edits).
-- [ ] **Super-admin panel:** list companies, plan status, usage, manual extend trial.
-- [ ] **Legal & trust:** Privacy Policy, Terms, data export/delete on request (DPDP Act 2023), GST invoice for the subscription itself.
-- [ ] **Code health:** split the 10,000-line `app.js` into modules (calc engine, storage/sync, UI per tab) with a small build step (Vite); add unit tests for the slab engine before touching it.
-- [ ] **Ops:** custom domain, error monitoring (Sentry), daily automated DB backups.
+**Goal:** drivers and managers use the app on their own phones; the owner sees everything.
+
+- [ ] Settings → **Staff**: owner adds a person by Gmail and picks a role; can change the role or remove them.
+- [ ] The person signs in with Google on their phone → joins the company automatically.
+- [ ] Every bill and payment records **who** created it (name shown on the bill row).
+- [ ] Permissions, enforced **on the server** (not only hidden buttons):
+
+  | | Owner | Manager | Driver |
+  |---|---|---|---|
+  | Create bills & quotations | ✅ | ✅ | ✅ |
+  | See bills | All | All | Only their own |
+  | Record payments | ✅ | ✅ | ✅ *(to confirm)* |
+  | Edit rates & company settings | ✅ | ✅ | ❌ |
+  | Delete bills | ✅ | ❌ *(to confirm)* | ❌ |
+  | Add / remove staff | ✅ | ❌ | ❌ |
+
+- [ ] Removing someone stops their access immediately; their bills stay with the company.
+- [ ] A staff phone that already has its own old bills: ask before merging them into the company.
+
+**Done when:** owner + one driver test account in two browsers — the driver creates a bill, the owner sees it with the driver's name; the driver cannot see the owner's bills, cannot change rates, and is locked out after removal.
+
+**Needs from you:** 1–2 test Gmail addresses (added to Google's test list); confirm the two *(to confirm)* cells.
+
+---
+
+## ⬜ Step 2 — Owner dashboard & reports
+
+**Goal:** after every working day the owner knows the work done, money collected and money pending.
+
+- [ ] Dashboard tab: **Today / This week / This month / Custom range**.
+- [ ] Work: bores (new vs re-bore), total feet, average depth, 7" / 10" pipe feet.
+- [ ] Money: billed, collected (cash / UPI), pending dues, top pending customers.
+- [ ] Per staff member: bills, feet, amount (uses Step 1's "who created it").
+- [ ] Village / area view: bores, average depth and pending dues by place.
+- [ ] One-tap daily summary to WhatsApp; monthly PDF / Excel statement.
+
+**Done when:** numbers match a hand count on a sample of real bills.
+
+---
+
+## ⬜ Step 3 — Inventory: PVC pipe stock & diesel
+
+**Goal:** know how much pipe and diesel is left without counting.
+
+- [ ] Pipe stock ledger for 7" and 10": add purchases (supplier, date, feet, rate/ft).
+- [ ] **Auto-deduct** pipe feet when a Final Bill is saved; put it back if the bill is deleted or edited.
+- [ ] Low-stock warning (owner-set threshold, e.g. below 200 ft).
+- [ ] Diesel log: litres filled, rig/compressor hours, cost per bore and per foot.
+- [ ] Optional: bits & hammers life in feet drilled.
+
+**Done when:** stock after a week of test bills equals purchases minus billed feet.
+
+---
+
+## ⬜ Step 4 — Crew: bata, advances, salary & expenses
+
+**Goal:** true profit per bore.
+
+- [ ] Crew list (driller, helper, driver) linked to Step 1 staff where they log in.
+- [ ] Bore bata logged automatically for the crew on each bill.
+- [ ] Advances, food/tea allowance, monthly salary settlement with balance.
+- [ ] Site expenses (transport, toll, maintenance, food).
+- [ ] **Net profit per bore** = bill − pipe cost − diesel − bata − expenses.
+
+**Done when:** a month's profit report reconciles with the owner's own notebook for that month.
+
+---
+
+## ⬜ Step 5 — Ready to sell
+
+- [ ] Google sign-in switched to **production** (any Gmail can log in).
+- [ ] Free trial (e.g. 30 days) → monthly / yearly plan via Razorpay (UPI AutoPay); when expired, old bills stay viewable, new bills are locked.
+- [ ] Super-admin panel: companies, plan status, usage, extend trial.
+- [ ] Privacy Policy & Terms, data export / delete on request (DPDP Act 2023), GST invoice for the subscription.
+- [ ] Custom domain, error monitoring, daily database backups.
+- [ ] Optional: WhatsApp number verification ("reverse OTP" — the user sends a code to our WhatsApp number, which is free).
+
+---
+
+## ⬜ Step 6 — Decide on the Flutter app
+
+`borewell-dev` (Supabase) also holds the **Borewell Management service** Flutter app (roles, stock, salary, attendance, vehicles).
+After Steps 1–4 are tested, decide:
+
+- **A. Link:** DrillRig becomes the quick web billing screen for the same backend (one pricing engine, shared tables).
+- **B. Separate:** keep DrillRig as its own simpler product.
+
+Until then DrillRig stays in its own `drillrig` schema and never touches the Flutter app's tables.
