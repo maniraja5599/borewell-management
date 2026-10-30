@@ -2,59 +2,76 @@
 import { STORAGE_KEYS } from '../../data/storage.js';
 
 export class CustomerLedgerMixin {
+    // Which customer a bill belongs to:
+    //   1. the customer id saved on the bill (stays right after the customer's phone/name is edited);
+    //   2. otherwise the bill's mobile number;
+    //   3. a name match only for bills saved without a mobile number.
+    // Before, any bill with the same name matched too, so two customers called "Kumar" shared bills,
+    // and editing a customer's phone cut them off from their own bills.
+    billOwnerKey(b, customerIds) {
+        if (b.customerId && customerIds.has(b.customerId)) return { id: b.customerId };
+        const p = this.normalizeMobileNumber(b.custPhone || '');
+        if (p) return { phone: p };
+        const n = (b.custName || '').trim().toLowerCase();
+        return n ? { name: n } : null;
+    }
+
     buildCustomerBillsIndex() {
+        const customerIds = new Set((this.customers || []).map(c => c.id).filter(Boolean));
+        const idMap = new Map();
         const phoneMap = new Map();
         const nameMap = new Map();
+        const add = (map, key, bill) => {
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(bill);
+        };
         (this.history || []).forEach(b => {
-            const p = this.normalizeMobileNumber(b.custPhone || '');
-            if (p) {
-                if (!phoneMap.has(p)) phoneMap.set(p, []);
-                phoneMap.get(p).push(b);
-            }
-            const n = (b.custName || '').trim().toLowerCase();
-            if (n) {
-                if (!nameMap.has(n)) nameMap.set(n, []);
-                nameMap.get(n).push(b);
-            }
+            const k = this.billOwnerKey(b, customerIds);
+            if (!k) return;
+            if (k.id) add(idMap, k.id, b);
+            else if (k.phone) add(phoneMap, k.phone, b);
+            else add(nameMap, k.name, b);
         });
-        return { phoneMap, nameMap };
+        return { idMap, phoneMap, nameMap };
     }
 
     getCustomerMatchingBills(cust, index = null) {
         if (!cust) return [];
+        const idx = (index && index.idMap) ? index : this.buildCustomerBillsIndex();
         const custDigits = this.normalizeMobileNumber(cust.phone || '');
         const custNameLower = (cust.name || '').trim().toLowerCase();
+        return [
+            ...(cust.id ? idx.idMap.get(cust.id) || [] : []),
+            ...(custDigits ? idx.phoneMap.get(custDigits) || [] : []),
+            ...(custNameLower ? idx.nameMap.get(custNameLower) || [] : [])
+        ];
+    }
 
-        if (index && index.phoneMap && index.nameMap) {
-            const seen = new Set();
-            const result = [];
-            if (custDigits && index.phoneMap.has(custDigits)) {
-                index.phoneMap.get(custDigits).forEach(b => {
-                    const idKey = b.id || b;
-                    if (!seen.has(idKey)) {
-                        seen.add(idKey);
-                        result.push(b);
-                    }
-                });
+    /** Pin a customer's current bills to their id (before their phone/name changes). */
+    linkCustomerBills(cust) {
+        if (!cust?.id) return 0;
+        let n = 0;
+        this.getCustomerMatchingBills(cust).forEach(b => {
+            if (b.customerId !== cust.id) {
+                b.customerId = cust.id;
+                b.updatedAt = new Date().toISOString();
+                n++;
             }
-            if (custNameLower && index.nameMap.has(custNameLower)) {
-                index.nameMap.get(custNameLower).forEach(b => {
-                    const idKey = b.id || b;
-                    if (!seen.has(idKey)) {
-                        seen.add(idKey);
-                        result.push(b);
-                    }
-                });
-            }
-            return result;
-        }
-
-        return (this.history || []).filter(b => {
-            const billDigits = this.normalizeMobileNumber(b.custPhone || '');
-            if (custDigits && billDigits && custDigits === billDigits) return true;
-            if (custNameLower && (b.custName || '').trim().toLowerCase() === custNameLower) return true;
-            return false;
         });
+        if (n) this.saveToStorage(STORAGE_KEYS.history, this.history);
+        return n;
+    }
+
+    /** The customer-book id for the bill being saved (matched by mobile, else by a unique name). */
+    findCustomerIdForBill(name, phone) {
+        const digits = this.normalizeMobileNumber(phone || '');
+        const list = this.customers || [];
+        if (digits) {
+            return list.find(c => this.normalizeMobileNumber(c.phone || '') === digits)?.id || null;
+        }
+        const n = (name || '').trim().toLowerCase();
+        const same = n ? list.filter(c => (c.name || '').trim().toLowerCase() === n) : [];
+        return same.length === 1 ? same[0].id : null;
     }
 
     getCustomerAggregates(cust, index = null) {
@@ -314,10 +331,17 @@ export class CustomerLedgerMixin {
         const dispPhone = this.formatPhoneWithCountryCode(deletedCust.phone || '', deletedCust.countryCode || this.defaultCountryCode);
         const labelTxt = `${deletedCust.name}${dispPhone ? ` (${dispPhone})` : ''}${deletedCust.village ? ` • 📍 ${deletedCust.village}` : ''}`;
 
+        const agg = this.getCustomerAggregates(deletedCust);
+        let message = 'Are you sure you want to remove this customer from Customer Book?';
+        if (agg.billsCount > 0) {
+            message = `${deletedCust.name} has ${agg.billsCount} bill${agg.billsCount === 1 ? '' : 's'}`
+                + (agg.totalPending > 0 ? ` with ${this.formatINR(agg.totalPending)} still due` : '')
+                + '. The bills stay in Bills, but will no longer show under this customer. Delete anyway?';
+        }
         this.confirmDeleteModal({
             title: 'Delete Customer?',
             itemLabel: `👤 ${labelTxt}`,
-            message: 'Are you sure you want to remove this customer from Customer Book?',
+            message,
             onConfirm: () => {
                 this.customers = this.customers.filter(x => x.id !== targetId);
                 if (this.activeDetailCustomerId === targetId) {

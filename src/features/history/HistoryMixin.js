@@ -125,6 +125,7 @@ export class HistoryMixin {
 
                 this.history[idx] = {
                     ...existingItem,
+                    customerId: this.findCustomerIdForBill(cName, cPhone) || existingItem.customerId || null,
                     updatedAt: new Date().toISOString(),
                     billNo: currentBillNo,
                     billDate: currentBillDate,
@@ -178,6 +179,7 @@ export class HistoryMixin {
             custPhone: cPhone,
             custLocation: cLoc,
             custGst: res.gstEnabled ? cGst : '',
+            customerId: this.findCustomerIdForBill(cName, cPhone),
             payments: initialPayments,
             snapshot: { ...JSON.parse(JSON.stringify(res)), rates: ratesForSnapshot(this.rates) }
         };

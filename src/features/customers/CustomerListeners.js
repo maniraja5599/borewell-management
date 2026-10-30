@@ -257,6 +257,8 @@ export class CustomerListeners {
             if (editId) {
                 const existing = this.customers.find(c => c.id === editId);
                 if (existing) {
+                    // Pin their bills to the customer id first, so a new phone/name keeps them.
+                    this.linkCustomerBills(existing);
                     existing.name = name;
                     existing.phone = phoneVal.fullPhone;
                     existing.countryCode = phoneVal.countryCode;
