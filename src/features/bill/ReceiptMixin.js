@@ -383,6 +383,11 @@ export class ReceiptMixin {
 
         document.getElementById('rcptPvc10Label').textContent = `${c2Name} (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;
         document.getElementById('rcptPvc10Amount').textContent = this.formatINR(res.pvc10Cost);
+        // A pipe that was not used stays off the customer's bill (no "0 ft × ₹400 = ₹0" lines).
+        const pvc7Row = document.getElementById('rcptPvc7Row');
+        if (pvc7Row) pvc7Row.style.display = res.pvc7Length > 0 ? '' : 'none';
+        const pvc10Row = document.getElementById('rcptPvc10Row');
+        if (pvc10Row) pvc10Row.style.display = res.pvc10Length > 0 ? '' : 'none';
 
         document.getElementById('rcptBataAmount').textContent = this.formatINR(res.boreBataCost);
 

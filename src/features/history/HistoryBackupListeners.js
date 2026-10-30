@@ -55,7 +55,8 @@ export class HistoryBackupListeners {
                 customers: this.customers,
                 history: this.history,
                 savedExtras: this.savedExtras,
-                savedNotes: this.savedNotes
+                savedNotes: this.savedNotes,
+                waFormat: this.waFormat
             };
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -88,10 +89,16 @@ export class HistoryBackupListeners {
                 }
                 const billCount = Array.isArray(parsed.history) ? parsed.history.length : 0;
                 const custCount = Array.isArray(parsed.customers) ? parsed.customers.length : 0;
+                // Signed in, the restored data is synced: bills missing from the backup are
+                // removed for the whole company, on every phone.
+                const synced = document.getElementById('accSignedIn') && !document.getElementById('accSignedIn').hidden;
                 this.confirmDeleteModal({
                     title: 'Restore Backup?',
+                    subtitle: 'This cannot be undone',
                     itemLabel: `📦 ${file.name} — ${billCount} bills, ${custCount} customers`,
-                    message: 'This will REPLACE all current bills, customers, rates and company details on this device. Download a backup of current data first if needed.',
+                    message: synced
+                        ? 'This will REPLACE all bills, customers, rates and company details for your WHOLE COMPANY — every signed-in phone. Bills that are not in this backup will be deleted everywhere. Download a backup of the current data first.'
+                        : 'This will REPLACE all current bills, customers, rates and company details on this device. Download a backup of current data first if needed.',
                     confirmBtnLabel: 'Yes, Restore',
                     onConfirm: () => this.applyBackupPayload(parsed)
                 });

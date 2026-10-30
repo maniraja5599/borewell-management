@@ -39,6 +39,10 @@ export const I18N_DICTIONARY = {
         customExtraItemName: "Other Charge Name",
         customExtraAmount: "Other Charge (₹)",
         discountLess: "Discount (− ₹)",
+        // Receipt rows: same items as the form fields, without the "(₹)" input hints
+        rcptCollarCap: "Collar / Cap / Welding",
+        rcptTransport: "Transport / Survey",
+        rcptDiscount: "Discount",
         advanceReceived: "Advance Paid (− ₹)",
         customer: "Customer:",
         mobile: "Mobile:",

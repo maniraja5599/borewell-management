@@ -92,6 +92,7 @@ export class ShellMixin {
         message = 'Are you sure you want to delete this item?',
         requireTypeText = null,
         confirmBtnLabel = 'Yes, Delete',
+        subtitle = 'You can undo this right after deleting',
         onConfirm = null
     }) {
         const overlay = document.getElementById('deleteConfirmModalOverlay');
@@ -108,6 +109,8 @@ export class ShellMixin {
             return;
         }
         if (titleEl) titleEl.textContent = title;
+        const subEl = document.getElementById('delConfirmSubtitle');
+        if (subEl) subEl.textContent = subtitle;
         if (itemBox) {
             itemBox.textContent = itemLabel;
             itemBox.style.display = itemLabel ? 'block' : 'none';

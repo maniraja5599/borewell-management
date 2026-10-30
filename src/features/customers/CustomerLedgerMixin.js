@@ -913,7 +913,7 @@ export class CustomerLedgerMixin {
                     <div class="wiz-no-match-box">
                         <div class="wiz-nm-text">
                             <strong>No saved customers yet</strong>
-                            <small>Tap "＋ Add Customer" to add Name, Mobile & Place</small>
+                            <small>Tap "Add Customer" to add Name, Mobile & Place</small>
                         </div>
                         <button type="button" class="btn-chip-primary" id="wizEmptyAddCustBtn">
                             ＋ Add Customer

@@ -28,6 +28,10 @@ export class BackupMixin {
                         this.savedExtras = parsed.savedExtras;
                         this.saveToStorage(STORAGE_KEYS.savedExtras, this.savedExtras);
                     }
+                    if (parsed.waFormat && typeof parsed.waFormat === 'object') {
+                        this.waFormat = { ...this.defaultWaFormat, ...parsed.waFormat };
+                        this.saveToStorage(STORAGE_KEYS.waFormat, this.waFormat);
+                    }
                     if (Array.isArray(parsed.savedNotes)) {
                         this.savedNotes = parsed.savedNotes;
                         this.saveToStorage(STORAGE_KEYS.savedNotes, this.savedNotes);

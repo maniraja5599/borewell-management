@@ -172,6 +172,27 @@ export class BillFieldBehaviorListeners {
             }
         });
 
+        // Depth sanity checks when the field is left (not while typing): a typo like 5000 for 500
+        // used to price a ₹1 crore bill without a word.
+        const depthEl = document.getElementById('totalDepth');
+        const oldDepthEl = document.getElementById('oldBoreDepth');
+        const checkDepths = () => {
+            const maxDepth = parseInt(depthEl?.max, 10) || 2500;
+            const depth = parseInt(depthEl?.value, 10) || 0;
+            if (depth > maxDepth) {
+                depthEl.value = String(maxDepth);
+                this.showToast(`⚠️ ${depth} ft is too deep — set to the ${maxDepth} ft maximum. Please check the depth.`);
+                this.calculateAndRender();
+            }
+            const oldDepth = parseInt(oldDepthEl?.value, 10) || 0;
+            const nowDepth = parseInt(depthEl?.value, 10) || 0;
+            if (this.state.drillingType === 'repair' && oldDepth > 0 && nowDepth > 0 && oldDepth > nowDepth) {
+                this.showToast(`⚠️ Old bore depth (${oldDepth} ft) is more than the total depth (${nowDepth} ft)`);
+            }
+        };
+        depthEl?.addEventListener('change', checkDepths);
+        oldDepthEl?.addEventListener('change', checkDepths);
+
         // Live Inputs (including Instant Pipe Rates, Old Bore Rate, Bore Bata, Client GSTIN & Optional Note in New Bill)
         const liveInputIds = [
             'oldBoreDepth', 'oldBoreRateInput', 'totalDepth', 'baseDrillingRate', 'billBoreBataInput',
