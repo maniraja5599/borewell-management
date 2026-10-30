@@ -497,7 +497,7 @@ export class CustomerLedgerMixin {
             if (selectorBarEl) selectorBarEl.style.display = 'none';
             listEl.innerHTML = `
                 <div style="text-align:center; padding: 28px 12px; color: #64748b;">
-                    <p style="font-size: 0.84rem; font-weight: 700; margin-bottom: 10px;">No bore records found in this filter.</p>
+                    <p style="font-size: var(--fs-md); font-weight: 700; margin-bottom: 10px;">No bore records found in this filter.</p>
                     <button type="button" class="btn-brand-sm" id="cdmEmptyCreateBillBtn">+ Create New Bore Bill</button>
                 </div>
             `;
@@ -678,7 +678,7 @@ export class CustomerLedgerMixin {
                         ` : ''}
                         <div class="cbc-row highlight-row">
                             <span class="cbc-r-lbl">${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
-                            <span class="cbc-r-val" style="font-size: 0.9rem;">${this.formatINR(grandTotal)}</span>
+                            <span class="cbc-r-val" style="font-size: var(--fs-lg);">${this.formatINR(grandTotal)}</span>
                         </div>
                         ${isInvoice ? `
                         <div class="cbc-row">
@@ -708,7 +708,7 @@ export class CustomerLedgerMixin {
                                         <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
                                     </div>
                                 `).join('')
-                                : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet.</div>`
+                                : `<div style="padding:8px 0; color:#64748b; font-size: var(--fs-sm); font-weight:600;">No payment recorded yet.</div>`
                             }
                         </div>
                     </div>
@@ -938,7 +938,7 @@ export class CustomerLedgerMixin {
 
         if (filtered.length > displaySlice.length) {
             pickerCardsHtml += `
-                <div style="text-align:center; padding: 12px 6px; font-size: 0.74rem; color: var(--text-muted); grid-column: 1 / -1; width: 100%;">
+                <div style="text-align:center; padding: 12px 6px; font-size: var(--fs-sm); color: var(--text-muted); grid-column: 1 / -1; width: 100%;">
                     + ${filtered.length - displaySlice.length} more customers. Refine name or phone above to filter.
                 </div>
             `;

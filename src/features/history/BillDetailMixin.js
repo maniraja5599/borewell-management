@@ -135,7 +135,7 @@ export class BillDetailMixin {
                     ` : ''}
                     <div class="cbc-row highlight-row">
                         <span class="cbc-r-lbl">${isInvoice ? 'Total Bill Amount' : 'Estimated Total'}</span>
-                        <span class="cbc-r-val" style="font-size: 0.92rem;">${this.formatINR(grandTotal)}</span>
+                        <span class="cbc-r-val" style="font-size: var(--fs-xl);">${this.formatINR(grandTotal)}</span>
                     </div>
                     ${isInvoice ? `
                     <div class="cbc-row">
@@ -165,7 +165,7 @@ export class BillDetailMixin {
                                     <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
                                 </div>
                             `).join('')
-                            : `<div style="padding:8px 0; color:#64748b; font-size:0.74rem; font-weight:600;">No payment recorded yet.</div>`
+                            : `<div style="padding:8px 0; color:#64748b; font-size: var(--fs-sm); font-weight:600;">No payment recorded yet.</div>`
                         }
                     </div>
                 </div>
