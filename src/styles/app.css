@@ -11835,3 +11835,36 @@ textarea:focus-visible {
 /* Bills list (all widths, incl. tablets): full place + depth, date moves down if needed */
 .party-meta-row { flex-wrap: wrap; row-gap: 3px; }
 .party-meta { flex: 1 1 auto; white-space: normal; }
+
+/* Record Payment: how the money came in */
+.rpm-mode-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin: 8px 0 10px;
+}
+.rpm-mode-pill {
+    border: 1.5px solid var(--border-strong);
+    background: #ffffff;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    padding: 6px 4px;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.rpm-mode-pill.active {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary-soft, #dcfce7);
+    color: var(--brand-primary-dark, #14532d);
+}
+.rpm-hi-mode {
+    font-size: var(--fs-2xs);
+    font-weight: 800;
+    color: var(--text-secondary);
+    background: var(--bg-muted);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 1px 5px;
+}

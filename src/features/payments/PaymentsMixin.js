@@ -167,6 +167,7 @@ export class PaymentsMixin {
                 <div class="rpm-hi-date">
                     <span class="rpm-hi-idx">${idx + 1}.</span>
                     <span>📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
+                    ${p.mode ? `<span class="rpm-hi-mode">${this.escapeHtml(p.mode)}</span>` : ''}
                 </div>
                 <div class="rpm-hi-right">
                     <span class="rpm-hi-amt">${this.formatINR(p.amount)}</span>
@@ -196,11 +197,29 @@ export class PaymentsMixin {
             return;
         }
 
+        // Never record more than the bill's balance: a typo (an extra 0) used to be saved
+        // as is, e.g. ₹9,99,999 on a ₹1,25,080 bill.
+        const pending = Math.round(this.getBillPendingAmount(item));
+        if (pending <= 0) {
+            this.showToast('✅ This bill is already fully paid');
+            return;
+        }
+        if (rawAmt > pending) {
+            this.showToast(`⚠️ ${this.formatINR(rawAmt)} is more than the balance ${this.formatINR(pending)}`);
+            if (amtInput) {
+                amtInput.value = String(pending);
+                amtInput.focus();
+            }
+            return;
+        }
+
+        const mode = document.querySelector('#rpmModePills .rpm-mode-pill.active')?.dataset.mode || 'Cash';
         const entries = this.ensureBillPaymentsArray(item);
         entries.push({
             id: 'pay_' + Date.now() + '_' + Math.floor(Math.random() * 100),
             date: dateVal,
-            amount: rawAmt
+            amount: rawAmt,
+            mode
         });
 
         this.syncBillPaymentSnapshot(item);
@@ -224,7 +243,7 @@ export class PaymentsMixin {
             this.calculateAndRender();
         }
 
-        this.showToast(`✅ Added ${this.formatINR(rawAmt)} (${this.formatPaymentDateDisplay(dateVal)})`);
+        this.showToast(`✅ Added ${this.formatINR(rawAmt)} ${mode} (${this.formatPaymentDateDisplay(dateVal)})`);
     }
 
     deleteBillPaymentEntry(billId, payId) {

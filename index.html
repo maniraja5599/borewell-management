@@ -2918,6 +2918,12 @@
                             <input type="number" id="rpmAmountInput" placeholder="₹ 0" min="1" step="any" inputmode="numeric">
                         </div>
                     </div>
+                    <div class="rpm-mode-row" id="rpmModePills" role="radiogroup" aria-label="Payment mode">
+                        <button type="button" class="rpm-mode-pill active" data-mode="Cash" role="radio" aria-checked="true">💵 Cash</button>
+                        <button type="button" class="rpm-mode-pill" data-mode="UPI" role="radio" aria-checked="false">📱 UPI</button>
+                        <button type="button" class="rpm-mode-pill" data-mode="Bank" role="radio" aria-checked="false">🏦 Bank</button>
+                        <button type="button" class="rpm-mode-pill" data-mode="Cheque" role="radio" aria-checked="false">🧾 Cheque</button>
+                    </div>
                     <button type="button" class="btn-brand-full rpm-save-btn" id="rpmSavePaymentBtn">
                         <i data-lucide="plus" class="icon-xs"></i>
                         <span>Add Payment</span>
