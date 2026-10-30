@@ -322,8 +322,8 @@ export class HistoryMixin {
         const searchInputEl = document.getElementById('historySearchInput');
         if (searchInputEl) {
             searchInputEl.placeholder = docFilter === 'QUOTATION'
-                ? 'Search quotations by name, phone, site, quote #...'
-                : 'Search bills by customer, phone, site, bill #...';
+                ? 'Search name, phone, quote #'
+                : 'Search name, phone, bill #';
         }
         const quickPayPills = document.getElementById('historyPaymentQuickPills');
         if (quickPayPills) {

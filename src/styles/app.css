@@ -113,6 +113,19 @@
     --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
     --font-sans: 'Inter', 'Noto Sans Tamil', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-display: 'Plus Jakarta Sans', 'Noto Sans Tamil', sans-serif;
+
+    /* One compact type scale for the whole app. px (not rem) so a phone's own
+       "font size" setting cannot make the app bigger on one device than another. */
+    --fs-2xs: 10px;  /* tiny badges, uppercase labels */
+    --fs-xs: 11px;   /* meta lines, chips */
+    --fs-sm: 12px;   /* secondary text, buttons */
+    --fs-md: 13px;   /* body text */
+    --fs-lg: 14px;   /* emphasised text, inputs in cards */
+    --fs-xl: 15px;   /* card titles */
+    --fs-2xl: 17px;  /* section titles, amounts */
+    --fs-3xl: 20px;  /* big totals */
+    --fs-4xl: 24px;  /* hero numbers */
+
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
@@ -183,6 +196,7 @@ html.ios-crios .app-header {
 
 html {
     width: 100%;
+    font-size: 16px; /* fixed root: rem-based sizes look the same on every phone */
     background-color: var(--brand-primary) !important;
     overscroll-behavior-y: none;
     -webkit-text-size-adjust: 100%;
@@ -197,7 +211,7 @@ html.ios-standalone {
 
 body {
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: var(--fs-md);
     background-color: var(--bg-app);
     color: var(--text-main);
     line-height: 1.4;
@@ -414,14 +428,14 @@ html.ios-standalone .app-header {
 .slide-due-icon,
 .slide-work-icon,
 .slide-notify-icon {
-    font-size: 0.95rem;
+    font-size: var(--fs-xl);
     line-height: 1;
     flex-shrink: 0;
 }
 
 .slide-main-title {
     font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #ffffff;
     line-height: 1.15;
@@ -433,7 +447,7 @@ html.ios-standalone .app-header {
 }
 
 .slide-badge {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 850;
     padding: 3px 8.5px;
     border-radius: 999px;
@@ -455,7 +469,7 @@ html.ios-standalone .app-header {
 
 /* Slide Specific Accents */
 .slide-company .slide-main-title {
-    font-size: 0.90rem;
+    font-size: var(--fs-lg);
     letter-spacing: 0.025em;
     color: #ffffff;
 }
@@ -554,7 +568,7 @@ html.ios-standalone .app-header {
     border: none;
     border-radius: 999px;
     padding: 4px 9px;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -576,7 +590,7 @@ html.ios-standalone .app-header {
 }
 
 .lang-pill {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 999px;
@@ -635,7 +649,7 @@ html.ios-standalone .sticky-live-bar {
 .live-doc-tag {
     background: var(--brand-accent);
     color: #0f172a;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2.5px 7px;
     border-radius: 5px;
@@ -643,14 +657,14 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .live-bar-label {
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     color: #cbd5e1;
     font-weight: 800;
     letter-spacing: 0.04em;
 }
 
 .live-avg-pill {
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     color: #94a3b8;
     background: rgba(255, 255, 255, 0.08);
     padding: 2px 7px;
@@ -672,7 +686,7 @@ html.ios-standalone .sticky-live-bar {
 
 .live-bar-amount {
     font-family: var(--font-display);
-    font-size: 1.36rem;
+    font-size: var(--fs-3xl);
     font-weight: 800;
     color: #4ade80;
     line-height: 1.1;
@@ -683,7 +697,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     background: #fef2f2;
     color: #b91c1c;
     border: 1px solid #fca5a5;
@@ -724,7 +738,7 @@ html.ios-standalone .sticky-live-bar {
     display: flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     color: #e2e8f0;
     white-space: nowrap;
@@ -740,7 +754,7 @@ html.ios-standalone .sticky-live-bar {
 
 .ld-val {
     font-family: var(--font-display);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-accent);
 }
@@ -809,7 +823,7 @@ html.ios-standalone .sticky-live-bar {
 
 .sbmb-badge {
     align-self: flex-start;
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -820,7 +834,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .sbmb-title {
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #ffffff;
     white-space: nowrap;
@@ -857,7 +871,7 @@ html.ios-standalone .sticky-live-bar {
     background: transparent;
     padding: 5px 9px;
     border-radius: 6px;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--text-secondary);
     cursor: pointer;
@@ -890,7 +904,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .mini-label {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-muted);
     white-space: nowrap;
@@ -908,7 +922,7 @@ html.ios-standalone .sticky-live-bar {
     color: var(--text-secondary);
     padding: 3px 9px;
     border-radius: 6px;
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
 }
@@ -937,7 +951,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .cdm-date-txt {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -946,7 +960,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 3px 8px;
     border-radius: 6px;
@@ -1018,13 +1032,13 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .ch-titles h3 {
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
 }
 
 .cust-opt-tag {
-    font-size: 0.56rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -1042,7 +1056,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .ch-sub {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -1077,7 +1091,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--danger-border);
     background: var(--danger-light);
     color: var(--danger);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -1092,7 +1106,7 @@ html.ios-standalone .sticky-live-bar {
     background: var(--brand-primary-soft);
     border: 1px solid var(--brand-primary);
     color: var(--brand-primary-dark);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 5px 9px;
     border-radius: 8px;
@@ -1124,7 +1138,7 @@ html.ios-standalone .sticky-live-bar {
     flex: 1;
     border: none;
     outline: none;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     background: transparent;
 }
 
@@ -1177,7 +1191,7 @@ html.ios-standalone .sticky-live-bar {
     border-radius: 50%;
     background: var(--brand-primary-light);
     color: var(--brand-primary-dark);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -1186,17 +1200,17 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .qc-info strong {
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     display: block;
 }
 
 .qc-info small {
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
 }
 
 .qc-select-tag {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--brand-primary);
     background: var(--brand-primary-soft);
@@ -1233,7 +1247,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-secondary);
     cursor: pointer;
@@ -1255,7 +1269,7 @@ html.ios-standalone .sticky-live-bar {
 
 .tool-active-dot {
     color: var(--brand-primary);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     line-height: 1;
 }
 
@@ -1283,7 +1297,7 @@ html.ios-standalone .sticky-live-bar {
 
 .field-group label {
     display: block;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-secondary);
     margin-bottom: 3px;
@@ -1299,7 +1313,7 @@ html.ios-standalone .sticky-live-bar {
     padding: 6px 8px;
     border: 1px solid var(--border-strong);
     border-radius: 6px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-main);
     background: #ffffff;
@@ -1328,7 +1342,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .phone-val-hint {
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     margin-top: 3px;
     line-height: 1.2;
@@ -1361,7 +1375,7 @@ html.ios-standalone .sticky-live-bar {
     background: #fffbeb;
     border: 1px solid #f59e0b;
     color: #92400e;
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     line-height: 1.3;
 }
@@ -1382,7 +1396,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid #d97706;
     background: #fef3c7;
     color: #92400e;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 3px 8px;
     border-radius: 5px;
@@ -1402,7 +1416,7 @@ html.ios-standalone .sticky-live-bar {
     background: #ffffff;
     border: 1px solid var(--border-strong);
     color: var(--text-main);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 5px 8px;
     border-radius: 8px;
@@ -1418,7 +1432,7 @@ html.ios-standalone .sticky-live-bar {
 
 .picker-new-cust-btn {
     padding: 4px 8px;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
 }
 
 /* Smart Borewell Service Site Panel (Appears after Customer Selection) */
@@ -1440,7 +1454,7 @@ html.ios-standalone .sticky-live-bar {
 
 .site-label-row label {
     margin-bottom: 0;
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-main);
 }
@@ -1456,7 +1470,7 @@ html.ios-standalone .sticky-live-bar {
     padding: 6px 28px 6px 9px;
     border: 1px solid var(--border-strong);
     border-radius: 7px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-main);
     background: #ffffff;
@@ -1476,7 +1490,7 @@ html.ios-standalone .sticky-live-bar {
     border-radius: 5px;
     background: #f1f5f9;
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -1485,7 +1499,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .site-hint-badge {
-    font-size: 0.61rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--brand-primary-dark);
     background: var(--brand-primary-soft);
@@ -1504,7 +1518,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .site-sug-head {
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-secondary);
     margin-bottom: 5px;
@@ -1525,7 +1539,7 @@ html.ios-standalone .sticky-live-bar {
     gap: 4px;
     padding: 3px 8px;
     border-radius: 99px;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     background: #f8fafc;
     border: 1px solid var(--border-strong);
@@ -1613,7 +1627,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .cust-popup-head h4 {
-    font-size: 0.85rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
@@ -1621,7 +1635,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .cph-sub {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     margin: 1px 0 0 0;
     font-weight: 600;
@@ -1665,12 +1679,12 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .ct-left h3 {
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
 }
 
 .saved-status-pill {
-    font-size: 0.6rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--brand-primary-dark);
     background: var(--brand-primary-light);
@@ -1685,7 +1699,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
@@ -1718,7 +1732,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     text-transform: uppercase;
@@ -1726,7 +1740,7 @@ html.ios-standalone .sticky-live-bar {
 
 .ms-amount-badge {
     font-family: var(--font-display);
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--brand-primary-dark);
     background: #ffffff;
@@ -1759,14 +1773,14 @@ html.ios-standalone .sticky-live-bar {
 
 .mi-text label {
     display: block;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--text-main);
 }
 
 .mi-sub {
     display: block;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
 }
 
@@ -1790,7 +1804,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
     color: var(--text-main);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     display: flex;
@@ -1829,7 +1843,7 @@ html.ios-standalone .sticky-live-bar {
     outline: none;
     text-align: center;
     font-family: var(--font-display);
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
     background: transparent;
@@ -1837,7 +1851,7 @@ html.ios-standalone .sticky-live-bar {
 
 .step-prefix,
 .step-unit {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -1853,7 +1867,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 2px 7px;
     border-radius: 5px;
@@ -1891,18 +1905,18 @@ html.ios-standalone .sticky-live-bar {
 
 .cb-top label {
     display: block;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
 }
 
 .cb-rate {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
 }
 
 .cb-total {
     font-family: var(--font-display);
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary);
 }
@@ -1920,7 +1934,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .cb-rate-lbl {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -1938,7 +1952,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-main);
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2px 5px;
     border-radius: 5px;
@@ -1964,7 +1978,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     border-radius: 5px;
     padding: 1px 4px;
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -1976,7 +1990,7 @@ html.ios-standalone .sticky-live-bar {
     background: transparent;
     text-align: center;
     font-family: var(--font-display);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary-dark);
     padding: 0;
@@ -1992,7 +2006,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 2px 0;
     border-radius: 4px;
@@ -2026,7 +2040,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
     color: var(--text-main);
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -2040,7 +2054,7 @@ html.ios-standalone .sticky-live-bar {
     border-radius: 8px;
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
 }
@@ -2096,7 +2110,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
 }
 
@@ -2157,20 +2171,20 @@ html.ios-standalone .sticky-live-bar {
 
 .receipt-company-info h2 {
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #ffffff;
 }
 
 .receipt-tagline {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     color: var(--brand-accent);
     font-weight: 600;
 }
 
 .receipt-address,
 .receipt-phones-row {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: rgba(255, 255, 255, 0.92);
     margin-top: 2px;
 }
@@ -2179,7 +2193,7 @@ html.ios-standalone .sticky-live-bar {
     background: rgba(0, 0, 0, 0.28);
     padding: 1px 6px;
     border-radius: 4px;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
 }
 
@@ -2192,7 +2206,7 @@ html.ios-standalone .sticky-live-bar {
     margin-top: 8px;
     padding-top: 7px;
     border-top: 1px solid rgba(255, 255, 255, 0.18);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
 }
 
 .receipt-doc-badge {
@@ -2201,7 +2215,7 @@ html.ios-standalone .sticky-live-bar {
     font-weight: 800;
     padding: 2px 8px;
     border-radius: 99px;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
 }
 
 .receipt-meta-right {
@@ -2215,7 +2229,7 @@ html.ios-standalone .sticky-live-bar {
     background: #f8fafc;
     padding: 7px 12px;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
 }
 
 .cust-grid {
@@ -2245,7 +2259,7 @@ html.ios-standalone .sticky-live-bar {
 
 .r-chip-lbl {
     display: block;
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 700;
@@ -2253,7 +2267,7 @@ html.ios-standalone .sticky-live-bar {
 
 .r-chip-val {
     display: block;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary-dark);
     margin-top: 1px;
@@ -2264,7 +2278,7 @@ html.ios-standalone .sticky-live-bar {
 .slab-table-header {
     display: grid;
     grid-template-columns: 1.5fr 0.7fr 0.8fr 1fr;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     color: var(--text-secondary);
@@ -2280,7 +2294,7 @@ html.ios-standalone .sticky-live-bar {
 .slab-row {
     display: grid;
     grid-template-columns: 1.5fr 0.7fr 0.8fr 1fr;
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     padding: 4px 6px;
     border-bottom: 1px dashed #e2e8f0;
     align-items: center;
@@ -2302,7 +2316,7 @@ html.ios-standalone .sticky-live-bar {
     justify-content: space-between;
     align-items: center;
     padding: 3.5px 0;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     color: var(--text-secondary);
 }
 
@@ -2335,9 +2349,9 @@ html.ios-standalone .sticky-live-bar {
     margin-top: 6px;
 }
 
-.gt-title { font-weight: 800; font-size: 0.8rem; display: block; }
-.gt-sub { font-size: 0.64rem; color: #94a3b8; }
-.gt-value { font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #4ade80; }
+.gt-title { font-weight: 800; font-size: var(--fs-md); display: block; }
+.gt-sub { font-size: var(--fs-2xs); color: #94a3b8; }
+.gt-value { font-family: var(--font-display); font-size: var(--fs-2xl); font-weight: 800; color: #4ade80; }
 
 .charge-line.advance-line { margin-top: 4px; color: var(--brand-primary); font-weight: 700; }
 
@@ -2351,7 +2365,7 @@ html.ios-standalone .sticky-live-bar {
     font-weight: 800;
 }
 
-.charge-line.balance-due-line strong { color: var(--danger); font-size: 0.92rem; }
+.charge-line.balance-due-line strong { color: var(--danger); font-size: var(--fs-xl); }
 
 .receipt-footer {
     background: #f8fafc;
@@ -2360,7 +2374,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .receipt-note {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-secondary);
     background: #fffbeb;
     border: 1px solid #fde68a;
@@ -2374,7 +2388,7 @@ html.ios-standalone .sticky-live-bar {
     justify-content: space-between;
     align-items: center;
     margin-top: 6px;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: var(--text-secondary);
 }
 
@@ -2400,8 +2414,8 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .exp-btn:active { transform: scale(0.98); }
-.exp-txt strong { display: block; font-size: 0.76rem; font-weight: 800; }
-.exp-txt small { font-size: 0.63rem; opacity: 0.9; }
+.exp-txt strong { display: block; font-size: var(--fs-sm); font-weight: 800; }
+.exp-txt small { font-size: var(--fs-2xs); opacity: 0.9; }
 
 .exp-btn.wa { background: #15803d; }
 .exp-btn.img { background: #1d4ed8; }
@@ -2441,7 +2455,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .kpi-lbl {
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -2449,7 +2463,7 @@ html.ios-standalone .sticky-live-bar {
 
 .kpi-val {
     font-family: var(--font-display);
-    font-size: 0.96rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     display: block;
 }
@@ -2466,13 +2480,13 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
 }
 
 .page-sub {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted);
     margin-top: 1px;
 }
@@ -2500,7 +2514,7 @@ html.ios-standalone .sticky-live-bar {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     color: var(--text-main);
 }
 
@@ -2514,7 +2528,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 99px;
@@ -2571,7 +2585,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid #e2e8f0;
     color: #475569;
     font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-    font-size: 0.80rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -2585,7 +2599,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .party-name {
-    font-size: 0.86rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #0f172a;
     display: flex;
@@ -2606,7 +2620,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .party-meta {
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     color: #64748b;
     font-weight: 600;
     white-space: nowrap;
@@ -2617,7 +2631,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .party-date-badge {
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #475569;
     background: #f1f5f9;
@@ -2635,7 +2649,7 @@ html.ios-standalone .sticky-live-bar {
 
 .khata-main-amt {
     font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-    font-size: 0.94rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
     display: block;
@@ -2647,7 +2661,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2.5px 7.5px;
     border-radius: 6px;
@@ -2687,7 +2701,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .khata-Quick-stats {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: #64748b;
     font-weight: 500;
 }
@@ -2712,7 +2726,7 @@ html.ios-standalone .sticky-live-bar {
     gap: 4px;
     padding: 5px 9px;
     border-radius: 7px;
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
@@ -2752,7 +2766,7 @@ html.ios-standalone .sticky-live-bar {
     color: #ffffff;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     display: flex;
@@ -2768,7 +2782,7 @@ html.ios-standalone .sticky-live-bar {
     color: var(--brand-primary-dark);
     border: 1.5px solid var(--brand-primary);
     border-radius: var(--radius-md);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     display: flex;
@@ -2782,7 +2796,7 @@ html.ios-standalone .sticky-live-bar {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
 }
 
 .rate-profile-bar {
@@ -2800,7 +2814,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -2826,7 +2840,7 @@ html.ios-standalone .sticky-live-bar {
     color: var(--text-secondary);
     padding: 4px 9px;
     border-radius: 8px;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -2838,7 +2852,7 @@ html.ios-standalone .sticky-live-bar {
 
 .rp-chip small {
     font-family: var(--font-display);
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     background: var(--bg-muted);
     color: var(--text-main);
@@ -2914,7 +2928,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .rpc-title {
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
     letter-spacing: -0.01em;
@@ -2924,7 +2938,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    font-size: 0.59rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 1.5px 6px;
     border-radius: 99px;
@@ -2954,7 +2968,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 3px 7px;
     border-radius: 6px;
@@ -3007,7 +3021,7 @@ html.ios-standalone .sticky-live-bar {
 
 .rpc-spec-lbl {
     display: block;
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -3019,7 +3033,7 @@ html.ios-standalone .sticky-live-bar {
 .rpc-spec-val {
     display: block;
     font-family: var(--font-display);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     margin-top: 1px;
@@ -3041,7 +3055,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 4px 8px;
     border-radius: 7px;
@@ -3072,7 +3086,7 @@ html.ios-standalone .sticky-live-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -3103,7 +3117,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .rpc-sp-range {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -3111,7 +3125,7 @@ html.ios-standalone .sticky-live-bar {
 
 .rpc-sp-rate {
     font-family: var(--font-display);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-main);
 }
@@ -3124,7 +3138,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--brand-primary);
     background: var(--brand-primary);
     color: #ffffff;
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 5px 11px;
     border-radius: 7px;
@@ -3169,7 +3183,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     align-self: flex-start;
-    font-size: 0.6rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -3203,7 +3217,7 @@ html.ios-standalone .sticky-live-bar {
 
 .studio-name-field label {
     display: block;
-    font-size: 0.59rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-muted);
     letter-spacing: 0.03em;
@@ -3214,7 +3228,7 @@ html.ios-standalone .sticky-live-bar {
     width: 100%;
     border: none;
     background: transparent;
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
     padding: 0;
@@ -3241,13 +3255,13 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     transition: all 0.15s ease;
 }
 
 .sdt-star {
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     color: #cbd5e1;
 }
 
@@ -3277,7 +3291,7 @@ html.ios-standalone .sticky-live-bar {
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 6px 9px;
     border-radius: 6px;
@@ -3297,7 +3311,7 @@ html.ios-standalone .sticky-live-bar {
 
 /* Rate Metric Input Tiles */
 .rate-category-label {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -3338,7 +3352,7 @@ html.ios-standalone .sticky-live-bar {
 
 .rate-metric-tile label {
     display: block;
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -3365,14 +3379,14 @@ html.ios-standalone .sticky-live-bar {
     outline: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
     padding: 1px 0;
 }
 
 .rmt-unit {
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-muted);
     flex-shrink: 0;
@@ -3398,7 +3412,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .sbtc-lbl {
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -3421,7 +3435,7 @@ html.ios-standalone .sticky-live-bar {
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 5px 4px;
     border-radius: 6px;
@@ -3469,7 +3483,7 @@ html.ios-standalone .sticky-live-bar {
     padding: 5px 4px;
     border-radius: 7px;
     font-family: var(--font-display);
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     background: #ffffff;
@@ -3495,7 +3509,7 @@ html.ios-standalone .sticky-live-bar {
 .sqs-step-btn {
     height: 31px;
     border-radius: 7px;
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -3537,7 +3551,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .sqs-step-input-wrap span {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-muted);
     flex-shrink: 0;
@@ -3552,7 +3566,7 @@ html.ios-standalone .sticky-live-bar {
     outline: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
 }
@@ -3568,7 +3582,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-color);
     border-radius: 7px;
     margin-bottom: 5px;
-    font-size: 0.59rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-muted);
     letter-spacing: 0.03em;
@@ -3622,7 +3636,7 @@ html.ios-standalone .sticky-live-bar {
     background: #f1f5f9;
     color: var(--text-secondary);
     font-family: var(--font-display);
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -3637,7 +3651,7 @@ html.ios-standalone .sticky-live-bar {
 
 .slab-edit-range {
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -3649,7 +3663,7 @@ html.ios-standalone .sticky-live-bar {
     align-items: center;
     gap: 3px;
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -3662,7 +3676,7 @@ html.ios-standalone .sticky-live-bar {
     border-radius: 5px;
     background: #ffffff;
     font-family: var(--font-display);
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary-dark);
     text-align: center;
@@ -3689,7 +3703,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.59rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -3718,7 +3732,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .slab-step-prefix {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: #15803d;
     white-space: nowrap;
@@ -3733,7 +3747,7 @@ html.ios-standalone .sticky-live-bar {
     outline: none;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     text-align: right;
     background: transparent;
     color: #15803d;
@@ -3766,14 +3780,14 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .slab-edit-input-wrap span {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     font-weight: 800;
     flex-shrink: 0;
 }
 
 .slab-edit-input-wrap small {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     font-weight: 700;
     flex-shrink: 0;
@@ -3787,7 +3801,7 @@ html.ios-standalone .sticky-live-bar {
     outline: none;
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     text-align: right;
     background: transparent;
     color: var(--text-main);
@@ -3809,7 +3823,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .slab-base-lock {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: var(--brand-primary);
     opacity: 0.75;
     user-select: none;
@@ -3822,7 +3836,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid transparent;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -3858,7 +3872,7 @@ html.ios-standalone .sticky-live-bar {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     transition: all 0.15s ease;
 }
@@ -3885,14 +3899,14 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     flex-shrink: 0;
 }
 
 .bans-preview-pill {
     font-family: var(--font-display);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     background: #ffffff;
     color: var(--brand-primary-dark);
@@ -3916,7 +3930,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .sas-lbl {
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--text-muted);
     white-space: nowrap;
@@ -3926,7 +3940,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 3px 8px;
     border-radius: 6px;
@@ -3959,7 +3973,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.61rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -4037,7 +4051,7 @@ html.ios-standalone .sticky-live-bar {
 
 .bsc-title-block h2 {
     font-family: var(--font-display);
-    font-size: 1.12rem;
+    font-size: var(--fs-2xl);
     font-weight: 800;
     color: #ffffff;
     line-height: 1.25;
@@ -4046,7 +4060,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .bsc-title-block p {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     color: rgba(255, 255, 255, 0.92);
     margin-top: 3px;
     line-height: 1.3;
@@ -4089,7 +4103,7 @@ html.ios-standalone .sticky-live-bar {
 
 .bsc-contact-txt small {
     display: block;
-    font-size: 0.57rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     color: var(--text-muted);
@@ -4098,7 +4112,7 @@ html.ios-standalone .sticky-live-bar {
 
 .bsc-contact-txt strong {
     display: block;
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -4131,7 +4145,7 @@ html.ios-standalone .sticky-live-bar {
 
 .bsc-spec-lbl {
     display: block;
-    font-size: 0.56rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -4143,7 +4157,7 @@ html.ios-standalone .sticky-live-bar {
 .bsc-spec-val {
     display: block;
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     margin-top: 1px;
@@ -4173,7 +4187,7 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-main);
 }
@@ -4189,7 +4203,7 @@ html.ios-standalone .sticky-live-bar {
     border: 1px solid var(--border-strong);
     background: var(--bg-muted);
     color: var(--text-secondary);
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 3px 7px;
     border-radius: 6px;
@@ -4231,7 +4245,7 @@ html.ios-standalone .sticky-live-bar {
     gap: 4px;
     padding: 3px 8px;
     border-radius: 99px;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     cursor: pointer;
     background: rgba(255, 255, 255, 0.2);
@@ -4283,7 +4297,7 @@ html.ios-standalone .sticky-live-bar {
     background: var(--brand-primary-soft);
     border: 1px solid var(--brand-primary-light);
     color: var(--brand-primary-dark);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
 }
 
@@ -4348,7 +4362,7 @@ html.ios-standalone .sticky-live-bar {
 
 /* Kutty & Smart Active Badge: Single compact line, neat pill */
 .tpc-check-badge {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     line-height: 1;
     color: var(--th-primary);
@@ -4370,14 +4384,14 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .tpc-name {
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     line-height: 1.2;
 }
 
 .tpc-desc {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 600;
     color: var(--text-muted);
     margin-top: 2px;
@@ -4432,7 +4446,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .tlp-tag {
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     letter-spacing: 0.05em;
     color: var(--brand-primary);
@@ -4440,7 +4454,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .tlp-header small {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
 }
 
@@ -4468,20 +4482,20 @@ html.ios-standalone .sticky-live-bar {
 .tlp-sample-badge {
     background: var(--brand-primary);
     color: #ffffff;
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2px 5px;
     border-radius: 4px;
 }
 
 .tlp-sample-brand strong {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     color: var(--text-main);
     font-weight: 800;
 }
 
 .tlp-sample-pill {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: var(--brand-primary-dark);
     background: var(--brand-primary-soft);
@@ -4506,7 +4520,7 @@ html.ios-standalone .sticky-live-bar {
 
 .bsc-fn-label {
     display: block;
-    font-size: 0.55rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     color: #b45309;
     letter-spacing: 0.04em;
@@ -4514,7 +4528,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .bsc-footer-note p {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     color: #92400e;
     line-height: 1.35;
 }
@@ -4544,7 +4558,7 @@ html.ios-standalone .sticky-live-bar {
 
 .vs-lbl {
     display: block;
-    font-size: 0.59rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -4553,7 +4567,7 @@ html.ios-standalone .sticky-live-bar {
 .vs-val {
     display: block;
     font-family: var(--font-display);
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-main);
     margin-top: 1px;
@@ -4591,13 +4605,13 @@ html.ios-standalone .sticky-live-bar {
 
 .bt-txt strong {
     display: block;
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
 }
 
 .bt-txt small {
     display: block;
-    font-size: 0.61rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
 }
 
@@ -4674,7 +4688,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .b-nav-label {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     line-height: 1.1;
 }
@@ -4704,7 +4718,7 @@ body.keyboard-open .bottom-nav {
     right: calc(50% - 20px);
     background: var(--brand-primary);
     color: #fff;
-    font-size: 0.56rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 1px 4px;
     border-radius: 99px;
@@ -4728,7 +4742,7 @@ body.keyboard-open .bottom-nav {
     color: #ffffff;
     padding: 8px 14px;
     border-radius: 99px;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     box-shadow: 0 4px 14px rgba(0,0,0,0.22);
     white-space: nowrap;
@@ -4797,7 +4811,7 @@ body.keyboard-open .bottom-nav {
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     background: var(--bg-muted);
     color: var(--text-secondary);
@@ -4825,7 +4839,7 @@ body.keyboard-open .bottom-nav {
 
 .wiz-step-title {
     display: block;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     line-height: 1.15;
     white-space: nowrap;
@@ -4835,7 +4849,7 @@ body.keyboard-open .bottom-nav {
 
 .wiz-step-sub {
     display: block;
-    font-size: 0.61rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     font-weight: 600;
     margin-top: 1px;
@@ -4864,7 +4878,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cp-step-tag {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     letter-spacing: 0.04em;
     color: var(--brand-primary-dark);
@@ -4878,7 +4892,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cp-count {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -4911,7 +4925,7 @@ body.keyboard-open .bottom-nav {
     border: none;
     outline: none;
     background: transparent;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-main);
     min-width: 0;
@@ -4920,7 +4934,7 @@ body.keyboard-open .bottom-nav {
 .wiz-add-cust-btn {
     padding: 7px 11px !important;
     border-radius: 9px !important;
-    font-size: 0.73rem !important;
+    font-size: var(--fs-sm) !important;
     font-weight: 800 !important;
     flex-shrink: 0;
 }
@@ -4943,7 +4957,7 @@ body.keyboard-open .bottom-nav {
     border: 1px solid var(--border-color);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 3px 9px;
     border-radius: 99px;
@@ -5005,7 +5019,7 @@ body.keyboard-open .bottom-nav {
     border: 1px solid var(--brand-primary-light);
     color: var(--brand-primary-dark);
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -5030,7 +5044,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cc-name {
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -5039,7 +5053,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cc-place-tag {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 1px 5px;
     border-radius: 4px;
@@ -5050,7 +5064,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cc-meta {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
     font-weight: 600;
     margin-top: 1px;
@@ -5060,7 +5074,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-cc-pick-badge {
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 3px 7px;
     border-radius: 6px;
@@ -5088,13 +5102,13 @@ body.keyboard-open .bottom-nav {
 
 .wiz-nm-text strong {
     display: block;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary-dark);
 }
 
 .wiz-nm-text small {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-secondary);
 }
 
@@ -5109,7 +5123,7 @@ body.keyboard-open .bottom-nav {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 6px;
@@ -5136,7 +5150,7 @@ body.keyboard-open .bottom-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-secondary);
     margin-bottom: 5px;
@@ -5145,14 +5159,14 @@ body.keyboard-open .bottom-nav {
 .wiz-slab-live-head strong {
     color: var(--brand-primary-dark);
     font-family: var(--font-display);
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
 }
 
 .wiz-slab-live-pills {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: var(--text-muted);
 }
 
@@ -5165,7 +5179,7 @@ body.keyboard-open .bottom-nav {
     background: var(--brand-primary-soft);
     border: 1px solid var(--brand-primary-light);
     color: var(--brand-primary-dark);
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
 }
 
@@ -5229,7 +5243,7 @@ body.keyboard-open .bottom-nav {
 .wiz-nav-live-total {
     display: block;
     font-family: var(--font-display);
-    font-size: 1.02rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: var(--brand-primary-dark);
     line-height: 1.1;
@@ -5253,15 +5267,15 @@ body.keyboard-open .bottom-nav {
     .wiz-step-badge {
         width: 19px;
         height: 19px;
-        font-size: 0.64rem;
+        font-size: var(--fs-2xs);
     }
 
     .wiz-step-title {
-        font-size: 0.66rem;
+        font-size: var(--fs-xs);
     }
 
     .wiz-step-sub {
-        font-size: 0.56rem;
+        font-size: var(--fs-2xs);
     }
 }
 
@@ -5308,7 +5322,7 @@ body.keyboard-open .bottom-nav {
     background: var(--brand-primary);
     color: #ffffff;
     font-family: var(--font-display);
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -5329,7 +5343,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-scc-name-row h3 {
-    font-size: 0.92rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
@@ -5337,7 +5351,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-scc-bills-tag {
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 1px 6px;
     border-radius: 5px;
@@ -5348,7 +5362,7 @@ body.keyboard-open .bottom-nav {
 
 .wiz-scc-meta {
     display: block;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-secondary);
     margin: 2px 0 0 0;
@@ -5388,7 +5402,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .wiz-site-simple-header label {
-    font-size: 0.86rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
@@ -5396,7 +5410,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .site-status-pill {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 3px 9px;
     border-radius: 99px;
@@ -5427,7 +5441,7 @@ body.keyboard-open .bottom-nav {
 
 .wiz-sss-chips .site-sug-chip {
     padding: 6px 12px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     border-radius: 99px;
     background: #f8fafc;
@@ -5452,7 +5466,7 @@ body.keyboard-open .bottom-nav {
 .site-input-left-ico {
     position: absolute;
     left: 11px;
-    font-size: 0.96rem;
+    font-size: var(--fs-xl);
     pointer-events: none;
     line-height: 1;
 }
@@ -5462,7 +5476,7 @@ body.keyboard-open .bottom-nav {
     padding: 11px 36px 11px 34px;
     border: 2px solid var(--border-strong);
     border-radius: 10px;
-    font-size: 0.94rem;
+    font-size: var(--fs-xl);
     font-weight: 700;
     color: var(--text-main);
     background: #f8fafc;
@@ -5472,7 +5486,7 @@ body.keyboard-open .bottom-nav {
 .site-input-wrap.site-input-lg input::placeholder {
     font-weight: 600;
     color: var(--text-muted);
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
 }
 
 .site-input-wrap.site-input-lg input:focus {
@@ -5487,7 +5501,7 @@ body.keyboard-open .bottom-nav {
     width: 26px;
     height: 26px;
     border-radius: 7px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     background: #e2e8f0;
     color: #334155;
 }
@@ -5510,7 +5524,7 @@ body.keyboard-open .bottom-nav {
     padding: 6px 10px;
     background: #f1f5f9;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -5521,7 +5535,7 @@ body.keyboard-open .bottom-nav {
     border: none;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     padding: 1px 5px;
@@ -5572,12 +5586,12 @@ body.keyboard-open .bottom-nav {
 }
 
 .sso-icon {
-    font-size: 0.92rem;
+    font-size: var(--fs-xl);
     flex-shrink: 0;
 }
 
 .sso-name {
-    font-size: 0.85rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -5586,7 +5600,7 @@ body.keyboard-open .bottom-nav {
 }
 
 .sso-badge {
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 99px;
@@ -5646,7 +5660,7 @@ html.ios-standalone body.keyboard-open .app-main {
     background: #fef2f2;
     border: 1px solid #fecaca;
     color: #991b1b;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     padding: 8px 10px;
     border-radius: 8px;
@@ -5656,7 +5670,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .del-confirm-desc {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: var(--text-secondary);
     line-height: 1.4;
@@ -5676,7 +5690,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--danger);
     padding: 7px 14px;
     border-radius: 8px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
@@ -5705,7 +5719,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .toast-undo-text {
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     line-height: 1.3;
 }
@@ -5719,7 +5733,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: none;
     padding: 5px 11px;
     border-radius: 7px;
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     flex-shrink: 0;
@@ -5769,7 +5783,7 @@ html.ios-standalone body.keyboard-open .app-main {
     background: var(--brand-primary-soft);
     border: 1px solid var(--brand-primary-light);
     color: var(--brand-primary-dark);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     line-height: 1.2;
@@ -5794,7 +5808,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .simple-card-title {
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
@@ -5802,7 +5816,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .simple-card-amount {
     font-family: var(--font-display);
-    font-size: 0.96rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: var(--brand-primary-dark);
     background: var(--brand-primary-soft);
@@ -5825,14 +5839,14 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .srb-left label {
     display: block;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #92400e;
     margin: 0;
 }
 
 .srb-left small {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #b45309;
 }
@@ -5895,7 +5909,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .dbp-label {
-    font-size: 0.58rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -5911,7 +5925,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .dbp-sign {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #b45309;
 }
@@ -5923,7 +5937,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 5px;
     background: #ffffff;
     font-family: var(--font-display);
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #b45309;
     text-align: center;
@@ -5938,7 +5952,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .dbp-unit {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: #92400e;
 }
@@ -5962,25 +5976,25 @@ html.ios-standalone body.keyboard-open .app-main {
     outline: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 1.15rem;
+    font-size: var(--fs-2xl);
     font-weight: 800;
     color: var(--text-main);
     padding: 6px 0;
 }
 
 .simple-big-input-wrap.pvc input {
-    font-size: 1.05rem;
+    font-size: var(--fs-xl);
 }
 
 .simple-big-input-wrap input::placeholder {
     font-family: var(--font-sans);
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 600;
     color: var(--text-muted);
 }
 
 .sbi-unit {
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--text-secondary);
     margin-left: 6px;
@@ -6009,7 +6023,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .srbb-item label {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--text-secondary);
     margin: 0;
@@ -6024,7 +6038,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     border-radius: 6px;
     padding: 2px 6px;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -6035,7 +6049,7 @@ html.ios-standalone body.keyboard-open .app-main {
     outline: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     text-align: center;
@@ -6078,7 +6092,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .spvc-top label {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     margin: 0;
@@ -6091,7 +6105,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .spvc-cost {
     font-family: var(--font-display);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-muted);
     background: #f1f5f9;
@@ -6115,7 +6129,7 @@ html.ios-standalone body.keyboard-open .app-main {
     display: flex;
     align-items: center;
     gap: 2px;
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-secondary);
 }
@@ -6126,7 +6140,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 5px;
     background: #ffffff;
     font-family: var(--font-display);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     text-align: center;
@@ -6151,7 +6165,7 @@ html.ios-standalone body.keyboard-open .app-main {
     background: #f8fafc;
     border: 1px solid var(--border-strong);
     color: var(--text-secondary);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     padding: 5px 10px;
     border-radius: 8px;
@@ -6168,7 +6182,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .seb-head {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--brand-primary-dark);
     margin-bottom: 6px;
@@ -6189,7 +6203,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1.5px solid var(--border-strong);
     background: #f8fafc;
     color: var(--text-main);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     transition: all 0.14s ease;
@@ -6211,7 +6225,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.08);
     color: inherit;
-    font-size: 0.6rem;
+    font-size: var(--fs-2xs);
     line-height: 1;
     margin-left: 2px;
 }
@@ -6237,7 +6251,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .meh-top span {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-main);
 }
@@ -6246,7 +6260,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--brand-primary);
     background: var(--brand-primary-soft);
     color: var(--brand-primary-dark);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 3px 8px;
     border-radius: 6px;
@@ -6281,7 +6295,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1.5px solid var(--brand-primary);
     background: #ffffff;
     color: var(--brand-primary-dark);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
@@ -6295,7 +6309,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .ss-dd-arrow {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     line-height: 1;
 }
 
@@ -6335,7 +6349,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-main);
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
 }
@@ -6359,7 +6373,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     cursor: pointer;
 }
@@ -6409,14 +6423,14 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .ssdp-sr-range {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
 }
 
 .ssdp-sr-ft {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     padding: 1px 6px;
     border-radius: 99px;
@@ -6449,7 +6463,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .ssdp-sr-input-box span,
 .ssdp-sr-input-box small {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--text-muted);
 }
@@ -6459,7 +6473,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: none !important;
     background: transparent !important;
     padding: 1px 2px !important;
-    font-size: 0.78rem !important;
+    font-size: var(--fs-sm) !important;
     font-weight: 800 !important;
     color: var(--brand-primary-dark) !important;
     text-align: center;
@@ -6468,7 +6482,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .ssdp-sr-amt {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     min-width: 58px;
@@ -6495,7 +6509,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-main);
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.14s ease;
@@ -6517,7 +6531,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 8px;
     padding: 8px 10px;
     font-family: inherit;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 600;
     color: var(--text-main);
     background: #ffffff;
@@ -6538,7 +6552,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-subtle);
     background: #f1f5f9;
     color: var(--text-secondary);
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     padding: 2px 7px;
     border-radius: 6px;
@@ -6551,7 +6565,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 6px;
     padding: 6px 9px;
     margin-bottom: 6px;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     line-height: 1.35;
     color: #92400e;
 }
@@ -6585,7 +6599,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
     color: #ffffff;
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(15, 23, 42, 0.14);
@@ -6604,7 +6618,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .bps-right strong {
-    font-size: 0.94rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     background: rgba(255, 255, 255, 0.22);
     padding: 2.5px 8px;
@@ -6621,7 +6635,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .preview-btn-due-tag {
     display: inline-block;
-    font-size: 0.63rem;
+    font-size: var(--fs-2xs);
     font-weight: 750;
     background: #fef2f2;
     color: #b91c1c;
@@ -6651,7 +6665,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid #fecaca;
     border-radius: 8px;
     color: #991b1b;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
 }
 
@@ -6662,7 +6676,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .advance-due-calc-pill strong {
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #b91c1c;
     font-family: var(--font-display, inherit);
@@ -6673,7 +6687,7 @@ html.ios-standalone body.keyboard-open .app-main {
     display: inline-flex;
     align-items: center;
     gap: 2.5px;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 750;
     background: #fef2f2;
     color: #b91c1c;
@@ -6688,7 +6702,7 @@ html.ios-standalone body.keyboard-open .app-main {
 /* Customer Picker Card Due Tag - Compact & Kutty */
 .wiz-cust-due-chip {
     display: inline-block;
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     background: #fef2f2;
     color: #b91c1c;
@@ -6722,7 +6736,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1.5px solid var(--brand-primary);
     border-radius: 10px;
     padding: 10px 20px;
-    font-size: 0.86rem;
+    font-size: var(--fs-lg);
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -6741,7 +6755,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .pagination-count-sub {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     color: var(--text-muted);
 }
 
@@ -6764,13 +6778,13 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .pst-badge {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--brand-primary-dark);
 }
 
 .pst-left small {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     color: var(--text-secondary);
     font-weight: 600;
 }
@@ -6779,7 +6793,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     background: #f8fafc;
     color: var(--text-main);
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     padding: 5px 10px;
     border-radius: 8px;
@@ -6804,7 +6818,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1.5px solid var(--border-strong);
     background: #ffffff;
     color: var(--text-main);
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     cursor: pointer;
 }
@@ -6830,13 +6844,13 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .bcs-txt strong {
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     line-height: 1.15;
 }
 
 .bcs-txt small {
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
     opacity: 0.9;
     font-weight: 600;
 }
@@ -6866,12 +6880,12 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .pss-check-ico {
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
 }
 
 .pss-sb-left strong {
     display: block;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #065f46;
 }
@@ -6888,7 +6902,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid #10b981;
     background: #ffffff;
     color: #065f46;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
@@ -6916,7 +6930,7 @@ html.ios-standalone body.keyboard-open .app-main {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     text-align: center;
     white-space: nowrap;
@@ -6947,7 +6961,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .cgir-label {
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--brand-primary-dark);
     white-space: nowrap;
@@ -6969,7 +6983,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid var(--border-strong);
     background: #ffffff;
     font-family: var(--font-display);
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     letter-spacing: 0.03em;
     text-transform: uppercase;
@@ -6978,7 +6992,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .cgir-input-wrap input::placeholder {
     font-family: var(--font-sans);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     letter-spacing: normal;
     text-transform: none;
@@ -6999,7 +7013,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 4px;
     background: #f1f5f9;
     color: var(--text-secondary);
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -7024,22 +7038,22 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .pdf-a4-export-sheet .receipt-company-info h2 {
-    font-size: 1.25rem !important;
+    font-size: var(--fs-2xl) !important;
     letter-spacing: 0.01em !important;
 }
 
 .pdf-a4-export-sheet .receipt-tagline {
-    font-size: 0.76rem !important;
+    font-size: var(--fs-sm) !important;
     margin-top: 2px !important;
 }
 
 .pdf-a4-export-sheet .receipt-address {
-    font-size: 0.74rem !important;
+    font-size: var(--fs-sm) !important;
     margin-top: 3px !important;
 }
 
 .pdf-a4-export-sheet .receipt-phones-row {
-    font-size: 0.76rem !important;
+    font-size: var(--fs-sm) !important;
     margin-top: 4px !important;
 }
 
@@ -7056,7 +7070,7 @@ html.ios-standalone body.keyboard-open .app-main {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 6px 14px !important;
-    font-size: 0.80rem !important;
+    font-size: var(--fs-md) !important;
 }
 
 .pdf-a4-export-sheet .receipt-summary-chips {
@@ -7071,7 +7085,7 @@ html.ios-standalone body.keyboard-open .app-main {
 
 .pdf-a4-export-sheet .slab-row,
 .pdf-a4-export-sheet .charge-line {
-    font-size: 0.80rem !important;
+    font-size: var(--fs-md) !important;
     padding: 5px 8px !important;
 }
 
@@ -7105,7 +7119,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: none;
     background: transparent;
     color: #475569;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.16s ease;
@@ -7125,7 +7139,7 @@ html.ios-standalone body.keyboard-open .app-main {
     height: 18px;
     padding: 0 6px;
     border-radius: 999px;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     background: #e2e8f0;
     color: #334155;
@@ -7169,7 +7183,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid #cbd5e1;
     background: #f8fafc;
     color: #334155;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -7193,7 +7207,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 999px;
     background: var(--brand-primary);
     color: #ffffff;
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
 }
 
@@ -7222,7 +7236,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 999px;
     background: rgba(239, 68, 68, 0.14);
     color: #b91c1c;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
 }
 
@@ -7235,7 +7249,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid #38bdf8;
     background: #f0f9ff;
     color: #0369a1;
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
 }
@@ -7263,7 +7277,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .bfp-sec-head {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #334155;
     letter-spacing: 0.01em;
@@ -7281,7 +7295,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #475569;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.14s ease;
@@ -7319,7 +7333,7 @@ html.ios-standalone body.keyboard-open .app-main {
 }
 
 .bfp-date-field label {
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #64748b;
 }
@@ -7330,7 +7344,7 @@ html.ios-standalone body.keyboard-open .app-main {
     border-radius: 7px;
     border: 1px solid #cbd5e1;
     background: #ffffff;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #0f172a;
 }
@@ -7401,7 +7415,7 @@ input[type="number"] {
 }
 
 .spvc-top label {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-main);
     white-space: nowrap;
@@ -7413,7 +7427,7 @@ input[type="number"] {
 
 .spvc-cost {
     font-family: var(--font-display);
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: var(--text-muted);
     background: #f1f5f9;
@@ -7452,7 +7466,7 @@ input[type="number"] {
 }
 
 .spvc-rate-lbl {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--text-secondary);
     white-space: nowrap;
@@ -7469,7 +7483,7 @@ input[type="number"] {
 
 .spvc-rate-input-box span,
 .spvc-rate-input-box small {
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: var(--text-muted);
     white-space: nowrap;
@@ -7485,7 +7499,7 @@ input[type="number"] {
     border-radius: 6px !important;
     background: #f8fafc !important;
     font-family: var(--font-display) !important;
-    font-size: 0.84rem !important;
+    font-size: var(--fs-md) !important;
     font-weight: 800 !important;
     color: var(--text-main) !important;
     text-align: center !important;
@@ -7517,7 +7531,7 @@ input[type="number"] {
 .srbb-input-box input {
     width: 56px !important;
     min-width: 52px !important;
-    font-size: 0.82rem !important;
+    font-size: var(--fs-md) !important;
     font-weight: 800 !important;
     padding: 1px 4px !important;
     text-align: center !important;
@@ -7543,7 +7557,7 @@ input[type="number"] {
 #billDateInput {
     width: auto !important;
     min-width: 104px !important;
-    font-size: 0.78rem !important;
+    font-size: var(--fs-sm) !important;
     font-weight: 700 !important;
     text-align: left !important;
     padding: 1px 2px !important;
@@ -7557,7 +7571,7 @@ input[type="number"] {
     width: 58px !important;
     min-width: 54px !important;
     padding: 2px 4px !important;
-    font-size: 0.8rem !important;
+    font-size: var(--fs-md) !important;
 }
 
 .slab-edit-input,
@@ -7577,7 +7591,7 @@ input[type="number"] {
     background: #f8fafc;
     padding: 9px 13px;
     border-bottom: 1px solid var(--border-color);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
 }
 
 .receipt-customer-box .cust-grid > div {
@@ -7599,7 +7613,7 @@ input[type="number"] {
 }
 
 .r-chip-val {
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -7641,11 +7655,11 @@ input[type="number"] {
     }
 
     .spvc-top label {
-        font-size: 0.70rem;
+        font-size: var(--fs-xs);
     }
 
     .spvc-cost {
-        font-size: 0.64rem;
+        font-size: var(--fs-2xs);
         padding: 1px 4px;
     }
 
@@ -7657,7 +7671,7 @@ input[type="number"] {
     .spvc-rate-input-box input {
         width: 54px !important;
         min-width: 50px !important;
-        font-size: 0.78rem !important;
+        font-size: var(--fs-sm) !important;
     }
 
     .receipt-customer-box .cust-grid {
@@ -7689,7 +7703,7 @@ input[type="number"] {
     .spvc-rate-row input,
     .spvc-rate-input-box input {
         width: 76px !important;
-        font-size: 0.88rem !important;
+        font-size: var(--fs-lg) !important;
     }
 }
 
@@ -7758,13 +7772,13 @@ input[type="number"] {
 }
 
 .war-lbl {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #166534;
 }
 
 .war-cust-info strong {
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #064e3b;
     white-space: nowrap;
@@ -7784,7 +7798,7 @@ input[type="number"] {
 }
 
 .war-prefix {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #15803d;
 }
@@ -7795,7 +7809,7 @@ input[type="number"] {
     outline: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #0f172a;
     letter-spacing: 0.02em;
@@ -7809,7 +7823,7 @@ input[type="number"] {
 }
 
 .wpt-badge {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: #075e54;
 }
@@ -7826,7 +7840,7 @@ input[type="number"] {
     border: 1px solid #cbd5e1;
     background: #f8fafc;
     color: #334155;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
 }
@@ -7851,7 +7865,7 @@ input[type="number"] {
     color: #111b21;
     border-radius: 10px 2px 10px 10px;
     padding: 9px 11px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     line-height: 1.42;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
     white-space: pre-wrap;
@@ -7865,7 +7879,7 @@ input[type="number"] {
     border-radius: 9px;
     padding: 8px 10px;
     font-family: inherit;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     line-height: 1.4;
     color: #0f172a;
     background: #ffffff;
@@ -7887,7 +7901,7 @@ input[type="number"] {
     border: none;
     background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
     color: #ffffff;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 3px 10px rgba(37, 211, 102, 0.32);
@@ -7903,7 +7917,7 @@ input[type="number"] {
     border: 1px solid #86efac;
     background: #f0fdf4;
     color: #15803d;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -7959,7 +7973,7 @@ input[type="number"] {
 
 .bsc-fn-item .bsc-fn-label {
     display: block;
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     letter-spacing: 0.03em;
     margin-bottom: 2px;
@@ -7975,7 +7989,7 @@ input[type="number"] {
 
 .bsc-fn-item p {
     margin: 0;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #1e293b;
     line-height: 1.38;
@@ -8010,7 +8024,7 @@ input[type="number"] {
 
 .fsb-head label {
     margin-bottom: 0 !important;
-    font-size: 0.74rem !important;
+    font-size: var(--fs-sm) !important;
     font-weight: 800 !important;
     color: #0f172a !important;
 }
@@ -8027,7 +8041,7 @@ input[type="number"] {
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     cursor: pointer;
 }
@@ -8041,7 +8055,7 @@ input[type="number"] {
 .fsb-hint {
     display: block;
     margin-top: 4px;
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     color: #64748b;
     font-weight: 600;
 }
@@ -8059,7 +8073,7 @@ input[type="number"] {
     border: 1px solid #bbf7d0;
     background: #ffffff;
     color: #166534;
-    font-size: 0.67rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -8161,7 +8175,7 @@ input.is-select-all-ready,
     border: 1.5px solid #f59e0b;
     background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
     color: #b45309;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(245, 158, 11, 0.18);
@@ -8189,7 +8203,7 @@ input.is-select-all-ready,
 }
 
 .dtcb-warn-banner {
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #b91c1c;
     background: #fee2e2;
@@ -8202,7 +8216,7 @@ input.is-select-all-ready,
 
 .dtcb-label {
     display: block;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #334155;
     margin-bottom: 6px;
@@ -8215,7 +8229,7 @@ input.is-select-all-ready,
     background: #1e293b;
     color: #f8fafc;
     font-family: monospace;
-    font-size: 0.73rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     letter-spacing: 0.03em;
 }
@@ -8226,7 +8240,7 @@ input.is-select-all-ready,
     border-radius: 8px;
     border: 1.5px solid #fca5a5;
     background: #ffffff;
-    font-size: 0.85rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #0f172a;
     text-transform: uppercase;
@@ -8295,7 +8309,7 @@ input.is-select-all-ready,
     border-radius: 11px;
     background: var(--brand-soft);
     color: var(--brand-primary);
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     display: flex;
     align-items: center;
@@ -8311,7 +8325,7 @@ input.is-select-all-ready,
 }
 
 .cmr-name {
-    font-size: 0.92rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
     white-space: nowrap;
@@ -8323,7 +8337,7 @@ input.is-select-all-ready,
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #64748b;
     white-space: nowrap;
@@ -8332,7 +8346,7 @@ input.is-select-all-ready,
 }
 
 .cmr-phone {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     color: #94a3b8;
     font-weight: 600;
 }
@@ -8345,7 +8359,7 @@ input.is-select-all-ready,
 }
 
 .cmr-badge {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     padding: 3px 8px;
     border-radius: 999px;
@@ -8376,7 +8390,7 @@ input.is-select-all-ready,
 .cmr-arrow,
 .cmr-chevron {
     color: #94a3b8;
-    font-size: 1.15rem;
+    font-size: var(--fs-2xl);
     font-weight: 700;
     line-height: 1;
 }
@@ -8402,14 +8416,14 @@ input.is-select-all-ready,
 
 .cdm-head h4 {
     color: #ffffff !important;
-    font-size: 1.02rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     margin: 0;
 }
 
 .cdm-head .cph-sub {
     color: #cbd5e1 !important;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     margin-top: 3px;
 }
 
@@ -8422,7 +8436,7 @@ input.is-select-all-ready,
 .cdm-avatar {
     width: 42px;
     height: 42px;
-    font-size: 0.96rem;
+    font-size: var(--fs-xl);
     background: var(--brand-primary);
     color: #ffffff;
     border: 2px solid rgba(255, 255, 255, 0.22);
@@ -8450,7 +8464,7 @@ input.is-select-all-ready,
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #1e293b;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     text-decoration: none;
     cursor: pointer;
@@ -8506,7 +8520,7 @@ input.is-select-all-ready,
     border: none;
     background: transparent;
     color: #475569;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -8529,7 +8543,7 @@ input.is-select-all-ready,
     border-radius: 999px;
     background: #e2e8f0;
     color: #334155;
-    font-size: 0.69rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
 }
 
@@ -8566,7 +8580,7 @@ input.is-select-all-ready,
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 11px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #334155;
     text-transform: uppercase;
@@ -8574,7 +8588,7 @@ input.is-select-all-ready,
 }
 
 .cdm-sec-pill {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     padding: 3px 9px;
     border-radius: 999px;
@@ -8612,14 +8626,14 @@ input.is-select-all-ready,
 }
 
 .cdm-pt-lbl {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #64748b;
 }
 
 .cdm-pt-val,
 .cpt-val {
-    font-size: 0.98rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
 }
@@ -8645,7 +8659,7 @@ input.is-select-all-ready,
 }
 
 .ckv-label {
-    font-size: 0.83rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     color: #334155;
 }
@@ -8658,13 +8672,13 @@ input.is-select-all-ready,
 }
 
 .ckv-right strong {
-    font-size: 0.92rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
 }
 
 .ckv-right small {
-    font-size: 0.71rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     color: #64748b;
 }
@@ -8679,7 +8693,7 @@ input.is-select-all-ready,
     border: 1.5px solid var(--brand-primary);
     background: var(--brand-soft);
     color: var(--brand-primary);
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -8706,7 +8720,7 @@ input.is-select-all-ready,
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
@@ -8757,7 +8771,7 @@ input.is-select-all-ready,
     border-radius: 7px;
     background: #0f172a;
     color: #ffffff;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
 }
 
@@ -8766,13 +8780,13 @@ input.is-select-all-ready,
 }
 
 .cbc-bill-no {
-    font-size: 0.85rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #0f172a;
 }
 
 .cbc-date {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #64748b;
 }
@@ -8790,7 +8804,7 @@ input.is-select-all-ready,
     gap: 10px;
     padding: 8px 0;
     border-bottom: 1px dashed #e2e8f0;
-    font-size: 0.81rem;
+    font-size: var(--fs-md);
 }
 
 .cbc-row:last-child {
@@ -8840,7 +8854,7 @@ input.is-select-all-ready,
 
 .cbc-slab-details summary {
     padding: 7px 11px;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #334155;
     cursor: pointer;
@@ -8857,7 +8871,7 @@ input.is-select-all-ready,
 .cbc-slab-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     background: #ffffff;
     border-top: 1px solid #e2e8f0;
 }
@@ -8873,7 +8887,7 @@ input.is-select-all-ready,
     background: #f1f5f9;
     font-weight: 800;
     color: #475569;
-    font-size: 0.66rem;
+    font-size: var(--fs-xs);
 }
 
 .cbc-slab-table td:last-child,
@@ -8934,7 +8948,7 @@ input.is-select-all-ready,
     border: 1px solid #bbf7d0;
     background: #f0fdf4;
     color: #15803d;
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     font-weight: 750;
     cursor: pointer;
     white-space: nowrap;
@@ -8992,7 +9006,7 @@ input.is-select-all-ready,
 
 .hist-detail-btn {
     padding: 5px 9px;
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -9014,7 +9028,7 @@ input.is-select-all-ready,
     background: transparent;
     border: 1px solid transparent;
     color: #94a3b8;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     border-radius: 6px;
     cursor: pointer;
@@ -9065,7 +9079,7 @@ input.is-select-all-ready,
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 8px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #0f172a;
 }
@@ -9076,7 +9090,7 @@ input.is-select-all-ready,
     border: 1px solid #10b981;
     background: #ecfdf5;
     color: #047857;
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
@@ -9094,7 +9108,7 @@ input.is-select-all-ready,
 }
 
 .rpm-grid-2 .field-group label {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #475569;
     margin-bottom: 4px;
@@ -9103,14 +9117,14 @@ input.is-select-all-ready,
 .rpm-grid-2 .field-group input {
     height: 38px;
     padding: 6px 10px;
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 700;
 }
 
 .rpm-save-btn {
     margin-top: 10px;
     padding: 9px 14px;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     border-radius: 8px;
 }
 
@@ -9128,7 +9142,7 @@ input.is-select-all-ready,
     padding: 8px 12px;
     background: #f8fafc;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #334155;
 }
@@ -9144,7 +9158,7 @@ input.is-select-all-ready,
     text-align: center;
     padding: 16px 12px;
     color: #64748b;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
 }
 
@@ -9162,7 +9176,7 @@ input.is-select-all-ready,
 }
 
 .rpm-hi-date {
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #1e293b;
     display: flex;
@@ -9185,7 +9199,7 @@ input.is-select-all-ready,
 
 .rpm-hi-amt {
     font-family: var(--font-display);
-    font-size: 0.86rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #15803d;
 }
@@ -9197,7 +9211,7 @@ input.is-select-all-ready,
     border: 1px solid #fecaca;
     background: #fef2f2;
     color: #dc2626;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     cursor: pointer;
     display: inline-flex;
@@ -9226,7 +9240,7 @@ input.is-select-all-ready,
     padding: 7px 11px;
     background: #dcfce7;
     border-bottom: 1px solid #bbf7d0;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #065f46;
 }
@@ -9245,7 +9259,7 @@ input.is-select-all-ready,
     gap: 8px;
     padding: 6px 0;
     border-bottom: 1px dashed #e2e8f0;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
 }
 
 .cphb-row:last-child {
@@ -9329,7 +9343,7 @@ input.is-select-all-ready,
     border: 1.5px solid #cbd5e1;
     color: #0f172a;
     font-family: var(--font-display);
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -9358,7 +9372,7 @@ input.is-select-all-ready,
 }
 
 .rcr-name {
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #0f172a;
     white-space: nowrap;
@@ -9367,7 +9381,7 @@ input.is-select-all-ready,
 }
 
 .rcr-sub {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #64748b;
     white-space: nowrap;
@@ -9391,7 +9405,7 @@ input.is-select-all-ready,
     height: 32px;
     padding: 0 12px;
     border-radius: 8px;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -9467,7 +9481,7 @@ input.is-select-all-ready,
     background: var(--brand-primary) !important;
     color: #ffffff !important;
     font-family: var(--font-display);
-    font-size: 0.95rem !important;
+    font-size: var(--fs-xl) !important;
     font-weight: 800 !important;
 }
 
@@ -9482,7 +9496,7 @@ input.is-select-all-ready,
 .rdm-status-bar .rcr-action-btn {
     flex: 1;
     height: 36px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
 }
 
 /* ==========================================================================
@@ -9506,7 +9520,7 @@ input.is-select-all-ready,
 }
 
 .srb-rate-lbl {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #92400e;
 }
@@ -9529,7 +9543,7 @@ input.is-select-all-ready,
 }
 
 .srb-rate-input-box span {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #b45309;
 }
@@ -9539,7 +9553,7 @@ input.is-select-all-ready,
     border: none;
     background: transparent;
     font-family: var(--font-display);
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #78350f;
     text-align: center;
@@ -9548,14 +9562,14 @@ input.is-select-all-ready,
 }
 
 .srb-rate-input-box small {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: #92400e;
 }
 
 .srb-flush-amt {
     font-family: var(--font-display);
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #b45309;
     background: #fef3c7;
@@ -9567,7 +9581,7 @@ input.is-select-all-ready,
 /* Optional Website Line on Official Receipt, PDF & Image */
 .receipt-website-line {
     text-align: center;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--brand-primary-dark);
     margin: -2px 0 6px;
@@ -9595,7 +9609,7 @@ input.is-select-all-ready,
     color: #475569;
     border-radius: 8px;
     padding: 5px 11px;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -9640,7 +9654,7 @@ input.is-select-all-ready,
 }
 
 .pfc-field label {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: #475569;
 }
@@ -9650,7 +9664,7 @@ input.is-select-all-ready,
     padding: 0 10px;
     border: 1.5px solid #cbd5e1;
     border-radius: 8px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #0f172a;
     background: #f8fafc;
@@ -9700,7 +9714,7 @@ input.is-select-all-ready,
     border-radius: 0 !important;
     background: #f8fafc;
     font-family: var(--font-display);
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: var(--brand-primary-dark);
     cursor: pointer;
@@ -9727,7 +9741,7 @@ input.is-select-all-ready,
     padding: 2px 4px;
     margin-right: 2px;
     font-family: var(--font-display);
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #15803d;
     cursor: pointer;
@@ -9746,7 +9760,7 @@ input.is-select-all-ready,
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: var(--brand-primary);
     background: var(--brand-primary-soft, #ecfdf5);
@@ -9798,7 +9812,7 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #065f46;
 }
@@ -9835,7 +9849,7 @@ input.is-select-all-ready,
 }
 
 .csd-presets-label {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     letter-spacing: 0.04em;
     color: #64748b;
@@ -9850,7 +9864,7 @@ input.is-select-all-ready,
 
 .csd-preset-chip {
     padding: 4px 9px;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     background: #f1f5f9;
     color: #334155;
@@ -9888,7 +9902,7 @@ input.is-select-all-ready,
 
 .csd-card-label {
     display: block;
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #1e293b;
     margin-bottom: 5px;
@@ -9897,7 +9911,7 @@ input.is-select-all-ready,
 .csd-pipe-name-input {
     width: 100%;
     margin-bottom: 6px;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 600;
     padding: 6px 8px;
     border: 1px solid #cbd5e1;
@@ -9915,7 +9929,7 @@ input.is-select-all-ready,
 }
 
 .csd-rate-cur {
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #64748b;
 }
@@ -9924,14 +9938,14 @@ input.is-select-all-ready,
     flex: 1;
     border: none !important;
     padding: 4px !important;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     color: #0f172a;
     outline: none !important;
 }
 
 .csd-rate-unit {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #64748b;
 }
@@ -9948,7 +9962,7 @@ input.is-select-all-ready,
     align-items: center;
     gap: 5px;
     padding: 7px 14px;
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     background: #059669;
     color: #ffffff;
@@ -9997,7 +10011,7 @@ input.is-select-all-ready,
 }
 
 .shh-title {
-    font-size: 1rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: var(--text-main, #0f172a);
     margin: 0;
@@ -10005,7 +10019,7 @@ input.is-select-all-ready,
 }
 
 .shh-sub {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     color: var(--text-muted, #64748b);
     margin: 2px 0 0 0;
 }
@@ -10041,7 +10055,7 @@ input.is-select-all-ready,
     background: transparent;
     border: 1px solid transparent;
     border-radius: 9px;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     color: #475569;
     cursor: pointer;
@@ -10168,7 +10182,7 @@ input.is-select-all-ready,
 }
 
 .wa-toggle-info .wt-icon {
-    font-size: 1.1rem;
+    font-size: var(--fs-2xl);
     line-height: 1.2;
     flex-shrink: 0;
     margin-top: 1px;
@@ -10176,7 +10190,7 @@ input.is-select-all-ready,
 
 .wa-toggle-info strong {
     display: block;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     color: var(--text-main, #0f172a);
     line-height: 1.25;
@@ -10184,7 +10198,7 @@ input.is-select-all-ready,
 
 .wa-toggle-info small {
     display: block;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     color: var(--text-muted, #64748b);
     margin-top: 2px;
     line-height: 1.25;
@@ -10271,7 +10285,7 @@ input.is-select-all-ready,
     color: #15803d;
     padding: 9px 12px;
     border-radius: 8px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     margin-top: 10px;
 }
@@ -10299,7 +10313,7 @@ input.is-select-all-ready,
     background: transparent;
     border: none;
     cursor: pointer;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #64748b;
     transition: all 0.15s ease;
@@ -10316,7 +10330,7 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
 }
 
@@ -10375,20 +10389,20 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     flex-shrink: 0;
 }
 
 .rsch-title {
-    font-size: 0.88rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: var(--text-main, #0f172a);
     margin: 0;
 }
 
 .rsch-sub {
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted, #64748b);
     margin: 1px 0 0 0;
     line-height: 1.25;
@@ -10422,7 +10436,7 @@ input.is-select-all-ready,
 }
 
 .rssb-badge {
-    font-size: 0.64rem;
+    font-size: var(--fs-2xs);
     font-weight: 800;
     background: #dcfce7;
     color: #15803d;
@@ -10433,7 +10447,7 @@ input.is-select-all-ready,
 
 .rssb-txt strong {
     display: block;
-    font-size: 0.80rem;
+    font-size: var(--fs-md);
     font-weight: 750;
     color: var(--text-main, #0f172a);
     white-space: nowrap;
@@ -10443,7 +10457,7 @@ input.is-select-all-ready,
 
 .rssb-txt small {
     display: block;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     color: var(--text-muted, #64748b);
     white-space: nowrap;
 }
@@ -10456,7 +10470,7 @@ input.is-select-all-ready,
     border-radius: 6px;
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: #475569;
     flex-shrink: 0;
@@ -10474,7 +10488,7 @@ input.is-select-all-ready,
     color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-size: 0.80rem;
+    font-size: var(--fs-md);
     font-weight: 750;
     cursor: pointer;
     margin-top: 10px;
@@ -10533,7 +10547,7 @@ input.is-select-all-ready,
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 750;
     cursor: pointer;
     transition: all 0.14s ease;
@@ -10580,7 +10594,7 @@ input.is-select-all-ready,
 }
 
 .cdm-css-lbl {
-    font-size: 0.65rem;
+    font-size: var(--fs-2xs);
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
@@ -10588,7 +10602,7 @@ input.is-select-all-ready,
 }
 
 .cdm-css-val {
-    font-size: 0.94rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
 }
@@ -10635,7 +10649,7 @@ input.is-select-all-ready,
 }
 
 .cbc-expand-chevron {
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #64748b;
     transition: transform 0.2s ease;
@@ -10757,7 +10771,7 @@ input.is-select-all-ready,
     width: 100%;
     padding: 10px 14px;
     border-radius: 12px;
-    font-size: 0.84rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -10820,7 +10834,7 @@ input.is-select-all-ready,
 }
 
 .dev-badge-tag {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -10834,7 +10848,7 @@ input.is-select-all-ready,
 
 .dev-name {
     font-family: var(--font-display, 'Plus Jakarta Sans', sans-serif);
-    font-size: 1.18rem;
+    font-size: var(--fs-2xl);
     font-weight: 800;
     color: #0f172a;
     line-height: 1.2;
@@ -10842,7 +10856,7 @@ input.is-select-all-ready,
 }
 
 .dev-subtitle {
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
     color: #64748b;
     font-weight: 600;
     margin-top: 3px;
@@ -10860,14 +10874,14 @@ input.is-select-all-ready,
     display: flex;
     align-items: center;
     gap: 7px;
-    font-size: 0.80rem;
+    font-size: var(--fs-md);
     font-weight: 800;
     color: #0f172a;
     margin-bottom: 6px;
 }
 
 .dcb-desc {
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     color: #475569;
     line-height: 1.5;
     font-weight: 500;
@@ -10919,7 +10933,7 @@ input.is-select-all-ready,
 }
 
 .dab-lbl {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -10927,7 +10941,7 @@ input.is-select-all-ready,
 }
 
 .dab-val {
-    font-size: 0.94rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     letter-spacing: 0.02em;
 }
@@ -10943,13 +10957,13 @@ input.is-select-all-ready,
 }
 
 .dcf-badge {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #0f172a;
 }
 
 .dcf-meta {
-    font-size: 0.70rem;
+    font-size: var(--fs-xs);
     font-weight: 600;
     color: #64748b;
 }
@@ -10993,7 +11007,7 @@ input.is-select-all-ready,
 }
 
 .csh-title {
-    font-size: 0.98rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
     margin: 0;
@@ -11001,7 +11015,7 @@ input.is-select-all-ready,
 }
 
 .csh-sub {
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     color: #64748b;
     margin: 2px 0 0 0;
     font-weight: 500;
@@ -11019,7 +11033,7 @@ input.is-select-all-ready,
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -11054,7 +11068,7 @@ input.is-select-all-ready,
 }
 
 .cpb-badge {
-    font-size: 0.68rem;
+    font-size: var(--fs-xs);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -11089,7 +11103,7 @@ input.is-select-all-ready,
 }
 
 .cci-cur {
-    font-size: 0.85rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #64748b;
     margin-right: 4px;
@@ -11098,7 +11112,7 @@ input.is-select-all-ready,
 .clean-cur-input-wrap input {
     border: none !important;
     background: transparent !important;
-    font-size: 0.95rem !important;
+    font-size: var(--fs-xl) !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     padding: 6px 0 !important;
@@ -11108,7 +11122,7 @@ input.is-select-all-ready,
 }
 
 .cci-unit {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #64748b;
     margin-left: 4px;
@@ -11123,7 +11137,7 @@ input.is-select-all-ready,
 
 .cps-title {
     display: block;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 800;
     color: #475569;
     text-transform: uppercase;
@@ -11284,13 +11298,13 @@ input.is-select-all-ready,
     }
 
     .b-nav-icon {
-        font-size: 1.2rem;
+        font-size: var(--fs-2xl);
         display: flex;
         align-items: center;
     }
 
     .b-nav-label {
-        font-size: 0.88rem !important;
+        font-size: var(--fs-lg) !important;
         font-weight: 700 !important;
         display: inline-block !important;
         line-height: 1 !important;
@@ -11300,7 +11314,7 @@ input.is-select-all-ready,
     .b-nav-badge {
         position: static !important;
         margin-left: 3px !important;
-        font-size: 0.70rem !important;
+        font-size: var(--fs-xs) !important;
         font-weight: 800 !important;
         padding: 2px 7px !important;
         line-height: 1 !important;
@@ -11410,7 +11424,7 @@ input.is-select-all-ready,
     margin-top: 10px;
     padding-top: 7px;
     border-top: 1px dashed #e2e8f0;
-    font-size: 0.62rem;
+    font-size: var(--fs-2xs);
     color: #94a3b8;
     user-select: none;
 }
@@ -11436,7 +11450,7 @@ input.is-select-all-ready,
 .pdf-a4-export-sheet .receipt-saas-branding {
     margin-top: 12px !important;
     padding-top: 8px !important;
-    font-size: 0.68rem !important;
+    font-size: var(--fs-xs) !important;
 }
 
 .pdf-a4-export-sheet .receipt-saas-branding .rsb-logo {
@@ -11494,7 +11508,7 @@ input.is-select-all-ready,
     height: 56px;
     display: grid;
     place-items: center;
-    font-size: 1.6rem;
+    font-size: var(--fs-4xl);
     border-radius: 16px;
     background: #f0fdf4;
     border: 1px solid #bbf7d0;
@@ -11502,14 +11516,14 @@ input.is-select-all-ready,
 }
 .empty-state-title {
     margin: 0;
-    font-size: 0.98rem;
+    font-size: var(--fs-xl);
     font-weight: 800;
     color: #0f172a;
 }
 .empty-state-sub {
     margin: 0 0 10px;
     max-width: 280px;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     line-height: 1.45;
     color: #64748b;
 }
@@ -11546,7 +11560,7 @@ textarea:focus-visible {
 
     .set-seg-btn {
         padding: 9px 6px;
-        font-size: 0.78rem;
+        font-size: var(--fs-sm);
         gap: 5px;
         min-width: 0;
     }
@@ -11603,7 +11617,7 @@ textarea:focus-visible {
 }
 
 .acc-text strong {
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
     font-weight: 800;
     color: #0f172a;
     overflow: hidden;
@@ -11612,7 +11626,7 @@ textarea:focus-visible {
 }
 
 .acc-text span {
-    font-size: 0.74rem;
+    font-size: var(--fs-sm);
     color: #64748b;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -11634,7 +11648,7 @@ textarea:focus-visible {
     border: 1px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
-    font-size: 0.8rem;
+    font-size: var(--fs-md);
     font-weight: 700;
     cursor: pointer;
     transition: background-color 0.15s ease, border-color 0.15s ease;
@@ -11648,7 +11662,7 @@ textarea:focus-visible {
 
 .acc-msg {
     margin: 8px 0 0;
-    font-size: 0.75rem;
+    font-size: var(--fs-sm);
     font-weight: 600;
     color: #b45309;
 }
@@ -11668,7 +11682,7 @@ textarea:focus-visible {
     padding: 0;
     border: none;
     background: none;
-    font-size: 0.72rem;
+    font-size: var(--fs-sm);
     font-weight: 700;
     color: #475569;
     cursor: pointer;
@@ -11703,3 +11717,121 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
     .acc-sync[data-state="syncing"] .acc-sync-dot { animation: none; }
 }
+/* ==========================================================================
+   PHONE LAYOUT FIXES: nothing pushed off-screen, no key text cut short
+   ========================================================================== */
+
+/* New Bill: let the search box shrink so "Add Customer" stays on screen */
+.wiz-search-input-wrap { min-width: 0; }
+
+/* Quick customer cards: long names keep their room; tags drop to a new line */
+.wiz-cc-name-row { flex-wrap: wrap; row-gap: 2px; }
+.wiz-cc-name { max-width: 100%; }
+
+/* Company preview card: long phone numbers / address no longer widen the card */
+.bsc-contact-grid { grid-template-columns: minmax(0, 1fr); }
+.bsc-contact-card { min-width: 0; }
+
+/* Record Payment: give the three totals the same inner gap as the other boxes */
+.rpm-pay-trio { padding: 6px; }
+
+@media (max-width: 480px) {
+    /* Customer list: keep "+91 98765 43210" on one line */
+    .cmr-sub .cmr-phone { white-space: nowrap; }
+
+    /* Bills list: show the full place + depth; the date moves down if needed */
+    .party-meta-row { flex-wrap: wrap; row-gap: 3px; }
+    .party-meta { flex: 1 1 auto; }
+
+    /* Rates: rate names in the top cards may use two lines */
+    .kpi-truncate {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.25;
+    }
+
+    /* Customer details: actions in two even rows (New Bill + Remind / Call + Edit + Delete)
+       instead of one row that scrolls sideways */
+    .cdm-quick-actions-bar {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        overflow-x: visible;
+    }
+    .cdm-quick-actions-bar > .cdm-qa-btn { grid-column: span 2; width: auto; }
+    .cdm-quick-actions-bar > .cdm-qa-btn.primary,
+    .cdm-quick-actions-bar > .cdm-qa-btn.whatsapp { grid-column: span 3; }
+
+    /* Bill details footer: buttons fill the row evenly */
+    .bdm-foot-bar .bdm-foot-left,
+    .bdm-foot-bar .bdm-foot-right { flex: 1 1 100%; }
+    .bdm-foot-bar .bdm-foot-left > *,
+    .bdm-foot-bar .bdm-foot-right > * { flex: 1 1 0; justify-content: center; }
+
+    /* Settings form: long labels wrap instead of being cut */
+    .field-group.full-col label,
+    .rate-metric-tile label,
+    .bsc-spec-lbl { white-space: normal; }
+}
+
+@media (max-width: 480px) {
+    /* Bills list + company preview: wrap long place / address text */
+    .party-meta,
+    #brandCardAddressText { white-space: normal; }
+}
+
+@media (max-width: 480px) {
+    /* Customer list: the due badge may use two lines so the phone number fits */
+    .crm-minimal-row .cmr-badge {
+        white-space: normal;
+        max-width: 96px;
+        line-height: 1.2;
+        text-align: center;
+    }
+}
+
+@media (max-width: 380px) {
+    /* Small phones: tighter customer rows so name + phone fit */
+    .crm-minimal-row { padding-left: 10px; padding-right: 10px; gap: 8px; }
+    .crm-minimal-row .cmr-left { gap: 8px; }
+    .crm-minimal-row .cmr-avatar { width: 34px; height: 34px; flex-basis: 34px; }
+    .crm-minimal-row .cmr-right { gap: 4px; }
+}
+
+/* Rate list: delete button on each card row */
+.rcr-del-btn {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1.5px solid #fecaca;
+    background: #fff5f5;
+    color: #b91c1c;
+    font-size: var(--fs-lg);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.rcr-del-btn:hover { background: #fee2e2; }
+@media (max-width: 480px) {
+    .rcr-del-btn { flex-basis: 34px; width: 34px; height: 34px; }
+}
+
+/* Rate editor step summaries: text shrinks/wraps instead of running under "Edit" */
+.rssb-txt { min-width: 0; }
+.rate-step-summary-bar .btn-rssb-edit { flex-shrink: 0; }
+
+@media (max-width: 480px) {
+    .rssb-txt strong,
+    .rssb-txt small { white-space: normal; }
+
+    /* 1st base slab: label on its own line, the four range pills get the full width */
+    .sbtc-base-bar { flex-wrap: wrap; row-gap: 6px; }
+    .sbtc-base-pills { flex: 1 1 100%; max-width: none; }
+}
+
+/* Bills list (all widths, incl. tablets): full place + depth, date moves down if needed */
+.party-meta-row { flex-wrap: wrap; row-gap: 3px; }
+.party-meta { flex: 1 1 auto; white-space: normal; }
