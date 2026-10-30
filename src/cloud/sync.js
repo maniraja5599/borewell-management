@@ -97,6 +97,12 @@ function writeLocal(app, local, changed) {
     const run = (fn) => { try { fn(); } catch (e) { console.warn('[sync] redraw', e); } };
     run(() => app.applyBrandToUI());
     if (changed.has('rates') || changed.has('rateProfiles')) {
+        // The downloaded rates say which card they came from: mark that card as applied.
+        const fromCard = app.rates?.profileId;
+        if (fromCard && app.rateProfiles?.some((p) => p.id === fromCard)) {
+            app.activeRateProfileId = fromCard;
+            if (app.state) app.state.activeRateProfileId = fromCard;
+        }
         run(() => app.populateRateInputsUI(app.getActiveRateProfile()));
         run(() => app.renderMasterSlabsGrid());
         run(() => app.renderRateProfilesUI());

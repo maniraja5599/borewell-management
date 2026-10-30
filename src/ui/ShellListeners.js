@@ -61,8 +61,7 @@ export class ShellListeners {
                 }
 
                 // 8. Rate Studio (if open)
-                const rateStudio = document.getElementById('rateStudioDrawer');
-                if (rateStudio && (rateStudio.classList.contains('active') || rateStudio.style.display === 'block')) {
+                if (this.isRateStudioOpen()) {
                     e.preventDefault();
                     this.toggleRateStudio(false);
                     return;

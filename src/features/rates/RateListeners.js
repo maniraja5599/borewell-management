@@ -43,7 +43,7 @@ export class RateListeners {
 
             const activeProf = this.getActiveRateProfile();
             if (activeProf) {
-                activeProf.rates = JSON.parse(JSON.stringify(this.rates));
+                activeProf.rates = this.ratesForProfile();
                 this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
             }
             this.saveToStorage(STORAGE_KEYS.rates, this.rates);
@@ -75,8 +75,12 @@ export class RateListeners {
         // Stage 1: Next & Edit & Enter key
         document.getElementById('rateStage1NextBtn')?.addEventListener('click', () => {
             const nameEl = document.getElementById('masterProfileName');
+            const isNewCard = !document.getElementById('editingRateProfileId')?.value;
             if (nameEl && !nameEl.value.trim()) {
-                nameEl.value = 'Standard 6.5" Rate';
+                // A new card gets a unique name instead of copying "Standard 6.5" Rate"
+                nameEl.value = isNewCard
+                    ? `Rate Card ${this.rateProfiles.length + 1}`
+                    : 'Standard 6.5" Rate';
             }
             this.setRateStudioStage(2);
             setTimeout(() => document.getElementById('masterBaseRate')?.focus(), 120);
@@ -147,17 +151,17 @@ export class RateListeners {
                 modeBadge.classList.add('new-mode');
             }
 
-            // Start New Rate Card with Row 1 (Base Slab) ready for step-by-step building
-            this.baseSlabConfirmed = false;
-            const curSpan = this.rates.slabRates?.[0]?.span || 300;
+            // Start the new card from the standard slab ladder, moved to the current base rate
+            // (e.g. base ₹110 → 110 / 120 / 140 …). Rows can then be edited, removed or added.
             const curBaseRate = this.rates.baseDrillingRate || 90;
-            this.rates.slabRates = [{
-                start: 1,
-                end: curSpan,
-                span: curSpan,
-                rangeStr: `001-${curSpan} ft`,
-                rate: curBaseRate
-            }];
+            const shift = curBaseRate - DEPTH_SLABS_DEFINITION[0].defaultRate;
+            this.rates.slabRates = DEPTH_SLABS_DEFINITION.map(s => ({
+                start: s.start,
+                end: s.end,
+                span: s.span,
+                rangeStr: s.rangeStr,
+                rate: Math.max(1, s.defaultRate + shift)
+            }));
 
             this.renderMasterSlabsGrid();
             this.setRateStudioStage(1);
