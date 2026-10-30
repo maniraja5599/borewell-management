@@ -112,7 +112,7 @@ function writeLocal(app, local, changed) {
     run(() => app.renderCustomerSiteSuggestions());
     run(() => app.renderSavedExtrasUI({ showDropdown: false }));
     run(() => app.renderSavedNotesUI());
-    run(() => app.syncAutoBillNumber());
+    run(() => app.syncAutoBillNumber(true)); // counters may have changed on another phone
     run(() => app.calculateAndRender());
 }
 
