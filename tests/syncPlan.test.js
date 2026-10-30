@@ -158,6 +158,28 @@ describe('default detection ignores field order', () => {
     });
 });
 
+describe('choosing the Standard rate card is a real choice, not a default', () => {
+    // The Standard card has exactly the default rates; the live rates carry its profileId.
+    const defaults = { rates: { baseDrillingRate: 90, slabRates: [{ start: 1, rate: 90 }] } };
+    const standard = { ...defaults.rates, profileId: 'rp_standard' };
+    const otherCard = { baseDrillingRate: 110, slabRates: [{ start: 1, rate: 110 }], profileId: 'rp_123' };
+
+    it('is uploaded after switching back from another card', () => {
+        const phone = { settings: { rates: standard } };
+        const hashes = { 'setting:rates': indexLocal({ settings: { rates: otherCard } }).get('setting:rates').hash };
+        expect(planPush(indexLocal(phone), hashes, defaults)).toHaveLength(1);
+    });
+
+    it('is not replaced by the older card still in the cloud', () => {
+        const phone = { settings: { rates: standard } };
+        const oldHash = indexLocal({ settings: { rates: otherCard } }).get('setting:rates').hash;
+        const rows = [{ kind: 'setting', id: 'rates', data: otherCard }];
+        const plan = planPull(rows, indexLocal(phone), { 'setting:rates': oldHash }, { defaults });
+        expect(plan.apply).toHaveLength(0);
+        expect(plan.keepLocal).toBe(1);
+    });
+});
+
 describe('an unconfigured phone can never overwrite real company settings', () => {
     const defaults = { brand: { companyName: 'Your Borewell Company' }, rates: { baseDrillingRate: 90 } };
     const real = { companyName: 'SRI ANJANEYA BOREWELLS', phones: '9659657777' };

@@ -24,6 +24,12 @@ export class ShellMixin {
     }
 
     switchTab(tabId, persist = true, scroll = true) {
+        // Leaving Rates with the editor open: drop the unsaved draft first, so the
+        // brand save below never writes draft rates to storage (and the cloud).
+        if (tabId !== 'tab-rates' && this.isRateStudioOpen()) {
+            this.toggleRateStudio(false);
+            this.showToast('Rate changes not saved');
+        }
         this.syncBrandFromInputs(true);
         this.applyBrandToUI();
         document.querySelectorAll('.tab-panel').forEach(p => {

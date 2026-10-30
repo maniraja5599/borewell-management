@@ -11,14 +11,39 @@ export class RatesMixin {
         return this.rateProfiles.find(p => p.id === this.activeRateProfileId) || this.getDefaultRateProfile();
     }
 
+    /** Copy of the live rates to store inside a rate card (without the live-only profileId). */
+    ratesForProfile() {
+        const copy = JSON.parse(JSON.stringify(this.rates));
+        delete copy.profileId;
+        return copy;
+    }
+
     toggleRateStudio(forceOpen = null) {
         const studioCard = document.getElementById('rateEditorCard');
         if (!studioCard) return;
         const willOpen = forceOpen !== null ? forceOpen : (studioCard.style.display === 'none');
         studioCard.style.display = willOpen ? 'block' : 'none';
         if (willOpen) {
+            // The editor works on this.rates, which is also what the bill uses.
+            // Keep a copy so closing without saving puts the bill's rates back.
+            if (!this.ratesBeforeStudio) {
+                this.ratesBeforeStudio = JSON.parse(JSON.stringify(this.rates));
+            }
             setTimeout(() => studioCard.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+        } else if (this.ratesBeforeStudio) {
+            this.rates = this.ratesBeforeStudio;
+            this.ratesBeforeStudio = null;
+            const baseInput = document.getElementById('baseDrillingRate');
+            if (baseInput) baseInput.value = this.rates.baseDrillingRate;
+            this.populateRateInputsUI(this.getActiveRateProfile());
+            this.renderMasterSlabsGrid();
+            this.calculateAndRender();
         }
+    }
+
+    isRateStudioOpen() {
+        const studioCard = document.getElementById('rateEditorCard');
+        return Boolean(studioCard && studioCard.style.display !== 'none');
     }
 
     renderRateProfilesUI() {
@@ -109,10 +134,21 @@ export class RatesMixin {
                         <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" data-applybtn="${p.id}" title="${isActive ? 'Applied in Bill' : 'Apply Rate to Bill'}">
                             ${isActive ? '✓ Applied' : 'Apply'}
                         </button>
+                        ${this.rateProfiles.length > 1
+                            ? `<button type="button" class="rcr-del-btn" data-delbtn="${p.id}" title="Delete Rate" aria-label="Delete ${this.escapeHtml(p.name)}"><i data-lucide="trash-2" class="icon-xs"></i></button>`
+                            : ''}
                     </div>
                 </div>
             `;
         }).join('');
+        this.refreshIcons();
+
+        listEl.querySelectorAll('.rcr-del-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteRateProfile(btn.dataset.delbtn);
+            });
+        });
 
         listEl.querySelectorAll('.rcr-default-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -193,7 +229,7 @@ export class RatesMixin {
                 <div class="cbc-clean-rows">
                     <div class="cbc-row">
                         <span class="cbc-r-lbl">⛏️ Base Drilling Rate (${baseRangeText})</span>
-                        <span class="cbc-r-val text-brand" style="font-size:0.9rem;">₹${r.baseDrillingRate}/ft</span>
+                        <span class="cbc-r-val text-brand" style="font-size: var(--fs-lg);">₹${r.baseDrillingRate}/ft</span>
                     </div>
                     <div class="cbc-row">
                         <span class="cbc-r-lbl">🟦 7" Casing Pipe Rate</span>
@@ -293,53 +329,58 @@ export class RatesMixin {
         });
 
         document.getElementById('rdmFootDeleteBtn')?.addEventListener('click', () => {
-            if (this.rateProfiles.length <= 1) return;
-            const targetId = p.id;
-            const origIdx = this.rateProfiles.findIndex(x => x.id === targetId);
-            if (origIdx === -1) return;
-            const deletedProf = JSON.parse(JSON.stringify(this.rateProfiles[origIdx]));
-            const wasActive = (this.activeRateProfileId === targetId);
-
-            this.closeRateDetailModal();
-            this.confirmDeleteModal({
-                title: 'Delete Rate Card?',
-                itemLabel: `#${origIdx + 1} ${deletedProf.name} (Base ₹${deletedProf.rates?.baseDrillingRate || 90}/ft)`,
-                message: 'Are you sure you want to delete this saved Rate?',
-                onConfirm: () => {
-                    this.rateProfiles = this.rateProfiles.filter(x => x.id !== targetId);
-                    if (deletedProf.isDefault && this.rateProfiles.length > 0) {
-                        this.rateProfiles[0].isDefault = true;
-                    }
-                    if (wasActive) {
-                        const fallback = this.getDefaultRateProfile();
-                        if (fallback) this.applyRateProfileToBill(fallback.id, false);
-                    }
-                    this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
-                    this.renderRateProfilesUI();
-                    this.applyBrandToUI();
-
-                    this.showUndoToast(`🗑️ Deleted Rate "${deletedProf.name}"`, () => {
-                        if (!this.rateProfiles.some(x => x.id === deletedProf.id)) {
-                            if (deletedProf.isDefault) {
-                                this.rateProfiles.forEach(pr => { pr.isDefault = false; });
-                            }
-                            const insertAt = Math.min(origIdx, this.rateProfiles.length);
-                            this.rateProfiles.splice(insertAt, 0, deletedProf);
-                            this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
-                            if (wasActive) {
-                                this.applyRateProfileToBill(deletedProf.id, false);
-                            } else {
-                                this.renderRateProfilesUI();
-                            }
-                            this.applyBrandToUI();
-                        }
-                    });
-                }
-            });
+            this.deleteRateProfile(p.id);
         });
 
         overlay.style.display = 'flex';
         this.refreshIcons();
+    }
+
+    /** Ask, then delete a rate card (with Undo). Used by the list row and the detail popup. */
+    deleteRateProfile(profileId) {
+        if (this.rateProfiles.length <= 1) return;
+        const targetId = profileId;
+        const origIdx = this.rateProfiles.findIndex(x => x.id === targetId);
+        if (origIdx === -1) return;
+        const deletedProf = JSON.parse(JSON.stringify(this.rateProfiles[origIdx]));
+        const wasActive = (this.activeRateProfileId === targetId);
+
+        this.closeRateDetailModal();
+        this.confirmDeleteModal({
+            title: 'Delete Rate Card?',
+            itemLabel: `#${origIdx + 1} ${deletedProf.name} (Base ₹${deletedProf.rates?.baseDrillingRate || 90}/ft)`,
+            message: 'Are you sure you want to delete this saved Rate?',
+            onConfirm: () => {
+                this.rateProfiles = this.rateProfiles.filter(x => x.id !== targetId);
+                if (deletedProf.isDefault && this.rateProfiles.length > 0) {
+                    this.rateProfiles[0].isDefault = true;
+                }
+                if (wasActive) {
+                    const fallback = this.getDefaultRateProfile();
+                    if (fallback) this.applyRateProfileToBill(fallback.id, false);
+                }
+                this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
+                this.renderRateProfilesUI();
+                this.applyBrandToUI();
+
+                this.showUndoToast(`🗑️ Deleted Rate "${deletedProf.name}"`, () => {
+                    if (!this.rateProfiles.some(x => x.id === deletedProf.id)) {
+                        if (deletedProf.isDefault) {
+                            this.rateProfiles.forEach(pr => { pr.isDefault = false; });
+                        }
+                        const insertAt = Math.min(origIdx, this.rateProfiles.length);
+                        this.rateProfiles.splice(insertAt, 0, deletedProf);
+                        this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
+                        if (wasActive) {
+                            this.applyRateProfileToBill(deletedProf.id, false);
+                        } else {
+                            this.renderRateProfilesUI();
+                        }
+                        this.applyBrandToUI();
+                    }
+                });
+            }
+        });
     }
 
     closeRateDetailModal() {
@@ -433,10 +474,9 @@ export class RatesMixin {
         if (s4Card) {
             s4Card.style.display = (stage === 4) ? 'block' : 'none';
             if (stage === 4) {
-                // If editing an existing profile with multiple slabs or previously confirmed base slab, show subsequent builder
-                const hasMultipleSlabs = Array.isArray(this.rates.slabRates) && this.rates.slabRates.length > 1;
-                const isConfirmed = Boolean(this.baseSlabConfirmed || hasMultipleSlabs);
-                this.revealStage4SubsequentSlabs(isConfirmed);
+                // Always show the slab ladder (rows, + Step, Add Next, Auto-Fill). It used to stay
+                // hidden for a new card until a base-span pill was tapped, so cards got saved with 1 slab.
+                this.revealStage4SubsequentSlabs(true);
                 this.renderMasterSlabsGrid();
             }
         }
@@ -463,9 +503,14 @@ export class RatesMixin {
         const prof = this.rateProfiles.find(p => p.id === profileId) || this.getDefaultRateProfile();
         if (!prof) return;
 
+        // Applying a card ends any unsaved edit, otherwise closing the editor later
+        // would put the old rates back over the card just applied.
+        if (this.isRateStudioOpen()) this.toggleRateStudio(false);
+
         this.activeRateProfileId = prof.id;
         this.state.activeRateProfileId = prof.id;
         this.rates = JSON.parse(JSON.stringify(prof.rates));
+        this.rates.profileId = prof.id;
         if (this.rates.boreBataRate === undefined || this.rates.boreBataRate === null) {
             this.rates.boreBataRate = 2000;
         }
@@ -577,7 +622,7 @@ export class RatesMixin {
 
         if (targetProfile) {
             targetProfile.name = profileName;
-            targetProfile.rates = JSON.parse(JSON.stringify(this.rates));
+            targetProfile.rates = this.ratesForProfile();
             if (isDefChecked) {
                 this.rateProfiles.forEach(p => { p.isDefault = (p.id === targetProfile.id); });
             }
@@ -592,7 +637,7 @@ export class RatesMixin {
                     ? `${profileName} (₹${this.rates.baseDrillingRate})`
                     : profileName,
                 isDefault: isDefChecked || this.rateProfiles.length === 0,
-                rates: JSON.parse(JSON.stringify(this.rates))
+                rates: this.ratesForProfile()
             };
             this.rateProfiles.push(targetProfile);
         }
@@ -602,6 +647,7 @@ export class RatesMixin {
         }
 
         this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
+        this.ratesBeforeStudio = null; // saved: nothing to put back
         this.toggleRateStudio(false);
         this.applyRateProfileToBill(targetProfile.id, false);
         window.scrollTo({ top: 0, behavior: 'smooth' });

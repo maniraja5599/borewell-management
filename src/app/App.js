@@ -208,6 +208,10 @@ export class BoreBillSaaSApp {
         const activeProf = this.rateProfiles.find(p => p.id === this.activeRateProfileId) || defaultProfile;
         this.activeRateProfileId = activeProf.id;
         this.rates = JSON.parse(JSON.stringify(activeProf.rates));
+        // Live rates remember which card they came from. That travels with them through
+        // cloud sync, so every phone shows the right "Applied" card, and the Standard card
+        // is never mistaken for untouched default settings (which sync refuses to upload).
+        this.rates.profileId = activeProf.id;
         if (this.rates.boreBataRate === undefined || this.rates.boreBataRate === null) {
             this.rates.boreBataRate = 2000;
         }
