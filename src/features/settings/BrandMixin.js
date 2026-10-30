@@ -57,9 +57,9 @@ export class BrandMixin {
         const in2 = document.getElementById('inlineCasing2NameInput');
         if (in2 && document.activeElement !== in2) in2.value = c2;
         const inR1 = document.getElementById('inlineCasing1RateInput');
-        if (inR1 && document.activeElement !== inR1) inR1.value = this.rates.pvc7Rate || 400;
+        if (inR1 && document.activeElement !== inR1) inR1.value = this.liveRates().pvc7Rate || 400;
         const inR2 = document.getElementById('inlineCasing2RateInput');
-        if (inR2 && document.activeElement !== inR2) inR2.value = this.rates.pvc10Rate || 700;
+        if (inR2 && document.activeElement !== inR2) inR2.value = this.liveRates().pvc10Rate || 700;
 
         // Company edit studio inputs
         const b1 = document.getElementById('brandCasing1Name');
@@ -67,9 +67,9 @@ export class BrandMixin {
         const b2 = document.getElementById('brandCasing2Name');
         if (b2 && document.activeElement !== b2) b2.value = c2;
         const bR1 = document.getElementById('brandCasing1Rate');
-        if (bR1 && document.activeElement !== bR1) bR1.value = this.rates.pvc7Rate || 400;
+        if (bR1 && document.activeElement !== bR1) bR1.value = this.liveRates().pvc7Rate || 400;
         const bR2 = document.getElementById('brandCasing2Rate');
-        if (bR2 && document.activeElement !== bR2) bR2.value = this.rates.pvc10Rate || 700;
+        if (bR2 && document.activeElement !== bR2) bR2.value = this.liveRates().pvc10Rate || 700;
 
         // Settings View 2 inputs
         const s1 = document.getElementById('setCasing1Name');
@@ -77,26 +77,34 @@ export class BrandMixin {
         const s2 = document.getElementById('setCasing2Name');
         if (s2 && document.activeElement !== s2) s2.value = c2;
         const sR1 = document.getElementById('setCasing1Rate');
-        if (sR1 && document.activeElement !== sR1) sR1.value = this.rates.pvc7Rate || 400;
+        if (sR1 && document.activeElement !== sR1) sR1.value = this.liveRates().pvc7Rate || 400;
         const sR2 = document.getElementById('setCasing2Rate');
-        if (sR2 && document.activeElement !== sR2) sR2.value = this.rates.pvc10Rate || 700;
+        if (sR2 && document.activeElement !== sR2) sR2.value = this.liveRates().pvc10Rate || 700;
     }
 
     applyCasingSettings(p1Name, p1Rate, p2Name, p2Rate) {
         if (p1Name) this.brand.casing1Name = p1Name.trim();
         if (p2Name) this.brand.casing2Name = p2Name.trim();
-        if (p1Rate !== undefined && !isNaN(p1Rate) && p1Rate > 0) {
-            this.rates.pvc7Rate = p1Rate;
-            const r1Inp = document.getElementById('pvc7RateInput');
-            if (r1Inp) r1Inp.value = p1Rate;
-        }
-        if (p2Rate !== undefined && !isNaN(p2Rate) && p2Rate > 0) {
-            this.rates.pvc10Rate = p2Rate;
-            const r2Inp = document.getElementById('pvc10RateInput');
-            if (r2Inp) r2Inp.value = p2Rate;
-        }
+        // Default pipe rates belong to the company: the live rates and the applied rate card.
+        // A saved bill that is open keeps the prices it was billed at.
+        const live = this.liveRates();
+        const card = this.getActiveRateProfile?.();
+        const editingSavedBill = Boolean(this.ratesBeforeBillEdit);
+        const setRate = (key, val, inputId) => {
+            if (val === undefined || isNaN(val) || val <= 0) return;
+            live[key] = val;
+            if (card?.rates) card.rates[key] = val;
+            if (!editingSavedBill) {
+                const inp = document.getElementById(inputId);
+                if (inp) inp.value = val;
+            }
+        };
+        setRate('pvc7Rate', p1Rate, 'pvc7RateInput');
+        setRate('pvc10Rate', p2Rate, 'pvc10RateInput');
         this.saveToStorage(STORAGE_KEYS.brand, this.brand);
-        this.saveToStorage(STORAGE_KEYS.rates, this.rates);
+        this.saveToStorage(STORAGE_KEYS.rates, live);
+        if (card) this.saveToStorage(STORAGE_KEYS.rateProfiles, this.rateProfiles);
+        this.renderRateProfilesUI?.();
         this.syncCasingNamesUI();
         this.calculateAndRender();
     }
@@ -138,18 +146,9 @@ export class BrandMixin {
         if (casing2El && casing2El.value.trim()) {
             this.brand.casing2Name = casing2El.value.trim();
         }
-        const casing1RateEl = document.getElementById('setCasing1Rate') || document.getElementById('brandCasing1Rate');
-        if (casing1RateEl && parseFloat(casing1RateEl.value) > 0) {
-            this.rates.pvc7Rate = parseFloat(casing1RateEl.value);
-            const r1Inp = document.getElementById('pvc7RateInput');
-            if (r1Inp) r1Inp.value = this.rates.pvc7Rate;
-        }
-        const casing2RateEl = document.getElementById('setCasing2Rate') || document.getElementById('brandCasing2Rate');
-        if (casing2RateEl && parseFloat(casing2RateEl.value) > 0) {
-            this.rates.pvc10Rate = parseFloat(casing2RateEl.value);
-            const r2Inp = document.getElementById('pvc10RateInput');
-            if (r2Inp) r2Inp.value = this.rates.pvc10Rate;
-        }
+        // Pipe rates are saved only by the casing "Save" buttons (applyCasingSettings).
+        // Reading them here on every tab switch let a stale settings field overwrite
+        // the bill's rates (and an open saved bill's prices).
 
         if (saveStorage) {
             this.saveToStorage(STORAGE_KEYS.brand, this.brand);

@@ -1,5 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
+import { ratesForSnapshot } from '../../core/billRates.js';
 
 export class HistoryMixin {
     saveCurrentBillToHistory() {
@@ -102,6 +103,7 @@ export class HistoryMixin {
                 const existingItem = this.history[idx];
                 const existingPayments = Array.isArray(existingItem.payments) ? [...existingItem.payments] : [];
                 const snapCopy = JSON.parse(JSON.stringify(res));
+                snapCopy.rates = ratesForSnapshot(this.rates);
 
                 if (existingPayments.length === 0 && (snapCopy.advancePaidAmount || 0) > 0) {
                     existingPayments.push({
@@ -177,7 +179,7 @@ export class HistoryMixin {
             custLocation: cLoc,
             custGst: res.gstEnabled ? cGst : '',
             payments: initialPayments,
-            snapshot: JSON.parse(JSON.stringify(res))
+            snapshot: { ...JSON.parse(JSON.stringify(res)), rates: ratesForSnapshot(this.rates) }
         };
         this.syncBillPaymentSnapshot(record);
 
@@ -613,6 +615,8 @@ export class HistoryMixin {
         if (!item) return;
         const s = item.snapshot;
 
+        // Show and edit the bill with the prices it was billed at, not today's rates.
+        this.useSavedBillRates(s);
         this.loadedHistoryBillId = item.id;
         this.isSavedBillReadOnly = Boolean(viewOnly);
 
@@ -769,6 +773,7 @@ export class HistoryMixin {
     }
 
     exitSavedBillMode(resetInputs = true) {
+        this.restoreLiveRates();
         this.loadedHistoryBillId = null;
         this.isSavedBillReadOnly = false;
         this.isBillPreviewOpen = false;

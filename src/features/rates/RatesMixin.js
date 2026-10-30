@@ -1,6 +1,7 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { DEPTH_SLABS_DEFINITION } from '../../config/constants.js';
 import { STORAGE_KEYS } from '../../data/storage.js';
+import { ratesForSavedBill } from '../../core/billRates.js';
 
 export class RatesMixin {
     getDefaultRateProfile() {
@@ -9,6 +10,30 @@ export class RatesMixin {
 
     getActiveRateProfile() {
         return this.rateProfiles.find(p => p.id === this.activeRateProfileId) || this.getDefaultRateProfile();
+    }
+
+    /** The company's live rates, even while a saved bill (with its own prices) is open. */
+    liveRates() {
+        return this.ratesBeforeBillEdit || this.rates;
+    }
+
+    /** Open a saved bill with the prices it was billed at; the live rates are kept aside. */
+    useSavedBillRates(snapshot) {
+        if (!this.ratesBeforeBillEdit) {
+            this.ratesBeforeBillEdit = JSON.parse(JSON.stringify(this.rates));
+        }
+        this.rates = ratesForSavedBill(snapshot, this.ratesBeforeBillEdit);
+    }
+
+    /** Leaving a saved bill: back to the live rates for new bills. */
+    restoreLiveRates() {
+        if (!this.ratesBeforeBillEdit) return;
+        this.rates = this.ratesBeforeBillEdit;
+        this.ratesBeforeBillEdit = null;
+        const baseInput = document.getElementById('baseDrillingRate');
+        if (baseInput) baseInput.value = this.rates.baseDrillingRate;
+        this.populateRateInputsUI(this.getActiveRateProfile());
+        this.renderMasterSlabsGrid();
     }
 
     /** Copy of the live rates to store inside a rate card (without the live-only profileId). */
@@ -506,6 +531,11 @@ export class RatesMixin {
         // Applying a card ends any unsaved edit, otherwise closing the editor later
         // would put the old rates back over the card just applied.
         if (this.isRateStudioOpen()) this.toggleRateStudio(false);
+        // Applying a card while a saved bill is open re-prices that bill with the card,
+        // and the card also becomes the live rate for new bills.
+        if (this.ratesBeforeBillEdit) {
+            this.ratesBeforeBillEdit = { ...JSON.parse(JSON.stringify(prof.rates)), profileId: prof.id };
+        }
 
         this.activeRateProfileId = prof.id;
         this.state.activeRateProfileId = prof.id;
