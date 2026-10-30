@@ -92,7 +92,14 @@ export class HistoryMixin {
         this.recordCurrentBillExtrasForNextTime();
         this.recordCurrentBillNoteForNextTime();
 
-        const currentBillNo = (document.getElementById('billNoInput')?.value || '').trim() || this.getNextAutoDocNumber(res.docType);
+        let currentBillNo = (document.getElementById('billNoInput')?.value || '').trim() || this.getNextAutoDocNumber(res.docType);
+        const setBillNo = (no) => {
+            currentBillNo = no;
+            const inp = document.getElementById('billNoInput');
+            if (inp) inp.value = no;
+            this.saveToStorage(STORAGE_KEYS.brand, this.brand);
+        };
+        let numberNote = '';
         const currentBillDate = document.getElementById('billDateInput')?.value || new Date().toISOString().split('T')[0];
         const postSaveBannerTitle = document.getElementById('postSaveBannerTitle');
 
@@ -101,6 +108,14 @@ export class HistoryMixin {
             const idx = this.history.findIndex(h => h.id === this.loadedHistoryBillId);
             if (idx !== -1) {
                 const existingItem = this.history[idx];
+                // Quotation → Final Bill (or back): the bill takes the next number of its new type,
+                // so Final Bills never carry a quotation number like AB-Q101.
+                const oldDocType = existingItem.snapshot?.docType || 'QUOTATION';
+                if (oldDocType !== res.docType) {
+                    const fromNo = existingItem.billNo;
+                    setBillNo(this.getNextAutoDocNumber(res.docType));
+                    numberNote = ` (was #${fromNo})`;
+                }
                 const existingPayments = Array.isArray(existingItem.payments) ? [...existingItem.payments] : [];
                 const snapCopy = JSON.parse(JSON.stringify(res));
                 snapCopy.rates = ratesForSnapshot(this.rates);
@@ -152,12 +167,18 @@ export class HistoryMixin {
                 this.calculateAndRender();
                 this.applyBrandToUI();
                 this.persistCurrentSession();
-                this.showToast(`✅ Updated Bill #${currentBillNo} (${cName}) — Ready to Share!`);
+                this.showToast(`✅ Updated Bill #${currentBillNo}${numberNote} (${cName}) — Ready to Share!`);
                 return;
             }
         }
 
         // 3. Normal New Bill / Quotation Save -> Save to Bill Book & unlock Share Options!
+        // Never save two bills with the same number (e.g. after the counter was set back).
+        if (this.history.some(h => h.billNo === currentBillNo)) {
+            const takenNo = currentBillNo;
+            setBillNo(this.getNextAutoDocNumber(res.docType));
+            numberNote = ` (#${takenNo} was already used)`;
+        }
         const newId = Date.now().toString();
         const initialPayments = [];
         if ((res.advancePaidAmount || 0) > 0) {
@@ -210,7 +231,7 @@ export class HistoryMixin {
         this.renderCustomerDirectory();
         this.applyBrandToUI();
         this.persistCurrentSession();
-        this.showToast(`💾 Saved #${currentBillNo} (${cName})! Share options unlocked below.`);
+        this.showToast(`💾 Saved #${currentBillNo}${numberNote} (${cName})! Share options unlocked below.`);
     }
 
     toLocalYMD(d) {
