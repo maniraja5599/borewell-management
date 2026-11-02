@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DrillRig — Owner Executive Dashboard (Operations & Collections)</title>
+    <link rel="icon" type="image/png" href="./drillrig_icon.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --brand-primary: #059669;
+            --brand-primary-dark: #047857;
+            --brand-primary-light: #10b981;
+            --brand-soft: #ecfdf5;
+            --brand-text: #064e3b;
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --danger: #ef4444;
+            --danger-soft: #fef2f2;
+            --danger-text: #991b1b;
+            --warning: #f59e0b;
+            --warning-soft: #fffbeb;
+            --warning-text: #92400e;
+            --info: #0284c7;
+            --info-soft: #f0f9ff;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Header Navigation */
+        .dash-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .header-inner {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--brand-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
+        }
+
+        .brand-info h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--brand-primary);
+            background: var(--brand-soft);
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-top: 2px;
+        }
+
+        .brand-badge .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--brand-primary);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.8; }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #0f172a;
+            color: #ffffff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+            border-color: var(--border-hover);
+        }
+
+        .btn-wa {
+            background: #25D366;
+            color: #ffffff;
+            border-color: #25D366;
+            box-shadow: 0 3px 10px rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-wa:hover {
+            background: #20ba5a;
+            transform: translateY(-1px);
+        }
+
+        /* Main Container */
+        .dash-container {
+            max-width: 1240px;
+            margin: 24px auto 0;
+            padding: 0 20px;
+        }
+
+        /* Controls Card */
+        .dash-controls-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .time-pill-group {
+            display: flex;
+            align-items: center;
+            background: #e8edf3;
+            padding: 4px;
+            border-radius: var(--radius-md);
+            gap: 4px;
+            overflow-x: auto;
+        }
+
+        .time-pill-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.16s ease;
+            white-space: nowrap;
+        }
+
+        .time-pill-btn:hover {
+            color: var(--text-main);
+        }
+
+        .time-pill-btn.active {
+            background: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+        }
+
+        .date-range-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.84rem;
+        }
+
+        .date-input {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-main);
+            outline: none;
+            background: #f8fafc;
+        }
+
+        .date-input:focus {
+            border-color: var(--brand-primary);
+            background: #ffffff;
+        }
+
+        .sample-toggle-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .switch-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .2s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--brand-primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* 4 Key KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kpi-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .kpi-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .kpi-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .icon-rig { background: #ecfdf5; color: #059669; }
+        .icon-cash { background: #f0fdf4; color: #16a34a; }
+        .icon-pipe { background: #fff7ed; color: #ea580c; }
+        .icon-arpf { background: #f0f9ff; color: #0284c7; }
+
+        .kpi-hero-val {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.1;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .kpi-sub-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px dashed var(--border-color);
+            padding-top: 10px;
+            margin-top: 8px;
+        }
+
+        .kpi-sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-sub-row strong {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .badge-pill-soft {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .badge-green { background: #ecfdf5; color: #047857; }
+        .badge-amber { background: #fffbeb; color: #b45309; }
+        .badge-red { background: #fef2f2; color: #b91c1c; }
+        .badge-blue { background: #eff6ff; color: #1d4ed8; }
+
+        /* Secondary Grid: Visual Progress & Highlights */
+        .visual-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .visual-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Progress bars */
+        .progress-block {
+            margin-bottom: 16px;
+        }
+
+        .pb-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .pb-track {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .pb-fill-cash {
+            background: #10b981;
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .pb-fill-due {
+            background: #f59e0b;
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        /* Depth distribution strip */
+        .depth-chips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .depth-chip {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .depth-chip-val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-top: 4px;
+        }
+
+        .depth-chip-lbl {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Quick Action Banner */
+        .owner-wa-cta-box {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            color: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+            box-shadow: 0 10px 24px rgba(4, 120, 87, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .cta-text h3 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .cta-text p {
+            font-size: 0.86rem;
+            opacity: 0.9;
+        }
+
+        /* Detailed Completed Bores Table */
+        .table-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .table-head-bar {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table.dash-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.84rem;
+        }
+
+        table.dash-table th {
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        table.dash-table td {
+            padding: 14px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-main);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        table.dash-table tr:hover td {
+            background: #fbfcfe;
+        }
+
+        .cust-cell-main {
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cust-cell-sub {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .status-paid { background: #dcfce7; color: #15803d; }
+        .status-unpaid { background: #fee2e2; color: #b91c1c; }
+        .status-partial { background: #fef3c7; color: #b45309; }
+
+        .action-icon-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+
+        .action-icon-btn:hover {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+
+        /* WhatsApp Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 520px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: modalPop 0.2s ease-out;
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-head h3 {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .wa-preview-text {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            max-height: 280px;
+            overflow-y: auto;
+            color: #1e293b;
+            line-height: 1.4;
+        }
+
+        .modal-foot {
+            padding: 14px 20px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Toast */
+        .toast-dash {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 1000;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            display: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .visual-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-inner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .dash-controls-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .owner-wa-cta-box {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .owner-wa-cta-box .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="header-inner">
+            <div class="brand-block">
+                <div class="brand-logo">
+                    <i data-lucide="drill" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div class="brand-info">
+                    <h1 id="rigCompanyName">DrillRig — Owner Dashboard</h1>
+                    <div class="brand-badge">
+                        <span class="pulse-dot"></span>
+                        <span id="rigPulseText">Live Rig Operations</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="./index.html" class="btn btn-outline">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                    <span>Full App</span>
+                </a>
+                <button type="button" class="btn btn-primary" id="openWhatsAppModalBtn">
+                    <i data-lucide="share-2" style="width: 16px; height: 16px;"></i>
+                    <span>WhatsApp Report</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dash-container">
+
+        <!-- Controls Bar -->
+        <div class="dash-controls-card">
+            <div class="time-pill-group" id="timePillGroup">
+                <button type="button" class="time-pill-btn active" data-range="today">Today</button>
+                <button type="button" class="time-pill-btn" data-range="yesterday">Yesterday</button>
+                <button type="button" class="time-pill-btn" data-range="this_week">This Week</button>
+                <button type="button" class="time-pill-btn" data-range="this_month">This Month</button>
+                <button type="button" class="time-pill-btn" data-range="all">All Time</button>
+                <button type="button" class="time-pill-btn" data-range="custom">Custom Range</button>
+            </div>
+
+            <div class="date-range-box" id="customDateRow" style="display: none;">
+                <input type="date" id="dashStartDate" class="date-input">
+                <span>to</span>
+                <input type="date" id="dashEndDate" class="date-input">
+                <button type="button" class="btn btn-primary" id="applyCustomDateBtn" style="padding: 6px 12px; font-size: 0.78rem;">Apply</button>
+            </div>
+
+            <div class="sample-toggle-box">
+                <span>Demo Rig Data:</span>
+                <label class="switch-toggle">
+                    <input type="checkbox" id="sampleDataSwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 4 Primary KPI Cards -->
+        <div class="kpi-grid">
+            <!-- 1. Production & Footage -->
+            <div class="kpi-card">
+                <div class="kpi-card-head">
+                    <span class="kpi-title">Drilling & Footage</span>
+                    <span class="kpi-icon-wrap icon-rig"><i data-lucide="hammer" style="width: 18px; height: 18px;"></i></span>
+                </div>
+                <div class="kpi-hero-val" id="kpiTotalFeet">0 ft</div>
+                <div class="kpi-sub-stats">
+                    <div class="kpi-sub-row">
+                        <span>Total Bores:</span>
+                        <strong id="kpiTotalBores">0 (0 Fresh / 0 Re)</strong>
+                    </div>
+                    <div class="kpi-sub-row">
+                        <span>Avg Depth / Bore:</span>
+                        <strong id="kpiAvgDepth">0 ft/bore</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Financial Collections (Cash vs Credit) -->
+            <div class="kpi-card">
+                <div class="kpi-card-head">
+                    <span class="kpi-title">Billing & Collections</span>
+                    <span class="kpi-icon-wrap icon-cash"><i data-lucide="indian-rupee" style="width: 18px; height: 18px;"></i></span>
+                </div>
+                <div class="kpi-hero-val" id="kpiTotalBilled">₹0</div>
+                <div class="kpi-sub-stats">
+                    <div class="kpi-sub-row">
+                        <span>Collected (Cash/UPI):</span>
+                        <strong style="color: #059669;" id="kpiCollected">₹0</strong>
+                    </div>
+                    <div class="kpi-sub-row">
+                        <span>Pending Balance (Dues):</span>
+                        <strong style="color: #dc2626;" id="kpiPendingDue">₹0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Casing Pipe Usage -->
+            <div class="kpi-card">
+                <div class="kpi-card-head">
+                    <span class="kpi-title">Casing Pipe Utilization</span>
+                    <span class="kpi-icon-wrap icon-pipe"><i data-lucide="cylinder" style="width: 18px; height: 18px;"></i></span>
+                </div>
+                <div class="kpi-hero-val" id="kpiTotalCasing">0 ft</div>
+                <div class="kpi-sub-stats">
+                    <div class="kpi-sub-row">
+                        <span>7" PVC Casing:</span>
+                        <strong id="kpiPvc7">0 ft</strong>
+                    </div>
+                    <div class="kpi-sub-row">
+                        <span>10" PVC Casing:</span>
+                        <strong id="kpiPvc10">0 ft</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Realized Yield & ARPF -->
+            <div class="kpi-card">
+                <div class="kpi-card-head">
+                    <span class="kpi-title">Realized Yield (ARPF)</span>
+                    <span class="kpi-icon-wrap icon-arpf"><i data-lucide="trending-up" style="width: 18px; height: 18px;"></i></span>
+                </div>
+                <div class="kpi-hero-val" id="kpiArpf">₹0 / ft</div>
+                <div class="kpi-sub-stats">
+                    <div class="kpi-sub-row">
+                        <span>Collection Recovery:</span>
+                        <span class="badge-pill-soft badge-green" id="kpiCollectionRate">0% Rec.</span>
+                    </div>
+                    <div class="kpi-sub-row">
+                        <span>Bore Bata & Extras:</span>
+                        <strong id="kpiBataCost">₹0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1-Tap WhatsApp CTA Strip -->
+        <div class="owner-wa-cta-box">
+            <div class="cta-text">
+                <h3>📱 Owner Daily Operations Report (1-Tap Share)</h3>
+                <p>Instant WhatsApp executive summary of today's drilling footage, pipe utilization, cash collected, and pending dues.</p>
+            </div>
+            <button type="button" class="btn btn-wa" id="oneTapWhatsAppQuickBtn">
+                <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
+                <span>Send Daily Report</span>
+            </button>
+        </div>
+
+        <!-- Visual Analytics Grid -->
+        <div class="visual-grid">
+            <!-- Left: Cash Collection Breakdown -->
+            <div class="visual-card">
+                <div class="section-header">
+                    <h3>
+                        <i data-lucide="pie-chart" style="width: 18px; height: 18px; color: var(--brand-primary);"></i>
+                        <span>Cash Recovery & Collection Pulse</span>
+                    </h3>
+                </div>
+
+                <div class="progress-block">
+                    <div class="pb-labels">
+                        <span style="color: #059669;">Collected: <strong id="progCashLabel">₹0 (0%)</strong></span>
+                        <span style="color: #d97706;">Pending Due: <strong id="progDueLabel">₹0 (0%)</strong></span>
+                    </div>
+                    <div class="pb-track">
+                        <div class="pb-fill-cash" id="progCashBar" style="width: 0%;"></div>
+                        <div class="pb-fill-due" id="progDueBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="depth-chips">
+                    <div class="depth-chip">
+                        <div class="depth-chip-lbl">Shallow Depth (&lt;300 ft)</div>
+                        <div class="depth-chip-val" id="depthShallowCount">0</div>
+                    </div>
+                    <div class="depth-chip">
+                        <div class="depth-chip-lbl">Medium Depth (300-500 ft)</div>
+                        <div class="depth-chip-val" id="depthMediumCount">0</div>
+                    </div>
+                    <div class="depth-chip">
+                        <div class="depth-chip-lbl">Deep Bores (&gt;500 ft)</div>
+                        <div class="depth-chip-val" id="depthDeepCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Quick Summary Highlights -->
+            <div class="visual-card">
+                <div class="section-header">
+                    <h3>
+                        <i data-lucide="map-pin" style="width: 18px; height: 18px; color: #ea580c;"></i>
+                        <span>Top Drilling Locations</span>
+                    </h3>
+                </div>
+                <div id="topVillagesList" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 0.82rem; color: var(--text-muted); text-align: center; padding: 20px 0;">
+                        No sites recorded for this period
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Bores Table -->
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="section-header" style="margin-bottom: 0;">
+                    <h3>
+                        <i data-lucide="clipboard-list" style="width: 18px; height: 18px; color: var(--brand-primary);"></i>
+                        <span>Completed Bores & Jobs Ledger</span>
+                    </h3>
+                </div>
+                <button type="button" class="btn btn-outline" onclick="window.print()" style="font-size: 0.8rem; padding: 6px 12px;">
+                    <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+                    <span>Print</span>
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="dash-table">
+                    <thead>
+                        <tr>
+                            <th>Date / Bill #</th>
+                            <th>Customer & Location</th>
+                            <th>Type</th>
+                            <th>Depth (ft)</th>
+                            <th>Casing Pipe</th>
+                            <th>Total Bill</th>
+                            <th>Collected</th>
+                            <th>Pending Due</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="boresTableBody">
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                                Loading bore records...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- WhatsApp Report Modal -->
+    <div class="modal-overlay" id="whatsAppModal">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>📱 WhatsApp Owner Daily Summary Preview</h3>
+                <button type="button" id="closeModalBtn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px;">
+                    The following executive operations summary will be copied and shared directly via WhatsApp:
+                </p>
+                <div class="wa-preview-text" id="waPreviewContent"></div>
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-outline" id="copyWaTextBtn">
+                    <i data-lucide="copy" style="width: 15px; height: 15px;"></i>
+                    <span>Copy Text</span>
+                </button>
+                <a href="#" target="_blank" class="btn btn-wa" id="sendWaDirectLink">
+                    <i data-lucide="send" style="width: 15px; height: 15px;"></i>
+                    <span>Open WhatsApp</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="dashToast" class="toast-dash"></div>
+
+    <script type="module">
+        // Demo Realistic Dataset for Borewell Rig Owners
+        const DEMO_BILLS = [
+            {
+                id: 'demo_101',
+                billNo: 'INV-101',
+                billDate: new Date().toISOString().split('T')[0],
+                custName: 'Selvam (Farmer)',
+                custPhone: '9842712345',
+                custLocation: 'Namakkal - Mohanur Rd',
+                payments: [{ amount: 150000, mode: 'UPI' }],
+                snapshot: {
+                    docType: 'INVOICE',
+                    drillingType: 'new',
+                    totalDepth: 550,
+                    pvc7Length: 80,
+                    pvc10Length: 20,
+                    grandTotal: 175000,
+                    advancePaidAmount: 150000,
+                    boreBataCost: 2000
+                }
+            },
+            {
+                id: 'demo_102',
+                billNo: 'INV-102',
+                billDate: new Date().toISOString().split('T')[0],
+                custName: 'Kandasamy (Landowner)',
+                custPhone: '9443298765',
+                custLocation: 'Rasipuram - Pudupatti',
+                payments: [{ amount: 90000, mode: 'Cash' }],
+                snapshot: {
+                    docType: 'INVOICE',
+                    drillingType: 'new',
+                    totalDepth: 400,
+                    pvc7Length: 60,
+                    pvc10Length: 20,
+                    grandTotal: 120400,
+                    advancePaidAmount: 90000,
+                    boreBataCost: 2000
+                }
+            },
+            {
+                id: 'demo_103',
+                billNo: 'INV-103',
+                billDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                custName: 'Murugesan (Factory)',
+                custPhone: '9843355678',
+                custLocation: 'Tiruchengode - Mallasamudram',
+                payments: [{ amount: 180000, mode: 'Bank' }],
+                snapshot: {
+                    docType: 'INVOICE',
+                    drillingType: 'new',
+                    totalDepth: 650,
+                    pvc7Length: 120,
+                    pvc10Length: 40,
+                    grandTotal: 215000,
+                    advancePaidAmount: 180000,
+                    boreBataCost: 2000
+                }
+            },
+            {
+                id: 'demo_104',
+                billNo: 'INV-104',
+                billDate: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
+                custName: 'Palanivel (Farm Bore)',
+                custPhone: '9788123456',
+                custLocation: 'Paramathi Velur',
+                payments: [{ amount: 45000, mode: 'Cash' }],
+                snapshot: {
+                    docType: 'INVOICE',
+                    drillingType: 'repair',
+                    totalDepth: 380,
+                    oldBoreDepth: 200,
+                    pvc7Length: 40,
+                    pvc10Length: 0,
+                    grandTotal: 58000,
+                    advancePaidAmount: 45000,
+                    boreBataCost: 2000
+                }
+            },
+            {
+                id: 'demo_105',
+                billNo: 'INV-105',
+                billDate: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0],
+                custName: 'Chinnathambi (Commercial)',
+                custPhone: '9944881122',
+                custLocation: 'Sendamangalam',
+                payments: [{ amount: 160000, mode: 'UPI' }],
+                snapshot: {
+                    docType: 'INVOICE',
+                    drillingType: 'new',
+                    totalDepth: 520,
+                    pvc7Length: 80,
+                    pvc10Length: 10,
+                    grandTotal: 160000,
+                    advancePaidAmount: 160000,
+                    boreBataCost: 2000
+                }
+            }
+        ];
+
+        let activeDateRange = 'today';
+        let useSampleData = false;
+        let currentFilteredBills = [];
+
+        // App Init
+        function initDashboard() {
+            lucide.createIcons();
+            loadBrandProfile();
+            bindEvents();
+            refreshDashboard();
+        }
+
+        function loadBrandProfile() {
+            try {
+                const brandRaw = localStorage.getItem('borebill_brand');
+                if (brandRaw) {
+                    const brand = JSON.parse(brandRaw);
+                    if (brand.companyName) {
+                        document.getElementById('rigCompanyName').textContent = `${brand.companyName} — Owner Dashboard`;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        function bindEvents() {
+            // Time range pill clicks
+            document.querySelectorAll('#timePillGroup .time-pill-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#timePillGroup .time-pill-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeDateRange = btn.dataset.range;
+
+                    const customBox = document.getElementById('customDateRow');
+                    if (activeDateRange === 'custom') {
+                        customBox.style.display = 'flex';
+                    } else {
+                        customBox.style.display = 'none';
+                        refreshDashboard();
+                    }
+                });
+            });
+
+            document.getElementById('applyCustomDateBtn')?.addEventListener('click', () => {
+                refreshDashboard();
+            });
+
+            // Sample data toggle
+            const sampleSwitch = document.getElementById('sampleDataSwitch');
+            sampleSwitch.addEventListener('change', (e) => {
+                useSampleData = e.target.checked;
+                showToast(useSampleData ? '💡 Showing Demo Rig Data' : '📁 Switched to Your Real Bill Data');
+                refreshDashboard();
+            });
+
+            // WhatsApp Modal Events
+            document.getElementById('openWhatsAppModalBtn')?.addEventListener('click', openWhatsAppModal);
+            document.getElementById('oneTapWhatsAppQuickBtn')?.addEventListener('click', openWhatsAppModal);
+            document.getElementById('closeModalBtn')?.addEventListener('click', closeWhatsAppModal);
+            document.getElementById('whatsAppModal')?.addEventListener('click', (e) => {
+                if (e.target.id === 'whatsAppModal') closeWhatsAppModal();
+            });
+
+            document.getElementById('copyWaTextBtn')?.addEventListener('click', copyWhatsAppText);
+        }
+
+        function getDataSource() {
+            if (useSampleData) return DEMO_BILLS;
+            try {
+                const raw = localStorage.getItem('borebill_history');
+                const bills = raw ? JSON.parse(raw) : [];
+                if (bills.length === 0) {
+                    // Automatically turn on sample switch if local bills are empty so owner sees a live demo
+                    const s = document.getElementById('sampleDataSwitch');
+                    if (s && !s.checked) {
+                        s.checked = true;
+                        useSampleData = true;
+                        showToast('ℹ️ Real bills empty — loaded demo rig data for instant preview');
+                        return DEMO_BILLS;
+                    }
+                }
+                return bills;
+            } catch (e) {
+                return DEMO_BILLS;
+            }
+        }
+
+        function filterBillsByDate(allBills) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const now = new Date();
+
+            return allBills.filter(b => {
+                const bDate = b.billDate || b.createdAt?.split('T')[0] || todayStr;
+                const d = new Date(bDate);
+
+                if (activeDateRange === 'today') {
+                    return bDate === todayStr;
+                } else if (activeDateRange === 'yesterday') {
+                    const yest = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
+                    return bDate === yest;
+                } else if (activeDateRange === 'this_week') {
+                    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
+                    return d >= sevenDaysAgo && d <= now;
+                } else if (activeDateRange === 'this_month') {
+                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+                } else if (activeDateRange === 'custom') {
+                    const start = document.getElementById('dashStartDate').value;
+                    const end = document.getElementById('dashEndDate').value;
+                    if (!start || !end) return true;
+                    return bDate >= start && bDate <= end;
+                }
+                return true; // 'all'
+            });
+        }
+
+        function refreshDashboard() {
+            const allBills = getDataSource();
+            // Filter to invoices only
+            const invoicesOnly = allBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE');
+            const filtered = filterBillsByDate(invoicesOnly);
+            currentFilteredBills = filtered;
+
+            renderKPIs(filtered);
+            renderVisualBars(filtered);
+            renderTable(filtered);
+            lucide.createIcons();
+        }
+
+        function renderKPIs(bills) {
+            let totalFeet = 0;
+            let freshBores = 0;
+            let repairBores = 0;
+            let totalBilled = 0;
+            let totalCollected = 0;
+            let totalPendingDue = 0;
+            let pvc7Feet = 0;
+            let pvc10Feet = 0;
+            let totalBata = 0;
+
+            bills.forEach(b => {
+                const snap = b.snapshot || {};
+                const depth = Number(snap.totalDepth) || 0;
+                totalFeet += depth;
+
+                if (snap.drillingType === 'repair') {
+                    repairBores++;
+                } else {
+                    freshBores++;
+                }
+
+                pvc7Feet += (Number(snap.pvc7Length) || 0);
+                pvc10Feet += (Number(snap.pvc10Length) || 0);
+                totalBata += (Number(snap.boreBataCost) || 0);
+
+                const grand = Math.round(Number(snap.grandTotal) || 0);
+                totalBilled += grand;
+
+                let paid = 0;
+                if (Array.isArray(b.payments)) {
+                    paid = b.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                } else if (snap.advancePaidAmount) {
+                    paid = Number(snap.advancePaidAmount) || 0;
+                }
+                totalCollected += paid;
+            });
+
+            totalPendingDue = Math.max(0, totalBilled - totalCollected);
+            const totalBores = freshBores + repairBores;
+            const avgDepth = totalBores > 0 ? Math.round(totalFeet / totalBores) : 0;
+            const arpf = totalFeet > 0 ? Math.round(totalBilled / totalFeet) : 0;
+            const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
+
+            // DOM Updates
+            document.getElementById('kpiTotalFeet').textContent = `${totalFeet.toLocaleString('en-IN')} ft`;
+            document.getElementById('kpiTotalBores').textContent = `${totalBores} (${freshBores} Fresh / ${repairBores} Re)`;
+            document.getElementById('kpiAvgDepth').textContent = `${avgDepth} ft/bore`;
+
+            document.getElementById('kpiTotalBilled').textContent = `₹${totalBilled.toLocaleString('en-IN')}`;
+            document.getElementById('kpiCollected').textContent = `₹${totalCollected.toLocaleString('en-IN')}`;
+            document.getElementById('kpiPendingDue').textContent = `₹${totalPendingDue.toLocaleString('en-IN')}`;
+
+            document.getElementById('kpiTotalCasing').textContent = `${(pvc7Feet + pvc10Feet).toLocaleString('en-IN')} ft`;
+            document.getElementById('kpiPvc7').textContent = `${pvc7Feet} ft`;
+            document.getElementById('kpiPvc10').textContent = `${pvc10Feet} ft`;
+
+            document.getElementById('kpiArpf').textContent = `₹${arpf} / ft`;
+            document.getElementById('kpiCollectionRate').textContent = `${collectionRate}% Rec.`;
+            document.getElementById('kpiBataCost').textContent = `₹${totalBata.toLocaleString('en-IN')}`;
+        }
+
+        function renderVisualBars(bills) {
+            let totalBilled = 0;
+            let totalCollected = 0;
+            let shallow = 0;
+            let medium = 0;
+            let deep = 0;
+            const villageMap = {};
+
+            bills.forEach(b => {
+                const snap = b.snapshot || {};
+                const grand = Number(snap.grandTotal) || 0;
+                totalBilled += grand;
+
+                let paid = 0;
+                if (Array.isArray(b.payments)) {
+                    paid = b.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                } else if (snap.advancePaidAmount) {
+                    paid = Number(snap.advancePaidAmount) || 0;
+                }
+                totalCollected += paid;
+
+                const depth = Number(snap.totalDepth) || 0;
+                if (depth < 300) shallow++;
+                else if (depth <= 500) medium++;
+                else deep++;
+
+                const loc = (b.custLocation || 'Unknown Site').trim();
+                villageMap[loc] = (villageMap[loc] || 0) + depth;
+            });
+
+            const totalPending = Math.max(0, totalBilled - totalCollected);
+            const cashPct = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
+            const duePct = totalBilled > 0 ? (100 - cashPct) : 0;
+
+            document.getElementById('progCashLabel').textContent = `₹${totalCollected.toLocaleString('en-IN')} (${cashPct}%)`;
+            document.getElementById('progDueLabel').textContent = `₹${totalPending.toLocaleString('en-IN')} (${duePct}%)`;
+            document.getElementById('progCashBar').style.width = `${cashPct}%`;
+            document.getElementById('progDueBar').style.width = `${duePct}%`;
+
+            document.getElementById('depthShallowCount').textContent = shallow;
+            document.getElementById('depthMediumCount').textContent = medium;
+            document.getElementById('depthDeepCount').textContent = deep;
+
+            // Render top villages
+            const topList = document.getElementById('topVillagesList');
+            const sortedLocs = Object.entries(villageMap).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+            if (sortedLocs.length === 0) {
+                topList.innerHTML = `<div style="font-size: 0.82rem; color: var(--text-muted); text-align: center; padding: 20px 0;">No active locations found</div>`;
+            } else {
+                topList.innerHTML = sortedLocs.map(([loc, feet], i) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; font-size: 0.84rem;">
+                        <span style="font-weight: 700; color: var(--text-main);">${i + 1}. ${loc}</span>
+                        <strong style="color: var(--brand-primary);">${feet} ft</strong>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function renderTable(bills) {
+            const tbody = document.getElementById('boresTableBody');
+            if (bills.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 30px; color: var(--text-muted);">No bores recorded for this period</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = bills.map(b => {
+                const snap = b.snapshot || {};
+                const grand = Math.round(Number(snap.grandTotal) || 0);
+                let paid = 0;
+                if (Array.isArray(b.payments)) {
+                    paid = b.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+                } else if (snap.advancePaidAmount) {
+                    paid = Number(snap.advancePaidAmount) || 0;
+                }
+                const due = Math.max(0, grand - paid);
+                const isPaid = due === 0 && grand > 0;
+                const isPartial = paid > 0 && due > 0;
+                const statusHtml = isPaid
+                    ? `<span class="status-pill status-paid"><i data-lucide="check" style="width: 12px; height: 12px;"></i> Paid</span>`
+                    : (isPartial 
+                        ? `<span class="status-pill status-partial"><i data-lucide="clock" style="width: 12px; height: 12px;"></i> Partial</span>`
+                        : `<span class="status-pill status-unpaid"><i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i> Due</span>`);
+
+                const phoneClean = (b.custPhone || '').replace(/\D/g, '');
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${b.billNo || 'N/A'}</strong><br>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);">${b.billDate || 'Today'}</span>
+                        </td>
+                        <td>
+                            <div class="cust-cell-main">
+                                <span>${b.custName || 'Direct Customer'}</span>
+                                <span class="cust-cell-sub">${b.custLocation || 'Site N/A'}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-pill-soft ${snap.drillingType === 'repair' ? 'badge-amber' : 'badge-blue'}">
+                                ${snap.drillingType === 'repair' ? 'Re-bore' : 'Fresh'}
+                            </span>
+                        </td>
+                        <td><strong>${snap.totalDepth || 0} ft</strong></td>
+                        <td>${snap.pvc7Length || 0} ft (7")</td>
+                        <td><strong>₹${grand.toLocaleString('en-IN')}</strong></td>
+                        <td style="color: #059669; font-weight: 700;">₹${paid.toLocaleString('en-IN')}</td>
+                        <td style="color: #dc2626; font-weight: 700;">₹${due.toLocaleString('en-IN')}</td>
+                        <td>${statusHtml}</td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                ${phoneClean ? `
+                                    <a href="tel:${phoneClean}" class="action-icon-btn" title="Call Customer">
+                                        <i data-lucide="phone" style="width: 14px; height: 14px;"></i>
+                                    </a>
+                                    <a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + b.custName + ', this is a gentle reminder regarding your borewell bill balance of ₹' + due.toLocaleString('en-IN') + '.')}" target="_blank" class="action-icon-btn" title="Send WhatsApp">
+                                        <i data-lucide="message-circle" style="width: 14px; height: 14px;"></i>
+                                    </a>
+                                ` : '-'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // WhatsApp Daily Summary Generator (100% English)
+        function generateWhatsAppSummaryText() {
+            const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            let totalFeet = 0;
+            let totalBilled = 0;
+            let totalCollected = 0;
+            let pvc7 = 0;
+            let pvc10 = 0;
+            let fresh = 0;
+            let re = 0;
+
+            currentFilteredBills.forEach(b => {
+                const s = b.snapshot || {};
+                totalFeet += (Number(s.totalDepth) || 0);
+                pvc7 += (Number(s.pvc7Length) || 0);
+                pvc10 += (Number(s.pvc10Length) || 0);
+                if (s.drillingType === 'repair') re++; else fresh++;
+
+                const grand = Math.round(Number(s.grandTotal) || 0);
+                totalBilled += grand;
+
+                let paid = 0;
+                if (Array.isArray(b.payments)) {
+                    paid = b.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                } else if (s.advancePaidAmount) {
+                    paid = Number(s.advancePaidAmount) || 0;
+                }
+                totalCollected += paid;
+            });
+
+            const totalDue = Math.max(0, totalBilled - totalCollected);
+            const totalBores = fresh + re;
+            const avgDepth = totalBores > 0 ? Math.round(totalFeet / totalBores) : 0;
+
+            let companyName = 'DrillRig Borewells';
+            try {
+                const b = JSON.parse(localStorage.getItem('borebill_brand') || '{}');
+                if (b.companyName) companyName = b.companyName;
+            } catch(e) {}
+
+            let text = `🚜 *${companyName.toUpperCase()} — DAILY OPERATIONS REPORT*\n`;
+            text += `📅 Date: ${todayStr}\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `⚡ *DRILLING & PRODUCTION*\n`;
+            text += `• Total Bores: ${totalBores} (Fresh: ${fresh} | Re-bore: ${re})\n`;
+            text += `• Total Footage: *${totalFeet.toLocaleString('en-IN')} ft* (Avg: ${avgDepth} ft/bore)\n`;
+            text += `• Casing Pipes: 7": ${pvc7} ft | 10": ${pvc10} ft\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `💰 *COLLECTIONS & CASHFLOW*\n`;
+            text += `• Total Billed: ₹${totalBilled.toLocaleString('en-IN')}\n`;
+            text += `• Cash/UPI Collected: *₹${totalCollected.toLocaleString('en-IN')}*\n`;
+            text += `• Outstanding Dues: *₹${totalDue.toLocaleString('en-IN')}*\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `📍 *COMPLETED SITES*\n`;
+
+            if (currentFilteredBills.length === 0) {
+                text += `• No bores recorded for this period.\n`;
+            } else {
+                currentFilteredBills.forEach((b, idx) => {
+                    const s = b.snapshot || {};
+                    let paid = 0;
+                    if (Array.isArray(b.payments)) {
+                        paid = b.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                    } else if (s.advancePaidAmount) {
+                        paid = Number(s.advancePaidAmount) || 0;
+                    }
+                    const grand = Math.round(Number(s.grandTotal) || 0);
+                    const due = Math.max(0, grand - paid);
+                    text += `${idx + 1}. ${b.custName || 'Client'} (${b.custLocation || 'Site'}) — ${s.totalDepth || 0} ft | Due: ₹${due.toLocaleString('en-IN')}\n`;
+                });
+            }
+            text += `━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `_Generated via DrillRig SaaS_`;
+
+            return text;
+        }
+
+        function openWhatsAppModal() {
+            const summary = generateWhatsAppSummaryText();
+            document.getElementById('waPreviewContent').textContent = summary;
+            const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(summary)}`;
+            document.getElementById('sendWaDirectLink').setAttribute('href', waLink);
+            document.getElementById('whatsAppModal').style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeWhatsAppModal() {
+            document.getElementById('whatsAppModal').style.display = 'none';
+        }
+
+        function copyWhatsAppText() {
+            const text = document.getElementById('waPreviewContent').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ WhatsApp Report Copied to Clipboard!');
+            }).catch(() => {
+                showToast('⚠️ Copy failed, please select manually');
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('dashToast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 2600);
+        }
+
+        window.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
