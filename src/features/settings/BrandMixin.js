@@ -380,9 +380,21 @@ export class BrandMixin {
 
     handleLogoUpload(file) {
         if (!file) return;
+        if (!file.type || !file.type.startsWith("image/")) {
+            this.showToast("⚠️ Please select a valid image file (PNG, JPG, WebP)");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            this.showToast("⚠️ Logo file is too large (max 5MB)");
+            return;
+        }
         const reader = new FileReader();
+        reader.onerror = () => {
+            this.showToast("❌ Failed to read image file");
+        };
         reader.onload = (e) => {
             const img = new Image();
+            img.onerror = () => { this.showToast("❌ Corrupted or invalid image file"); };
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const maxDim = 240;

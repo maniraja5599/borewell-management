@@ -1,10 +1,11 @@
 // DrillRig offline service worker.
 // Built JS/CSS files have content hashes in their names (from Vite), so they never go stale;
 // we fetch network-first and fall back to cache when the rig site has no signal.
-const CACHE_NAME = 'drillrig-v2';
+const CACHE_NAME = 'drillrig-v2.1';
 const PRECACHE = [
   './',
   './index.html',
+  './dashboard.html',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
@@ -66,7 +67,12 @@ self.addEventListener('fetch', (event) => {
       .catch(async () => {
         const hit = await caches.match(event.request) || await caches.match(event.request, { ignoreSearch: true });
         if (hit) return hit;
-        if (event.request.mode === 'navigate') return caches.match('./index.html');
+        if (event.request.mode === 'navigate') {
+          if (url.pathname.includes('dashboard')) {
+            return (await caches.match('./dashboard.html')) || caches.match('./index.html');
+          }
+          return caches.match('./index.html');
+        }
         return Response.error();
       })
   );
