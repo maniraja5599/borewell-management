@@ -2650,9 +2650,46 @@ html.ios-standalone .sticky-live-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 6px;
+    margin-top: 8px;
+    gap: 12px;
     font-size: var(--fs-xs);
     color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.rcpt-upi-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.rcpt-qr-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.rcpt-qr-canvas {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 5px;
+    border: 1px solid #94a3b8;
+    background: #ffffff;
+    display: block;
+}
+
+.rcpt-qr-sub {
+    font-size: 0.58rem;
+    font-weight: 750;
+    color: #475569;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
 }
 
 /* ==================== EXPORT ACTIONS GRID ==================== */

@@ -1050,9 +1050,15 @@
                             <span>🌐 <strong id="rcptWebsiteText"></strong></span>
                         </div>
                         <div class="receipt-sign-row">
-                            <div class="upi-info-text" id="rcptUpiBox" style="display: none;">
-                                <span>💳 UPI / GPay: <strong id="rcptUpiId"></strong></span>
-                                <span id="rcptUpiNameLine" style="display: block; font-size: 0.68rem; color: #475569; margin-top: 1px;">Name: <strong id="rcptUpiName"></strong></span>
+                            <div class="rcpt-upi-wrap" id="rcptUpiBox" style="display: none;">
+                                <div class="rcpt-qr-card">
+                                    <canvas id="rcptUpiQrCanvas" width="80" height="80" class="rcpt-qr-canvas"></canvas>
+                                    <small class="rcpt-qr-sub">Scan to Pay via UPI</small>
+                                </div>
+                                <div class="upi-info-text">
+                                    <span>💳 UPI / GPay: <strong id="rcptUpiId"></strong></span>
+                                    <span id="rcptUpiNameLine" style="display: block; font-size: 0.68rem; color: #475569; margin-top: 1px;">Name: <strong id="rcptUpiName"></strong></span>
+                                </div>
                             </div>
                             <div class="sign-box">
                                 <span data-i18n="forCompany">For</span> <strong id="rcptSignCompany">DrillRig.</strong>

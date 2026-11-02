@@ -1,5 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
+import QRCode from 'qrcode';
 
 export class BrandMixin {
     getDocFooterTermsNote(docType = 'INVOICE') {
@@ -291,7 +292,7 @@ export class BrandMixin {
 
         const upiBox = document.getElementById('rcptUpiBox');
         if (b.upiId && b.upiId.trim()) {
-            upiBox.style.display = 'block';
+            upiBox.style.display = 'flex';
             document.getElementById('rcptUpiId').textContent = b.upiId.trim();
             const upiNameLine = document.getElementById('rcptUpiNameLine');
             const upiNameVal = document.getElementById('rcptUpiName');
@@ -301,6 +302,23 @@ export class BrandMixin {
                     upiNameLine.style.display = 'block';
                 } else {
                     upiNameLine.style.display = 'none';
+                }
+            }
+
+            // Generate Scannable UPI QR Code on Canvas
+            const qrCanvas = document.getElementById('rcptUpiQrCanvas');
+            if (qrCanvas) {
+                const upiUrl = `upi://pay?pa=${encodeURIComponent(b.upiId.trim())}&pn=${encodeURIComponent(b.upiName?.trim() || b.companyName?.trim() || 'DrillRig')}&cu=INR`;
+                try {
+                    QRCode.toCanvas(qrCanvas, upiUrl, {
+                        width: 80,
+                        margin: 1,
+                        color: { dark: '#0f172a', light: '#ffffff' }
+                    }, (err) => {
+                        if (err) console.warn('UPI QR generation skipped:', err);
+                    });
+                } catch (qrErr) {
+                    // Ignore gracefully in mock/test environments
                 }
             }
         } else {

@@ -35,6 +35,9 @@ describe('Application Button Handlers & UI Interactions', () => {
                     (this.listeners['click'] || []).forEach(fn => fn({ currentTarget: el, target: el }));
                 },
                 scrollIntoView: vi.fn(),
+                closest: vi.fn(() => ({ style: {} })),
+                setAttribute: vi.fn(),
+                getAttribute: vi.fn(),
                 querySelector: vi.fn(() => ({ style: {} })),
                 querySelectorAll: vi.fn(() => []),
                 focus: vi.fn()
@@ -69,11 +72,12 @@ describe('Application Button Handlers & UI Interactions', () => {
             "openBillPreviewBtnText", "previewBtnLiveTotal", "previewBtnBalanceDue",
             "billReceiptPreviewWrapper", "previewStageTopBar", "previewStageStatusBadge",
             "previewStageStatusSub", "billPreviewActionStage", "preSavePreviewActions",
-            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount", "liveSummaryDepthBadge", "liveSummaryPerFt", "receiptSlabRows", "rcptWorkType", "rcptTotalDepth", "rcptBaseRate", "rcptCasingSummary", "rcptDrillingTotal", "hintOldBoreRate", "liveInlineOldBoreCost", "hintPvc7Rate", "liveInlinePvc7Cost", "hintPvc10Rate", "liveInlinePvc10Cost", "gstPillPercent", "liveInlineCasingTotalBadge", "inlineSlabToggleTotalBadge", "liveAdvDueBadge", "rcptGrandTotal", "rcptBalanceDueRow", "rcptBalanceDue", "stickyExtrasPill", "liveStickyExtrasText", "liveStickyExtrasCost", "depthQuickStepperBar", "liveSlabAccordion", "liveSlabAccordionToggleBtn", "liveSlabAccordionTitle", "liveSlabAccordionTotal", "liveSlabAccordionArrow", "liveSlabAccordionBody", "liveSlabBreakdownTable"
+            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount", "liveSummaryDepthBadge", "liveSummaryPerFt", "receiptSlabRows", "rcptWorkType", "rcptTotalDepth", "rcptBaseRate", "rcptCasingSummary", "rcptDrillingTotal", "hintOldBoreRate", "liveInlineOldBoreCost", "hintPvc7Rate", "liveInlinePvc7Cost", "hintPvc10Rate", "liveInlinePvc10Cost", "gstPillPercent", "liveInlineCasingTotalBadge", "inlineSlabToggleTotalBadge", "liveAdvDueBadge", "rcptGrandTotal", "rcptBalanceDueRow", "rcptBalanceDue", "stickyExtrasPill", "liveStickyExtrasText", "liveStickyExtrasCost", "rcptUpiQrCanvas", "depthQuickStepperBar", "liveSlabAccordion", "liveSlabAccordionToggleBtn", "liveSlabAccordionTitle", "liveSlabAccordionTotal", "liveSlabAccordionArrow", "liveSlabAccordionBody", "liveSlabBreakdownTable"
         ].forEach(id => createMockEl(id));
 
 
         globalThis.document = {
+            documentElement: { setAttribute: vi.fn(), style: {} },
             getElementById: (id) => mockElements.get(id) || createMockEl(id),
             querySelectorAll: (sel) => {
                 if (sel.includes('.settings-view-panel')) {
@@ -97,6 +101,7 @@ describe('Application Button Handlers & UI Interactions', () => {
         app = Object.create(BoreBillSaaSApp.prototype);
         app.brand = { billPrefix: 'DR', companyName: 'DrillRig' };
         app.defaultBrand = { billPrefix: 'DR', companyName: 'DrillRig' };
+        app.rates = { oldBoreRate: 40, baseDrillingRate: 90, pvc7Rate: 400, pvc10Rate: 700, gstPercentage: 18 };
         app.waFormat = { companyHeader: true, slabBreakup: true };
         app.defaultWaFormat = { companyHeader: true, slabBreakup: true };
         app.lang = "en";
@@ -374,6 +379,20 @@ describe('Application Button Handlers & UI Interactions', () => {
         expect(lsaTotal.textContent).toBe("₹37000");
         expect(lsaTable.innerHTML).toContain("001–300 ft");
         expect(lsaTable.innerHTML).toContain("301–400 ft");
+    });
+
+
+    it("renders dynamic UPI QR code on bill receipt when UPI ID is configured", () => {
+        app.brand = { upiId: "anjanabore@oksbi", upiName: "Sri Anjaneya", companyName: "Sri Anjaneya Borewells" };
+        app.applyBrandToUI();
+
+        const upiBox = mockElements.get("rcptUpiBox");
+        const upiIdEl = mockElements.get("rcptUpiId");
+        const upiNameEl = mockElements.get("rcptUpiName");
+
+        expect(upiBox.style.display).toBe("flex");
+        expect(upiIdEl.textContent).toBe("anjanabore@oksbi");
+        expect(upiNameEl.textContent).toBe("Sri Anjaneya");
     });
 
 });
