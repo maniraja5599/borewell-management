@@ -10027,10 +10027,10 @@ input.is-select-all-ready,
 .settings-nav-segmented {
     display: flex;
     align-items: center;
-    background: #f1f5f9;
-    padding: 4px;
-    border-radius: 12px;
-    gap: 4px;
+    background: #e8edf3;
+    padding: 6px;
+    border-radius: 14px;
+    gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -10039,7 +10039,8 @@ input.is-select-all-ready,
     user-select: none;
     -webkit-user-select: none;
     scroll-behavior: smooth;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .settings-nav-segmented::-webkit-scrollbar {
@@ -10050,20 +10051,21 @@ input.is-select-all-ready,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 9px;
+    gap: 7px;
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid #d8e2ec;
+    border-radius: 10px;
     font-size: var(--fs-md);
     font-weight: 700;
-    color: #475569;
+    color: #1e293b;
     cursor: pointer;
     flex-shrink: 0;
-    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    transition: all 0.16s ease;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
 .set-seg-btn:active {
@@ -10074,33 +10076,30 @@ input.is-select-all-ready,
     pointer-events: none;
 }
 
-.set-seg-btn i,
-.set-seg-btn svg {
-    color: #64748b;
-    transition: color 0.15s ease;
-}
+/* Specific icon accent colors matching design specs */
+.set-seg-btn .seg-icon-company { color: #2563eb !important; }
+.set-seg-btn .seg-icon-casing { color: #ea580c !important; }
+.set-seg-btn .seg-icon-theme { color: #9333ea !important; }
+.set-seg-btn .seg-icon-whatsapp { color: #16a34a !important; }
+.set-seg-btn .seg-icon-vault { color: #0284c7 !important; }
+.set-seg-btn .seg-icon-support { color: #d97706 !important; }
 
 .set-seg-btn:hover {
     color: #0f172a;
-    background: #ffffff;
-    border-color: #e2e8f0;
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
-.set-seg-btn:hover i,
-.set-seg-btn:hover svg {
-    color: var(--brand-primary);
-}
-
+/* Active tab: High-contrast solid dark/black capsule (as shown in reference) */
 .set-seg-btn.active {
-    background: var(--brand-primary);
-    color: #ffffff;
-    border-color: var(--brand-primary);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.16);
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.28) !important;
 }
 
-.set-seg-btn.active i,
-.set-seg-btn.active svg {
-    color: #ffffff;
+.set-seg-btn.active span {
+    color: #ffffff !important;
 }
 
 /* Darker crisper buttons in Settings */
@@ -11173,16 +11172,17 @@ input.is-select-all-ready,
         right: auto !important;
         transform: translateX(-50%) translateZ(0) !important;
         width: 90% !important;
-        max-width: 580px !important;
-        bottom: 14px !important;
+        max-width: 620px !important;
+        bottom: 16px !important;
         border-radius: 20px !important;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(15, 23, 42, 0.08) !important;
-        border: 1px solid rgba(226, 232, 240, 0.9) !important;
-        background: rgba(255, 255, 255, 0.96) !important;
+        box-shadow: 0 14px 36px rgba(15, 23, 42, 0.18), 0 3px 10px rgba(15, 23, 42, 0.08) !important;
+        border: 1.5px solid #cbd5e1 !important;
+        background: rgba(255, 255, 255, 0.98) !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
-        height: 56px !important;
-        padding: 4px 12px !important;
+        height: 58px !important;
+        padding: 5px 12px !important;
+        z-index: 1100 !important;
     }
 
     .bottom-nav::after {
@@ -11190,16 +11190,64 @@ input.is-select-all-ready,
     }
 
     .b-nav-item {
-        border-radius: 12px;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 7px !important;
+        padding: 8px 14px !important;
+        border-radius: 12px !important;
         transition: all 0.18s ease;
+        position: relative !important;
     }
 
     .b-nav-item:hover {
         background: #f1f5f9;
     }
 
+    /* Remove top-bar artifact in floating dock */
+    .b-nav-item.active::before {
+        display: none !important;
+    }
+
     .b-nav-item.active {
-        background: #ecfdf5;
+        background: #ecfdf5 !important;
+        color: #065f46 !important;
+        box-shadow: inset 0 0 0 1.5px rgba(16, 185, 129, 0.45), 0 2px 6px rgba(16, 185, 129, 0.12) !important;
+        font-weight: 800 !important;
+    }
+
+    .b-nav-icon {
+        font-size: 1.15rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .b-nav-label {
+        font-size: var(--fs-md) !important;
+        font-weight: 700 !important;
+        display: inline-block !important;
+        line-height: 1 !important;
+    }
+
+    /* Place count badge neatly on the side next to label */
+    .b-nav-badge {
+        position: static !important;
+        margin-left: 4px !important;
+        font-size: var(--fs-xs) !important;
+        font-weight: 800 !important;
+        padding: 2px 7px !important;
+        line-height: 1 !important;
+        border-radius: 99px !important;
+        background: #10b981 !important;
+        color: #ffffff !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    }
+
+    .b-nav-item.active .b-nav-badge {
+        background: #059669 !important;
     }
 
     /* Multi-column grid for Khata bills and customer lists */
