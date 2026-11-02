@@ -110,6 +110,7 @@ describe('Application Button Handlers & UI Interactions', () => {
         app.renderHistoryList = vi.fn();
         app.history = [];
         app.customers = [];
+        app.state = { custName: "", custPhone: "", custLocation: "", custGst: "" };
     });
 
     it('switchSettingsView successfully activates target view without exceptions', () => {
@@ -404,5 +405,36 @@ describe('Application Button Handlers & UI Interactions', () => {
 
         printBtn.click();
         expect(printSpy).toHaveBeenCalled();
+    });
+    it("toggles financial semantic badge classes between QUOTATION and INVOICE", () => {
+        app.renderReceiptUI({
+            docType: "QUOTATION",
+            totalDepth: 400,
+            grandTotal: 50000,
+            drillingCost: 35000,
+            pvc7Cost: 10000,
+            pvc10Cost: 5000,
+            slabDetails: []
+        });
+
+        const rDocBadge = mockElements.get("receiptDocBadge");
+        const sDocTag = mockElements.get("stickyDocTypeTag");
+        expect(rDocBadge.classList.contains("doc-is-quote")).toBe(true);
+        expect(rDocBadge.classList.contains("doc-is-invoice")).toBe(false);
+        expect(sDocTag.classList.contains("sticky-tag-quote")).toBe(true);
+
+        app.renderReceiptUI({
+            docType: "INVOICE",
+            totalDepth: 400,
+            grandTotal: 50000,
+            drillingCost: 35000,
+            pvc7Cost: 10000,
+            pvc10Cost: 5000,
+            slabDetails: []
+        });
+
+        expect(rDocBadge.classList.contains("doc-is-quote")).toBe(false);
+        expect(rDocBadge.classList.contains("doc-is-invoice")).toBe(true);
+        expect(sDocTag.classList.contains("sticky-tag-invoice")).toBe(true);
     });
 });

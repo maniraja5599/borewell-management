@@ -188,7 +188,18 @@ export class ReceiptMixin {
             c.classList.toggle('active', targetVal > 0 && parseFloat(c.dataset.val) === targetVal);
         });
 
-        document.getElementById('receiptDocBadge').textContent = this.getDocTypeTitle(res.docType);
+        const rDocBadge = document.getElementById("receiptDocBadge");
+        if (rDocBadge) {
+            rDocBadge.textContent = this.getDocTypeTitle(res.docType);
+            rDocBadge.classList.toggle("doc-is-quote", res.docType !== "INVOICE");
+            rDocBadge.classList.toggle("doc-is-invoice", res.docType === "INVOICE");
+        }
+        const sDocTag = document.getElementById("stickyDocTypeTag");
+        if (sDocTag) {
+            sDocTag.textContent = res.docType === "INVOICE" ? "FINAL BILL" : "QUOTATION";
+            sDocTag.classList.toggle("sticky-tag-quote", res.docType !== "INVOICE");
+            sDocTag.classList.toggle("sticky-tag-invoice", res.docType === "INVOICE");
+        }
 
         const billNoVal = document.getElementById('billNoInput')?.value || 'AB-101';
         document.getElementById('receiptBillNo').textContent = `No: #${billNoVal}`;

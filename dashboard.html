@@ -749,7 +749,18 @@
                 justify-content: space-between;
             }
             .kpi-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            .kpi-card {
+                padding: 12px 14px;
+            }
+            .kpi-hero-val {
+                font-size: 1.45rem;
+            }
+            .kpi-sub-stats {
+                font-size: 0.72rem;
             }
             .dash-controls-card {
                 flex-direction: column;
