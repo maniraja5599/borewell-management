@@ -642,6 +642,15 @@ export class HistoryMixin {
         this.useSavedBillRates(s);
         this.loadedHistoryBillId = item.id;
         this.isSavedBillReadOnly = Boolean(viewOnly);
+        this.state = {
+            ...this.state,
+            ...(s || {}),
+            custName: item.custName || s?.custName || "",
+            custPhone: item.custPhone || s?.custPhone || "",
+            custLocation: item.custLocation || s?.custLocation || "",
+            loadedHistoryBillId: item.id,
+            isSavedBillReadOnly: Boolean(viewOnly)
+        };
 
         document.getElementById('billNoInput').value = item.billNo;
         document.getElementById('billDateInput').value = item.billDate;
@@ -781,6 +790,10 @@ export class HistoryMixin {
             this.isBillSavedAndReadyToShare = true;
             this.syncIosTopSafeBarColor();
             this.syncProgressiveBillSections();
+            const receiptWrap = document.getElementById("billReceiptPreviewWrapper");
+            if (receiptWrap) receiptWrap.style.display = "block";
+            const actionStage = document.getElementById("billPreviewActionStage");
+            if (actionStage) actionStage.style.display = "block";
         } else {
             banner?.classList.add('is-editing');
             if (formsBox) formsBox.style.display = 'block';
