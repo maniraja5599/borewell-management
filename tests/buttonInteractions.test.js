@@ -69,7 +69,7 @@ describe('Application Button Handlers & UI Interactions', () => {
             "openBillPreviewBtnText", "previewBtnLiveTotal", "previewBtnBalanceDue",
             "billReceiptPreviewWrapper", "previewStageTopBar", "previewStageStatusBadge",
             "previewStageStatusSub", "billPreviewActionStage", "preSavePreviewActions",
-            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn"
+            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount"
         ].forEach(id => createMockEl(id));
 
 
@@ -265,6 +265,59 @@ describe('Application Button Handlers & UI Interactions', () => {
         expect(mockElements.get("billEditorFormsContainer").style.display).toBe("none");
         expect(mockElements.get("billReceiptPreviewWrapper").style.display).toBe("block");
         expect(mockElements.get("billPreviewActionStage").style.display).toBe("block");
+    });
+
+
+    it("renders separate count and due badges in customer directory, with only due badge carrying .due red styling", () => {
+        const custWithDue = { id: "cust-1", name: "Kumar", phone: "9876543210" };
+        const custSettled = { id: "cust-2", name: "Ravi", phone: "9876543211" };
+
+        app.customers = [custWithDue, custSettled];
+        app.buildCustomerBillsIndex = () => new Map();
+        app.getInitials = (n) => n.slice(0, 2).toUpperCase();
+        app.escapeHtml = (s) => s;
+        app.formatINR = (n) => `₹${n}`;
+        app.getCustomerSiteSuggestions = () => ({ allSites: [] });
+        app.defaultCountryCode = "+91";
+        app.formatPhoneWithCountryCode = (p) => p;
+        app.updateHeaderDueTicker = vi.fn();
+        app.renderQuickCustomerPicker = vi.fn();
+
+        app.getCustomerAggregates = vi.fn((c) => {
+            if (c.id === "cust-1") {
+                return { totalPending: 25000, boresCount: 2, quotesCount: 0 };
+            }
+            return { totalPending: 0, boresCount: 1, quotesCount: 0 };
+        });
+
+        app.renderCustomerDirectory();
+
+        const listEl = mockElements.get("crmCustomerList");
+        // cust-1 must have separate count (2 Bores) and due (Due ₹25000)
+        expect(listEl.innerHTML).toContain('<span class="cmr-badge count">2 Bores</span>');
+        expect(listEl.innerHTML).toContain('<span class="cmr-badge due">Due ₹25000</span>');
+
+        // cust-2 must have count (1 Bore) and settled (Paid), no .due red badge
+        expect(listEl.innerHTML).toContain('<span class="cmr-badge count">1 Bore</span>');
+        expect(listEl.innerHTML).toContain('<span class="cmr-badge settled">Paid</span>');
+    });
+
+    it("renders minimal highlight tags (Default & Applied) on saved rate profiles", () => {
+        app.rateProfiles = [
+            { id: "rate-1", name: "Standard 6.5\"", isDefault: true, rates: { baseDrillingRate: 90, pvc7Rate: 400, slabRates: [] } },
+            { id: "rate-2", name: "Commercial 7\"", isDefault: false, rates: { baseDrillingRate: 110, pvc7Rate: 450, slabRates: [] } }
+        ];
+        app.activeRateProfileId = "rate-1";
+        app.defaultRates = { baseDrillingRate: 90, pvc7Rate: 400, slabRates: [] };
+        app.normalizeSlabArray = () => [];
+        app.escapeHtml = (s) => s;
+        app.refreshIcons = vi.fn();
+
+        app.renderRateProfilesUI();
+
+        const rateListEl = mockElements.get("savedRateProfilesList");
+        expect(rateListEl.innerHTML).toContain('<span class="rcr-tag rcr-def-tag">Default</span>');
+        expect(rateListEl.innerHTML).toContain('<span class="rcr-tag rcr-active-tag">Applied</span>');
     });
 
 });

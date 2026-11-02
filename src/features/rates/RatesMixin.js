@@ -146,6 +146,8 @@ export class RatesMixin {
                         <div class="rcr-info">
                             <div class="rcr-title-line">
                                 <span class="rcr-name">${this.escapeHtml(p.name)}</span>
+                                ${p.isDefault ? '<span class="rcr-tag rcr-def-tag">Default</span>' : ''}
+                                ${isActive ? '<span class="rcr-tag rcr-active-tag">Applied</span>' : ''}
                             </div>
                             <div class="rcr-sub">
                                 Base: <strong>₹${r.baseDrillingRate}/ft</strong> • 7" Pipe: <strong>₹${r.pvc7Rate}/ft</strong> • ${slabs.length} Slabs

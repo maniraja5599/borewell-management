@@ -263,17 +263,24 @@ export class CustomerLedgerMixin {
             const placeText = c.village || (allSites.length > 0 ? allSites[0] : '');
             const dispPhone = this.formatPhoneWithCountryCode(c.phone || '', c.countryCode || this.defaultCountryCode);
 
-            let badgeHtml = '';
-            if (hasDue) {
-                const boreCountTxt = agg.boresCount > 0 ? `${agg.boresCount}B • ` : '';
-                badgeHtml = `<span class="cmr-badge due">${boreCountTxt}Due ${this.formatINR(agg.totalPending)}</span>`;
-            } else if (agg.boresCount > 0) {
-                badgeHtml = `<span class="cmr-badge settled">${agg.boresCount} ${agg.boresCount === 1 ? 'Bore' : 'Bores'} • Paid</span>`;
+            let countBadgeHtml = '';
+            let statusBadgeHtml = '';
+
+            if (agg.boresCount > 0) {
+                countBadgeHtml = `<span class="cmr-badge count">${agg.boresCount} ${agg.boresCount === 1 ? 'Bore' : 'Bores'}</span>`;
             } else if (agg.quotesCount > 0) {
-                badgeHtml = `<span class="cmr-badge neutral">${agg.quotesCount} ${agg.quotesCount === 1 ? 'Quote' : 'Quotes'}</span>`;
-            } else {
-                badgeHtml = `<span class="cmr-badge neutral">View</span>`;
+                countBadgeHtml = `<span class="cmr-badge count">${agg.quotesCount} ${agg.quotesCount === 1 ? 'Quote' : 'Quotes'}</span>`;
             }
+
+            if (hasDue) {
+                statusBadgeHtml = `<span class="cmr-badge due">Due ${this.formatINR(agg.totalPending)}</span>`;
+            } else if (agg.boresCount > 0) {
+                statusBadgeHtml = `<span class="cmr-badge settled">Paid</span>`;
+            } else if (!countBadgeHtml) {
+                statusBadgeHtml = `<span class="cmr-badge neutral">View</span>`;
+            }
+
+            const badgeHtml = `${countBadgeHtml}${statusBadgeHtml}`;
 
             return `
                 <div class="crm-minimal-row" data-cust-id="${c.id}" title="Tap to open customer summary & bore details">
