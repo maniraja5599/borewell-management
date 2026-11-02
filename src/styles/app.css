@@ -422,6 +422,7 @@ html.ios-standalone .app-header {
     align-items: center;
     gap: 7px;
     min-width: 0;
+    flex: 1;
     overflow: hidden;
 }
 
@@ -605,6 +606,52 @@ html.ios-standalone .app-header {
     gap: 4px;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Mobile-First Header Optimization: Keep Ticker Spacious & Fully Readable */
+@media (max-width: 600px) {
+    .header-dashboard-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+    }
+
+    .header-dashboard-btn span {
+        display: none !important;
+    }
+
+    .pwa-install-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+    }
+
+    .pwa-install-btn span {
+        display: none !important;
+    }
+
+    .header-dynamic-marquee {
+        height: 38px;
+        padding: 0 8px;
+    }
+
+    .marquee-slide {
+        padding: 0 4px;
+        gap: 6px;
+    }
+
+    .slide-main-title {
+        font-size: 0.78rem;
+    }
+
+    .slide-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
 }
 
 .lang-switch-btn {
