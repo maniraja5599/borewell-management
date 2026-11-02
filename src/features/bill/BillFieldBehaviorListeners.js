@@ -474,6 +474,18 @@ export class BillFieldBehaviorListeners {
         });
 
         // Two-Stage Preview -> Save -> Share Workflow
+        // Live Progressive Slab Calculation Breakdown Accordion Toggle
+        document.getElementById('liveSlabAccordionToggleBtn')?.addEventListener('click', () => {
+            const body = document.getElementById('liveSlabAccordionBody');
+            const arrow = document.getElementById('liveSlabAccordionArrow');
+            const btn = document.getElementById('liveSlabAccordionToggleBtn');
+            if (!body) return;
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
+            if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
+            if (btn) btn.setAttribute('aria-expanded', String(!isOpen));
+        });
+
         document.getElementById('openBillPreviewBtn')?.addEventListener('click', () => {
             if (!this.ensureCustomerSelectedForBill()) return;
             this.isBillPreviewOpen = true;

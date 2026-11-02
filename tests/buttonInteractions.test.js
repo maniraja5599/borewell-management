@@ -69,12 +69,12 @@ describe('Application Button Handlers & UI Interactions', () => {
             "openBillPreviewBtnText", "previewBtnLiveTotal", "previewBtnBalanceDue",
             "billReceiptPreviewWrapper", "previewStageTopBar", "previewStageStatusBadge",
             "previewStageStatusSub", "billPreviewActionStage", "preSavePreviewActions",
-            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount"
+            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount", "liveSummaryDepthBadge", "liveSummaryPerFt", "receiptSlabRows", "rcptWorkType", "rcptTotalDepth", "rcptBaseRate", "rcptCasingSummary", "rcptDrillingTotal", "hintOldBoreRate", "liveInlineOldBoreCost", "hintPvc7Rate", "liveInlinePvc7Cost", "hintPvc10Rate", "liveInlinePvc10Cost", "gstPillPercent", "liveInlineCasingTotalBadge", "inlineSlabToggleTotalBadge", "liveAdvDueBadge", "rcptGrandTotal", "rcptBalanceDueRow", "rcptBalanceDue", "stickyExtrasPill", "liveStickyExtrasText", "liveStickyExtrasCost", "depthQuickStepperBar", "liveSlabAccordion", "liveSlabAccordionToggleBtn", "liveSlabAccordionTitle", "liveSlabAccordionTotal", "liveSlabAccordionArrow", "liveSlabAccordionBody", "liveSlabBreakdownTable"
         ].forEach(id => createMockEl(id));
 
 
         globalThis.document = {
-            getElementById: (id) => mockElements.get(id) || null,
+            getElementById: (id) => mockElements.get(id) || createMockEl(id),
             querySelectorAll: (sel) => {
                 if (sel.includes('.settings-view-panel')) {
                     return [mockElements.get('set-view-brand'), mockElements.get('set-view-casing'), mockElements.get('set-view-whatsapp')].filter(Boolean);
@@ -99,6 +99,7 @@ describe('Application Button Handlers & UI Interactions', () => {
         app.defaultBrand = { billPrefix: 'DR', companyName: 'DrillRig' };
         app.waFormat = { companyHeader: true, slabBreakup: true };
         app.defaultWaFormat = { companyHeader: true, slabBreakup: true };
+        app.lang = "en";
         app.saveToStorage = vi.fn();
         app.showToast = vi.fn();
         app.renderHistoryList = vi.fn();
@@ -198,6 +199,8 @@ describe('Application Button Handlers & UI Interactions', () => {
         app.renderSavedExtrasUI = vi.fn();
         app.renderSavedNotesUI = vi.fn();
         app.calculateAndRender = vi.fn();
+        app.rates = { oldBoreRate: 40, baseDrillingRate: 90, pvc7Rate: 400, pvc10Rate: 700, gstPercentage: 18 };
+        app.state = { custGst: "" };
         app.formatINR = (n) => `₹${n}`;
         app.formatPhoneWithCountryCode = (p) => p;
 
@@ -318,6 +321,59 @@ describe('Application Button Handlers & UI Interactions', () => {
         const rateListEl = mockElements.get("savedRateProfilesList");
         expect(rateListEl.innerHTML).toContain('<span class="rcr-tag rcr-def-tag">Default</span>');
         expect(rateListEl.innerHTML).toContain('<span class="rcr-tag rcr-active-tag">Applied</span>');
+    });
+
+
+    it("renders live sticky bar with 3-part subtotals and updates live slab breakdown accordion", () => {
+        app.rates = { oldBoreRate: 40, baseDrillingRate: 90, pvc7Rate: 400, pvc10Rate: 700, gstPercentage: 18 };
+        app.state = { custGst: "" };
+        app.formatINR = (n) => `₹${n}`;
+        app.getCasing1ShortName = () => "7\"";
+        app.getCasing2ShortName = () => "10\"";
+        app.getCasing1Name = () => "7\" PVC";
+        app.getCasing2Name = () => "10\" PVC";
+        app.triggerOneShotPulse = vi.fn();
+        app.syncProgressiveBillSections = vi.fn();
+
+        const calcResult = {
+            totalDepth: 400,
+            boreDia: "6.5\"",
+            baseDrillingRate: 90,
+            drillingCost: 37000,
+            pvc7Length: 40,
+            pvc10Length: 20,
+            pvc7Cost: 16000,
+            pvc10Cost: 14000,
+            boreBataCost: 2000,
+            collarCapCost: 500,
+            transportSurveyCost: 0,
+            customExtraAmount: 0,
+            grandTotal: 69500,
+            slabDetails: [
+                { slabIndex: 0, range: "001–300 ft", depth: 300, rate: 90, cost: 27000 },
+                { slabIndex: 1, range: "301–400 ft", depth: 100, rate: 100, cost: 10000 }
+            ]
+        };
+
+        app.renderReceiptUI(calcResult);
+
+        // Verify sticky bar pills
+        expect(mockElements.get("liveStickyDrillCost").textContent).toBe("₹37000");
+        expect(mockElements.get("liveStickyPipeCost").textContent).toBe("₹30000");
+        expect(mockElements.get("liveStickyExtrasCost").textContent).toBe("₹2500");
+        expect(mockElements.get("liveTotalBannerAmount").textContent).toBe("₹69500");
+
+        // Verify live slab breakdown accordion
+        const lsaWrap = mockElements.get("liveSlabAccordion");
+        const lsaTitle = mockElements.get("liveSlabAccordionTitle");
+        const lsaTotal = mockElements.get("liveSlabAccordionTotal");
+        const lsaTable = mockElements.get("liveSlabBreakdownTable");
+
+        expect(lsaWrap.style.display).toBe("block");
+        expect(lsaTitle.textContent).toContain("400 ft Calculation");
+        expect(lsaTotal.textContent).toBe("₹37000");
+        expect(lsaTable.innerHTML).toContain("001–300 ft");
+        expect(lsaTable.innerHTML).toContain("301–400 ft");
     });
 
 });

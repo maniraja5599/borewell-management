@@ -31,6 +31,12 @@ export class ReceiptMixin {
             stickyPipeCost.textContent = this.formatINR(totalPipeCost);
         }
 
+        const totalExtrasCost = (res.boreBataCost || 0) + (res.collarCapCost || 0) + (res.transportSurveyCost || 0) + (res.customExtraAmount || 0);
+        const stickyExtrasCost = document.getElementById('liveStickyExtrasCost');
+        if (stickyExtrasCost) {
+            stickyExtrasCost.textContent = this.formatINR(totalExtrasCost);
+        }
+
         // Subtle, single-shot attention animation when Depth, Pipes, or Total changes
         if (prevSnap) {
             const depthChanged = prevSnap.totalDepth !== res.totalDepth || prevSnap.oldBoreDepth !== res.oldBoreDepth || prevSnap.drillingCost !== res.drillingCost;
@@ -45,6 +51,11 @@ export class ReceiptMixin {
                 this.triggerOneShotPulse(document.getElementById('stickyPipePill'), 'sticky-pill-flash');
                 this.triggerOneShotPulse(stickyPipeCost, 'sticky-val-pop');
             }
+            const extrasChanged = prevSnap.totalExtrasCost !== totalExtrasCost;
+            if (extrasChanged) {
+                this.triggerOneShotPulse(document.getElementById('stickyExtrasPill'), 'sticky-pill-flash');
+                this.triggerOneShotPulse(stickyExtrasCost, 'sticky-val-pop');
+            }
             if (totalChanged || depthChanged || pipeChanged) {
                 this.triggerOneShotPulse(totalBannerEl, 'sticky-val-pop');
                 this.triggerOneShotPulse(document.getElementById('wizNavLiveTotal'), 'sticky-val-pop');
@@ -58,6 +69,7 @@ export class ReceiptMixin {
             pvc7Length: res.pvc7Length,
             pvc10Length: res.pvc10Length,
             totalPipeCost,
+            totalExtrasCost,
             grandTotal: res.grandTotal
         };
 
@@ -378,6 +390,41 @@ export class ReceiptMixin {
         const c1Name = this.getCasing1Name();
         const c2Name = this.getCasing2Name();
         document.getElementById('rcptDrillingTotal').textContent = this.formatINR(res.drillingCost);
+        // Live Progressive Slab Breakdown Accordion (Math preview right in the billing form)
+        const lsaWrap = document.getElementById('liveSlabAccordion');
+        const lsaTitle = document.getElementById('liveSlabAccordionTitle');
+        const lsaTotal = document.getElementById('liveSlabAccordionTotal');
+        const lsaTable = document.getElementById('liveSlabBreakdownTable');
+
+        if (lsaWrap && lsaTitle && lsaTotal && lsaTable) {
+            if (res.totalDepth > 0 && res.slabDetails && res.slabDetails.length > 0) {
+                lsaWrap.style.display = 'block';
+                lsaTitle.textContent = `📊 ${res.totalDepth} ft Calculation (${res.slabDetails.length} ${res.slabDetails.length === 1 ? 'Slab' : 'Slabs'})`;
+                lsaTotal.textContent = this.formatINR(res.drillingCost);
+
+                lsaTable.innerHTML = `
+                    <div class="lsa-table">
+                        <div class="lsa-head-row">
+                            <span class="lsa-col-range">Depth Slab</span>
+                            <span class="lsa-col-feet">Feet</span>
+                            <span class="lsa-col-rate">Rate</span>
+                            <span class="lsa-col-cost">Amount</span>
+                        </div>
+                        ${res.slabDetails.map(s => `
+                            <div class="lsa-data-row ${s.slabIndex === -1 ? 'lsa-flush-row' : ''}">
+                                <span class="lsa-col-range">${s.range}</span>
+                                <span class="lsa-col-feet">${s.depth} ft</span>
+                                <span class="lsa-col-rate">₹${s.rate}/ft</span>
+                                <strong class="lsa-col-cost">${this.formatINR(s.cost)}</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                lsaWrap.style.display = 'none';
+            }
+        }
+
         document.getElementById('rcptPvc7Label').textContent = `${c1Name} (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
         document.getElementById('rcptPvc7Amount').textContent = this.formatINR(res.pvc7Cost);
 

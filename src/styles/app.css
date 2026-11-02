@@ -748,8 +748,241 @@ html.ios-standalone .sticky-live-bar {
 
 .live-bar-details-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
+}
+
+@media (max-width: 420px) {
+    .live-bar-details-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 4px;
+    }
+    .live-detail-pill {
+        padding: 3px 5px;
+    }
+    .ld-left {
+        font-size: var(--fs-2xs);
+    }
+    .ld-val {
+        font-size: var(--fs-xs);
+    }
+}
+
+/* ==================== TOUCH-FRIENDLY QUICK STEPPER BARS (RIG SITE OPTIMIZED) ==================== */
+.quick-stepper-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+}
+
+.qsb-label {
+    font-size: var(--fs-xs);
+    font-weight: 750;
+    color: #64748b;
+    letter-spacing: 0.02em;
+}
+
+.qsb-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.qsb-chip, .step-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 7px;
+    font-size: var(--fs-xs);
+    font-weight: 800;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qsb-chip:hover, .step-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+
+.qsb-chip.plus, .step-btn.plus {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #15803d;
+}
+
+.qsb-chip.plus:hover, .step-btn.plus:hover {
+    background: #dcfce7;
+    border-color: #4ade80;
+}
+
+.pvc-quick-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.pvc-step-chip {
+    flex: 1;
+    height: 26px;
+    padding: 0 5px;
+    border-radius: 6px;
+    font-size: var(--fs-2xs);
+    font-weight: 800;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pvc-step-chip:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.pvc-step-chip.plus {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.pvc-step-chip.plus:hover {
+    background: #dbeafe;
+    border-color: #60a5fa;
+}
+
+/* ==================== LIVE PROGRESSIVE SLAB ACCORDION BREAKDOWN ==================== */
+.live-slab-accordion {
+    margin-top: 10px;
+    border-radius: 10px;
+    border: 1.5px solid #bfdbfe;
+    background: #f8fbff;
+    overflow: hidden;
+    transition: all 0.15s ease;
+}
+
+.lsa-toggle-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s ease;
+}
+
+.lsa-toggle-btn:hover {
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.lsa-left {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--fs-xs);
+    font-weight: 750;
+    color: #1e40af;
+}
+
+.lsa-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lsa-total-tag {
+    font-size: var(--fs-xs);
+    font-weight: 850;
+    color: #1d4ed8;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+}
+
+.lsa-arrow {
+    font-size: var(--fs-sm);
+    color: #3b82f6;
+    font-weight: bold;
+    transition: transform 0.15s ease;
+}
+
+.lsa-content-body {
+    border-top: 1px dashed #bfdbfe;
+    background: #ffffff;
+    padding: 8px 10px;
+}
+
+.lsa-table {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lsa-head-row, .lsa-data-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1.2fr 1.6fr;
+    align-items: center;
+    font-size: var(--fs-2xs);
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+.lsa-head-row {
+    font-weight: 750;
+    color: #64748b;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.lsa-data-row {
+    font-weight: 600;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    font-variant-numeric: tabular-nums;
+}
+
+.lsa-data-row:last-child {
+    border-bottom: none;
+}
+
+.lsa-data-row.lsa-flush-row {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.lsa-col-cost {
+    text-align: right;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.lsa-col-rate, .lsa-col-feet {
+    text-align: center;
 }
 
 .live-detail-pill {

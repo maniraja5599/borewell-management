@@ -206,6 +206,13 @@
                         </span>
                         <strong class="ld-val" id="liveStickyPipeCost">₹0</strong>
                     </div>
+                    <div class="live-detail-pill" id="stickyExtrasPill">
+                        <span class="ld-left">
+                            <i data-lucide="plus-circle" class="icon-xs"></i>
+                            <span id="liveStickyExtrasText">Bata + Extras</span>
+                        </span>
+                        <strong class="ld-val" id="liveStickyExtrasCost">₹2,000</strong>
+                    </div>
                 </div>
             </div>
         </div>
@@ -484,6 +491,18 @@
                         </div>
                     </div>
 
+                    <!-- Touch-Friendly Quick Depth Stepper Bar (Rig Site Optimized) -->
+                    <div class="quick-stepper-bar" id="depthQuickStepperBar">
+                        <span class="qsb-label">Quick Feet:</span>
+                        <div class="qsb-chips">
+                            <button type="button" class="qsb-chip step-btn" data-target="totalDepth" data-step="-100" title="-100 ft">-100</button>
+                            <button type="button" class="qsb-chip step-btn" data-target="totalDepth" data-step="-50" title="-50 ft">-50</button>
+                            <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="50" title="+50 ft">+50</button>
+                            <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="100" title="+100 ft">+100</button>
+                            <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="200" title="+200 ft">+200</button>
+                        </div>
+                    </div>
+
                     <!-- Compact Rate, Fixed ₹2000 Bata, Date & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
                     <div class="simple-rate-bata-bar" id="drillingRateBataWrap">
                         <div class="srbb-item">
@@ -528,6 +547,25 @@
                         </div>
                         <div class="ssdp-rows-list" id="inlineSmartSlabRowsList">
                             <!-- Populated dynamically by app.js with editable slab rates -->
+                        </div>
+                    </div>
+
+                    <!-- Live Progressive Slab Breakdown Accordion (Real-time math preview) -->
+                    <div class="live-slab-accordion" id="liveSlabAccordion" style="display: none;">
+                        <button type="button" class="lsa-toggle-btn" id="liveSlabAccordionToggleBtn" aria-expanded="false" title="Click to view/hide progressive slab rate math breakdown">
+                            <div class="lsa-left">
+                                <i data-lucide="calculator" class="icon-xs text-brand"></i>
+                                <span id="liveSlabAccordionTitle">Live Slab Calculation Breakdown</span>
+                            </div>
+                            <div class="lsa-right">
+                                <strong class="lsa-total-tag" id="liveSlabAccordionTotal">₹0</strong>
+                                <span class="lsa-arrow" id="liveSlabAccordionArrow">▾</span>
+                            </div>
+                        </button>
+                        <div class="lsa-content-body" id="liveSlabAccordionBody" style="display: none;">
+                            <div class="lsa-table-wrap" id="liveSlabBreakdownTable">
+                                <!-- Populated dynamically by ReceiptMixin.js -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -630,6 +668,12 @@
                                     <small>/ft</small>
                                 </div>
                             </div>
+                            <div class="pvc-quick-stepper-row">
+                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc7Length" data-step="-20">-20</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="20">+20</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="40">+40</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="100">+100</button>
+                            </div>
                         </div>
 
                         <!-- 2nd Casing Box (10" Casing Pipe - Focused on Next from 7" Casing) -->
@@ -650,6 +694,12 @@
                                     <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch Casing Pipe Rate">
                                     <small>/ft</small>
                                 </div>
+                            </div>
+                            <div class="pvc-quick-stepper-row">
+                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc10Length" data-step="-20">-20</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="20">+20</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="40">+40</button>
+                                <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="100">+100</button>
                             </div>
                         </div>
                     </div>
