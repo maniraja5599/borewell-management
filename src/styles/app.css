@@ -7214,13 +7214,38 @@ html.ios-standalone body.keyboard-open .app-main {
     color: #ffffff;
 }
 
-/* Compact 3-Column Share / Export Buttons (Small & Neat on Mobile & Desktop) */
-.export-actions-grid.three-cols,
-.export-actions-grid.compact-share-bar {
+/* Compact Multi-Column Share / Export Buttons (WhatsApp, Image, PDF, Print/Thermal) */
+.export-actions-grid.three-cols {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 6px;
     margin-bottom: 10px;
+}
+
+.export-actions-grid.compact-share-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+    .export-actions-grid.compact-share-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+.exp-btn.compact.print {
+    background: #0f172a;
+    color: #ffffff;
+}
+
+.exp-btn.compact.print:hover {
+    background: #1e293b;
+}
+
+.exp-btn.compact.print:active {
+    transform: scale(0.97);
 }
 
 .exp-btn.compact {
@@ -12331,5 +12356,182 @@ textarea:focus-visible {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         line-height: 1.25;
+    }
+}
+
+
+/* ==========================================================================
+   FINTECH NUMERIC ALIGNMENT & TABULAR FORMATTING
+   ========================================================================== */
+.kpi-val,
+.cmr-due,
+.cmr-count,
+.bmr-amount,
+.r-chip-val,
+.gt-value,
+.charge-line strong,
+.slab-row,
+.step-btn,
+.wiz-nav-live-total,
+.live-total-banner .amount,
+.rcr-rate,
+.spvc-val,
+.pfc-field input,
+.live-breakdown-table td {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   HIGH-CRAFT PRINT & THERMAL RECEIPT STYLES
+   Optimized for portable Bluetooth thermal printers (58mm/80mm) and standard A4/Letter
+   ========================================================================== */
+@media print {
+    @page {
+        margin: 6mm;
+        size: auto;
+    }
+
+    *, *::before, *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif !important;
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Hide full chrome, navigation, headers, forms, dialogs, drawers */
+    .app-header,
+    .bottom-nav,
+    .preview-stage-top-bar,
+    .bill-preview-action-stage,
+    .preview-footer-customizer-wrap,
+    #billEditorFormsContainer,
+    #stickyLiveBar,
+    .app-toast-container,
+    .floating-action-btn,
+    .cust-popup-backdrop {
+        display: none !important;
+    }
+
+    /* Isolate #printableBillCard */
+    body > *:not(#app) {
+        display: none !important;
+    }
+
+    #app, .app-container, .main-content, #billSection, #billReceiptPreviewWrapper {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        position: static !important;
+        border: none !important;
+        background: #ffffff !important;
+    }
+
+    .bill-receipt-card,
+    #printableBillCard {
+        display: block !important;
+        visibility: visible !important;
+        width: 100% !important;
+        max-width: 620px !important;
+        margin: 0 auto !important;
+        padding: 12px 14px !important;
+        border: 1.5px solid #0f172a !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Print color fidelity */
+    #printableBillCard * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .receipt-header {
+        border-bottom: 2px solid #0f172a !important;
+        padding-bottom: 10px !important;
+    }
+
+    .receipt-company-info h2 {
+        color: #0f172a !important;
+        font-size: 18px !important;
+    }
+
+    .receipt-doc-badge {
+        border: 1px solid #0f172a !important;
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        font-weight: 800 !important;
+    }
+
+    .receipt-customer-box {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        margin: 8px 0 !important;
+    }
+
+    .receipt-summary-chips {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 6px !important;
+        margin: 8px 0 !important;
+    }
+
+    .slab-table-header {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+    }
+
+    .slab-row {
+        border-bottom: 1px dashed #cbd5e1 !important;
+    }
+
+    .charge-line.grand-total-line {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        padding: 8px 10px !important;
+        border-radius: 6px !important;
+        margin-top: 6px !important;
+    }
+
+    .charge-line.grand-total-line .gt-title,
+    .charge-line.grand-total-line .gt-value {
+        color: #ffffff !important;
+    }
+
+    .charge-line.balance-due-line {
+        background: #fef2f2 !important;
+        border: 1.5px solid #ef4444 !important;
+        color: #b91c1c !important;
+        font-weight: 800 !important;
+    }
+
+    .charge-line.balance-due-line strong {
+        color: #b91c1c !important;
+    }
+
+    .rcpt-qr-canvas {
+        display: block !important;
+        image-rendering: pixelated !important;
+    }
+
+    .receipt-saas-branding {
+        border-top: 1px dashed #cbd5e1 !important;
+        padding-top: 6px !important;
+        margin-top: 10px !important;
     }
 }

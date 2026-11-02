@@ -579,4 +579,12 @@ export class ShareExportMixin {
             }
         }
     }
+    printReceipt() {
+        this.syncBrandFromInputs(true);
+        this.applyBrandToUI();
+        this.calculateAndRender();
+        if (typeof window !== "undefined" && typeof window.print === "function") {
+            window.print();
+        }
+    }
 }

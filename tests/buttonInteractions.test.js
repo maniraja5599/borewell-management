@@ -72,7 +72,7 @@ describe('Application Button Handlers & UI Interactions', () => {
             "openBillPreviewBtnText", "previewBtnLiveTotal", "previewBtnBalanceDue",
             "billReceiptPreviewWrapper", "previewStageTopBar", "previewStageStatusBadge",
             "previewStageStatusSub", "billPreviewActionStage", "preSavePreviewActions",
-            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount", "liveSummaryDepthBadge", "liveSummaryPerFt", "receiptSlabRows", "rcptWorkType", "rcptTotalDepth", "rcptBaseRate", "rcptCasingSummary", "rcptDrillingTotal", "hintOldBoreRate", "liveInlineOldBoreCost", "hintPvc7Rate", "liveInlinePvc7Cost", "hintPvc10Rate", "liveInlinePvc10Cost", "gstPillPercent", "liveInlineCasingTotalBadge", "inlineSlabToggleTotalBadge", "liveAdvDueBadge", "rcptGrandTotal", "rcptBalanceDueRow", "rcptBalanceDue", "stickyExtrasPill", "liveStickyExtrasText", "liveStickyExtrasCost", "rcptUpiQrCanvas", "depthQuickStepperBar", "liveSlabAccordion", "liveSlabAccordionToggleBtn", "liveSlabAccordionTitle", "liveSlabAccordionTotal", "liveSlabAccordionArrow", "liveSlabAccordionBody", "liveSlabBreakdownTable"
+            "postSaveShareContainer", "billExportActionsGrid", "cdmOverallReceiptBtn", "crmCustomerList", "crmTotalCustomers", "crmTotalBilled", "crmTotalPending", "savedRateProfilesList", "rateKpiActiveName", "rateKpiDefaultName", "rateKpiTotalCount", "liveSummaryDepthBadge", "liveSummaryPerFt", "receiptSlabRows", "rcptWorkType", "rcptTotalDepth", "rcptBaseRate", "rcptCasingSummary", "rcptDrillingTotal", "hintOldBoreRate", "liveInlineOldBoreCost", "hintPvc7Rate", "liveInlinePvc7Cost", "hintPvc10Rate", "liveInlinePvc10Cost", "gstPillPercent", "liveInlineCasingTotalBadge", "inlineSlabToggleTotalBadge", "liveAdvDueBadge", "rcptGrandTotal", "rcptBalanceDueRow", "rcptBalanceDue", "stickyExtrasPill", "liveStickyExtrasText", "liveStickyExtrasCost", "rcptUpiQrCanvas", "depthQuickStepperBar", "liveSlabAccordion", "liveSlabAccordionToggleBtn", "liveSlabAccordionTitle", "liveSlabAccordionTotal", "liveSlabAccordionArrow", "liveSlabAccordionBody", "liveSlabBreakdownTable", "printReceiptBtn"
         ].forEach(id => createMockEl(id));
 
 
@@ -395,4 +395,14 @@ describe('Application Button Handlers & UI Interactions', () => {
         expect(upiNameEl.textContent).toBe("Sri Anjaneya");
     });
 
+    it("handles print receipt action triggering window.print()", () => {
+        const printSpy = vi.fn();
+        globalThis.window.print = printSpy;
+
+        const printBtn = mockElements.get("printReceiptBtn");
+        app.setupShareListeners();
+
+        printBtn.click();
+        expect(printSpy).toHaveBeenCalled();
+    });
 });

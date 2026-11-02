@@ -4,6 +4,7 @@ export class ShareListeners {
         document.getElementById('shareWhatsappBtn')?.addEventListener('click', () => this.shareOnWhatsApp());
         document.getElementById('downloadImageBtn')?.addEventListener('click', () => this.exportBillAsImage());
         document.getElementById('downloadPdfBtn')?.addEventListener('click', () => this.exportBillAsPDF());
+        document.getElementById('printReceiptBtn')?.addEventListener('click', () => this.printReceipt());
         document.getElementById('saveBillHistoryBtn')?.addEventListener('click', () => this.saveCurrentBillToHistory());
 
         document.getElementById('closeWaPreviewModalBtn')?.addEventListener('click', () => this.closeWhatsAppPreviewModal());
