@@ -1,7 +1,111 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
 
+const WA_TOGGLES_MAP = {
+    waToggleCompanyHeader: 'companyHeader',
+    waToggleAddress: 'address',
+    waToggleGst: 'gst',
+    waToggleSlabBreakup: 'slabBreakup',
+    waTogglePipes: 'pipes',
+    waTogglePipeSubtotal: 'pipeSubtotal',
+    waToggleExtras: 'extras',
+    waTogglePaymentDue: 'paymentDue',
+    waToggleNote: 'note',
+    waToggleFooterTerms: 'footerTerms',
+    waToggleContact: 'contact'
+};
+
 export class SettingsListeners {
+    // Settings Hub Segmented View Switcher (Instant Tab Views without long page scrolling)
+    switchSettingsView(viewId) {
+        const panels = document.querySelectorAll('.settings-view-panel');
+        panels.forEach(panel => {
+            panel.style.display = panel.id === viewId ? 'block' : 'none';
+        });
+        document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
+            const isActive = btn.dataset.view === viewId;
+            btn.classList.toggle('active', isActive);
+            if (isActive) {
+                try {
+                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } catch (_) {}
+            }
+        });
+        if (viewId === 'set-view-casing') {
+            this.syncCasingNamesUI?.();
+        }
+        if (viewId === 'set-view-whatsapp') {
+            this.syncWaFormatUI();
+            this.renderWaFormatLivePreview();
+        }
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (_) {}
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    syncWaFormatUI() {
+        Object.entries(WA_TOGGLES_MAP).forEach(([id, key]) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.checked = this.waFormat && this.waFormat[key] !== false;
+            }
+        });
+    }
+
+    renderWaFormatLivePreview() {
+        const bubbleEl = document.getElementById('waSettingsLivePreviewBubble');
+        if (!bubbleEl) return;
+
+        // Generate representative sample bill for the live preview
+        const sampleRes = {
+            docType: 'INVOICE',
+            drillingType: 'new',
+            boreDia: '6.5"',
+            totalDepth: 450,
+            drillingCost: 46500,
+            slabDetails: [
+                { range: '1–100 ft', depth: 100, rate: 90, cost: 9000 },
+                { range: '101–200 ft', depth: 100, rate: 95, cost: 9500 },
+                { range: '201–300 ft', depth: 100, rate: 100, cost: 10000 },
+                { range: '301–400 ft', depth: 100, rate: 105, cost: 10500 },
+                { range: '401–450 ft', depth: 50, rate: 110, cost: 5500 }
+            ],
+            pvc7Length: 60,
+            pvc7Rate: 400,
+            pvc7Cost: 24000,
+            pvc10Length: 0,
+            pvc10Rate: 700,
+            pvc10Cost: 0,
+            boreBataCost: 2000,
+            collarCapCost: 1500,
+            transportSurveyCost: 1000,
+            customExtraAmount: 0,
+            discountAmount: 0,
+            gstEnabled: false,
+            gstPercentage: 18,
+            gstAmount: 0,
+            grandTotal: 75000,
+            advancePaidAmount: 25000,
+            balancePayable: 50000,
+            customNote: 'Pump installation scheduled tomorrow'
+        };
+
+        const sampleMsg = this.buildCleanBillWhatsAppMessage({
+            billNo: `${this.brand?.billPrefix || 'AB'}-101`,
+            billDate: new Date().toLocaleDateString('en-GB'),
+            custName: 'R. Senthil Kumar',
+            custPhone: '9842100000',
+            custLocation: 'Main Site',
+            custGst: '',
+            res: sampleRes,
+            paymentStatus: 'unpaid',
+            formatConfig: this.waFormat
+        });
+
+        bubbleEl.innerHTML = this.formatWhatsAppBubbleHtml(sampleMsg);
+    }
+
     setupSettingsListeners() {
         document.getElementById('logoFileInput')?.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
@@ -211,7 +315,7 @@ export class SettingsListeners {
             const willOpen = drawer.style.display === 'none';
             drawer.style.display = willOpen ? 'block' : 'none';
             if (willOpen) {
-                this.syncCasingNamesUI();
+                this.syncCasingNamesUI?.();
             }
         });
 
@@ -257,113 +361,8 @@ export class SettingsListeners {
             this.showToast('🏢 Company Profile Saved & Applied!');
         });
 
-        // Settings Hub Segmented View Switcher (Instant Tab Views without long page scrolling)
-        this.switchSettingsView = (viewId) => {
-            const panels = document.querySelectorAll('.settings-view-panel');
-            panels.forEach(panel => {
-                panel.style.display = panel.id === viewId ? 'block' : 'none';
-            });
-            document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
-                const isActive = btn.dataset.view === viewId;
-                btn.classList.toggle('active', isActive);
-                if (isActive) {
-                    try {
-                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    } catch (_) {}
-                }
-            });
-            if (viewId === 'set-view-casing') {
-                this.syncCasingNamesUI();
-            }
-            if (viewId === 'set-view-whatsapp') {
-                this.syncWaFormatUI();
-                this.renderWaFormatLivePreview();
-            }
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                try { window.lucide.createIcons(); } catch (_) {}
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-        const switchSettingsView = this.switchSettingsView;
-
         // WhatsApp Format Designer Listeners
-        const waTogglesMap = {
-            waToggleCompanyHeader: 'companyHeader',
-            waToggleAddress: 'address',
-            waToggleGst: 'gst',
-            waToggleSlabBreakup: 'slabBreakup',
-            waTogglePipes: 'pipes',
-            waTogglePipeSubtotal: 'pipeSubtotal',
-            waToggleExtras: 'extras',
-            waTogglePaymentDue: 'paymentDue',
-            waToggleNote: 'note',
-            waToggleFooterTerms: 'footerTerms',
-            waToggleContact: 'contact'
-        };
-
-        this.syncWaFormatUI = () => {
-            Object.entries(waTogglesMap).forEach(([id, key]) => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.checked = this.waFormat[key] !== false;
-                }
-            });
-        };
-
-        this.renderWaFormatLivePreview = () => {
-            const bubbleEl = document.getElementById('waSettingsLivePreviewBubble');
-            if (!bubbleEl) return;
-
-            // Generate representative sample bill for the live preview
-            const sampleRes = {
-                docType: 'INVOICE',
-                drillingType: 'new',
-                boreDia: '6.5"',
-                totalDepth: 450,
-                drillingCost: 46500,
-                slabDetails: [
-                    { range: '1–100 ft', depth: 100, rate: 90, cost: 9000 },
-                    { range: '101–200 ft', depth: 100, rate: 95, cost: 9500 },
-                    { range: '201–300 ft', depth: 100, rate: 100, cost: 10000 },
-                    { range: '301–400 ft', depth: 100, rate: 105, cost: 10500 },
-                    { range: '401–450 ft', depth: 50, rate: 110, cost: 5500 }
-                ],
-                pvc7Length: 60,
-                pvc7Rate: 400,
-                pvc7Cost: 24000,
-                pvc10Length: 0,
-                pvc10Rate: 700,
-                pvc10Cost: 0,
-                boreBataCost: 2000,
-                collarCapCost: 1500,
-                transportSurveyCost: 1000,
-                customExtraAmount: 0,
-                discountAmount: 0,
-                gstEnabled: false,
-                gstPercentage: 18,
-                gstAmount: 0,
-                grandTotal: 75000,
-                advancePaidAmount: 25000,
-                balancePayable: 50000,
-                customNote: 'Pump installation scheduled tomorrow'
-            };
-
-            const sampleMsg = this.buildCleanBillWhatsAppMessage({
-                billNo: `${this.brand.billPrefix || 'AB'}-101`,
-                billDate: new Date().toLocaleDateString('en-GB'),
-                custName: 'R. Senthil Kumar',
-                custPhone: '9842100000',
-                custLocation: 'Main Site',
-                custGst: '',
-                res: sampleRes,
-                paymentStatus: 'unpaid',
-                formatConfig: this.waFormat
-            });
-
-            bubbleEl.innerHTML = this.formatWhatsAppBubbleHtml(sampleMsg);
-        };
-
-        Object.entries(waTogglesMap).forEach(([id, key]) => {
+        Object.entries(WA_TOGGLES_MAP).forEach(([id, key]) => {
             document.getElementById(id)?.addEventListener('change', (e) => {
                 this.waFormat[key] = e.target.checked;
                 this.saveToStorage(STORAGE_KEYS.waFormat, this.waFormat);
@@ -426,7 +425,5 @@ export class SettingsListeners {
             this.applyCasingSettings(p1, r1, p2, r2);
             this.showToast(`✅ Casing specs updated: ${this.getCasing1ShortName()} & ${this.getCasing2ShortName()}`);
         });
-
-        // Export Actions & Unified WhatsApp Preview Modal Listeners
     }
 }

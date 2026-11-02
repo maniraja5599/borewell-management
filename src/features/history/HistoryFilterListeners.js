@@ -34,7 +34,7 @@ export class HistoryFilterListeners {
             this.showToast('↺ Cleared payment & date filters');
         });
 
-        document.getElementById('clearHistoryDateChipBtn')?.addEventListener('click', () => {
+        const clearDateFilter = () => {
             this.historyDatePreset = 'all';
             this.historyDateFrom = '';
             this.historyDateTo = '';
@@ -42,8 +42,14 @@ export class HistoryFilterListeners {
             const toEl = document.getElementById('historyDateTo');
             if (fromEl) fromEl.value = '';
             if (toEl) toEl.value = '';
+            const chip = document.getElementById('historyActiveDateChip');
+            if (chip) chip.style.display = 'none';
             this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-        });
+        };
+
+        // Support both active chip element and legacy clear button ID
+        document.getElementById('historyActiveDateChip')?.addEventListener('click', clearDateFilter);
+        document.getElementById('clearHistoryDateChipBtn')?.addEventListener('click', clearDateFilter);
 
         // Payment Status Filter Pills (Quick Bar + Filter Popover)
         const applyHistoryPayFilter = (payVal) => {
