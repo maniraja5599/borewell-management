@@ -68,27 +68,6 @@ export class HeaderMixin {
             }
         }
 
-        // 3. Start Multi-Slide Swipe-Up Rotator Timer (4.2 seconds loop)
-        if (!this._topMarqueeTimer) {
-            this._topMarqueeCurrentIndex = 0;
-            this._topMarqueeTimer = setInterval(() => {
-                const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
-                const visibleSlides = allSlides.filter(s => s.style.display !== 'none');
-                if (!visibleSlides || visibleSlides.length === 0) return;
-
-                const currentSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
-                let currPos = visibleSlides.indexOf(currentSlide);
-                if (currPos === -1) currPos = 0;
-                const nextPos = (currPos + 1) % visibleSlides.length;
-
-                const prevSlide = visibleSlides[currPos];
-                const nextSlide = visibleSlides[nextPos];
-                this._topMarqueeCurrentIndex = parseInt(nextSlide.dataset.slideIndex || nextPos, 10);
-
-                allSlides.forEach(s => s.classList.remove('active', 'exit-up'));
-                if (prevSlide) prevSlide.classList.add('exit-up');
-                if (nextSlide) nextSlide.classList.add('active');
-            }, 4200);
-        }
+        // Multi-slide rotator removed in favor of clean, stable enterprise header branding
     }
 }
