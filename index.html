@@ -125,7 +125,7 @@
                     <div class="marquee-slide slide-due" id="marqueeSlide1" data-slide-index="1">
                         <div class="slide-content-wrap">
                             <span class="slide-due-icon">⏳</span>
-                            <span class="slide-main-title" id="marqueeDueBillsCount">0 Unpaid Bills</span>
+                            <span class="slide-main-title" id="marqueeDueBillsCount">0 Unpaid</span>
                         </div>
                         <span class="slide-badge badge-due" id="marqueeDueTotalBadge">₹0 DUE</span>
                     </div>
@@ -134,7 +134,7 @@
                     <div class="marquee-slide slide-work" id="marqueeSlide2" data-slide-index="2">
                         <div class="slide-content-wrap">
                             <span class="slide-work-icon">🚜</span>
-                            <span class="slide-main-title" id="marqueeTodayWorkTitle">0 Bores Drilled</span>
+                            <span class="slide-main-title" id="marqueeTodayWorkTitle">0 Bores</span>
                         </div>
                         <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
                     </div>
@@ -143,7 +143,7 @@
                     <div class="marquee-slide slide-notify" id="marqueeSlide3" data-slide-index="3">
                         <div class="slide-content-wrap">
                             <span class="slide-notify-icon">💬</span>
-                            <span class="slide-main-title">Share Bill PDF / JPG</span>
+                            <span class="slide-main-title">Share Bill</span>
                         </div>
                         <span class="slide-badge badge-notify">WHATSAPP</span>
                     </div>
@@ -152,7 +152,7 @@
                     <div class="marquee-slide slide-install" id="marqueeSlide4" data-slide-index="4" style="display: none;">
                         <div class="slide-content-wrap">
                             <span class="slide-install-icon">📲</span>
-                            <span class="slide-main-title">Install App on Phone</span>
+                            <span class="slide-main-title">Install App</span>
                         </div>
                         <span class="slide-badge badge-install">INSTALL</span>
                     </div>
@@ -1427,7 +1427,7 @@
                 </div>
             </div>
 
-            <!-- 2. Unified Progressive Step-by-Step Rate Card Studio -->
+            <!-- 2. Simplified Modern Rate Card Studio -->
             <div class="ui-card rate-studio-card" id="rateEditorCard" style="display: none;">
                 <div class="studio-header-banner">
                     <div class="studio-title-wrap">
@@ -1449,271 +1449,210 @@
 
                 <input type="hidden" id="editingRateProfileId" value="">
 
-                <!-- 4-Step Progress Indicator Bar -->
-                <div class="rate-stepper-progress-bar">
-                    <button type="button" class="rate-step-indicator active" id="rateStepInd1" data-step="1">
-                        <span class="rsi-num">1</span>
-                        <span>Name</span>
+                <!-- Hidden elements for test/backward compatibility -->
+                <div class="rate-stepper-progress-bar" style="display: none;">
+                    <button type="button" class="rate-step-indicator active" id="rateStepInd1" data-step="1"><span class="rsi-num">1</span><span>Name</span></button>
+                    <button type="button" class="rate-step-indicator" id="rateStepInd2" data-step="2"><span class="rsi-num">2</span><span>Base</span></button>
+                    <button type="button" class="rate-step-indicator" id="rateStepInd3" data-step="3"><span class="rsi-num">3</span><span>Pipes</span></button>
+                    <button type="button" class="rate-step-indicator" id="rateStepInd4" data-step="4"><span class="rsi-num">4</span><span>Slabs</span></button>
+                </div>
+                <div id="rateStage1Card" style="display: none;"></div>
+                <div id="rateStage2Card" style="display: none;"></div>
+                <div id="rateStage3Card" style="display: none;"></div>
+                <div id="rateStage4Card" style="display: none;"></div>
+                <div id="rateStage1SummaryBar" style="display: none;"></div>
+                <div id="rateStage2SummaryBar" style="display: none;"></div>
+                <div id="rateStage3SummaryBar" style="display: none;"></div>
+                <button type="button" id="rateStage1NextBtn" style="display: none;"></button>
+                <button type="button" id="rateStage2NextBtn" style="display: none;"></button>
+                <button type="button" id="rateStage3NextBtn" style="display: none;"></button>
+                <button type="button" id="rateStage1EditBtn" style="display: none;"></button>
+                <button type="button" id="rateStage2EditBtn" style="display: none;"></button>
+                <button type="button" id="rateStage3EditBtn" style="display: none;"></button>
+                <div id="stage4StepAdjusterBox" style="display: none;">
+                    <button type="button" id="slabCustomDeductBtn"></button>
+                    <button type="button" id="slabCustomAddBtn"></button>
+                </div>
+                <div id="stage4SubsequentSlabsBox" style="display: none;"></div>
+
+                <!-- 2-Tab Segmented Switcher for Effortless Navigation -->
+                <div class="studio-seg-pills">
+                    <button type="button" class="studio-tab-btn active" id="studioTabBtnCore" data-studiotab="core">
+                        <i data-lucide="sliders" class="icon-xs"></i>
+                        <span>1. Base Rates &amp; Pipes</span>
                     </button>
-                    <button type="button" class="rate-step-indicator" id="rateStepInd2" data-step="2">
-                        <span class="rsi-num">2</span>
-                        <span>Base Rate</span>
-                    </button>
-                    <button type="button" class="rate-step-indicator" id="rateStepInd3" data-step="3">
-                        <span class="rsi-num">3</span>
-                        <span>Pipes &amp; Bata</span>
-                    </button>
-                    <button type="button" class="rate-step-indicator" id="rateStepInd4" data-step="4">
-                        <span class="rsi-num">4</span>
-                        <span>Depth Slabs</span>
+                    <button type="button" class="studio-tab-btn" id="studioTabBtnSlabs" data-studiotab="slabs">
+                        <i data-lucide="bar-chart-3" class="icon-xs"></i>
+                        <span>2. 19 Depth Slabs Calculator</span>
                     </button>
                 </div>
 
-                <!-- STAGE 1: RATE CARD NAME & DEFAULT TOGGLE -->
-                <!-- A. Active Input Card -->
-                <div class="rate-step-card is-active-step" id="rateStage1Card">
-                    <div class="rate-step-card-head">
-                        <div class="rsch-left">
-                            <span class="rsch-badge">1</span>
-                            <div>
-                                <h3 class="rsch-title">Rate Card Name</h3>
-                                <p class="rsch-sub">Enter a recognizable name for this price list (e.g. Standard 6.5" / Hard Rock)</p>
+                <!-- TAB 1: CORE RATES, PIPES & BATA -->
+                <div class="studio-tab-panel active" id="studioPanelCore">
+                    <div class="rate-core-form-card">
+                        <!-- Profile Name & Default Switch -->
+                        <div class="studio-identity-bar">
+                            <div class="studio-name-field">
+                                <label for="masterProfileName" data-i18n="rateProfileNameLabel">RATE LIST NAME *</label>
+                                <input type="text" id="masterProfileName" placeholder="e.g. Standard 6.5&quot; Rate / Hard Rock Rate" value="Standard 6.5&quot; Rate">
                             </div>
+                            <label class="studio-default-toggle" for="masterIsDefaultCheckbox" title="Make this the default rate profile for new bills">
+                                <input type="checkbox" id="masterIsDefaultCheckbox">
+                                <span class="sdt-box">
+                                    <span class="sdt-star">★</span>
+                                    <span data-i18n="setAsDefaultRateLabel">Default</span>
+                                </span>
+                            </label>
                         </div>
-                    </div>
 
-                    <div class="studio-identity-bar" style="margin-top: 8px; margin-bottom: 6px;">
-                        <div class="studio-name-field">
-                            <label for="masterProfileName" data-i18n="rateProfileNameLabel">RATE LIST NAME *</label>
-                            <input type="text" id="masterProfileName" placeholder="e.g. Standard 6.5&quot; Rate / VIP Rate" value="Standard 6.5&quot; Rate" enterkeyhint="next">
-                        </div>
-                        <label class="studio-default-toggle" for="masterIsDefaultCheckbox" title="Make this the default rate profile for new bills">
-                            <input type="checkbox" id="masterIsDefaultCheckbox">
-                            <span class="sdt-box">
-                                <span class="sdt-star">★</span>
-                                <span data-i18n="setAsDefaultRateLabel">Default</span>
-                            </span>
-                        </label>
-                    </div>
-
-                    <button type="button" class="btn-rate-step-next" id="rateStage1NextBtn">
-                        <span>Continue to Base Rate</span>
-                        <i data-lucide="arrow-right" class="icon-xs"></i>
-                    </button>
-                </div>
-
-                <!-- B. Collapsed Summary Bar (Visible once Name is entered and user proceeds to Stage 2) -->
-                <div class="rate-step-summary-bar" id="rateStage1SummaryBar" style="display: none;">
-                    <div class="rssb-info">
-                        <span class="rssb-badge">1. NAME</span>
-                        <div class="rssb-txt">
-                            <strong id="rateStage1SummaryTitle">Standard 6.5" Rate</strong>
-                            <small id="rateStage1SummarySub">Active Rate Profile</small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-rssb-edit" id="rateStage1EditBtn">
-                        <i data-lucide="pencil" class="icon-xs"></i>
-                        <span>Edit</span>
-                    </button>
-                </div>
-
-                <!-- STAGE 2: BASE DRILLING RATE & DEPTH BUFFER -->
-                <!-- A. Active Input Card -->
-                <div class="rate-step-card" id="rateStage2Card" style="display: none;">
-                    <div class="rate-step-card-head">
-                        <div class="rsch-left">
-                            <span class="rsch-badge">2</span>
-                            <div>
-                                <h3 class="rsch-title">Base Drilling Rate</h3>
-                                <p class="rsch-sub">Starting rate for the initial depth (1–300 ft) &amp; Re-bore flushing charges</p>
+                        <!-- Core Rates Tiles Grid -->
+                        <div class="rate-tiles-grid-3" style="margin-top: 8px;">
+                            <div class="rate-metric-tile highlight-tile">
+                                <label for="masterBaseRate" id="masterBaseRateLabel" data-i18n="baseDrillingRate">Base Rate (1–300 ft) *</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterBaseRate" value="90" inputmode="numeric">
+                                    <span class="rmt-unit">₹/ft</span>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="rate-tiles-grid-3" style="margin-top: 8px;">
-                        <div class="rate-metric-tile highlight-tile">
-                            <label for="masterBaseRate" id="masterBaseRateLabel" data-i18n="baseDrillingRate">Base Rate (1–300 ft) *</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterBaseRate" value="90" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">₹/ft</span>
+                            <div class="rate-metric-tile">
+                                <label for="masterOldBoreRate" data-i18n="oldBoreFlushingRate">Old Bore Flush</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterOldBoreRate" value="40" inputmode="numeric">
+                                    <span class="rmt-unit">₹/ft</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="rate-metric-tile">
-                            <label for="masterOldBoreRate" data-i18n="oldBoreFlushingRate">Old Bore Flush</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterOldBoreRate" value="40" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">₹/ft</span>
-                            </div>
-                        </div>
-                        <div class="rate-metric-tile">
-                            <label for="masterSlabBuffer" data-i18n="slabBufferGrace">Grace Buffer</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterSlabBuffer" value="5" min="0" max="50" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">ft</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn-rate-step-next" id="rateStage2NextBtn">
-                        <span>Continue to Pipes &amp; Bata</span>
-                        <i data-lucide="arrow-right" class="icon-xs"></i>
-                    </button>
-                </div>
-
-                <!-- B. Collapsed Summary Bar (Visible once Stage 2 is completed) -->
-                <div class="rate-step-summary-bar" id="rateStage2SummaryBar" style="display: none;">
-                    <div class="rssb-info">
-                        <span class="rssb-badge">2. BASE RATE</span>
-                        <div class="rssb-txt">
-                            <strong id="rateStage2SummaryTitle">Base Rate: ₹90/ft</strong>
-                            <small id="rateStage2SummarySub">Flushing: ₹40/ft • Grace: 5 ft</small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-rssb-edit" id="rateStage2EditBtn">
-                        <i data-lucide="pencil" class="icon-xs"></i>
-                        <span>Edit</span>
-                    </button>
-                </div>
-
-                <!-- STAGE 3: CASING PIPES, LABOUR BATA & TAX -->
-                <!-- A. Active Input Card -->
-                <div class="rate-step-card" id="rateStage3Card" style="display: none;">
-                    <div class="rate-step-card-head">
-                        <div class="rsch-left">
-                            <span class="rsch-badge">3</span>
-                            <div>
-                                <h3 class="rsch-title">Casing Pipes &amp; Labour Bata</h3>
-                                <p class="rsch-sub">Default rates per foot for casing pipes, fixed bore bata and tax</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="rate-tiles-grid-2" style="margin-top: 8px;">
-                        <div class="rate-metric-tile">
-                            <label for="masterPvc7Rate">7" Casing Pipe (₹/ft)</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterPvc7Rate" value="400" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">₹/ft</span>
-                            </div>
-                        </div>
-                        <div class="rate-metric-tile">
-                            <label for="masterPvc10Rate">10" Casing Pipe (₹/ft)</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterPvc10Rate" value="700" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">₹/ft</span>
-                            </div>
-                        </div>
-                        <div class="rate-metric-tile">
-                            <label for="masterBoreBata" data-i18n="boreBataFixed">Bore Bata (Labour)</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterBoreBata" value="2000" inputmode="numeric" enterkeyhint="next">
-                                <span class="rmt-unit">₹</span>
-                            </div>
-                        </div>
-                        <div class="rate-metric-tile">
-                            <label for="masterGstPercent">Default GST Tax</label>
-                            <div class="rmt-input-row">
-                                <input type="number" id="masterGstPercent" value="18" step="0.5" inputmode="decimal">
-                                <span class="rmt-unit">%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn-rate-step-next" id="rateStage3NextBtn">
-                        <span>Continue to Depth Slabs</span>
-                        <i data-lucide="arrow-right" class="icon-xs"></i>
-                    </button>
-                </div>
-
-                <!-- B. Collapsed Summary Bar (Visible once Stage 3 is completed) -->
-                <div class="rate-step-summary-bar" id="rateStage3SummaryBar" style="display: none;">
-                    <div class="rssb-info">
-                        <span class="rssb-badge">3. PIPES &amp; BATA</span>
-                        <div class="rssb-txt">
-                            <strong id="rateStage3SummaryTitle">Pipes: ₹400 &amp; ₹700/ft</strong>
-                            <small id="rateStage3SummarySub">Bata: ₹2,000 • GST: 18%</small>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-rssb-edit" id="rateStage3EditBtn">
-                        <i data-lucide="pencil" class="icon-xs"></i>
-                        <span>Edit</span>
-                    </button>
-                </div>
-
-                <!-- STAGE 4: STEP-BY-STEP DEPTH SLAB BUILDER (Opens once Stage 1, 2 & 3 are ready) -->
-                <div class="rate-step-card" id="rateStage4Card" style="display: none;">
-                    <div class="rate-step-card-head">
-                        <div class="rsch-left">
-                            <span class="rsch-badge">4</span>
-                            <div>
-                                <h3 class="rsch-title">Depth Slab Pricing</h3>
-                                <p class="rsch-sub">Progressive 100-ft depth brackets with instant +Step ripple calculation</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 1. Base Slab Range & Aligned Step Controls Card -->
-                    <div class="slab-builder-top-card" style="margin-top: 8px;">
-                        <div class="sbtc-base-bar">
-                            <span class="sbtc-lbl">1st Base Slab:</span>
-                            <div class="sbtc-base-pills" id="baseSlabSpanPills">
-                                <button type="button" class="sbtc-pill" data-base-span="100">1–100 ft</button>
-                                <button type="button" class="sbtc-pill" data-base-span="200">1–200 ft</button>
-                                <button type="button" class="sbtc-pill active" data-base-span="300">1–300 ft</button>
-                                <button type="button" class="sbtc-pill" data-base-span="500">1–500 ft</button>
-                            </div>
-                        </div>
-
-                        <!-- 2. Clean Step-only Adjuster Controls (Revealed after Base Slab) -->
-                        <div id="stage4StepAdjusterBox" style="display: none;">
-                            <div class="sbtc-divider"></div>
-                            <div class="sbtc-quick-shift-box">
-                                <div class="sqs-step-row">
-                                    <button type="button" class="sqs-step-btn minus" id="slabCustomDeductBtn">− Step</button>
-                                    <div class="sqs-step-input-wrap" title="Step Increment (Default 1)">
-                                        <span>±₹</span>
-                                        <input type="number" id="customSlabStepInput" value="1" min="1" step="1" class="mini-num-input" inputmode="numeric">
-                                    </div>
-                                    <button type="button" class="sqs-step-btn plus" id="slabCustomAddBtn">+ Step</button>
+                            <div class="rate-metric-tile">
+                                <label for="masterSlabBuffer" data-i18n="slabBufferGrace">Grace Buffer</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterSlabBuffer" value="5" min="0" max="50" inputmode="numeric">
+                                    <span class="rmt-unit">ft</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Progressive Subsequent Slabs Box (Revealed after Base Slab is selected) -->
-                    <div id="stage4SubsequentSlabsBox" style="display: none;">
-                        <!-- Aligned 4-Column Slab Builder Header -->
-                        <div class="slab-builder-table-head">
-                            <span class="sbth-col-range">DEPTH SLAB (FT)</span>
-                            <span class="sbth-col-step">+ STEP (₹)</span>
-                            <span class="sbth-col-rate">RATE (₹/FT)</span>
-                            <span class="sbth-col-del"></span>
+                        <div class="rate-tiles-grid-3" style="margin-top: 8px;">
+                            <div class="rate-metric-tile">
+                                <label for="masterPvc7Rate">7" Casing Pipe</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterPvc7Rate" value="400" inputmode="numeric">
+                                    <span class="rmt-unit">₹/ft</span>
+                                </div>
+                            </div>
+                            <div class="rate-metric-tile">
+                                <label for="masterPvc10Rate">10" Casing Pipe</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterPvc10Rate" value="700" inputmode="numeric">
+                                    <span class="rmt-unit">₹/ft</span>
+                                </div>
+                            </div>
+                            <div class="rate-metric-tile">
+                                <label for="masterBoreBata" data-i18n="boreBataFixed">Bore Bata (Labour)</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterBoreBata" value="2000" inputmode="numeric">
+                                    <span class="rmt-unit">₹</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Dynamic Step-by-Step Slabs Rows Container -->
-                        <div class="slabs-editor-grid" id="masterSlabsGrid"></div>
-
-                        <!-- Step-by-Step "+ Add Next 100 ft" & Quick Auto-Fill Bar -->
-                        <div class="slab-builder-add-bar" id="slabBuilderFooterBar">
-                            <button type="button" class="btn-add-next-slab" id="addNextSlabRowBtn">
-                                <span class="bans-left">
-                                    <span class="bans-plus-icon">＋</span>
-                                    <span id="addNextSlabBtnRangeText">Add Next 100 ft (301–400 ft)</span>
-                                </span>
-                                <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10 → ₹100/ft</span>
-                            </button>
-                            <div class="slab-autofill-strip">
-                                <span class="sas-lbl">Quick Auto-Fill:</span>
-                                <button type="button" class="sas-chip" id="slabFill1000Btn">Up to 1000 ft</button>
-                                <button type="button" class="sas-chip" id="slabFill1500Btn">Up to 1500 ft</button>
-                                <button type="button" class="sas-chip" id="slabFill2200Btn">Up to 2200 ft</button>
+                        <div class="rate-tiles-grid-2" style="margin-top: 8px;">
+                            <div class="rate-metric-tile">
+                                <label for="masterGstPercent">Default GST Tax</label>
+                                <div class="rmt-input-row">
+                                    <input type="number" id="masterGstPercent" value="18" step="0.5" inputmode="decimal">
+                                    <span class="rmt-unit">%</span>
+                                </div>
                             </div>
+                            <div class="rate-metric-tile next-prompt-tile" id="jumpToSlabsPanelBtn" role="button" tabindex="0">
+                                <div class="npt-text">
+                                    <strong>Go to 19 Depth Slabs →</strong>
+                                    <small id="corePanelSlabsHint">Set +Step or view full slab ladder</small>
+                                </div>
+                                <i data-lucide="arrow-right" class="icon-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: 19 DEPTH SLABS (THE EASY SLAB RATE CALCULATOR) -->
+                <div class="studio-tab-panel" id="studioPanelSlabs" style="display: none;">
+                    <!-- 1. Smart 1-Tap Auto-Step Generator -->
+                    <div class="smart-slab-generator-box">
+                        <div class="ssg-header">
+                            <div class="ssg-title-line">
+                                <span class="ssg-badge">⚡ SMART SLAB CALCULATOR</span>
+                                <span class="ssg-base-pill" id="ssgBasePillPreview">Base: 1–300 ft @ ₹90/ft</span>
+                            </div>
+                            <p class="ssg-sub">Tap an increment below to auto-calculate all 19 slabs in 1 click:</p>
+                        </div>
+
+                        <!-- 1-Tap Step Preset Chips -->
+                        <div class="ssg-step-presets-row" id="ssgStepPresetsRow">
+                            <button type="button" class="ssg-step-chip" data-step-val="5">+₹5/ft</button>
+                            <button type="button" class="ssg-step-chip active" data-step-val="10">+₹10/ft (Standard)</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="15">+₹15/ft</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="20">+₹20/ft</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="25">+₹25/ft</button>
+                        </div>
+
+                        <!-- Custom Step Input -->
+                        <div class="ssg-custom-step-bar">
+                            <span class="ssg-cs-label">Custom Step:</span>
+                            <div class="ssg-cs-input-wrap">
+                                <span>+₹</span>
+                                <input type="number" id="customSlabStepInput" value="10" min="1" step="1" inputmode="numeric">
+                                <small>/100ft</small>
+                            </div>
+                            <button type="button" class="btn-brand-sm ssg-apply-btn" id="applyCustomStepToAllBtn">
+                                ⚡ Apply Step to All Slabs
+                            </button>
+                            <button type="button" class="btn-secondary-sm" id="slabResetStandardBtn" title="Reset standard 19 slabs">
+                                Standard Slabs
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Base Slab Span Quick Buttons (100 / 200 / 300 / 500 ft) -->
+                    <div class="base-span-selector-bar">
+                        <span class="bss-lbl">1st Base Slab Range:</span>
+                        <div class="sbtc-base-pills" id="baseSlabSpanPills">
+                            <button type="button" class="sbtc-pill" data-base-span="100">1–100 ft</button>
+                            <button type="button" class="sbtc-pill" data-base-span="200">1–200 ft</button>
+                            <button type="button" class="sbtc-pill active" data-base-span="300">1–300 ft</button>
+                            <button type="button" class="sbtc-pill" data-base-span="500">1–500 ft</button>
+                        </div>
+                    </div>
+
+                    <!-- Clean 3-Column Slabs Table Header -->
+                    <div class="slab-builder-table-head">
+                        <span class="sbth-col-range">DEPTH SLAB (FT)</span>
+                        <span class="sbth-col-step">+ STEP</span>
+                        <span class="sbth-col-rate">RATE (₹/FT)</span>
+                        <span class="sbth-col-del"></span>
+                    </div>
+
+                    <!-- Dynamic Slabs Rows Container -->
+                    <div class="slabs-editor-grid" id="masterSlabsGrid"></div>
+
+                    <!-- Add Next Slab & Quick Fill Strip -->
+                    <div class="slab-builder-add-bar" id="slabBuilderFooterBar">
+                        <button type="button" class="btn-add-next-slab" id="addNextSlabRowBtn">
+                            <span class="bans-left">
+                                <span class="bans-plus-icon">＋</span>
+                                <span id="addNextSlabBtnRangeText">Add Next 100 ft</span>
+                            </span>
+                            <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10</span>
+                        </button>
+                        <div class="slab-autofill-strip">
+                            <span class="sas-lbl">Auto-Fill To:</span>
+                            <button type="button" class="sas-chip" id="slabFill1000Btn">1000 ft</button>
+                            <button type="button" class="sas-chip" id="slabFill1500Btn">1500 ft</button>
+                            <button type="button" class="sas-chip" id="slabFill2200Btn">2200 ft</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Bottom Dual Save Action Bar -->
-                <div class="save-bar-bottom dual-save-bar" style="margin-top: 12px;">
+                <div class="save-bar-bottom dual-save-bar" style="margin-top: 14px;">
                     <button type="button" class="btn-brand-full" id="saveMasterRatesBtn">
                         <i data-lucide="check-circle-2" class="icon-sm"></i>
                         <span data-i18n="saveAllPriceSettings">Save &amp; Apply Rate</span>

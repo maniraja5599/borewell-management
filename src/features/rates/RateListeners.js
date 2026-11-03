@@ -60,6 +60,31 @@ export class RateListeners {
             this.switchStudioSubTab('slabs');
         });
 
+        // Simplified 2-Tab Studio Listeners
+        document.getElementById('studioTabBtnCore')?.addEventListener('click', () => {
+            this.switchStudioTab('core');
+        });
+        document.getElementById('studioTabBtnSlabs')?.addEventListener('click', () => {
+            this.switchStudioTab('slabs');
+        });
+        document.getElementById('jumpToSlabsPanelBtn')?.addEventListener('click', () => {
+            this.switchStudioTab('slabs');
+        });
+
+        // Smart 1-Tap Slab Generator Preset Chips (+5, +10, +15, +20, +25)
+        document.querySelectorAll('.ssg-step-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const step = parseFloat(chip.dataset.step) || 10;
+                this.applyStepIncrementToAllSlabs(step);
+            });
+        });
+
+        // Apply Custom Step to All 19 Slabs
+        document.getElementById('applyCustomStepToAllBtn')?.addEventListener('click', () => {
+            const step = parseFloat(document.getElementById('customSlabStepInput')?.value) || 10;
+            this.applyStepIncrementToAllSlabs(step);
+        });
+
         document.getElementById('closeRateEditorBtn')?.addEventListener('click', () => {
             this.toggleRateStudio(false);
             this.renderRateProfilesUI();
@@ -92,6 +117,7 @@ export class RateListeners {
             }
         });
         document.getElementById('rateStage1EditBtn')?.addEventListener('click', () => {
+            this.switchStudioTab('core');
             this.setRateStudioStage(1);
             setTimeout(() => document.getElementById('masterProfileName')?.focus(), 120);
         });

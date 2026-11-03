@@ -155,6 +155,7 @@ export class RatesMixin {
                         </div>
                     </div>
                     <div class="rcr-right">
+                        <button type="button" class="rcr-action-btn rcr-edit-btn" data-editbtn="${p.id}" title="Edit Rate in Studio">✏️ Edit</button>
                         <button type="button" class="rcr-action-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Default Rate' : 'Set as Default Rate'}">
                             ${p.isDefault ? '★ Default' : 'Set Default'}
                         </button>
@@ -169,6 +170,13 @@ export class RatesMixin {
             `;
         }).join('');
         this.refreshIcons();
+
+        listEl.querySelectorAll('.rcr-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.openRateProfileInStudio(btn.dataset.editbtn);
+            });
+        });
 
         listEl.querySelectorAll('.rcr-del-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -852,57 +860,30 @@ export class RatesMixin {
         const grid = document.getElementById('masterSlabsGrid');
         if (!grid) return;
 
+        this.updateSsgBasePill();
         const slabs = this.normalizeSlabArray(this.rates.slabRates, this.rates.baseDrillingRate || 90);
         this.rates.slabRates = slabs;
 
         grid.innerHTML = slabs.map((s, idx) => {
             const currentRate = s.rate;
             const prevRate = idx > 0 ? slabs[idx - 1].rate : currentRate;
-            const stepDiff = idx === 0 ? 0 : (currentRate - prevRate);
-
-            if (idx === 0) {
-                return `
-                    <div class="slab-edit-card is-base-slab-row">
-                        <div class="slab-meta-left">
-                            <span class="slab-row-idx-badge">1</span>
-                            <span class="slab-base-range-edit" title="Edit Base Slab End Depth (e.g. 100, 200, 300 ft)">
-                                001–<input type="number" class="slab-base-end-input" id="baseSlabEndDepthInput" value="${s.end}" min="50" max="1000" step="50" inputmode="numeric"> ft
-                            </span>
-                        </div>
-                        <div class="slab-step-col">
-                            <span class="slab-base-tag-pill">Base Rate</span>
-                        </div>
-                        <div class="slab-edit-input-wrap">
-                            <span>₹</span>
-                            <input type="number" class="slab-edit-input" data-index="0" value="${currentRate}" min="1" step="1" inputmode="numeric">
-                            <small>/ft</small>
-                        </div>
-                        <div class="slab-del-col">
-                            <span class="slab-base-lock" title="Base Slab Row">★</span>
-                        </div>
-                    </div>
-                `;
-            }
+            const stepDiff = idx === 0 ? 'Base' : `+₹${currentRate - prevRate}`;
+            const isBase = idx === 0;
 
             return `
-                <div class="slab-edit-card">
-                    <div class="slab-meta-left">
-                        <span class="slab-row-idx-badge">${idx + 1}</span>
-                        <span class="slab-edit-range" data-range-index="${idx}">${s.rangeStr}</span>
+                <div class="slab-clean-row ${isBase ? 'is-base' : ''}" data-row-idx="${idx}">
+                    <div class="scr-col-left">
+                        <span class="scr-idx">${idx + 1}</span>
+                        <span class="scr-range">${this.escapeHtml(s.rangeStr)}</span>
+                        <span class="scr-step-badge ${isBase ? 'scr-step-base' : ''}" id="stepBadge_${idx}">${stepDiff}</span>
                     </div>
-                    <div class="slab-step-col">
-                        <div class="slab-step-input-wrap" title="Step increase from previous slab">
-                            <span class="slab-step-prefix">+₹</span>
-                            <input type="number" class="slab-step-input" data-step-index="${idx}" value="${stepDiff}" step="1" inputmode="numeric">
+                    <div class="scr-col-right">
+                        <div class="scr-rate-wrap">
+                            <span class="scr-cur">₹</span>
+                            <input type="number" class="slab-edit-input" data-index="${idx}" value="${currentRate}" min="1" step="1" inputmode="numeric">
+                            <span class="scr-unit">/ft</span>
                         </div>
-                    </div>
-                    <div class="slab-edit-input-wrap">
-                        <span>₹</span>
-                        <input type="number" class="slab-edit-input" data-index="${idx}" value="${currentRate}" min="1" step="1" inputmode="numeric">
-                        <small>/ft</small>
-                    </div>
-                    <div class="slab-del-col">
-                        <button type="button" class="slab-row-del-btn" data-del-slab-idx="${idx}" title="Remove this slab row">✕</button>
+                        ${!isBase ? `<button type="button" class="slab-row-del-btn" data-del-slab-idx="${idx}" title="Remove this slab row">✕</button>` : '<span class="scr-lock-dot" title="Base Slab">★</span>'}
                     </div>
                 </div>
             `;
@@ -910,63 +891,7 @@ export class RatesMixin {
 
         this.updateAddNextSlabButtonUI();
 
-        // 1. Base Slab End Depth Input (001 - [ 200 ] ft)
-        const baseEndInp = document.getElementById('baseSlabEndDepthInput');
-        if (baseEndInp) {
-            baseEndInp.addEventListener('input', (e) => {
-                const val = parseInt(e.target.value, 10);
-                if (val && val >= 50 && val <= 1000) {
-                    this.setBaseSlabSpan(val, { skipReRender: true });
-                }
-            });
-            baseEndInp.addEventListener('blur', (e) => {
-                const val = parseInt(e.target.value, 10);
-                if (!val || val < 50) {
-                    e.target.value = this.rates.slabRates[0]?.end || 300;
-                }
-                this.setBaseSlabSpan(parseInt(e.target.value, 10) || 300, { skipReRender: false });
-            });
-        }
-
-        // 2. Per-Row "+ Step (₹)" Input — Live Ripple Calculation without losing focus
-        grid.querySelectorAll('.slab-step-input').forEach(stepInp => {
-            stepInp.addEventListener('input', (e) => {
-                const raw = (e.target.value || '').trim();
-                if (raw === '' || raw === '-') return;
-                const idx = parseInt(e.target.dataset.stepIndex, 10);
-                if (!idx || idx < 1) return;
-
-                // Collect current steps for all rows >= idx
-                const stepsMap = {};
-                for (let j = idx; j < this.rates.slabRates.length; j++) {
-                    const domStepInp = grid.querySelector(`.slab-step-input[data-step-index="${j}"]`);
-                    stepsMap[j] = domStepInp ? (parseFloat(domStepInp.value) || 0) : (this.rates.slabRates[j].rate - this.rates.slabRates[j - 1].rate);
-                }
-
-                // Ripple recalculate rates from idx downwards
-                for (let j = idx; j < this.rates.slabRates.length; j++) {
-                    const prevR = this.rates.slabRates[j - 1].rate;
-                    const nextR = Math.max(1, prevR + stepsMap[j]);
-                    this.rates.slabRates[j].rate = nextR;
-                    const rateInp = grid.querySelector(`.slab-edit-input[data-index="${j}"]`);
-                    if (rateInp && document.activeElement !== rateInp) {
-                        rateInp.value = nextR;
-                    }
-                }
-
-                this.updateAddNextSlabButtonUI();
-                this.calculateAndRender();
-            });
-
-            stepInp.addEventListener('blur', (e) => {
-                const idx = parseInt(e.target.dataset.stepIndex, 10);
-                if ((e.target.value || '').trim() === '' && idx > 0 && this.rates.slabRates[idx]) {
-                    e.target.value = this.rates.slabRates[idx].rate - this.rates.slabRates[idx - 1].rate;
-                }
-            });
-        });
-
-        // 3. Per-Row "Rate (₹/ft)" Input — Updates its own +Step and ripples subsequent rows
+        // Listeners for .slab-edit-input
         grid.querySelectorAll('.slab-edit-input').forEach(inp => {
             inp.addEventListener('input', (e) => {
                 const raw = (e.target.value || '').trim();
@@ -974,35 +899,27 @@ export class RatesMixin {
                 const idx = parseInt(e.target.dataset.index, 10);
                 const val = Math.max(1, parseFloat(raw) || 0);
 
-                // Preserve steps of rows after idx so changing a row's rate ripples cleanly
-                const stepsAfter = {};
-                for (let j = idx + 1; j < this.rates.slabRates.length; j++) {
-                    stepsAfter[j] = this.rates.slabRates[j].rate - this.rates.slabRates[j - 1].rate;
-                }
-
                 this.rates.slabRates[idx].rate = val;
+
                 if (idx === 0) {
                     this.rates.baseDrillingRate = val;
+                    this.updateSsgBasePill();
                     const mBase = document.getElementById('masterBaseRate');
                     if (mBase && document.activeElement !== mBase) mBase.value = val;
                     const bBase = document.getElementById('baseDrillingRate');
                     if (bBase && document.activeElement !== bBase) bBase.value = val;
-                } else {
-                    const newDiff = val - this.rates.slabRates[idx - 1].rate;
-                    const stepInp = grid.querySelector(`.slab-step-input[data-step-index="${idx}"]`);
-                    if (stepInp && document.activeElement !== stepInp) {
-                        stepInp.value = newDiff;
-                    }
                 }
 
-                // Ripple subsequent rows using their preserved steps
-                for (let j = idx + 1; j < this.rates.slabRates.length; j++) {
-                    const nextR = Math.max(1, this.rates.slabRates[j - 1].rate + stepsAfter[j]);
-                    this.rates.slabRates[j].rate = nextR;
-                    const rInp = grid.querySelector(`.slab-edit-input[data-index="${j}"]`);
-                    if (rInp && document.activeElement !== rInp) {
-                        rInp.value = nextR;
-                    }
+                if (idx > 0) {
+                    const prev = this.rates.slabRates[idx - 1].rate;
+                    const badge = document.getElementById(`stepBadge_${idx}`);
+                    if (badge) badge.textContent = `+₹${val - prev}`;
+                }
+
+                if (idx + 1 < this.rates.slabRates.length) {
+                    const nextVal = this.rates.slabRates[idx + 1].rate;
+                    const nextBadge = document.getElementById(`stepBadge_${idx + 1}`);
+                    if (nextBadge) nextBadge.textContent = `+₹${nextVal - val}`;
                 }
 
                 this.updateAddNextSlabButtonUI();
@@ -1010,18 +927,19 @@ export class RatesMixin {
             });
         });
 
-        // 4. Delete Slab Row Button (✕) with Undo support
-        grid.querySelectorAll('.slab-row-del-btn').forEach(delBtn => {
-            delBtn.addEventListener('click', () => {
-                const delIdx = parseInt(delBtn.dataset.delSlabIdx, 10);
+        // Delete buttons
+        grid.querySelectorAll('.slab-row-del-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const delIdx = parseInt(btn.dataset.delSlabIdx, 10);
                 if (delIdx > 0 && delIdx < this.rates.slabRates.length) {
-                    const backupSlabs = JSON.parse(JSON.stringify(this.rates.slabRates));
                     const removedSlab = this.rates.slabRates[delIdx];
+                    const backupSlabs = JSON.parse(JSON.stringify(this.rates.slabRates));
                     this.rates.slabRates.splice(delIdx, 1);
                     this.rates.slabRates = this.normalizeSlabArray(this.rates.slabRates, this.rates.baseDrillingRate || 90);
                     this.renderMasterSlabsGrid();
                     this.calculateAndRender();
-                    this.showUndoToast(`🗑️ Removed Slab ${removedSlab.label || ''}`, () => {
+                    this.showUndoToast(`🗑️ Removed Slab ${removedSlab.rangeStr || ''}`, () => {
                         this.rates.slabRates = backupSlabs;
                         this.renderMasterSlabsGrid();
                         this.calculateAndRender();
