@@ -788,11 +788,17 @@ html.ios-standalone .sticky-live-bar {
 .live-doc-tag {
     background: var(--brand-accent);
     color: #0f172a;
-    font-size: var(--fs-2xs);
-    font-weight: 800;
-    padding: 2.5px 7px;
-    border-radius: 5px;
-    letter-spacing: 0.03em;
+    font-size: 10px;
+    font-weight: 850;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .live-bar-label {
@@ -880,11 +886,11 @@ html.ios-standalone .sticky-live-bar {
 /* ==================== TOUCH-FRIENDLY QUICK STEPPER BARS (RIG SITE OPTIMIZED) ==================== */
 .quick-stepper-bar {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    margin-bottom: 2px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    width: 100%;
 }
 
 .qsb-label {
@@ -892,36 +898,49 @@ html.ios-standalone .sticky-live-bar {
     font-weight: 750;
     color: #64748b;
     letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .qsb-chips {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 6px;
-    flex-wrap: wrap;
+    width: 100%;
 }
 
 .qsb-chip, .step-btn {
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 7px;
-    font-size: var(--fs-xs);
+    height: 38px;
+    padding: 0 4px;
+    border-radius: 10px;
+    font-size: 0.84rem;
     font-weight: 800;
-    border: 1px solid #cbd5e1;
+    border: 1.5px solid #cbd5e1;
     background: #ffffff;
     color: #334155;
     cursor: pointer;
-    transition: all 0.12s ease;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     font-variant-numeric: tabular-nums;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
 }
 
 .qsb-chip:hover, .step-btn:hover {
     background: #f1f5f9;
     border-color: #94a3b8;
     transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+}
+
+.qsb-chip:active, .step-btn:active {
+    transform: scale(0.95);
+    background: #e2e8f0;
 }
 
 .qsb-chip.plus, .step-btn.plus {
@@ -933,6 +952,11 @@ html.ios-standalone .sticky-live-bar {
 .qsb-chip.plus:hover, .step-btn.plus:hover {
     background: #dcfce7;
     border-color: #4ade80;
+}
+
+.qsb-chip.plus:active, .step-btn.plus:active {
+    transform: scale(0.95);
+    background: #bbf7d0;
 }
 
 .pvc-quick-stepper-row {
@@ -8546,10 +8570,10 @@ input.is-select-all-ready,
 .spvc-rate-input-box input.is-select-all-ready,
 .srbb-input-box input.is-select-all-ready,
 .ssdp-sr-input.is-select-all-ready {
-    background: #dbeafe !important;
-    border-color: #3b82f6 !important;
-    color: #1e40af !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.22) !important;
+    background: transparent !important;
+    border-color: inherit !important;
+    color: inherit !important;
+    box-shadow: none !important;
 }
 
 /* ==========================================================================
@@ -12051,19 +12075,54 @@ input.is-select-all-ready,
     font-variant-numeric: tabular-nums;
 }
 
-/* Top control strip: never push "Re-Bore" off-screen on narrow phones */
+/* Top control strip: strictly side-by-side in 1 row across all devices */
 .top-mode-bar {
-    flex-wrap: wrap;
-    row-gap: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: nowrap !important;
     min-width: 0;
+    width: 100%;
 }
-@media (max-width: 420px) {
-    .top-mode-bar .seg-pill-group {
-        flex: 1 1 auto;
-        justify-content: stretch;
+
+.top-mode-bar .seg-pill-group {
+    flex: 1 1 0;
+    display: inline-flex;
+    min-width: 0;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    gap: 2px;
+}
+
+.top-mode-bar .seg-pill-group.dark-seg {
+    background: #f8fafc;
+}
+
+.top-mode-bar .seg-pill {
+    flex: 1 1 0;
+    height: 32px;
+    padding: 0 6px;
+    font-size: 0.76rem;
+    font-weight: 750;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    border-radius: 8px;
+}
+
+@media (max-width: 380px) {
+    .top-mode-bar {
+        gap: 5px;
     }
-    .top-mode-bar .seg-pill-group .seg-pill {
-        flex: 1 1 0;
+    .top-mode-bar .seg-pill {
+        padding: 0 4px;
+        font-size: 0.72rem;
+        gap: 3px;
     }
 }
 

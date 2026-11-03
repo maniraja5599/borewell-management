@@ -206,7 +206,7 @@
                 <div class="live-bar-details-grid">
                     <div class="live-detail-pill" id="stickyDrillPill">
                         <span class="ld-left">
-                            <i data-lucide="arrow-down-to-line" class="icon-xs"></i>
+                            <i data-lucide="layers" class="icon-xs"></i>
                             <span id="liveSummaryDepthBadge">0 ft • 6.5"</span>
                         </span>
                         <strong class="ld-val" id="liveStickyDrillCost">₹0</strong>
@@ -481,7 +481,7 @@
                                 </div>
                             </div>
                             <div class="simple-big-input-wrap compact">
-                                <input type="number" id="oldBoreDepth" value="" placeholder="0" min="1" max="2200" inputmode="numeric" enterkeyhint="next">
+                                <input type="number" id="oldBoreDepth" value="" placeholder="0" min="1" max="2200" inputmode="numeric" enterkeyhint="next" autocomplete="off">
                                 <span class="sbi-unit">ft</span>
                             </div>
                         </div>
@@ -490,7 +490,7 @@
                     <!-- Main Big Drilling Depth Input + Kutty Slab Rate Buffer Pill (±5 ft grace) -->
                     <div class="drilling-depth-row">
                         <div class="simple-big-input-wrap hero drilling-hero-input">
-                            <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next">
+                            <input type="number" id="totalDepth" value="" placeholder="Enter Drilling Depth (e.g. 500)" min="1" max="2500" inputmode="numeric" enterkeyhint="next" autocomplete="off">
                             <span class="sbi-unit">ft</span>
                         </div>
                         <div class="drilling-buffer-pill" id="drillingBufferPill" title="Slab Grace Buffer (e.g. 5 ft grace before shifting to next slab rate)">
@@ -521,7 +521,7 @@
                             <label for="baseDrillingRate">1–300ft:</label>
                             <div class="srbb-input-box">
                                 <span>₹</span>
-                                <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" enterkeyhint="next">
+                                <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" enterkeyhint="next" autocomplete="off">
                                 <small>/ft</small>
                             </div>
                         </div>
@@ -530,7 +530,7 @@
                             <label for="billBoreBataInput">Bata:</label>
                             <div class="srbb-input-box">
                                 <span>₹</span>
-                                <input type="number" id="billBoreBataInput" value="2000" min="0" inputmode="numeric" tabindex="-1">
+                                <input type="number" id="billBoreBataInput" value="2000" min="0" inputmode="numeric" tabindex="-1" autocomplete="off">
                             </div>
                         </div>
                         <div class="srbb-divider"></div>
@@ -669,14 +669,14 @@
                                 <strong id="liveInlinePvc7Cost" class="spvc-cost">₹0</strong>
                             </div>
                             <div class="simple-big-input-wrap pvc">
-                                <input type="number" id="pvc7Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="next">
+                                <input type="number" id="pvc7Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="next" autocomplete="off">
                                 <span class="sbi-unit">ft</span>
                             </div>
                             <div class="spvc-rate-row">
                                 <span class="spvc-rate-lbl">Rate:</span>
                                 <div class="spvc-rate-input-box">
                                     <span>₹</span>
-                                    <input type="number" id="pvc7RateInput" value="400" min="1" inputmode="numeric" tabindex="-1" aria-label="7 inch Casing Pipe Rate">
+                                    <input type="number" id="pvc7RateInput" value="400" min="1" inputmode="numeric" tabindex="-1" aria-label="7 inch Casing Pipe Rate" autocomplete="off">
                                     <small>/ft</small>
                                 </div>
                             </div>
@@ -696,14 +696,14 @@
                                 <strong id="liveInlinePvc10Cost" class="spvc-cost">₹0</strong>
                             </div>
                             <div class="simple-big-input-wrap pvc">
-                                <input type="number" id="pvc10Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="done">
+                                <input type="number" id="pvc10Length" value="" placeholder="Enter ft" min="1" inputmode="numeric" enterkeyhint="done" autocomplete="off">
                                 <span class="sbi-unit">ft</span>
                             </div>
                             <div class="spvc-rate-row">
                                 <span class="spvc-rate-lbl">Rate:</span>
                                 <div class="spvc-rate-input-box">
                                     <span>₹</span>
-                                    <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch Casing Pipe Rate">
+                                    <input type="number" id="pvc10RateInput" value="700" min="1" inputmode="numeric" tabindex="-1" aria-label="10 inch Casing Pipe Rate" autocomplete="off">
                                     <small>/ft</small>
                                 </div>
                             </div>

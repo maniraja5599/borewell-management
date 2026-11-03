@@ -35,18 +35,10 @@ export class BillFieldBehaviorListeners {
             inp.dataset.freshFocus = curVal !== '' ? '1' : '0';
             inp.dataset.focusInitialVal = curVal;
             inp.dataset.justFocused = '1';
-            inp.classList.toggle('is-select-all-ready', curVal !== '');
-            try { inp.select(); } catch (err) { /* ignore */ }
-            requestAnimationFrame(() => {
-                if (document.activeElement === inp && inp.dataset.freshFocus === '1') {
-                    try { inp.select(); } catch (err) { /* ignore */ }
-                }
-            });
-            setTimeout(() => {
-                if (document.activeElement === inp && inp.dataset.freshFocus === '1') {
-                    try { inp.select(); } catch (err) { /* ignore */ }
-                }
-            }, 30);
+            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            if (!isTouch) {
+                try { inp.select(); } catch (err) { /* ignore */ }
+            }
         };
 
         // Clicking anywhere on a Rate Pill / Wrapper Box (.spvc-rate-row, .spvc-rate-input-box, .srbb-input-box, .ssdp-sr-input-box) focuses & selects all
