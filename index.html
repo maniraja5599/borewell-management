@@ -77,6 +77,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 
+
+    <!-- Inline Fail-Safe: Dismiss Splash Screen within 1000ms under any network/script latency -->
+    <script id="appSplashFailSafe">
+        setTimeout(function() {
+            var s = document.getElementById('appSplashScreen');
+            if (s && !s.classList.contains('fade-out')) {
+                s.classList.add('fade-out');
+                setTimeout(function() { try { s.remove(); } catch(e) {} }, 400);
+            }
+        }, 1000);
+    </script>
+    
 </head>
 <body>
 

@@ -1,7 +1,7 @@
 // DrillRig offline service worker.
 // Built JS/CSS files have content hashes in their names (from Vite), so they never go stale;
 // we fetch network-first and fall back to cache when the rig site has no signal.
-const CACHE_NAME = 'drillrig-v2.1';
+const CACHE_NAME = 'drillrig-v2.2';
 const PRECACHE = [
   './',
   './index.html',

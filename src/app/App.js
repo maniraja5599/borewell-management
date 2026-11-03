@@ -282,7 +282,7 @@ export class BoreBillSaaSApp {
                 setTimeout(() => {
                     try { splashEl.remove(); } catch (_) {}
                 }, 400);
-            }, 2500);
+            }, 350);
         }
 
         // Restore exact scroll position where user left off
