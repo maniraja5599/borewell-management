@@ -856,6 +856,65 @@ export class RatesMixin {
         this.showToast(`🌱 Started at Row 1 (001–${baseSpan} ft). Tap "＋ Add Next 100 ft" to build!`);
     }
 
+    
+    openRateProfileInStudio(profileId) {
+        const prof = this.rateProfiles.find(p => p.id === profileId);
+        if (!prof) return;
+        this.toggleRateStudio(true);
+        this.loadRateProfileIntoEditor(prof);
+        this.switchStudioTab('core');
+        this.showToast(`✏️ Editing "${prof.name}"`);
+    }
+
+    switchStudioTab(tabName = 'core') {
+        const isCore = tabName === 'core';
+        const coreBtn = document.getElementById('studioTabBtnCore');
+        const slabsBtn = document.getElementById('studioTabBtnSlabs');
+        const corePanel = document.getElementById('studioPanelCore');
+        const slabsPanel = document.getElementById('studioPanelSlabs');
+
+        if (coreBtn) coreBtn.classList.toggle('active', isCore);
+        if (slabsBtn) slabsBtn.classList.toggle('active', !isCore);
+        if (corePanel) corePanel.style.display = isCore ? 'block' : 'none';
+        if (slabsPanel) slabsPanel.style.display = !isCore ? 'block' : 'none';
+
+        if (!isCore) {
+            this.updateSsgBasePill();
+            this.renderMasterSlabsGrid();
+        }
+    }
+
+    updateSsgBasePill() {
+        const baseVal = this.rates?.baseDrillingRate || 90;
+        const pill = document.getElementById('ssgBaseRatePill');
+        if (pill) pill.textContent = `₹${baseVal}/ft`;
+    }
+
+    applyStepIncrementToAllSlabs(stepVal) {
+        const step = Math.max(0, parseFloat(stepVal) || 0);
+        const baseR = Math.max(1, parseFloat(this.rates?.baseDrillingRate) || 90);
+
+        this.rates.slabRates = DEPTH_SLABS_DEFINITION.map((s, idx) => ({
+            start: s.start,
+            end: s.end,
+            span: s.span,
+            rangeStr: s.rangeStr,
+            rate: idx === 0 ? baseR : (baseR + (idx * step))
+        }));
+
+        document.querySelectorAll('.ssg-step-chip').forEach(chip => {
+            const chipVal = parseFloat(chip.dataset.step);
+            chip.classList.toggle('active', chipVal === step);
+        });
+
+        const customInput = document.getElementById('customSlabStepInput');
+        if (customInput) customInput.value = step;
+
+        this.renderMasterSlabsGrid();
+        this.calculateAndRender();
+        this.showToast(`⚡ All 19 slabs updated (+₹${step}/ft per 100 ft)`);
+    }
+
     renderMasterSlabsGrid() {
         const grid = document.getElementById('masterSlabsGrid');
         if (!grid) return;
