@@ -923,26 +923,30 @@ html.ios-standalone .sticky-live-bar {
 
 .live-bar-details-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#stickyExtrasPill {
+    display: none !important;
 }
 
 @media (max-width: 420px) {
     .live-bar-details-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 5px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
     }
     .live-detail-pill {
-        padding: 4px 6px;
-        border-radius: 7px;
+        padding: 5px 8px;
+        border-radius: 8px;
     }
     .ld-left {
-        font-size: 0.71rem;
-        gap: 4px;
+        font-size: 0.76rem;
+        gap: 5px;
     }
     .ld-left svg {
-        width: 12px;
-        height: 12px;
+        width: 13px;
+        height: 13px;
     }
 }
 
@@ -952,20 +956,20 @@ html.ios-standalone .sticky-live-bar {
         padding-right: 8px;
     }
     .live-bar-details-grid {
-        gap: 3px;
+        gap: 5px;
     }
     .live-detail-pill {
-        padding: 3px 3px;
-        border-radius: 6px;
+        padding: 4px 6px;
+        border-radius: 7px;
     }
     .ld-left {
-        font-size: 0.67rem;
-        gap: 3px;
+        font-size: 0.72rem;
+        gap: 4px;
         letter-spacing: -0.01em;
     }
     .ld-left svg {
-        width: 10.5px;
-        height: 10.5px;
+        width: 12px;
+        height: 12px;
     }
 }
 
