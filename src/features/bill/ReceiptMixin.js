@@ -11,7 +11,7 @@ export class ReceiptMixin {
         if (totalBannerEl) {
             totalBannerEl.textContent = this.formatINR(res.grandTotal);
         }
-        document.getElementById('liveSummaryDepthBadge').textContent = `${res.totalDepth || 0} ft • ${res.boreDia}`;
+        document.getElementById('liveSummaryDepthBadge').textContent = `${res.totalDepth || 0} ft`;
         document.getElementById('liveSummaryPerFt').textContent = `Base: ₹${res.baseDrillingRate || 90}/ft`;
 
         const stickyDrillCost = document.getElementById('liveStickyDrillCost');
@@ -23,7 +23,17 @@ export class ReceiptMixin {
         if (stickyPipeText) {
             const c1Short = this.getCasing1ShortName();
             const c2Short = this.getCasing2ShortName();
-            stickyPipeText.textContent = `${c1Short}: ${res.pvc7Length || 0}ft • ${c2Short}: ${res.pvc10Length || 0}ft`;
+            const p1 = res.pvc7Length || 0;
+            const p2 = res.pvc10Length || 0;
+            if (p1 > 0 && p2 > 0) {
+                stickyPipeText.textContent = `${c1Short}: ${p1}ft • ${c2Short}: ${p2}ft`;
+            } else if (p1 > 0) {
+                stickyPipeText.textContent = `${c1Short}: ${p1} ft`;
+            } else if (p2 > 0) {
+                stickyPipeText.textContent = `${c2Short}: ${p2} ft`;
+            } else {
+                stickyPipeText.textContent = `${c1Short}: 0 ft`;
+            }
         }
 
         const stickyPipeCost = document.getElementById('liveStickyPipeCost');
@@ -32,6 +42,21 @@ export class ReceiptMixin {
         }
 
         const totalExtrasCost = (res.boreBataCost || 0) + (res.collarCapCost || 0) + (res.transportSurveyCost || 0) + (res.customExtraAmount || 0);
+        const stickyExtrasText = document.getElementById('liveStickyExtrasText');
+        if (stickyExtrasText) {
+            const bataCost = res.boreBataCost || 0;
+            const otherExtras = (res.collarCapCost || 0) + (res.transportSurveyCost || 0) + (res.customExtraAmount || 0);
+            if (bataCost > 0 && otherExtras > 0) {
+                stickyExtrasText.textContent = 'Bata + Extras';
+            } else if (bataCost > 0) {
+                stickyExtrasText.textContent = 'Bata: Incl';
+            } else if (otherExtras > 0) {
+                stickyExtrasText.textContent = 'Extras: Incl';
+            } else {
+                stickyExtrasText.textContent = 'No Extras';
+            }
+        }
+
         const stickyExtrasCost = document.getElementById('liveStickyExtrasCost');
         if (stickyExtrasCost) {
             stickyExtrasCost.textContent = this.formatINR(totalExtrasCost);

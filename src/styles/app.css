@@ -930,16 +930,42 @@ html.ios-standalone .sticky-live-bar {
 @media (max-width: 420px) {
     .live-bar-details-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 4px;
+        gap: 5px;
     }
     .live-detail-pill {
-        padding: 3px 5px;
+        padding: 4px 6px;
+        border-radius: 7px;
     }
     .ld-left {
-        font-size: var(--fs-2xs);
+        font-size: 0.71rem;
+        gap: 4px;
     }
-    .ld-val {
-        font-size: var(--fs-xs);
+    .ld-left svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .sticky-live-bar {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    .live-bar-details-grid {
+        gap: 3px;
+    }
+    .live-detail-pill {
+        padding: 3px 3px;
+        border-radius: 6px;
+    }
+    .ld-left {
+        font-size: 0.67rem;
+        gap: 3px;
+        letter-spacing: -0.01em;
+    }
+    .ld-left svg {
+        width: 10.5px;
+        height: 10.5px;
     }
 }
 
@@ -1179,33 +1205,46 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .live-detail-pill {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 7px;
-    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    padding: 5px 8px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 5px;
+    justify-content: center;
     min-width: 0;
+    transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.live-detail-pill:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+.live-detail-pill .ld-val {
+    display: none !important;
 }
 
 .ld-left {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    color: #e2e8f0;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 750;
+    color: #f1f5f9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
+    min-width: 0;
 }
 
 .ld-left svg {
-    color: var(--brand-accent);
+    color: #facc15;
     width: 13px;
     height: 13px;
+    flex-shrink: 0;
 }
 
 .ld-val {
