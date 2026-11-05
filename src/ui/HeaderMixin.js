@@ -34,8 +34,8 @@ export class HeaderMixin {
         const dueBadgeEl = document.getElementById('marqueeDueTotalBadge');
         if (dueCountEl) {
             dueCountEl.textContent = totalPending > 0
-                ? `${pendingCount} ${pendingCount === 1 ? 'Unpaid Bill' : 'Unpaid Bills'}`
-                : 'All Accounts Paid';
+                ? `${pendingCount} ${pendingCount === 1 ? 'Unpaid' : 'Unpaid'}`
+                : 'All Paid';
         }
         if (dueBadgeEl) {
             dueBadgeEl.textContent = totalPending > 0
@@ -59,15 +59,39 @@ export class HeaderMixin {
                 }
             });
             if (todayBores > 0) {
-                todayWorkTitle.textContent = `${todayBores} ${todayBores === 1 ? 'Bore Drilled' : 'Bores Drilled'}`;
+                todayWorkTitle.textContent = `${todayBores} ${todayBores === 1 ? 'Bore' : 'Bores'}`;
                 todayDepthBadge.textContent = `${todayDepth} FT`;
             } else {
                 const totalBoresAll = (this.history || []).length;
-                todayWorkTitle.textContent = `${totalBoresAll} Total Bills`;
+                todayWorkTitle.textContent = `${totalBoresAll} Bills`;
                 todayDepthBadge.textContent = 'READY';
             }
         }
 
-        // Multi-slide rotator removed in favor of clean, stable enterprise header branding
+        // 3. Start Multi-Slide Swipe-Up Rotator Timer (4.2 seconds loop)
+        if (!this._topMarqueeTimer) {
+            this._topMarqueeCurrentIndex = 0;
+            this._topMarqueeTimer = setInterval(() => {
+                const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
+                const visibleSlides = allSlides.filter(s => s.style.display !== 'none');
+                if (!visibleSlides || visibleSlides.length === 0) return;
+
+                const currentSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
+                let currPos = visibleSlides.indexOf(currentSlide);
+                if (currPos === -1) currPos = 0;
+                const nextPos = (currPos + 1) % visibleSlides.length;
+
+                const prevSlide = visibleSlides[currPos];
+                const nextSlide = visibleSlides[nextPos];
+                this._topMarqueeCurrentIndex = parseInt(nextSlide.dataset.slideIndex || nextPos, 10);
+
+                allSlides.forEach(s => s.classList.remove('active', 'exit-up'));
+                if (prevSlide) prevSlide.classList.add('exit-up');
+                if (nextSlide) nextSlide.classList.add('active');
+            }, 4200);
+            if (this._topMarqueeTimer?.unref) {
+                this._topMarqueeTimer.unref();
+            }
+        }
     }
 }

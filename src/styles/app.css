@@ -757,22 +757,31 @@ html.ios-standalone .app-header {
     }
 }
 
-/* Narrow Viewport Guard (<375px e.g. iPhone SE): Hide Ticker to Give Controls Full Space */
+/* Narrow Viewport Tuning (<375px e.g. iPhone SE): Compact Ticker & Controls */
 @media (max-width: 375px) {
     .header-dynamic-marquee {
-        display: none !important;
-    }
-    .header-inner {
-        justify-content: space-between !important;
+        height: 36px !important;
+        padding: 0 6px !important;
     }
     .header-controls {
-        gap: 8px !important;
+        gap: 5px !important;
     }
     .header-dashboard-btn,
     .header-settings-btn,
     .pwa-install-btn {
-        width: 40px !important;
-        height: 40px !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .brand-logo-wrap {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .slide-main-title {
+        font-size: 0.74rem !important;
+    }
+    .slide-badge {
+        font-size: 8.5px !important;
+        padding: 2px 5.5px !important;
     }
 }
 

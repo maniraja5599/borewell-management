@@ -110,7 +110,7 @@
         <!-- ==================== TOP APP SHELL HEADER ==================== -->
         <header class="app-header">
             <div class="header-inner">
-                <!-- Brand Identity: Logo + Company Name + PRO Badge -->
+                <!-- Brand Logo Button -->
                 <div class="brand-identity-mini" id="openBrandTabBtn" title="Tap to customize Company Brand & Profile">
                     <div class="brand-logo-wrap" id="headerLogoWrap">
                         <img id="headerLogoImg" src="" alt="Logo" style="display: none;">
@@ -118,12 +118,37 @@
                             <img src="icon.svg" alt="DrillRig." style="width: 100%; height: 100%; object-fit: contain;">
                         </span>
                     </div>
-                    <div class="brand-title-wrap">
-                        <span class="slide-main-title" id="headerCompanyName">DrillRig.</span>
+                </div>
+
+                <!-- 🔄 Dynamic Multi-Slide Top Header Ticker Banner (Swipe-Up Rotator) -->
+                <div class="header-dynamic-marquee" id="topDynamicMarquee" title="Tap to view details">
+                    <!-- Slide 1: Company Name (Pure, Bold & Clean) -->
+                    <div class="marquee-slide active slide-company" id="marqueeSlide0" data-slide-index="0">
+                        <div class="slide-content-wrap">
+                            <span class="slide-main-title" id="headerCompanyName">DrillRig.</span>
+                        </div>
                         <span class="slide-badge badge-pro">
                             <span class="sb-dot"></span>
                             <span>PRO</span>
                         </span>
+                    </div>
+
+                    <!-- Slide 2: Outstanding Balance Due Alert -->
+                    <div class="marquee-slide slide-due" id="marqueeSlide1" data-slide-index="1">
+                        <div class="slide-content-wrap">
+                            <span class="slide-due-icon">⏳</span>
+                            <span class="slide-main-title" id="marqueeDueBillsCount">0 Unpaid</span>
+                        </div>
+                        <span class="slide-badge badge-due" id="marqueeDueTotalBadge">₹0 DUE</span>
+                    </div>
+
+                    <!-- Slide 3: Live Work Summary / Today Activity -->
+                    <div class="marquee-slide slide-work" id="marqueeSlide2" data-slide-index="2">
+                        <div class="slide-content-wrap">
+                            <span class="slide-work-icon">🚜</span>
+                            <span class="slide-main-title" id="marqueeTodayWorkTitle">0 Bores</span>
+                        </div>
+                        <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
                     </div>
                 </div>
 
