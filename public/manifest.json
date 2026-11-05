@@ -1,11 +1,14 @@
 {
-  "name": "DrillRig. — Borewell Billing & Khata SaaS",
+  "name": "DrillRig. — Borewell Billing & Accounts",
   "short_name": "DrillRig.",
-  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Khata ERP",
+  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Ledger Accounts ERP",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#15803d",
   "theme_color": "#15803d",
   "orientation": "portrait-primary",

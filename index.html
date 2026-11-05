@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>DrillRig. — Borewell Billing &amp; Khata SaaS</title>
-    <meta name="description" content="Enterprise Mobile-First Borewell Billing, Depth Slab Cost Calculator & Customer Khata CRM.">
+    <title>DrillRig. — Borewell Billing &amp; Accounts</title>
+    <meta name="description" content="Enterprise Mobile-First Borewell Billing, Depth Slab Cost Calculator & Customer Accounts Ledger.">
     <meta name="theme-color" content="#15803d" id="metaThemeColor">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -160,10 +160,6 @@
                     </a>
                     <button type="button" class="header-settings-btn" id="headerSettingsQuickBtn" title="Company Profile & Settings">
                         <i data-lucide="sliders" class="icon-xs"></i>
-                    </button>
-                    <button type="button" class="pwa-install-btn" id="installPwaBtn" style="display: none;" title="Install DrillRig Flow App">
-                        <i data-lucide="download" class="icon-xs"></i>
-                        <span>App</span>
                     </button>
                 </div>
             </div>
@@ -3014,5 +3010,67 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <script type="module" src="./src/main.js"></script>
+
+    <!-- ==================== PWA INSTALL POPUP MODAL (AUTO-SHOWS AFTER 3s) ==================== -->
+    <div class="cust-popup-backdrop pwa-install-backdrop" id="pwaInstallModalOverlay" style="display: none;">
+        <div class="cust-popup-dialog pwa-install-dialog" role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
+            <button type="button" class="icon-close-btn pwa-modal-close-btn" id="closePwaInstallModalBtn" aria-label="Close">
+                <i data-lucide="x" class="icon-xs"></i>
+            </button>
+            <div class="pwa-install-body">
+                <div class="pwa-install-badge-box">
+                    <div class="pwa-install-app-icon-wrap">
+                        <img src="icon.svg" alt="DrillRig." class="pwa-install-app-icon">
+                    </div>
+                    <div class="pwa-install-header-text">
+                        <div class="pwa-install-badge-pill">OFFLINE READY</div>
+                        <h3 class="pwa-install-title" id="pwaInstallTitle">Install DrillRig App</h3>
+                    </div>
+                </div>
+                
+                <p class="pwa-install-desc" id="pwaInstallDesc">
+                    Install on your mobile phone for lightning-fast 1-tap access. Works 100% offline at borewell rig sites with zero delay!
+                </p>
+
+                <div class="pwa-features-row">
+                    <div class="pwa-feat-item">
+                        <i data-lucide="zap" class="icon-xs text-brand"></i>
+                        <span>Instant Launch</span>
+                    </div>
+                    <div class="pwa-feat-item">
+                        <i data-lucide="wifi-off" class="icon-xs text-brand"></i>
+                        <span>Works Offline</span>
+                    </div>
+                    <div class="pwa-feat-item">
+                        <i data-lucide="smartphone" class="icon-xs text-brand"></i>
+                        <span>Full Screen</span>
+                    </div>
+                </div>
+
+                <!-- iOS Safari Specific Step-by-Step Instructions -->
+                <div class="pwa-ios-instructions" id="pwaIosInstructions" style="display: none;">
+                    <div class="pwa-ios-step">
+                        <span class="pwa-step-num">1</span>
+                        <span>Tap Safari's <strong class="pwa-highlight">Share</strong> button <svg class="pwa-safari-share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at bottom</span>
+                    </div>
+                    <div class="pwa-ios-step">
+                        <span class="pwa-step-num">2</span>
+                        <span>Scroll down and tap <strong class="pwa-highlight">Add to Home Screen ⊞</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cust-popup-foot pwa-install-foot">
+                <button type="button" class="btn-secondary-sm pwa-dismiss-btn" id="dismissPwaInstallBtn">
+                    Later
+                </button>
+                <button type="button" class="btn-brand-primary pwa-confirm-btn" id="confirmPwaInstallBtn">
+                    <i data-lucide="download" class="icon-xs"></i>
+                    <span id="confirmPwaInstallBtnText">Install App</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

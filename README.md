@@ -1,4 +1,4 @@
-# DrillRig — Borewell Billing & Khata
+# DrillRig — Borewell Billing & Accounts
 
 Mobile-first PWA for borewell billing: depth-slab pricing, bills/quotations, customer dues, WhatsApp/PDF sharing.
 

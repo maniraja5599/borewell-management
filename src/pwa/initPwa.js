@@ -1,4 +1,3 @@
-
 export function initPWAAndZoomLock() {
     // 1. Prevent Multi-Touch Pinch-to-Zoom on Mobile
     document.addEventListener('touchmove', (e) => {
@@ -58,43 +57,96 @@ export function initPWAAndZoomLock() {
         }).catch(() => {});
     }
 
-    // 6. Native PWA Install Prompt Handler & Marquee Install Slide Sync
+    // 6. Native PWA Install Prompt Handler & 3-Second Auto Popup
     window.deferredInstallPrompt = null;
-    const installBtn = document.getElementById('installPwaBtn');
-    const marqueeInstallSlide = document.getElementById('marqueeSlide4');
 
     // Check if app is already running as installed standalone PWA
-    const isStandalone = (window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-    if (!isStandalone && marqueeInstallSlide) {
-        marqueeInstallSlide.style.display = 'flex';
+    const isStandalone = (window.navigator.standalone === true) || 
+                         (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                         document.documentElement.classList.contains('pwa-standalone');
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    const modalOverlay = document.getElementById('pwaInstallModalOverlay');
+    const closeBtn = document.getElementById('closePwaInstallModalBtn');
+    const dismissBtn = document.getElementById('dismissPwaInstallBtn');
+    const confirmBtn = document.getElementById('confirmPwaInstallBtn');
+    const iosInstructions = document.getElementById('pwaIosInstructions');
+    const confirmBtnText = document.getElementById('confirmPwaInstallBtnText');
+
+    function closePwaModal() {
+        if (modalOverlay) {
+            modalOverlay.style.display = 'none';
+        }
+        try {
+            sessionStorage.setItem('pwa_prompt_dismissed', 'true');
+        } catch (_) {}
     }
 
+    function showPwaModal() {
+        if (isStandalone) return;
+        try {
+            if (sessionStorage.getItem('pwa_prompt_dismissed') === 'true') return;
+        } catch (_) {}
+
+        if (!modalOverlay) return;
+
+        if (isIOS && iosInstructions) {
+            iosInstructions.style.display = 'flex';
+            if (confirmBtnText) confirmBtnText.textContent = 'Got It';
+        }
+
+        modalOverlay.style.display = 'flex';
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    // Expose showPwaModal globally
+    window.showPwaInstallModal = showPwaModal;
+    window.closePwaInstallModal = closePwaModal;
+
+    // Intercept native browser beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         window.deferredInstallPrompt = e;
-        if (installBtn) {
-            installBtn.style.display = 'inline-flex';
-            if (window.lucide) window.lucide.createIcons();
-        }
-        if (marqueeInstallSlide && !isStandalone) {
-            marqueeInstallSlide.style.display = 'flex';
-        }
     });
 
-    installBtn?.addEventListener('click', async () => {
-        if (!window.deferredInstallPrompt) return;
-        window.deferredInstallPrompt.prompt();
-        const { outcome } = await window.deferredInstallPrompt.userChoice;
-        if (outcome === 'accepted') {
-            if (installBtn) installBtn.style.display = 'none';
-            if (marqueeInstallSlide) marqueeInstallSlide.style.display = 'none';
+    // 3 Seconds Auto-Popup
+    setTimeout(() => {
+        showPwaModal();
+    }, 3000);
+
+    closeBtn?.addEventListener('click', closePwaModal);
+    dismissBtn?.addEventListener('click', closePwaModal);
+    modalOverlay?.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closePwaModal();
+    });
+
+    confirmBtn?.addEventListener('click', async () => {
+        if (isIOS) {
+            closePwaModal();
+            return;
         }
-        window.deferredInstallPrompt = null;
+
+        if (window.deferredInstallPrompt) {
+            window.deferredInstallPrompt.prompt();
+            try {
+                const { outcome } = await window.deferredInstallPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    window.deferredInstallPrompt = null;
+                }
+            } catch (_) {}
+            closePwaModal();
+        } else {
+            if (window.boreBillApp?.showToast) {
+                window.boreBillApp.showToast('📲 Tap browser menu ⋮ and select "Install app" or "Add to Home Screen"');
+            }
+            closePwaModal();
+        }
     });
 
     window.addEventListener('appinstalled', () => {
-        if (installBtn) installBtn.style.display = 'none';
-        if (marqueeInstallSlide) marqueeInstallSlide.style.display = 'none';
+        closePwaModal();
         window.deferredInstallPrompt = null;
     });
 }
