@@ -982,26 +982,93 @@ html.ios-standalone .sticky-live-bar {
     }
 }
 
-/* ==================== TOUCH-FRIENDLY QUICK STEPPER BARS (RIG SITE OPTIMIZED) ==================== */
+/* ==================== MODERN FAST FEET & QUICK STEPPER BAR ==================== */
 .quick-stepper-bar {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     margin-top: 10px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     width: 100%;
+    background: #f8fafc;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.qsb-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .qsb-label {
-    font-size: var(--fs-xs);
-    font-weight: 750;
-    color: #64748b;
-    letter-spacing: 0.02em;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--text-main, #0f172a);
     display: flex;
     align-items: center;
     gap: 5px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
 }
 
+.qsb-zap-icon {
+    font-size: 0.85rem;
+    color: #eab308;
+}
+
+.qsb-sub-hint {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Fast Feet Direct Presets Row */
+.fast-feet-presets-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: 100%;
+}
+
+.ff-preset-btn {
+    height: 34px;
+    padding: 0 4px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    touch-action: manipulation;
+    white-space: nowrap;
+}
+
+.ff-preset-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.ff-preset-btn:active {
+    transform: scale(0.96);
+}
+
+.ff-preset-btn.active {
+    background: #052e16 !important;
+    color: #4ade80 !important;
+    border-color: #052e16 !important;
+    box-shadow: 0 2px 6px rgba(5, 46, 22, 0.3) !important;
+}
+
+/* Incremental Quick Stepper Chips Row */
 .qsb-chips {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -1010,41 +1077,42 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .qsb-chip, .step-btn {
-    height: 38px;
+    height: 32px;
     padding: 0 4px;
-    border-radius: 10px;
-    font-size: 0.84rem;
+    border-radius: 8px;
+    font-size: 0.78rem;
     font-weight: 800;
     border: 1.5px solid #cbd5e1;
     background: #ffffff;
-    color: #334155;
+    color: #475569;
     cursor: pointer;
-    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-    font-variant-numeric: tabular-nums;
+    transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
-    user-select: none;
-    -webkit-user-select: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     touch-action: manipulation;
 }
 
-.qsb-chip:hover, .step-btn:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(15, 23, 42, 0.08);
+.qsb-chip.minus {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
 }
 
-.qsb-chip:active, .step-btn:active {
-    transform: scale(0.95);
-    background: #e2e8f0;
+.qsb-chip.minus:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.qsb-chip.minus:active {
+    transform: scale(0.96);
+    background: #fecaca;
 }
 
 .qsb-chip.plus, .step-btn.plus {
     background: #f0fdf4;
-    border-color: #86efac;
+    border-color: #bbf7d0;
     color: #15803d;
 }
 
@@ -1054,7 +1122,7 @@ html.ios-standalone .sticky-live-bar {
 }
 
 .qsb-chip.plus:active, .step-btn.plus:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
     background: #bbf7d0;
 }
 
@@ -1067,13 +1135,13 @@ html.ios-standalone .sticky-live-bar {
 
 .pvc-step-chip {
     flex: 1;
-    height: 26px;
-    padding: 0 5px;
-    border-radius: 6px;
-    font-size: var(--fs-2xs);
+    height: 30px;
+    padding: 0 4px;
+    border-radius: 7px;
+    font-size: 0.76rem;
     font-weight: 800;
     border: 1px solid #cbd5e1;
-    background: #f8fafc;
+    background: #ffffff;
     color: #475569;
     cursor: pointer;
     transition: all 0.12s ease;
@@ -1082,22 +1150,37 @@ html.ios-standalone .sticky-live-bar {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    touch-action: manipulation;
 }
 
 .pvc-step-chip:hover {
     background: #f1f5f9;
-    border-color: #94a3b8;
+}
+
+.pvc-step-chip:active {
+    transform: scale(0.95);
+}
+
+.pvc-step-chip[data-step="-20"] {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
 }
 
 .pvc-step-chip.plus {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #1d4ed8;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
 }
 
 .pvc-step-chip.plus:hover {
-    background: #dbeafe;
-    border-color: #60a5fa;
+    background: #dcfce7;
+    border-color: #86efac;
+}
+
+.pvc-step-chip.plus:active {
+    transform: scale(0.95);
+    background: #bbf7d0;
 }
 
 /* ==================== LIVE PROGRESSIVE SLAB ACCORDION BREAKDOWN ==================== */
@@ -12290,12 +12373,51 @@ input.is-select-all-ready,
 /* Keyboard focus rings (accessibility) — only for keyboard users, not taps */
 button:focus-visible,
 a:focus-visible,
-[role="button"]:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
+[role="button"]:focus-visible {
     outline: 2px solid var(--brand-primary, #15803d);
     outline-offset: 2px;
+}
+
+/* Universal Input Polish: Kill all accidental inner outlines, double borders & spin boxes */
+input,
+input:focus,
+input:focus-visible,
+select,
+select:focus,
+select:focus-visible,
+textarea,
+textarea:focus,
+textarea:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+}
+
+/* Strip borders/backgrounds from wrapped inputs so ONLY the parent container renders the box */
+.simple-big-input-wrap input,
+.simple-big-input-wrap input:focus,
+.simple-big-input-wrap input:focus-visible,
+.srbb-input-box input,
+.srbb-input-box input:focus,
+.srbb-input-box input:focus-visible,
+.spvc-rate-input-box input,
+.spvc-rate-input-box input:focus,
+.spvc-rate-input-box input:focus-visible,
+.dbp-box input,
+.dbp-box input:focus,
+.dbp-box input:focus-visible,
+.site-input-wrap input,
+.site-input-wrap input:focus,
+.site-input-wrap input:focus-visible,
+.wiz-search-input-wrap input,
+.wiz-search-input-wrap input:focus,
+.wiz-search-input-wrap input:focus-visible,
+.ssdp-sr-input-box input,
+.ssdp-sr-input-box input:focus,
+.ssdp-sr-input-box input:focus-visible {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 
 /* Respect the phone's "reduce motion" setting */

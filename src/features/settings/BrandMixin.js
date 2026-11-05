@@ -42,11 +42,11 @@ export class BrandMixin {
         const c1Short = this.getCasing1ShortName();
         const c2Short = this.getCasing2ShortName();
 
-        // New bill stage 3 labels
+        // New bill stage 3 labels: clean header without trailing "Pipe" so ₹badge never causes truncation
         const lbl1 = document.getElementById('labelPvc7Name');
-        if (lbl1) lbl1.textContent = c1;
+        if (lbl1) lbl1.textContent = c1.replace(/\s+Pipe$/i, '');
         const lbl2 = document.getElementById('labelPvc10Name');
-        if (lbl2) lbl2.textContent = c2;
+        if (lbl2) lbl2.textContent = c2.replace(/\s+Pipe$/i, '');
 
         // Company Card spec
         const specEl = document.getElementById('brandCardCasingSpecText');

@@ -5,6 +5,31 @@ import { STORAGE_KEYS } from '../../data/storage.js';
 export class BillFieldBehaviorListeners {
     setupBillFieldBehaviorListeners() {
         const emptyOnZeroIds = new Set(['totalDepth', 'oldBoreDepth', 'pvc7Length', 'pvc10Length']);
+
+        // Sync active state of Fast Feet preset chips
+        const syncFastFeetChips = () => {
+            const curVal = parseFloat(document.getElementById('totalDepth')?.value) || 0;
+            document.querySelectorAll('.ff-preset-btn').forEach(btn => {
+                const val = parseFloat(btn.dataset.val) || 0;
+                btn.classList.toggle('active', curVal > 0 && curVal === val);
+            });
+        };
+        document.getElementById('totalDepth')?.addEventListener('input', syncFastFeetChips);
+
+        // 1-Tap Fast Feet Preset Buttons (Direct depth setter)
+        document.querySelectorAll('.ff-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target || 'totalDepth';
+                const val = parseFloat(btn.dataset.val) || 0;
+                const input = document.getElementById(targetId);
+                if (!input) return;
+                input.value = val > 0 ? val : '';
+                this.calculateAndRender();
+                syncFastFeetChips();
+            });
+        });
+
+        // Stepper buttons (+/- adjusters)
         document.querySelectorAll('.step-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetId = btn.dataset.target;
@@ -20,6 +45,7 @@ export class BillFieldBehaviorListeners {
                     input.value = Math.max(min, nextVal);
                 }
                 this.calculateAndRender();
+                if (targetId === 'totalDepth') syncFastFeetChips();
             });
         });
 

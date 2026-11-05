@@ -487,10 +487,27 @@
 
                     <!-- Touch-Friendly Quick Depth Stepper Bar (Rig Site Optimized) -->
                     <div class="quick-stepper-bar" id="depthQuickStepperBar">
-                        <span class="qsb-label">Quick Feet:</span>
+                        <div class="qsb-header-row">
+                            <span class="qsb-label">
+                                <span class="qsb-zap-icon">⚡</span>
+                                <span>Fast Feet</span>
+                            </span>
+                            <span class="qsb-sub-hint">1-tap presets or tune</span>
+                        </div>
+                        
+                        <!-- 1-Tap Popular Rig Depth Presets -->
+                        <div class="fast-feet-presets-row" id="fastFeetPresetsRow">
+                            <button type="button" class="ff-preset-btn" data-target="totalDepth" data-val="300" title="300 ft base">300 ft</button>
+                            <button type="button" class="ff-preset-btn" data-target="totalDepth" data-val="400" title="400 ft">400 ft</button>
+                            <button type="button" class="ff-preset-btn" data-target="totalDepth" data-val="500" title="500 ft">500 ft</button>
+                            <button type="button" class="ff-preset-btn" data-target="totalDepth" data-val="600" title="600 ft">600 ft</button>
+                            <button type="button" class="ff-preset-btn" data-target="totalDepth" data-val="750" title="750 ft deep">750 ft</button>
+                        </div>
+
+                        <!-- Stepper Fine-Tuning Chips -->
                         <div class="qsb-chips">
-                            <button type="button" class="qsb-chip step-btn" data-target="totalDepth" data-step="-100" title="-100 ft">-100</button>
-                            <button type="button" class="qsb-chip step-btn" data-target="totalDepth" data-step="-50" title="-50 ft">-50</button>
+                            <button type="button" class="qsb-chip step-btn minus" data-target="totalDepth" data-step="-50" title="-50 ft">−50</button>
+                            <button type="button" class="qsb-chip step-btn minus" data-target="totalDepth" data-step="-100" title="-100 ft">−100</button>
                             <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="50" title="+50 ft">+50</button>
                             <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="100" title="+100 ft">+100</button>
                             <button type="button" class="qsb-chip step-btn plus" data-target="totalDepth" data-step="200" title="+200 ft">+200</button>
@@ -646,7 +663,7 @@
                         <!-- 1st Casing Box (7" Casing Pipe - Focused on Next from Base Rate) -->
                         <div class="simple-pvc-card casing-box">
                             <div class="spvc-top">
-                                <label for="pvc7Length" id="labelPvc7Name">7" Casing Pipe</label>
+                                <label for="pvc7Length" id="labelPvc7Name">7" Casing</label>
                                 <span id="hintPvc7Rate" style="display:none;">₹400</span>
                                 <strong id="liveInlinePvc7Cost" class="spvc-cost">₹0</strong>
                             </div>
@@ -663,7 +680,7 @@
                                 </div>
                             </div>
                             <div class="pvc-quick-stepper-row">
-                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc7Length" data-step="-20">-20</button>
+                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc7Length" data-step="-20">−20</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="20">+20</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="40">+40</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc7Length" data-step="100">+100</button>
@@ -673,7 +690,7 @@
                         <!-- 2nd Casing Box (10" Casing Pipe - Focused on Next from 7" Casing) -->
                         <div class="simple-pvc-card casing-box">
                             <div class="spvc-top">
-                                <label for="pvc10Length" id="labelPvc10Name">10" Casing Pipe</label>
+                                <label for="pvc10Length" id="labelPvc10Name">10" Casing</label>
                                 <span id="hintPvc10Rate" style="display:none;">₹700</span>
                                 <strong id="liveInlinePvc10Cost" class="spvc-cost">₹0</strong>
                             </div>
@@ -690,7 +707,7 @@
                                 </div>
                             </div>
                             <div class="pvc-quick-stepper-row">
-                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc10Length" data-step="-20">-20</button>
+                                <button type="button" class="pvc-step-chip step-btn" data-target="pvc10Length" data-step="-20">−20</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="20">+20</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="40">+40</button>
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="100">+100</button>
