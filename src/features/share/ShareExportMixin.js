@@ -203,7 +203,7 @@ export class ShareExportMixin {
         message = '',
         title = 'WhatsApp Message Preview',
         subtitle = 'Review bill details & mobile number before sending'
-    }) {
+    } = {}) {
         const overlay = document.getElementById('whatsappPreviewModalOverlay');
         const titleEl = document.getElementById('waPreviewModalTitle');
         const subEl = document.getElementById('waPreviewModalSub');
