@@ -89,12 +89,14 @@ export function planPush(index, hashes, defaults = null) {
  * - otherwise                          → take the cloud version
  * With `firstSync` the cloud always wins for anything it has (a new phone must not
  * push its default settings over the company's real ones).
- * Returns { apply: [{ kind, id, data, deleted, key, hash }], keepLocal: n, synced: { key: hash } }
+ * Returns { apply: [{ kind, id, data, deleted, key, hash }], keepLocal: n, synced: { key: hash }, conflicts: [key] }
+ * `conflicts` = records changed on BOTH this phone and another phone since the last sync.
  */
 export function planPull(rows, index, hashes, { firstSync = false, defaults = null } = {}) {
     const apply = [];
     const synced = {};
     let keepLocal = 0;
+    const conflicts = [];
     for (const row of rows) {
         const key = recordKey(row.kind, row.id);
         const remoteHash = row.deleted ? null : hashData(row.data);
@@ -112,12 +114,15 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
         }
         if (changedHere && !firstSync) {
             keepLocal++;
+            // Both sides changed since the last sync: the phone's copy wins (it is uploaded next),
+            // so tell the user instead of silently dropping the other phone's edit.
+            if (remoteHash !== knownHash && row.kind !== 'setting') conflicts.push(key);
             continue;
         }
         apply.push({ kind: row.kind, id: row.id, data: row.data, deleted: !!row.deleted, key, hash: remoteHash });
         synced[key] = remoteHash;
     }
-    return { apply, keepLocal, synced };
+    return { apply, keepLocal, synced, conflicts };
 }
 
 /**

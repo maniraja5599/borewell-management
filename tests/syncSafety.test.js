@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { STORAGE_KEYS } from '../src/data/storage.js';
-import { checkPhoneOwner, clearPhoneData, resetSyncBaseline } from '../src/cloud/sync.js';
+import { checkPhoneOwner, clearPhoneData, resetSyncBaseline, describeConflicts } from '../src/cloud/sync.js';
 import { indexLocal, planPush, planPull } from '../src/cloud/syncPlan.js';
 
 // Minimal localStorage so sync.js can read/write the phone's data under Node.
@@ -105,5 +105,27 @@ describe('Restoring an old backup while synced', () => {
     it('does nothing when this phone never synced', () => {
         expect(() => resetSyncBaseline()).not.toThrow();
         expect(store.has(STATE_KEY)).toBe(false);
+    });
+});
+
+describe('Edits on two phones at once', () => {
+    it('flags a bill changed on both phones since the last sync (phone copy kept)', () => {
+        const base = { id: 'b1', billNo: 'SM-101', total: 100 };
+        const knownHash = indexLocal({ history: [base] }).get('bill:b1').hash;
+        const local = indexLocal({ history: [{ ...base, total: 120 }] });          // edited here
+        const cloud = [{ kind: 'bill', id: 'b1', data: { ...base, total: 150 } }];  // edited there
+        const plan = planPull(cloud, local, { 'bill:b1': knownHash });
+        expect(plan.keepLocal).toBe(1);
+        expect(plan.conflicts).toEqual(['bill:b1']);
+        expect(describeConflicts(plan.conflicts, local)).toContain('#SM-101');
+    });
+
+    it('does not flag a re-read of an unchanged cloud copy', () => {
+        const base = { id: 'b1', billNo: 'SM-101', total: 100 };
+        const knownHash = indexLocal({ history: [base] }).get('bill:b1').hash;
+        const local = indexLocal({ history: [{ ...base, total: 120 }] });
+        const plan = planPull([{ kind: 'bill', id: 'b1', data: base }], local, { 'bill:b1': knownHash });
+        expect(plan.keepLocal).toBe(1);
+        expect(plan.conflicts).toEqual([]);
     });
 });

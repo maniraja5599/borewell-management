@@ -176,6 +176,21 @@ export function cleanPulledRows(rows) {
     return out;
 }
 
+/** Say which bills/customers were edited on two phones at once (this phone's copy is kept). */
+export function describeConflicts(keys, index) {
+    const names = keys.slice(0, 3).map((key) => {
+        const d = index.get(key)?.data || {};
+        return key.startsWith('bill:') ? `#${d.billNo || key.slice(5)}` : (d.name || 'a customer');
+    });
+    const more = keys.length > 3 ? ` +${keys.length - 3} more` : '';
+    return `⚠️ ${names.join(', ')}${more} also changed on another phone — this phone's version was kept. Please check.`;
+}
+
+function notifyConflicts(app, keys, index) {
+    console.warn('[sync] edited on two phones, kept this phone\'s copy:', keys);
+    try { app.showToast?.(describeConflicts(keys, index)); } catch { /* ignore */ }
+}
+
 async function pushRows(rows) {
     const st = ctx.state;
     for (let i = 0; i < rows.length; i += PUSH_BATCH) {
@@ -209,6 +224,7 @@ async function syncOnce() {
     }
     const before = indexLocal(readLocal());
     const plan = planPull(rows, before, st.hashes, { firstSync, defaults });
+    if (plan.conflicts?.length) notifyConflicts(app, plan.conflicts, before);
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
     writeLocal(app, local, changed);
     for (const [key, hash] of Object.entries(plan.synced)) {
