@@ -92,7 +92,7 @@ export function planPush(index, hashes, defaults = null) {
  * Returns { apply: [{ kind, id, data, deleted, key, hash }], keepLocal: n, synced: { key: hash }, conflicts: [key] }
  * `conflicts` = records changed on BOTH this phone and another phone since the last sync.
  */
-export function planPull(rows, index, hashes, { firstSync = false, defaults = null } = {}) {
+export function planPull(rows, index, hashes, { firstSync = false, defaults = null, cloudWinsSettings = false } = {}) {
     const apply = [];
     const synced = {};
     let keepLocal = 0;
@@ -112,6 +112,8 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
             && !isDefaultSetting(row.id, row.data, defaults)) {
             changedHere = false; // the phone only has defaults: the company's real settings win
         }
+        // Staff phones cannot upload settings, so the owner's settings always win there.
+        if (cloudWinsSettings && row.kind === 'setting') changedHere = false;
         if (changedHere && !firstSync) {
             keepLocal++;
             // Both sides changed since the last sync: the phone's copy wins (it is uploaded next),

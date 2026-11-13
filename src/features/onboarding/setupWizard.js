@@ -83,7 +83,7 @@ export function initSetupWizard(app) {
     const backBtn = el('button', { type: 'button', class: 'sw-btn ghost', text: 'Back', hidden: '' });
     const nextBtn = el('button', { type: 'button', class: 'sw-btn primary', text: 'Next' });
     const skipBtn = el('button', { type: 'button', class: 'sw-link', text: 'Skip for now' });
-    const signInBtn = el('button', { type: 'button', class: 'sw-link', text: 'Already use DrillRig? Sign in' });
+    const signInBtn = el('button', { type: 'button', class: 'sw-link', text: 'Joining a team, or already use DrillRig? Sign in' });
 
     const card = el('div', { class: 'sw-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'swTitle' }, [
         dots, title, sub, step1, step2, error,

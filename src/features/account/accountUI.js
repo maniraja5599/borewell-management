@@ -1,7 +1,8 @@
 // The "Sign in with Google" card at the top of Settings.
 // Sign-in is optional: nothing else in the app depends on it yet.
-import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut } from '../../cloud/auth.js';
-import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData } from '../../cloud/sync.js';
+import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut, getSupabase } from '../../cloud/auth.js';
+import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany } from '../../cloud/sync.js';
+import { getAccess, onAccessChange } from '../../cloud/access.js';
 
 export function initAccountUI(app) {
     const card = document.getElementById('accountCard');
@@ -70,17 +71,101 @@ export function initAccountUI(app) {
         onStatus({ kind: 'error', text: 'Not syncing — tap to fix', at: Date.now() });
     };
 
+    // The server paused syncing for a reason only the user can resolve (see sync.js).
+    let blockedErr = null;
+    const startOver = (preferredCompany) => {
+        setPreferredCompany(preferredCompany || null);
+        clearPhoneData();
+        window.location.reload(); // every screen starts clean; the Google session is kept
+    };
+    const explainBlocked = (err) => {
+        if (err.code === 'DRILLRIG_REMOVED') {
+            app.confirmDeleteModal({
+                title: 'No access to this company',
+                subtitle: 'The owner removed you, or the company was closed',
+                itemLabel: `🏢 ${err.companyName || 'Company'}`,
+                message: 'This phone still has that company\'s bills. They are safe in the company\'s cloud. Remove them from this phone to continue with your own account?',
+                confirmBtnLabel: 'Remove & continue',
+                onConfirm: () => startOver(null)
+            });
+        } else if (err.code === 'DRILLRIG_STAFF_LOCAL_DATA') {
+            const parts = [];
+            if (err.bills) parts.push(`${err.bills} bill${err.bills === 1 ? '' : 's'}`);
+            if (err.customers) parts.push(`${err.customers} customer${err.customers === 1 ? '' : 's'}`);
+            app.confirmDeleteModal({
+                title: `Join ${err.companyName || 'the team'}`,
+                subtitle: `You were invited as ${err.role}`,
+                itemLabel: `📱 On this phone: ${parts.join(', ')}`,
+                message: `These are not part of ${err.companyName || 'the company'} and will not be uploaded. Need them? Cancel, then Settings → Backup → Download first. Remove them to join the team.`,
+                confirmBtnLabel: 'Remove & join',
+                requireTypeText: 'REMOVE',
+                onConfirm: () => startOver(null)
+            });
+        }
+    };
+    const onBlocked = (err) => { blockedErr = err; explainBlocked(err); };
+
     syncBtn.addEventListener('click', () => {
+        if (blockedErr) { explainBlocked(blockedErr); return; }
         if (blockedAccount) {
             const other = checkPhoneOwner(app, blockedAccount);
             if (other) { askToTakeOverPhone(blockedAccount, other); return; }
             const acc = blockedAccount;
             blockedAccount = null;
-            startSync(app, acc, onStatus);
+            startSync(app, acc, onStatus, onBlocked);
             return;
         }
         syncNow();
     });
+
+    // Company, role, invites and company switch — shown under the email.
+    const companyLine = document.createElement('div');
+    companyLine.className = 'acc-company';
+    document.getElementById('accEmail')?.insertAdjacentElement('afterend', companyLine);
+    const ROLE = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
+    const switchTo = (companyId, name) => app.confirmDeleteModal({
+        title: `Open ${name}?`,
+        subtitle: 'This phone shows one company at a time',
+        itemLabel: `🏢 ${name}`,
+        message: 'The current company\'s data is removed from this phone (it stays in its cloud) and the other company is downloaded. Changes not yet synced are lost.',
+        confirmBtnLabel: 'Switch',
+        onConfirm: () => startOver(companyId)
+    });
+    const renderCompany = () => {
+        const a = getAccess();
+        companyLine.textContent = '';
+        if (!a || signedIn.hidden) return;
+        const line = document.createElement('span');
+        line.className = 'acc-company-name';
+        line.textContent = `${ROLE[a.role] || a.role} · ${a.companyName || 'Company'}`;
+        companyLine.appendChild(line);
+        for (const c of (a.companies || []).filter((x) => x.company_id !== a.companyId)) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'acc-mini-btn';
+            b.textContent = `Switch to ${c.name}`;
+            b.addEventListener('click', () => switchTo(c.company_id, c.name));
+            companyLine.appendChild(b);
+        }
+        for (const iv of a.invites || []) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'acc-mini-btn is-invite';
+            b.textContent = `📨 Join ${iv.company_name} as ${ROLE[iv.role] || iv.role}`;
+            b.addEventListener('click', async () => {
+                try {
+                    const sb = await getSupabase();
+                    const { data, error } = await sb.rpc('drillrig_accept_invite', { p_invite: iv.id });
+                    if (error) throw new Error(error.message);
+                    switchTo(data || iv.company_id, iv.company_name);
+                } catch (e) {
+                    toast(`⚠️ ${e.message}`);
+                }
+            });
+            companyLine.appendChild(b);
+        }
+    };
+    onAccessChange(renderCompany);
 
     let currentId = null;
     const showAccount = (acc) => {
@@ -89,6 +174,8 @@ export function initAccountUI(app) {
         if (!acc) {
             if (currentId) { stopSync(); currentId = null; }
             blockedAccount = null;
+            blockedErr = null;
+            renderCompany();
             if (isVisible()) tryRenderButton();
             return;
         }
@@ -102,7 +189,7 @@ export function initAccountUI(app) {
                 askToTakeOverPhone(acc, other);
             } else {
                 blockedAccount = null;
-                startSync(app, acc, onStatus);
+                startSync(app, acc, onStatus, onBlocked);
             }
         }
 
@@ -121,6 +208,7 @@ export function initAccountUI(app) {
             avatar.textContent = acc.name.charAt(0).toUpperCase();
         }
         setMsg('');
+        renderCompany();
     };
 
     async function tryRenderButton() {

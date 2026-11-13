@@ -7,6 +7,7 @@
 import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
 import { isSafeId, sanitizeRecordData } from '../data/sanitize.js';
+import { setAccessFromServer, clearAccess, getCurrentRig, canCreateBill, rigPrefix } from './access.js';
 import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
@@ -132,17 +133,98 @@ async function rpc(name, args) {
     return data;
 }
 
-async function ensureCompany() {
+const isMissingFunction = (err) =>
+    err?.code === 'PGRST202' || /could not find the function|function .* does not exist/i.test(err?.message || '');
+
+/**
+ * Ask the server who we are in which company (every sync: role, rigs and subscription
+ * can change at any time). Returns true when this person's access changed since last time.
+ */
+async function refreshAccess() {
     const st = ctx.state;
-    if (st.companyId) return;
-    const name = readJson(STORAGE_KEYS.brand, {})?.companyName || '';
-    const rows = await rpc('drillrig_my_company', { p_name: name });
+    const brand = readJson(STORAGE_KEYS.brand, {}) || {};
+    let rows;
+    try {
+        rows = await rpc('drillrig_my_company', {
+            p_name: brand.companyName || '',
+            p_prefix: brand.billPrefix || '',
+            p_company: st.companyId || readPreferredCompany() || null
+        });
+    } catch (err) {
+        if (!isMissingFunction(err)) throw err;
+        rows = await rpc('drillrig_my_company', { p_name: brand.companyName || '' }); // server before migration 0003
+    }
     const row = Array.isArray(rows) ? rows[0] : rows;
     if (!row?.company_id) throw new Error('Could not open your company in the cloud');
+
+    // This phone holds one company's data. If the server now answers with a different company,
+    // the person was removed from (or lost) the old one: never mix the two.
+    if (st.companyId && row.company_id !== st.companyId) {
+        const err = new Error(`No longer a member of ${st.companyName || 'this company'}`);
+        err.code = 'DRILLRIG_REMOVED';
+        err.companyName = st.companyName || '';
+        throw err;
+    }
+
+    setAccessFromServer(row, ctx.account.id);
+    const rev = row.access_rev === undefined || row.access_rev === null ? null : String(row.access_rev);
+    const changed = st.accessRev != null && rev != null && rev !== st.accessRev;
     st.companyId = row.company_id;
     st.companyName = row.company_name;
     st.role = row.role;
+    st.accessRev = rev;
+    // A rig that is active again: let bills refused for "subscription" be uploaded.
+    if (st.rejected && (row.rigs || []).some((r) => r.active)) {
+        for (const [k, v] of Object.entries(st.rejected)) if (v?.reason === 'subscription') delete st.rejected[k];
+    }
     saveState(st);
+    return changed;
+}
+
+const PREF_KEY = 'drillrig_company_pref';
+function readPreferredCompany() {
+    try { return storage.getRaw(PREF_KEY) || null; } catch { return null; }
+}
+/** Which company to open on the next sign-in/sync (company switcher, accepted invite). */
+export function setPreferredCompany(id) {
+    try { if (id) storage.setRaw(PREF_KEY, id); else storage.remove(PREF_KEY); } catch { /* ignore */ }
+}
+
+/** Role or rigs changed: drop the bills on this phone and download what is visible now. */
+function reloadVisibleBills(app) {
+    const st = ctx.state;
+    storage.setRaw(STORAGE_KEYS.history, '[]');
+    app.history = [];
+    for (const key of Object.keys(st.hashes)) if (key.startsWith('bill:')) delete st.hashes[key];
+    if (st.rejected) for (const key of Object.keys(st.rejected)) if (key.startsWith('bill:')) delete st.rejected[key];
+    st.lastRev = 0;
+    saveState(st);
+    try { app.renderHistoryList?.(''); app.showToast?.('🔄 Your access changed — reloading bills'); } catch { /* ignore */ }
+}
+
+/** Only rows this person may upload; and not ones the server already refused unchanged. */
+export function filterPushable(rows, role, rejected = {}) {
+    return rows.filter((r) => {
+        if (role && role !== 'owner' && (r.kind === 'setting' || r.deleted)) return false;
+        const mark = rejected[r.key];
+        return !(mark && mark.hash === (r.hash ?? 'deleted'));
+    });
+}
+
+const REJECT_TEXT = {
+    subscription: (n) => `⚠️ ${n} new bill${n === 1 ? '' : 's'} not uploaded — this rig's subscription has ended. ${n === 1 ? 'It is' : 'They are'} saved on this phone and will upload after renewal.`,
+    other: (n) => `⚠️ ${n} change${n === 1 ? ' was' : 's were'} not uploaded — not allowed for your role.`
+};
+
+function notifyRejected(app, rejected) {
+    if (!rejected.length) return;
+    console.warn('[sync] refused by server:', rejected);
+    const subs = rejected.filter((r) => r.reason === 'subscription').length;
+    const other = rejected.length - subs;
+    try {
+        if (subs) app.showToast?.(REJECT_TEXT.subscription(subs));
+        else if (other) app.showToast?.(REJECT_TEXT.other(other));
+    } catch { /* ignore */ }
 }
 
 async function pullAll(since) {
@@ -193,37 +275,65 @@ function notifyConflicts(app, keys, index) {
 
 async function pushRows(rows) {
     const st = ctx.state;
+    st.rejected = st.rejected || {};
+    const refused = [];
     for (let i = 0; i < rows.length; i += PUSH_BATCH) {
         const batch = rows.slice(i, i + PUSH_BATCH);
-        await rpc('drillrig_push', {
+        const res = await rpc('drillrig_push', {
             p_company: st.companyId,
             p_rows: batch.map(({ kind, id, data, deleted }) => ({ kind, id, data, deleted }))
         });
+        // Server 0003+ answers {rev, rejected:[{kind,id,reason}]}; older servers a number.
+        const rejected = Array.isArray(res?.rejected) ? res.rejected : [];
+        const byKey = new Map(rejected.map((x) => [recordKey(x.kind, x.id), x.reason]));
         for (const r of batch) {
+            if (byKey.has(r.key)) {
+                st.rejected[r.key] = { hash: r.hash ?? 'deleted', reason: byKey.get(r.key) };
+                refused.push({ key: r.key, reason: byKey.get(r.key) });
+                continue;
+            }
+            delete st.rejected[r.key];
             if (r.hash === null) delete st.hashes[r.key];
             else st.hashes[r.key] = r.hash;
         }
         saveState(st);
     }
+    return refused;
 }
 
 async function syncOnce() {
     const { app } = ctx;
     const st = ctx.state;
-    await ensureCompany();
+    const accessChanged = await refreshAccess();
+    const role = st.role || 'owner';
     ensureCustomerIds(app);
 
     const firstSync = !st.firstSyncDone;
     const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
+
+    // Staff joining a company must not upload bills/customers that were already on this phone
+    // (their own trial data, or another business): ask first.
+    if (firstSync && role !== 'owner') {
+        const local = readLocal();
+        const bills = (local.history || []).length;
+        const customers = (local.customers || []).length;
+        if (bills || customers) {
+            const err = new Error('This phone already has bills that are not part of ' + (st.companyName || 'the company'));
+            err.code = 'DRILLRIG_STAFF_LOCAL_DATA';
+            Object.assign(err, { companyName: st.companyName || '', role, bills, customers });
+            throw err;
+        }
+    }
     const rawPulled = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
     const pulled = cleanPulledRows(rawPulled);
-    const rows = dropDefaultCloudSettings(pulled, readLocal(), defaults);
+    // Only the owner's phone may upload settings, so staff never "keep" their own copy.
+    const rows = role === 'owner' ? dropDefaultCloudSettings(pulled, readLocal(), defaults) : pulled;
     // Cloud only had defaults where this phone has real settings: re-upload the real ones.
     for (const r of pulled) {
         if (!rows.includes(r)) delete st.hashes[recordKey(r.kind, r.id)];
     }
     const before = indexLocal(readLocal());
-    const plan = planPull(rows, before, st.hashes, { firstSync, defaults });
+    const plan = planPull(rows, before, st.hashes, { firstSync, defaults, cloudWinsSettings: role !== 'owner' });
     if (plan.conflicts?.length) notifyConflicts(app, plan.conflicts, before);
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
     writeLocal(app, local, changed);
@@ -235,8 +345,14 @@ async function syncOnce() {
     st.lastRev = rawPulled.reduce((m, r) => Math.max(m, Number(r.rev) || 0), st.lastRev || 0);
     saveState(st);
 
-    const toPush = planPush(indexLocal(readLocal()), st.hashes, defaults);
-    await pushRows(toPush);
+    const toPush = filterPushable(planPush(indexLocal(readLocal()), st.hashes, defaults), role, st.rejected || {});
+    const refused = await pushRows(toPush);
+    notifyRejected(app, refused);
+
+    if (accessChanged) {
+        reloadVisibleBills(app);
+        ctx.again = true; // next pass downloads everything this person can now see
+    }
 
     if (firstSync) {
         st.firstSyncDone = true;
@@ -265,6 +381,13 @@ export async function syncNow() {
         status('ok', 'Synced');
     } catch (err) {
         console.warn('[sync]', err);
+        if (err?.code === 'DRILLRIG_REMOVED' || err?.code === 'DRILLRIG_STAFF_LOCAL_DATA') {
+            status('blocked', err.code === 'DRILLRIG_REMOVED'
+                ? `No access to ${err.companyName || 'this company'} — tap to fix`
+                : 'Not syncing — tap to fix');
+            try { ctx?.onBlocked?.(err); } catch { /* ignore */ }
+            return;
+        }
         const notReady = /drillrig_|function .* does not exist|schema cache/i.test(err?.message || '');
         status('error', notReady ? 'Cloud not set up yet' : `Sync failed — will retry (${err?.message || 'error'})`);
     } finally {
@@ -287,7 +410,9 @@ async function claimNumberBeforeSave() {
     const input = document.getElementById('billNoInput');
     if (!input) return;
     const docType = app.state?.docType === 'QUOTATION' ? 'QUOTATION' : 'INVOICE';
-    const prefix = String(app.brand?.billPrefix || 'AB').toUpperCase();
+    const rig = getCurrentRig();
+    if (rig && !canCreateBill()) return; // the save is refused by the subscription guard
+    const prefix = rigPrefix(app.brand?.billPrefix);
     const esc = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = docType === 'INVOICE' ? new RegExp(`^${esc}-(\\d+)$`, 'i') : new RegExp(`^${esc}-Q(\\d+)$`, 'i');
     const current = input.value.trim();
@@ -299,7 +424,9 @@ async function claimNumberBeforeSave() {
 
     const wanted = parseInt(m[1], 10);
     const got = await Promise.race([
-        rpc('drillrig_claim_number', { p_company: st.companyId, p_doc_type: docType, p_min: wanted }),
+        rpc('drillrig_claim_number', rig
+            ? { p_company: st.companyId, p_doc_type: docType, p_min: wanted, p_rig: rig.id }
+            : { p_company: st.companyId, p_doc_type: docType, p_min: wanted }),
         new Promise((resolve) => setTimeout(() => resolve(null), CLAIM_TIMEOUT_MS))
     ]);
     const n = parseInt(got, 10);
@@ -309,8 +436,10 @@ async function claimNumberBeforeSave() {
     ctx.claimed = { no };
     if (n !== wanted) {
         input.value = no;
-        if (docType === 'INVOICE') app.brand.nextBillSeq = n;
-        else app.brand.nextQuoteSeq = n;
+        if (!rig || rig.is_default) { // other rigs count from their own bills
+            if (docType === 'INVOICE') app.brand.nextBillSeq = n;
+            else app.brand.nextQuoteSeq = n;
+        }
         try { app.showToast?.(`#${current} was already used on another phone — this bill is #${no}`); } catch { /* ignore */ }
     }
 }
@@ -336,8 +465,8 @@ function hookApp(app) {
 }
 
 /** Start syncing for this signed-in account. */
-export function startSync(app, account, onStatus) {
-    if (ctx && ctx.account.id === account.id) { ctx.onStatus = onStatus; syncNow(); return; }
+export function startSync(app, account, onStatus, onBlocked) {
+    if (ctx && ctx.account.id === account.id) { ctx.onStatus = onStatus; ctx.onBlocked = onBlocked; syncNow(); return; }
     stopSync();
     hookApp(app);
 
@@ -356,7 +485,7 @@ export function startSync(app, account, onStatus) {
     document.addEventListener('visibilitychange', onVisible);
 
     ctx = {
-        app, account, state, onStatus,
+        app, account, state, onStatus, onBlocked,
         timer: null, running: false, again: false, claimed: null,
         interval: setInterval(() => { if (document.visibilityState === 'visible') syncNow(); }, PERIODIC_MS),
         handlers: { onOnline, onVisible }
@@ -405,6 +534,7 @@ export function clearPhoneData() {
     for (const k of keys) {
         try { storage.remove(k); } catch { /* ignore */ }
     }
+    clearAccess();
 }
 
 /**

@@ -1,5 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
+import { getCurrentRig, rigPrefix, billOnCurrentRig } from '../../cloud/access.js';
 
 export class BillFlowMixin {
     ensureCustomerSelectedForBill() {
@@ -244,30 +245,34 @@ export class BillFlowMixin {
     }
 
     getNextAutoDocNumber(docType = this.state.docType) {
-        const prefix = (this.brand.billPrefix || 'AB').toUpperCase();
+        // With several rigs (cloud), each rig has its own prefix and counter. The company's
+        // first rig keeps the Settings prefix and counters, so old numbering carries on.
+        const rig = getCurrentRig();
+        const prefix = rigPrefix(this.brand.billPrefix);
+        const useCompanyCounter = !rig || rig.is_default;
         const isInvoice = docType === 'INVOICE';
 
         if (isInvoice) {
-            let maxBill = Math.max(100, (parseInt(this.brand.nextBillSeq, 10) || 101) - 1);
+            let maxBill = useCompanyCounter ? Math.max(100, (parseInt(this.brand.nextBillSeq, 10) || 101) - 1) : 100;
             this.history.forEach(h => {
-                if (h.snapshot?.docType === 'INVOICE') {
+                if (h.snapshot?.docType === 'INVOICE' && billOnCurrentRig(h)) {
                     const m = String(h.billNo || '').match(/(\d+)$/);
                     if (m) maxBill = Math.max(maxBill, parseInt(m[1], 10));
                 }
             });
             const nextSeq = maxBill + 1;
-            this.brand.nextBillSeq = nextSeq;
+            if (useCompanyCounter) this.brand.nextBillSeq = nextSeq;
             return `${prefix}-${nextSeq}`;
         } else {
-            let maxQuote = Math.max(100, (parseInt(this.brand.nextQuoteSeq, 10) || 101) - 1);
+            let maxQuote = useCompanyCounter ? Math.max(100, (parseInt(this.brand.nextQuoteSeq, 10) || 101) - 1) : 100;
             this.history.forEach(h => {
-                if ((h.snapshot?.docType || 'QUOTATION') === 'QUOTATION') {
+                if ((h.snapshot?.docType || 'QUOTATION') === 'QUOTATION' && billOnCurrentRig(h)) {
                     const m = String(h.billNo || '').match(/(\d+)$/);
                     if (m) maxQuote = Math.max(maxQuote, parseInt(m[1], 10));
                 }
             });
             const nextSeq = maxQuote + 1;
-            this.brand.nextQuoteSeq = nextSeq;
+            if (useCompanyCounter) this.brand.nextQuoteSeq = nextSeq;
             return `${prefix}-Q${nextSeq}`;
         }
     }

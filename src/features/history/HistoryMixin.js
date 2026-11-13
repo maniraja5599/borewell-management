@@ -1,6 +1,7 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { ratesForSnapshot } from '../../core/billRates.js';
+import { getCurrentRig } from '../../cloud/access.js';
 
 export class HistoryMixin {
     saveCurrentBillToHistory() {
@@ -204,6 +205,9 @@ export class HistoryMixin {
             payments: initialPayments,
             snapshot: { ...JSON.parse(JSON.stringify(res)), rates: ratesForSnapshot(this.rates) }
         };
+        // With rigs (cloud), a new bill belongs to the rig selected on this phone.
+        const rig = getCurrentRig();
+        if (rig) record.rigId = rig.id;
         this.syncBillPaymentSnapshot(record);
 
         this.history.unshift(record);

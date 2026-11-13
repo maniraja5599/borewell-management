@@ -4,12 +4,18 @@ import { BoreBillSaaSApp } from './app/App.js';
 import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
 import { initSetupWizard } from './features/onboarding/setupWizard.js';
+import { applyRoleClass } from './cloud/access.js';
+import { initRigBar } from './features/team/rigBar.js';
+import { initTeamUI } from './features/team/teamUI.js';
 
 function boot() {
     try {
         initPWAAndZoomLock();
+        applyRoleClass(); // staff role from the last sync, so the app looks right offline too
         window.boreBillApp = new BoreBillSaaSApp();
+        initRigBar(window.boreBillApp);
         initAccountUI(window.boreBillApp);
+        initTeamUI(window.boreBillApp);
         // First-run setup opens after the splash has faded.
         setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 900);
     } catch (err) {
