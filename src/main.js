@@ -3,12 +3,15 @@ import './styles/app.css';
 import { BoreBillSaaSApp } from './app/App.js';
 import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
+import { initSetupWizard } from './features/onboarding/setupWizard.js';
 
 function boot() {
     try {
         initPWAAndZoomLock();
         window.boreBillApp = new BoreBillSaaSApp();
         initAccountUI(window.boreBillApp);
+        // First-run setup opens after the splash has faded.
+        setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 900);
     } catch (err) {
         console.error('DrillRig App Boot Error:', err);
     } finally {

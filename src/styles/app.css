@@ -13556,3 +13556,112 @@ textarea:focus-visible {
     from { opacity: 0; transform: scale(0.92) translateY(12px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+/* ==========================================================================
+   FIRST-RUN SETUP WIZARD (features/onboarding/setupWizard.js)
+   ========================================================================== */
+.sw-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px 16px calc(16px + var(--safe-bottom));
+    background: rgba(15, 23, 42, 0.55);
+    opacity: 0;
+    transition: opacity .25s ease;
+}
+.sw-overlay.show { opacity: 1; }
+@media (min-width: 560px) { .sw-overlay { align-items: center; } }
+.sw-card {
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    background: var(--bg-surface);
+    color: var(--text-main);
+    border-radius: 18px;
+    padding: 20px 18px 14px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25);
+    transform: translateY(16px);
+    transition: transform .25s ease;
+}
+.sw-overlay.show .sw-card { transform: none; }
+.sw-dots { display: flex; gap: 6px; margin-bottom: 12px; }
+.sw-dots span { width: 22px; height: 4px; border-radius: 99px; background: var(--border-color); }
+.sw-dots span.on { background: var(--brand-primary); }
+.sw-title { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 800; }
+.sw-sub { margin: 4px 0 16px; color: var(--text-muted); font-size: var(--fs-md); }
+.sw-step { display: flex; flex-direction: column; gap: 12px; }
+.sw-step[hidden] { display: none; }
+.sw-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sw-field { display: flex; flex-direction: column; gap: 5px; }
+.sw-field label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-secondary); }
+.sw-field input {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: 16px; /* 16px stops iOS from zooming into the field */
+    color: var(--text-main);
+    background: var(--bg-muted);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-md);
+}
+.sw-field input:focus { outline: none; border-color: var(--brand-primary); background: var(--bg-surface); }
+.sw-field input[aria-invalid="true"] { border-color: var(--danger); }
+.sw-hint { color: var(--text-muted); font-size: var(--fs-xs); }
+.sw-example {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-muted);
+    font-weight: 700;
+    font-size: var(--fs-md);
+}
+.sw-note { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+.sw-error { min-height: 18px; margin: 10px 0 0; color: var(--danger); font-size: var(--fs-sm); font-weight: 600; }
+.sw-error:empty { margin: 0; min-height: 0; }
+.sw-actions { display: flex; gap: 10px; margin-top: 14px; }
+.sw-btn {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+}
+.sw-btn.primary { background: var(--brand-primary); color: #fff; }
+.sw-btn.ghost { flex: 0 0 96px; background: transparent; color: var(--text-secondary); border-color: var(--border-strong); }
+.sw-btn[hidden] { display: none; }
+.sw-links { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.sw-link {
+    min-height: 40px;
+    padding: 0 4px;
+    background: none;
+    border: 0;
+    color: var(--text-muted);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Touch screens: small chips and pills get a 32px minimum tap height (looks the same with a mouse). */
+@media (pointer: coarse) {
+    .dia-pill,
+    .cdm-fresh-btn,
+    .wiz-flt-pill,
+    .btn-chip-primary,
+    .btn-brand-sm,
+    .f-chip,
+    .crm-tool-btn,
+    .search-inline-filter-btn,
+    .fsb-mini-btn,
+    .fsb-preset-chip,
+    .bsc-logo-action-chip {
+        min-height: 32px;
+    }
+    .bsc-logo-action-chip { min-width: 32px; }
+}

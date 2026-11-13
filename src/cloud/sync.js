@@ -6,6 +6,7 @@
 // It hooks the app at two points only: saveToStorage and saveCurrentBillToHistory.
 import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
+import { isSafeId, sanitizeRecordData } from '../data/sanitize.js';
 import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
@@ -157,6 +158,24 @@ async function pullAll(since) {
     return all;
 }
 
+/**
+ * Records written by other people's phones are cleaned before they touch this phone
+ * (see data/sanitize.js). Done before planning, so the stored copy and the remembered
+ * hash agree and a cleaned record is not re-uploaded on every sync.
+ */
+export function cleanPulledRows(rows) {
+    const out = [];
+    for (const r of rows || []) {
+        if (!r || !isSafeId(String(r.id ?? '')) || !['customer', 'bill', 'setting'].includes(r.kind)) continue;
+        if (r.deleted) { out.push(r); continue; }
+        const data = sanitizeRecordData(r.kind, r.data);
+        if (data === null) continue;
+        if (r.kind !== 'setting' && String(data.id) !== String(r.id)) continue; // row id must match its content
+        out.push({ ...r, data });
+    }
+    return out;
+}
+
 async function pushRows(rows) {
     const st = ctx.state;
     for (let i = 0; i < rows.length; i += PUSH_BATCH) {
@@ -181,7 +200,8 @@ async function syncOnce() {
 
     const firstSync = !st.firstSyncDone;
     const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
-    const pulled = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    const rawPulled = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    const pulled = cleanPulledRows(rawPulled);
     const rows = dropDefaultCloudSettings(pulled, readLocal(), defaults);
     // Cloud only had defaults where this phone has real settings: re-upload the real ones.
     for (const r of pulled) {
@@ -195,7 +215,8 @@ async function syncOnce() {
         if (hash === null) delete st.hashes[key];
         else st.hashes[key] = hash;
     }
-    if (pulled.length) st.lastRev = Math.max(st.lastRev || 0, ...pulled.map((r) => Number(r.rev) || 0));
+    // Advance past every downloaded row, including ones dropped by cleanPulledRows.
+    st.lastRev = rawPulled.reduce((m, r) => Math.max(m, Number(r.rev) || 0), st.lastRev || 0);
     saveState(st);
 
     const toPush = planPush(indexLocal(readLocal()), st.hashes, defaults);
