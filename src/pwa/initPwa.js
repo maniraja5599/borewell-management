@@ -75,20 +75,41 @@ export function initPWAAndZoomLock() {
     const iosInstructions = document.getElementById('pwaIosInstructions');
     const confirmBtnText = document.getElementById('confirmPwaInstallBtnText');
 
+    // "Later" is remembered for a week (sessionStorage made it come back on every launch).
+    const DISMISS_KEY = 'drillrig_pwa_prompt_dismissed_at';
+    const DISMISS_MS = 7 * 24 * 60 * 60 * 1000;
+
     function closePwaModal() {
         if (modalOverlay) {
             modalOverlay.style.display = 'none';
         }
         try {
-            sessionStorage.setItem('pwa_prompt_dismissed', 'true');
+            localStorage.setItem(DISMISS_KEY, String(Date.now()));
         } catch (_) {}
+    }
+
+    function recentlyDismissed() {
+        try {
+            const at = Number(localStorage.getItem(DISMISS_KEY)) || 0;
+            return Date.now() - at < DISMISS_MS;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // A brand-new user should see the app first; ask to install once they have saved a bill.
+    function hasSavedBill() {
+        try {
+            const list = JSON.parse(localStorage.getItem('borebill_history') || '[]');
+            return Array.isArray(list) && list.length > 0;
+        } catch (_) {
+            return false;
+        }
     }
 
     function showPwaModal() {
         if (isStandalone) return;
-        try {
-            if (sessionStorage.getItem('pwa_prompt_dismissed') === 'true') return;
-        } catch (_) {}
+        if (recentlyDismissed()) return;
 
         if (!modalOverlay) return;
 
@@ -111,9 +132,9 @@ export function initPWAAndZoomLock() {
         window.deferredInstallPrompt = e;
     });
 
-    // 3 Seconds Auto-Popup
+    // Auto-popup 3 seconds after launch, only for users who already saved a bill.
     setTimeout(() => {
-        showPwaModal();
+        if (hasSavedBill()) showPwaModal();
     }, 3000);
 
     closeBtn?.addEventListener('click', closePwaModal);

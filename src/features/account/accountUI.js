@@ -1,7 +1,7 @@
 // The "Sign in with Google" card at the top of Settings.
 // Sign-in is optional: nothing else in the app depends on it yet.
 import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut } from '../../cloud/auth.js';
-import { startSync, stopSync, syncNow } from '../../cloud/sync.js';
+import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData } from '../../cloud/sync.js';
 
 export function initAccountUI(app) {
     const card = document.getElementById('accountCard');
@@ -40,7 +40,47 @@ export function initAccountUI(app) {
     };
     setInterval(paintStatus, 30000);
     const onStatus = (st) => { lastStatus = st; paintStatus(); };
-    syncBtn.addEventListener('click', () => syncNow());
+
+    // Set when this phone still holds another account's company data: syncing is paused
+    // until the user agrees to remove it (otherwise it would be uploaded into this account).
+    let blockedAccount = null;
+    const askToTakeOverPhone = (acc, other) => {
+        const who = other.email || 'another Google account';
+        const parts = [];
+        if (other.bills) parts.push(`${other.bills} bill${other.bills === 1 ? '' : 's'}`);
+        if (other.customers) parts.push(`${other.customers} customer${other.customers === 1 ? '' : 's'}`);
+        const lost = other.unsynced
+            ? ` ${other.unsynced} change${other.unsynced === 1 ? ' was' : 's were'} never uploaded and will be LOST.`
+            : ` They are already saved in ${who}'s cloud.`;
+        app.confirmDeleteModal({
+            title: 'Different account on this phone',
+            subtitle: `To use ${acc.email} here, the old data must be removed from this phone`,
+            itemLabel: `📱 ${who}${parts.length ? ' — ' + parts.join(', ') : ''}`,
+            message: `This phone has company data from ${who}.${lost} Remove it from this phone and load ${acc.email}'s data? (Cancel = keep it; sign out and sign in again with ${who}.)`,
+            confirmBtnLabel: 'Remove & continue',
+            requireTypeText: other.unsynced ? 'REMOVE' : null,
+            onConfirm: () => {
+                clearPhoneData();
+                // Reload so every screen starts clean; the Google session is kept.
+                window.location.reload();
+            }
+        });
+    };
+    const showBlocked = () => {
+        onStatus({ kind: 'error', text: 'Not syncing — tap to fix', at: Date.now() });
+    };
+
+    syncBtn.addEventListener('click', () => {
+        if (blockedAccount) {
+            const other = checkPhoneOwner(app, blockedAccount);
+            if (other) { askToTakeOverPhone(blockedAccount, other); return; }
+            const acc = blockedAccount;
+            blockedAccount = null;
+            startSync(app, acc, onStatus);
+            return;
+        }
+        syncNow();
+    });
 
     let currentId = null;
     const showAccount = (acc) => {
@@ -48,12 +88,22 @@ export function initAccountUI(app) {
         signedIn.hidden = !acc;
         if (!acc) {
             if (currentId) { stopSync(); currentId = null; }
+            blockedAccount = null;
             if (isVisible()) tryRenderButton();
             return;
         }
         if (currentId !== acc.id) {
             currentId = acc.id;
-            startSync(app, acc, onStatus);
+            const other = checkPhoneOwner(app, acc);
+            if (other) {
+                stopSync();
+                blockedAccount = acc;
+                showBlocked();
+                askToTakeOverPhone(acc, other);
+            } else {
+                blockedAccount = null;
+                startSync(app, acc, onStatus);
+            }
         }
 
         document.getElementById('accName').textContent = acc.name;

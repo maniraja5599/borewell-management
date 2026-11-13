@@ -100,7 +100,7 @@ export class HistoryMixin {
             this.saveToStorage(STORAGE_KEYS.brand, this.brand);
         };
         let numberNote = '';
-        const currentBillDate = document.getElementById('billDateInput')?.value || new Date().toISOString().split('T')[0];
+        const currentBillDate = document.getElementById('billDateInput')?.value || this.toLocalYMD(new Date());
         const postSaveBannerTitle = document.getElementById('postSaveBannerTitle');
 
         // 2. If editing an existing Saved Bill, update it in place & unlock Share Options!
@@ -820,7 +820,7 @@ export class HistoryMixin {
         const custGstRow = document.getElementById('custGstInlineRow');
         if (custGstRow) custGstRow.style.display = 'none';
         const dateInput = document.getElementById('billDateInput');
-        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+        if (dateInput) dateInput.value = this.toLocalYMD(new Date());
 
         if (resetInputs) {
             // Always default to Final Bill ('INVOICE') when starting a fresh bill

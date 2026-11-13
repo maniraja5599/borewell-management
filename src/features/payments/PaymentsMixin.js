@@ -14,7 +14,7 @@ export class PaymentsMixin {
             if (initAdv > 0) {
                 item.payments.push({
                     id: 'adv_' + (item.id || Date.now()),
-                    date: item.billDate || new Date().toISOString().split('T')[0],
+                    date: item.billDate || this.toLocalYMD(new Date()),
                     amount: initAdv,
                     mode: 'Advance',
                     note: 'Initial Advance on Bill',
@@ -96,7 +96,7 @@ export class PaymentsMixin {
 
         const dateInp = document.getElementById('rpmDateInput');
         if (dateInp) {
-            dateInp.value = new Date().toISOString().split('T')[0];
+            dateInp.value = this.toLocalYMD(new Date());
         }
 
         const amtInp = document.getElementById('rpmAmountInput');
@@ -188,7 +188,7 @@ export class PaymentsMixin {
         const item = (this.history || []).find(h => h.id === billId);
         if (!item) return;
 
-        const dateVal = (document.getElementById('rpmDateInput')?.value || '').trim() || new Date().toISOString().split('T')[0];
+        const dateVal = (document.getElementById('rpmDateInput')?.value || '').trim() || this.toLocalYMD(new Date());
         const amtInput = document.getElementById('rpmAmountInput');
         const rawAmt = Math.round(parseFloat(amtInput?.value) || 0);
         if (rawAmt <= 0) {

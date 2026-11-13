@@ -12543,6 +12543,15 @@ textarea:focus-visible {
     border-color: #94a3b8;
 }
 
+.acc-legal {
+    margin: 10px 0 0;
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+}
+.acc-legal a {
+    color: inherit;
+    text-decoration: underline;
+}
 .acc-msg {
     margin: 8px 0 0;
     font-size: var(--fs-sm);

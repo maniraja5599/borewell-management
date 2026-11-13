@@ -214,7 +214,7 @@ export class CustomerLedgerMixin {
                 const curMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                 const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
                 const lastMonth = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
-                const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString().slice(0, 10);
+                const sixMonthsAgo = this.toLocalYMD(new Date(now.getFullYear(), now.getMonth() - 6, 1));
 
                 if (this.crmDatePreset === 'this_month') {
                     if (!dates.some(d => d.startsWith(curMonth))) return false;

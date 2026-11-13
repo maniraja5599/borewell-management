@@ -1,8 +1,12 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
+import { resetSyncBaseline } from '../../cloud/sync.js';
 
 export class BackupMixin {
     applyBackupPayload(parsed) {
+                // Must run first: the next cloud sync then merges the backup with the cloud
+                // instead of deleting every bill that is missing from the backup.
+                try { resetSyncBaseline(); } catch (_) { /* not signed in */ }
                 try {
                     if (parsed.brand) {
                         this.brand = { ...this.defaultBrand, ...parsed.brand };

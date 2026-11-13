@@ -6,7 +6,7 @@
 // It hooks the app at two points only: saveToStorage and saveCurrentBillToHistory.
 import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
-import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings } from './syncPlan.js';
+import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
 const PUSH_BATCH = 200;
@@ -306,7 +306,10 @@ export function startSync(app, account, onStatus) {
 
     let state = loadState();
     if (!state || state.userId !== account.id) {
-        state = { userId: account.id, companyId: null, lastRev: 0, hashes: {}, firstSyncDone: false };
+        state = { userId: account.id, email: account.email || '', companyId: null, lastRev: 0, hashes: {}, firstSyncDone: false };
+        saveState(state);
+    } else if (account.email && state.email !== account.email) {
+        state.email = account.email;
         saveState(state);
     }
 
@@ -331,6 +334,56 @@ export function stopSync() {
     window.removeEventListener('online', ctx.handlers.onOnline);
     document.removeEventListener('visibilitychange', ctx.handlers.onVisible);
     ctx = null;
+}
+
+/**
+ * Does this phone hold another account's company data?
+ * A first sync uploads everything on the phone, so without this check signing in with a
+ * second Google account would copy the first account's customers and bills into the
+ * second account's company. Returns null when it is safe to start syncing.
+ */
+export function checkPhoneOwner(app, account) {
+    const st = loadState();
+    if (!st || !st.userId || st.userId === account.id) return null;
+    const local = readLocal();
+    const bills = Array.isArray(local.history) ? local.history.length : 0;
+    const customers = Array.isArray(local.customers) ? local.customers.length : 0;
+    const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
+    const realBrand = !isDefaultSetting('brand', local.settings.brand, defaults);
+    if (!bills && !customers && !realBrand) return null;
+    let unsynced = 0;
+    try {
+        unsynced = planPush(indexLocal(local), st.hashes || {}, defaults).filter((r) => !r.deleted).length;
+    } catch { /* count is only informational */ }
+    return { email: st.email || '', bills, customers, unsynced };
+}
+
+/** Remove all company data from this phone (used when another account takes over the phone). */
+export function clearPhoneData() {
+    stopSync();
+    const keys = [
+        STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.lastSession,
+        ...SETTING_IDS.map((id) => STORAGE_KEYS[id]), STATE_KEY
+    ];
+    for (const k of keys) {
+        try { storage.remove(k); } catch { /* ignore */ }
+    }
+}
+
+/**
+ * Called before a backup is restored. Forgets what was last synced, so the next sync
+ * MERGES with the cloud instead of treating "not in the backup" as "deleted":
+ *   - records in the backup win (they are uploaded),
+ *   - records only in the cloud (e.g. bills made after the backup) come back down.
+ * Without this, restoring an old backup deleted newer bills on every phone.
+ */
+export function resetSyncBaseline() {
+    const st = ctx?.state || loadState();
+    if (!st) return;
+    st.hashes = {};
+    st.lastRev = 0;
+    saveState(st);
+    if (ctx) { ctx.again = true; scheduleSync(500); }
 }
 
 export function getSyncInfo() {

@@ -62,7 +62,7 @@ export class HistoryBackupListeners {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `BoreBill_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = `BoreBill_Backup_${this.toLocalYMD(new Date())}.json`;
             a.click();
             URL.revokeObjectURL(url);
             this.showToast('⬇️ Full Backup JSON Downloaded!');
@@ -89,15 +89,15 @@ export class HistoryBackupListeners {
                 }
                 const billCount = Array.isArray(parsed.history) ? parsed.history.length : 0;
                 const custCount = Array.isArray(parsed.customers) ? parsed.customers.length : 0;
-                // Signed in, the restored data is synced: bills missing from the backup are
-                // removed for the whole company, on every phone.
+                // Signed in, the restore is merged with the cloud (see resetSyncBaseline):
+                // bills in the backup are restored on every phone, newer cloud bills are kept.
                 const synced = document.getElementById('accSignedIn') && !document.getElementById('accSignedIn').hidden;
                 this.confirmDeleteModal({
                     title: 'Restore Backup?',
                     subtitle: 'This cannot be undone',
                     itemLabel: `📦 ${file.name} — ${billCount} bills, ${custCount} customers`,
                     message: synced
-                        ? 'This will REPLACE all bills, customers, rates and company details for your WHOLE COMPANY — every signed-in phone. Bills that are not in this backup will be deleted everywhere. Download a backup of the current data first.'
+                        ? 'Bills, customers, rates and company details from this backup will be restored on ALL your signed-in phones. Bills saved in the cloud after this backup are kept. Download a backup of the current data first.'
                         : 'This will REPLACE all current bills, customers, rates and company details on this device. Download a backup of current data first if needed.',
                     confirmBtnLabel: 'Yes, Restore',
                     onConfirm: () => this.applyBackupPayload(parsed)

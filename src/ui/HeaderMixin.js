@@ -29,6 +29,22 @@ export class HeaderMixin {
             });
         }
 
+        // With no final bills yet, "All Paid / SETTLED" is misleading: hide the dues slide
+        // (and the activity slide when there are no bills at all). The rotator skips hidden slides.
+        const hasBills = (this.history || []).length > 0;
+        const hasInvoices = (this.history || []).some(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE');
+        const setSlide = (id, show) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.style.display = show ? '' : 'none';
+            if (!show && el.classList.contains('active')) {
+                el.classList.remove('active');
+                document.getElementById('marqueeSlide0')?.classList.add('active');
+            }
+        };
+        setSlide('marqueeSlide1', hasInvoices);
+        setSlide('marqueeSlide2', hasBills);
+
         // 1. Update Slide 2: Outstanding Dues
         const dueCountEl = document.getElementById('marqueeDueBillsCount');
         const dueBadgeEl = document.getElementById('marqueeDueTotalBadge');
@@ -48,7 +64,7 @@ export class HeaderMixin {
         const todayWorkTitle = document.getElementById('marqueeTodayWorkTitle');
         const todayDepthBadge = document.getElementById('marqueeTodayDepthBadge');
         if (todayWorkTitle && todayDepthBadge) {
-            const todayStr = new Date().toISOString().slice(0, 10);
+            const todayStr = this.toLocalYMD(new Date());
             let todayBores = 0;
             let todayDepth = 0;
             (this.history || []).forEach(b => {

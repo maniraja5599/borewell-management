@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DrillRig. — Borewell Billing &amp; Accounts</title>
-    <meta name="description" content="Enterprise Mobile-First Borewell Billing, Depth Slab Cost Calculator & Customer Accounts Ledger.">
+    <meta name="description" content="Borewell billing app: depth-slab bills and quotations, customer dues, and WhatsApp/PDF receipts. Works offline.">
     <meta name="theme-color" content="#15803d" id="metaThemeColor">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
     <meta name="format-detection" content="telephone=no">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="icon.svg">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
     <!-- Splash must paint on the very first frame, before fonts, icon library or the
          app bundle (which carries app.css) arrive. Without this the page background
@@ -127,10 +127,6 @@
                         <div class="slide-content-wrap">
                             <span class="slide-main-title" id="headerCompanyName">DrillRig.</span>
                         </div>
-                        <span class="slide-badge badge-pro">
-                            <span class="sb-dot"></span>
-                            <span>PRO</span>
-                        </span>
                     </div>
 
                     <!-- Slide 2: Outstanding Balance Due Alert -->
@@ -1682,6 +1678,7 @@
                         </button>
                     </div>
                     <p class="acc-msg" id="accMsg" hidden></p>
+                    <p class="acc-legal">By signing in you agree to the <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
                 </div>
 
                 <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
@@ -1829,7 +1826,7 @@
                             </div>
                             <div class="field-group full-col">
                                 <label for="brandUpiName">UPI Account Beneficiary Name (Verification Name)</label>
-                                <input type="text" id="brandUpiName" placeholder="e.g. M. Mani Raja / Sri Anjaneya Borewells">
+                                <input type="text" id="brandUpiName" placeholder="e.g. S. Kumar / Sri Murugan Borewells">
                                 <small style="display: block; font-size: 0.70rem; color: var(--text-muted); margin-top: 3px;">
                                     Shown to customers on bill &amp; QR verification so they transfer money to the right bank account.
                                 </small>

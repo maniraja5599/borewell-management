@@ -290,7 +290,7 @@ export class BillFlowMixin {
 
         const dateInput = document.getElementById('billDateInput');
         if (dateInput) {
-            dateInput.value = new Date().toISOString().split('T')[0];
+            dateInput.value = this.toLocalYMD(new Date());
         }
         this.syncAutoBillNumber(true);
 

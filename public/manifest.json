@@ -1,7 +1,7 @@
 {
   "name": "DrillRig. — Borewell Billing & Accounts",
   "short_name": "DrillRig.",
-  "description": "Enterprise Mobile-First Borewell Slab Cost Calculator, Billing & Customer Ledger Accounts ERP",
+  "description": "Borewell bills, quotations, customer dues and WhatsApp receipts. Works offline at the rig site.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

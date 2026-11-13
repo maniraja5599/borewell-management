@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DrillRig — Owner Executive Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;850&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@1.60.0/dist/umd/lucide.min.js"></script>
     <style>
         :root {
             --brand-primary: #052e16;
@@ -861,10 +861,16 @@
                 font-size: 0.64rem;
             }
         }
-        @media (max-width: 340px) {
+        @media (max-width: 420px) {
             .hdr-btn span {
                 display: none;
             }
+            .hdr-btn {
+                padding: 0 10px;
+                min-width: 38px;
+            }
+        }
+        @media (max-width: 340px) {
             .hdr-btn {
                 padding: 0 8px;
                 min-width: 34px;
@@ -894,10 +900,6 @@
                 <div class="brand-info">
                     <div class="brand-title-row">
                         <h1 id="rigCompanyName">DrillRig</h1>
-                        <span class="badge-pro">
-                            <span class="sb-dot"></span>
-                            <span>PRO</span>
-                        </span>
                     </div>
                     <span class="brand-sub">Owner Executive Dashboard</span>
                 </div>
@@ -1119,7 +1121,7 @@
             {
                 id: 'demo_101',
                 billNo: 'INV-101',
-                billDate: new Date().toISOString().split('T')[0],
+                billDate: localDateStr(),
                 custName: 'Selvam (Farmer)',
                 custPhone: '9842712345',
                 custLocation: 'Namakkal - Mohanur Rd',
@@ -1138,7 +1140,7 @@
             {
                 id: 'demo_102',
                 billNo: 'INV-102',
-                billDate: new Date().toISOString().split('T')[0],
+                billDate: localDateStr(),
                 custName: 'Kandasamy (Landowner)',
                 custPhone: '9443298765',
                 custLocation: 'Rasipuram - Pudupatti',
@@ -1157,7 +1159,7 @@
             {
                 id: 'demo_103',
                 billNo: 'INV-103',
-                billDate: new Date(Date.now() - 86400000).toISOString().split('T')[0],
+                billDate: localDateStr(new Date(Date.now() - 86400000)),
                 custName: 'Murugesan (Factory)',
                 custPhone: '9843355678',
                 custLocation: 'Tiruchengode - Mallasamudram',
@@ -1176,7 +1178,7 @@
             {
                 id: 'demo_104',
                 billNo: 'INV-104',
-                billDate: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
+                billDate: localDateStr(new Date(Date.now() - 86400000 * 2)),
                 custName: 'Palanivel (Farm Bore)',
                 custPhone: '9788123456',
                 custLocation: 'Paramathi Velur',
@@ -1196,7 +1198,7 @@
             {
                 id: 'demo_105',
                 billNo: 'INV-105',
-                billDate: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0],
+                billDate: localDateStr(new Date(Date.now() - 86400000 * 4)),
                 custName: 'Chinnathambi (Commercial)',
                 custPhone: '9944881122',
                 custLocation: 'Sendamangalam',
@@ -1213,6 +1215,21 @@
                 }
             }
         ];
+
+        // Customer text goes into innerHTML below, so it must be escaped.
+        function esc(v) {
+            return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        // Phone's own calendar date (toISOString() is UTC: before 5:30 AM in India it gives yesterday).
+        function localDateStr(d = new Date()) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        // Bills store phones as "+91 98427 12345"; a bare 10-digit number is treated as Indian.
+        function waDigits(phone) {
+            const d = String(phone || '').replace(/\D/g, '').replace(/^0+/, '');
+            if (d.length === 10) return '91' + d;
+            return d.length >= 11 ? d : '';
+        }
 
         let activeDateRange = 'today';
         let useSampleData = false;
@@ -1280,22 +1297,14 @@
             try {
                 const raw = localStorage.getItem('borebill_history');
                 const bills = raw ? JSON.parse(raw) : [];
-                if (bills.length === 0) {
-                    const s = document.getElementById('sampleDataSwitch');
-                    if (s && !s.checked) {
-                        s.checked = true;
-                        useSampleData = true;
-                        return DEMO_BILLS;
-                    }
-                }
-                return bills;
+                return Array.isArray(bills) ? bills : [];
             } catch (e) {
-                return DEMO_BILLS;
+                return [];
             }
         }
 
         function filterBillsByDate(allBills) {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = localDateStr();
             const now = new Date();
 
             return allBills.filter(b => {
@@ -1305,11 +1314,11 @@
                 if (activeDateRange === 'today') {
                     return bDate === todayStr;
                 } else if (activeDateRange === 'yesterday') {
-                    const yest = new Date(now.getTime() - 86400000).toISOString().split('T')[0];
+                    const yest = localDateStr(new Date(now.getTime() - 86400000));
                     return bDate === yest;
                 } else if (activeDateRange === 'this_week') {
-                    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
-                    return d >= sevenDaysAgo && d <= now;
+                    const weekStart = localDateStr(new Date(now.getTime() - 6 * 86400000));
+                    return bDate >= weekStart && bDate <= todayStr;
                 } else if (activeDateRange === 'this_month') {
                     return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
                 } else if (activeDateRange === 'custom') {
@@ -1405,7 +1414,7 @@
             const tableBody = document.getElementById('boresTableBody');
 
             if (bills.length === 0) {
-                const emptyHtml = '<div style="font-size: 0.82rem; color: var(--text-muted); text-align: center; padding: 24px 0;">No completed bores for this time period.</div>';
+                const emptyHtml = '<div style="font-size: 0.82rem; color: var(--text-muted); text-align: center; padding: 24px 0;">No completed bores for this time period.<br><small>Tick <b>Demo Data</b> above to preview with sample bills.</small></div>';
                 if (mobileContainer) mobileContainer.innerHTML = emptyHtml;
                 if (tableBody) tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 24px; color: var(--text-muted);">No completed bores recorded</td></tr>';
                 return;
@@ -1427,20 +1436,20 @@
                     const isPartial = paid > 0 && due > 0;
                     const statusClass = isPaid ? 'status-paid' : (isPartial ? 'status-partial' : 'status-due');
                     const statusText = isPaid ? 'Paid' : (isPartial ? 'Partial' : 'Due');
-                    const phoneClean = (b.custPhone || '').replace(/\D/g, '');
+                    const waNo = waDigits(b.custPhone);
 
                     return `
                         <div class="bore-item">
                             <div class="bi-top">
-                                <span class="bi-cust-name">${b.custName || 'Direct Customer'}</span>
+                                <span class="bi-cust-name">${esc(b.custName || 'Direct Customer')}</span>
                                 <strong class="bi-grand-total">₹${grand.toLocaleString('en-IN')}</strong>
                             </div>
                             <div class="bi-mid">
-                                <span>${b.custLocation ? '📍 ' + b.custLocation : (b.billNo || 'Bore Job')}</span>
+                                <span>${b.custLocation ? '📍 ' + esc(b.custLocation) : esc(b.billNo || 'Bore Job')}</span>
                                 <div class="bi-specs">
                                     <span class="spec-pill">${snap.drillingType === 'repair' ? 'Re-bore' : 'Fresh'}</span>
-                                    <strong>${snap.totalDepth || 0} ft</strong>
-                                    ${(snap.pvc7Length || 0) > 0 ? '<span>• 7": ' + snap.pvc7Length + 'ft</span>' : ''}
+                                    <strong>${Number(snap.totalDepth) || 0} ft</strong>
+                                    ${(Number(snap.pvc7Length) || 0) > 0 ? '<span>• 7": ' + Number(snap.pvc7Length) + 'ft</span>' : ''}
                                 </div>
                             </div>
                             <div class="bi-bot">
@@ -1450,11 +1459,11 @@
                                     <span class="status-pill ${statusClass}">${statusText}</span>
                                 </div>
                                 <div class="bi-actions">
-                                    ${phoneClean ? `
-                                        <a href="tel:${phoneClean}" class="bi-act-btn" title="Call Customer">
+                                    ${waNo ? `
+                                        <a href="tel:+${waNo}" class="bi-act-btn" title="Call Customer">
                                             <i data-lucide="phone" style="width: 13px; height: 13px;"></i>
                                         </a>
-                                        <a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (b.custName || '') + ', this is a reminder regarding your borewell bill balance of ₹' + due.toLocaleString('en-IN') + '.')}" target="_blank" class="bi-act-btn wa" title="WhatsApp Customer">
+                                        <a href="https://wa.me/${waNo}?text=${encodeURIComponent('Hello ' + (b.custName || '') + ', this is a reminder regarding your borewell bill balance of ₹' + due.toLocaleString('en-IN') + '.')}" target="_blank" rel="noopener" class="bi-act-btn wa" title="WhatsApp Customer">
                                             <i data-lucide="message-circle" style="width: 13px; height: 13px;"></i>
                                         </a>
                                     ` : ''}
@@ -1481,30 +1490,30 @@
                     const isPartial = paid > 0 && due > 0;
                     const statusClass = isPaid ? 'status-paid' : (isPartial ? 'status-partial' : 'status-due');
                     const statusText = isPaid ? 'Paid' : (isPartial ? 'Partial' : 'Due');
-                    const phoneClean = (b.custPhone || '').replace(/\D/g, '');
+                    const waNo = waDigits(b.custPhone);
 
                     return `
                         <tr>
                             <td>
-                                <strong>${b.billNo || 'N/A'}</strong><br>
-                                <span style="font-size: 0.74rem; color: var(--text-muted);">${b.billDate || 'Today'}</span>
+                                <strong>${esc(b.billNo || 'N/A')}</strong><br>
+                                <span style="font-size: 0.74rem; color: var(--text-muted);">${esc(b.billDate || 'Today')}</span>
                             </td>
                             <td>
-                                <strong>${b.custName || 'Direct Customer'}</strong><br>
-                                <span style="font-size: 0.74rem; color: var(--text-muted);">${b.custLocation || 'Site N/A'}</span>
+                                <strong>${esc(b.custName || 'Direct Customer')}</strong><br>
+                                <span style="font-size: 0.74rem; color: var(--text-muted);">${esc(b.custLocation || 'Site N/A')}</span>
                             </td>
                             <td>
                                 <span class="spec-pill">${snap.drillingType === 'repair' ? 'Re-bore' : 'Fresh'}</span>
                             </td>
-                            <td><strong>${snap.totalDepth || 0} ft</strong></td>
-                            <td>${snap.pvc7Length || 0} ft (7")</td>
+                            <td><strong>${Number(snap.totalDepth) || 0} ft</strong></td>
+                            <td>${Number(snap.pvc7Length) || 0} ft (7")</td>
                             <td><strong>₹${grand.toLocaleString('en-IN')}</strong></td>
                             <td style="color: #15803d; font-weight: 700;">₹${paid.toLocaleString('en-IN')}</td>
                             <td style="color: #b91c1c; font-weight: 700;">₹${due.toLocaleString('en-IN')}</td>
                             <td><span class="status-pill ${statusClass}">${statusText}</span></td>
                             <td>
-                                ${phoneClean ? `
-                                    <a href="https://wa.me/91${phoneClean}?text=${encodeURIComponent('Hello ' + (b.custName || '') + ', regarding your borewell bill balance of ₹' + due.toLocaleString('en-IN') + '.')}" target="_blank" style="color: #16a34a; font-weight: 700; text-decoration: none; font-size: 0.78rem;">
+                                ${waNo ? `
+                                    <a href="https://wa.me/${waNo}?text=${encodeURIComponent('Hello ' + (b.custName || '') + ', regarding your borewell bill balance of ₹' + due.toLocaleString('en-IN') + '.')}" target="_blank" rel="noopener" style="color: #16a34a; font-weight: 700; text-decoration: none; font-size: 0.78rem;">
                                         WhatsApp
                                     </a>
                                 ` : '-'}
@@ -1610,7 +1619,7 @@
 
             report += `────────────────────────────
 `;
-            report += `⚡ _Generated automatically by DrillRig SaaS_`;
+            report += `⚡ _Generated by DrillRig_`;
             return report;
         }
 
