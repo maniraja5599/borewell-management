@@ -404,7 +404,8 @@ export class BillFlowMixin {
             ...this.state,
             oldBoreDepth: Math.max(0, parseInt(document.getElementById('oldBoreDepth')?.value, 10) || 0),
             oldBoreRate: this.rates.oldBoreRate || 40,
-            totalDepth: Math.max(0, parseInt(document.getElementById('totalDepth')?.value, 10) || 0),
+            // Capped even while typing, so the price (and a save) never uses depth past the last slab.
+            totalDepth: Math.min(this.getBillDepthLimit?.() || Infinity, Math.max(0, parseInt(document.getElementById('totalDepth')?.value, 10) || 0)),
             baseDrillingRate: Math.max(1, parseFloat(document.getElementById('baseDrillingRate')?.value) || this.rates.baseDrillingRate),
             pvc7Length: Math.max(0, parseFloat(document.getElementById('pvc7Length')?.value) || 0),
             pvc10Length: Math.max(0, parseFloat(document.getElementById('pvc10Length')?.value) || 0),

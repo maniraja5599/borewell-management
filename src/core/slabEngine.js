@@ -30,6 +30,12 @@ export function normalizeSlabArray(rawSlabs, fallbackBaseRate = 90) {
     });
 }
 
+// Deepest foot the rate card has a slab for (end of its last slab). New bills may not go past it.
+export function slabLadderEnd(rates) {
+    const slabs = normalizeSlabArray(rates?.slabRates, rates?.baseDrillingRate || 90);
+    return slabs.length ? slabs[slabs.length - 1].end : 0;
+}
+
 export function getEffectiveSlabs(rates, overrideBaseRate, targetDepth = 0) {
     const activeBase = overrideBaseRate > 0 ? overrideBaseRate : (rates.baseDrillingRate || 90);
     const storedSlabs = normalizeSlabArray(rates.slabRates, rates.baseDrillingRate || 90);

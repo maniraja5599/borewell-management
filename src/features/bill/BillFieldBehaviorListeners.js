@@ -171,11 +171,13 @@ export class BillFieldBehaviorListeners {
         const depthEl = document.getElementById('totalDepth');
         const oldDepthEl = document.getElementById('oldBoreDepth');
         const checkDepths = () => {
-            const maxDepth = parseInt(depthEl?.max, 10) || 2500;
+            const maxDepth = this.getBillDepthLimit?.() || parseInt(depthEl?.max, 10) || 2500;
             const depth = parseInt(depthEl?.value, 10) || 0;
             if (depth > maxDepth) {
                 depthEl.value = String(maxDepth);
-                this.showToast(`⚠️ ${depth} ft is too deep — set to the ${maxDepth} ft maximum. Please check the depth.`);
+                this.showToast(this.loadedHistoryBillId
+                    ? `⚠️ ${depth} ft is too deep — set to the ${maxDepth} ft maximum. Please check the depth.`
+                    : `⚠️ ${depth} ft is past your last slab (${maxDepth} ft) — set to ${maxDepth} ft. Add a slab in Rates to bill deeper.`);
                 this.calculateAndRender();
             }
             const oldDepth = parseInt(oldDepthEl?.value, 10) || 0;

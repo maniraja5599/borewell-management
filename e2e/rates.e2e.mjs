@@ -210,4 +210,27 @@ await step('R13 wording', async () => {
     check('R13 no message shows another company\'s name; closing after "reset" keeps VIP ₹110', brandLeak.length === 0 && s.rates.baseDrillingRate === 110, { brandLeak, base: s.rates.baseDrillingRate });
 });
 
+await step('R14 new bill depth stops at the last slab', async () => {
+    await freshBill();
+    const end = await app(() => { const r = window.boreBillApp.rates.slabRates; let e = 0; (r || []).forEach((s) => { e += parseInt(s.span, 10) || 0; }); return e; });
+    const before = toasts.length;
+    await typeInto('totalDepth', end + 150); await wait(300);
+    const s = await bill();
+    const field = await app(() => ({ v: document.getElementById('totalDepth').value, max: document.getElementById('totalDepth').max, ph: document.getElementById('totalDepth').placeholder }));
+    const msg = toasts.slice(before).find((t) => /Add a slab in Rates/.test(t)) || '';
+    check(`R14 typing ${end + 150} ft on a ${end} ft ladder → set to ${end} ft, priced at ${end} ft, with a message`,
+        end > 0 && field.v === String(end) && field.max === String(end) && s.res.totalDepth === end && /up to/.test(field.ph) && msg,
+        { end, field, priced: s.res.totalDepth, msg, seen: toasts.slice(before) });
+    await typeInto('totalDepth', end); await wait(200);
+    check('R14 depth exactly at the last slab is allowed', (await bill()).res.totalDepth === end);
+});
+
+await step('R15 saved bill keeps the old limit', async () => {
+    const id = await app(() => window.boreBillApp.history.find((h) => h.billNo === 'SM-101').id);
+    await app((id) => window.boreBillApp.loadBillFromHistory(id, false, true), id); await wait(700);
+    const max = await app(() => document.getElementById('totalDepth').max);
+    check('R15 reopening a saved bill keeps the 2500 ft limit and its depth (450 ft)', max === '2500' && (await bill()).res.totalDepth === 450, { max });
+    await freshBill();
+});
+
 await finish();

@@ -6,7 +6,8 @@ import {
     normalizeSlabArray,
     calculateNewBoreSlabs,
     calculateRepairBoreSlabs,
-    computeBillTotals
+    computeBillTotals,
+    slabLadderEnd
 } from '../src/core/slabEngine.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`./fixtures/${f}`, import.meta.url), 'utf8'));
@@ -68,5 +69,17 @@ describe('slab engine rules', () => {
               transportSurveyCost: 0, customExtraAmount: 0, discountAmount: 1e9, advancePaidAmount: 1e9, gstEnabled: true });
         expect(t.grandTotal).toBe(0);
         expect(t.balancePayable).toBe(0);
+    });
+});
+
+describe('slab ladder end (new-bill depth limit)', () => {
+    it('is the end of the last slab the rate card defines', () => {
+        expect(slabLadderEnd(RATE_SETS.custom)).toBe(550);
+        expect(slabLadderEnd({ slabRates: [{ span: 300, rate: 90 }, { span: 100, rate: 100 }] })).toBe(400);
+    });
+    it('uses the built-in ladder when the rate card has no slabs', () => {
+        const defaults = normalizeSlabArray(null);
+        expect(slabLadderEnd(RATE_SETS.default)).toBe(defaults[defaults.length - 1].end);
+        expect(slabLadderEnd(undefined)).toBe(defaults[defaults.length - 1].end);
     });
 });
