@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e:billing": "node e2e/billing.e2e.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.13",

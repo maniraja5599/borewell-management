@@ -186,7 +186,9 @@ export class ShellListeners {
                     if (this.loadedHistoryBillId) {
                         this.exitSavedBillMode(true);
                         this.showToast(`➕ Ready for New Bill (#${document.getElementById('billNoInput')?.value})`);
-                    } else if (this.state.docType !== 'INVOICE') {
+                    } else if (this.state.docType !== 'INVOICE' && !this.isBillFormInProgress()) {
+                        // Only an EMPTY form goes back to Final Bill. A quotation being typed stays a
+                        // quotation (it used to turn into a Final Bill and take the next bill number).
                         this.state.docType = 'INVOICE';
                         document.querySelectorAll('#docTypePills .doc-pill').forEach(p => {
                             p.classList.toggle('active', p.dataset.doc === 'INVOICE');

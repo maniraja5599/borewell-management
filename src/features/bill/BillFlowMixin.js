@@ -244,6 +244,16 @@ export class BillFlowMixin {
         }
     }
 
+    /** Has the user started filling the current bill (customer, depth, pipes or extras)? */
+    isBillFormInProgress() {
+        const s = this.state || {};
+        const n = (v) => Number(v) > 0;
+        return Boolean(String(s.custName || '').trim())
+            || n(s.totalDepth) || n(s.oldBoreDepth) || n(s.pvc7Length) || n(s.pvc10Length)
+            || n(s.collarCapCost) || n(s.transportSurveyCost) || n(s.customExtraAmount)
+            || n(s.discountAmount) || n(s.advancePaidAmount);
+    }
+
     getNextAutoDocNumber(docType = this.state.docType) {
         // With several rigs (cloud), each rig has its own prefix and counter. The company's
         // first rig keeps the Settings prefix and counters, so old numbering carries on.
