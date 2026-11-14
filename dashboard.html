@@ -1000,6 +1000,7 @@
         /* Quieter WhatsApp bar and bills card, matching the cards above */
         .wa-action-bar { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
         .bores-card { box-shadow: none; }
+        .bores-more-btn { align-self: center; margin-top: 4px; padding: 0 16px; }
         /* Hidden toast is invisible, not just pushed below the screen (it peeked out on phones) */
         .toast-dash { opacity: 0; visibility: hidden; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s; }
         .toast-dash.show { opacity: 1; visibility: visible; }
@@ -1212,6 +1213,7 @@
                     </tbody>
                 </table>
             </div>
+            <button type="button" class="time-pill-btn bores-more-btn" id="boresMoreBtn" hidden>Show more</button>
         </div>
 
     </main>
@@ -1254,6 +1256,7 @@
             bucketLabel, bucketTitle, parseYmd
         } from './src/features/report/reportMath.js';
         import { columnChart, barList, inr } from './src/features/report/reportCharts.js';
+        import { initStorage, storage, STORAGE_KEYS } from './src/data/storage.js';
 
         // Demo Dataset for Borewell Rig Owners
         const DEMO_BILLS = [
@@ -1412,7 +1415,8 @@
             strip.appendChild(sel);
         }
 
-        function initDashboard() {
+        async function initDashboard() {
+            await initStorage(); // bills live in IndexedDB
             lucide.createIcons();
             loadBrandProfile();
             setupRigFilter();
@@ -1473,17 +1477,16 @@
             });
 
             document.getElementById('copyWaTextBtn')?.addEventListener('click', copyWhatsAppText);
+            document.getElementById('boresMoreBtn')?.addEventListener('click', () => {
+                boresShown += BORES_PAGE;
+                renderBores(currentFilteredBills);
+                lucide.createIcons();
+            });
         }
 
         function getDataSource() {
             if (useSampleData) return DEMO_BILLS;
-            try {
-                const raw = localStorage.getItem('borebill_history');
-                const bills = raw ? JSON.parse(raw) : [];
-                return Array.isArray(bills) ? bills : [];
-            } catch (e) {
-                return [];
-            }
+            return storage.getList(STORAGE_KEYS.history);
         }
 
         const fmtDay = (s, withYear) => parseYmd(s).toLocaleDateString('en-IN', withYear ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
@@ -1627,7 +1630,20 @@
             }, 150);
         });
 
-        function renderBores(bills) {
+        // Bills list: a page at a time (all 50,000 at once froze the page).
+        const BORES_PAGE = 30;
+        let boresShown = BORES_PAGE;
+        let boresListKey = '';
+        function renderBores(allBills) {
+            const key = currentRange ? `${currentRange.start}|${currentRange.end}|${activeRigId}|${useSampleData}` : '';
+            if (key !== boresListKey) { boresListKey = key; boresShown = BORES_PAGE; }
+            const bills = allBills.slice(0, boresShown);
+            const moreBtn = document.getElementById('boresMoreBtn');
+            if (moreBtn) {
+                const left = allBills.length - bills.length;
+                moreBtn.hidden = left <= 0;
+                moreBtn.textContent = `Show ${Math.min(BORES_PAGE, left)} more (${left.toLocaleString('en-IN')} left)`;
+            }
             const mobileContainer = document.getElementById('boresMobileList');
             const tableBody = document.getElementById('boresTableBody');
 

@@ -50,16 +50,16 @@ export class CustomerLedgerMixin {
     /** Pin a customer's current bills to their id (before their phone/name changes). */
     linkCustomerBills(cust) {
         if (!cust?.id) return 0;
-        let n = 0;
+        const ids = [];
         this.getCustomerMatchingBills(cust).forEach(b => {
             if (b.customerId !== cust.id) {
                 b.customerId = cust.id;
                 b.updatedAt = new Date().toISOString();
-                n++;
+                ids.push(b.id);
             }
         });
-        if (n) this.saveToStorage(STORAGE_KEYS.history, this.history);
-        return n;
+        if (ids.length) this.saveToStorage(STORAGE_KEYS.history, this.history, ids);
+        return ids.length;
     }
 
     /** The customer-book id for the bill being saved (matched by mobile, else by a unique name). */
@@ -198,6 +198,7 @@ export class CustomerLedgerMixin {
         if (!listEl) return;
 
         const billsIndex = this.buildCustomerBillsIndex();
+        const siteIndex = this.buildCustomerSiteIndex();
         this._aggCache = new Map();
 
         const q = query.toLowerCase().trim();
@@ -228,7 +229,7 @@ export class CustomerLedgerMixin {
             }
 
             if (!q) return true;
-            const { allSites } = this.getCustomerSiteSuggestions(c);
+            const { allSites } = this.getCustomerSiteSuggestions(c, siteIndex);
             return (
                 (c.name || '').toLowerCase().includes(q) ||
                 (c.phone || '').toLowerCase().includes(q) ||
@@ -259,7 +260,7 @@ export class CustomerLedgerMixin {
             const agg = this.getCustomerAggregates(c, billsIndex);
             const initials = this.getInitials(c.name);
             const hasDue = agg.totalPending > 0;
-            const { allSites } = this.getCustomerSiteSuggestions(c);
+            const { allSites } = this.getCustomerSiteSuggestions(c, siteIndex);
             const placeText = c.village || (allSites.length > 0 ? allSites[0] : '');
             const dispPhone = this.formatPhoneWithCountryCode(c.phone || '', c.countryCode || this.defaultCountryCode);
 
@@ -354,7 +355,7 @@ export class CustomerLedgerMixin {
                 if (this.activeDetailCustomerId === targetId) {
                     this.closeCustomerDetailModal();
                 }
-                this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                this.saveToStorage(STORAGE_KEYS.customers, this.customers, []);
                 this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
                 this.renderQuickCustomerPicker(document.getElementById('quickCustSearchInput')?.value || '');
                 this.updateBillPhoneValidationUI(false);
@@ -366,7 +367,7 @@ export class CustomerLedgerMixin {
                     if (!this.customers.some(x => x.id === deletedCust.id)) {
                         const insertAt = Math.min(origIdx, this.customers.length);
                         this.customers.splice(insertAt, 0, deletedCust);
-                        this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                        this.saveToStorage(STORAGE_KEYS.customers, this.customers, []);
                         this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
                         this.renderQuickCustomerPicker(document.getElementById('quickCustSearchInput')?.value || '');
                         this.updateBillPhoneValidationUI(false);
@@ -935,6 +936,7 @@ export class CustomerLedgerMixin {
         }
 
         const billsIndex = this.buildCustomerBillsIndex();
+        const siteIndex = this.buildCustomerSiteIndex();
         const displaySlice = filtered.slice(0, 35);
 
         let pickerCardsHtml = displaySlice.map(c => {
@@ -943,7 +945,7 @@ export class CustomerLedgerMixin {
             const isSelected = (currentSelectedPhone && cPhone && currentSelectedPhone === cPhone) ||
                 (!currentSelectedPhone && currentSelectedName && (c.name || '').trim().toLowerCase() === currentSelectedName);
             const agg = this.getCustomerAggregates(c, billsIndex);
-            const { pastSites } = this.getCustomerSiteSuggestions(c);
+            const { pastSites } = this.getCustomerSiteSuggestions(c, siteIndex);
             const sitesSub = pastSites.length > 0 ? ` • 📍 +${pastSites.length} site` : '';
             const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">Due: ${this.formatINR(agg.totalPending)}</span>` : '';
 

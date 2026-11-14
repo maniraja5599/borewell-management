@@ -127,8 +127,18 @@ export class PhoneMixin {
     }
 
     normalizeMobileNumber(raw, countryCode = null) {
-        const parsed = this.parsePhoneWithCountryCode(raw, countryCode || this.defaultCountryCode);
-        return parsed.localDigits;
+        // Remembered per (number, country): the customer and bill screens look up the same
+        // numbers thousands of times per redraw with 50,000 bills.
+        const code = countryCode || this.defaultCountryCode;
+        const key = `${code}|${raw ?? ''}`;
+        const cache = this._phoneDigitsCache || (this._phoneDigitsCache = new Map());
+        let digits = cache.get(key);
+        if (digits === undefined) {
+            digits = this.parsePhoneWithCountryCode(raw, code).localDigits;
+            if (cache.size > 200000) cache.clear();
+            cache.set(key, digits);
+        }
+        return digits;
     }
 
     formatPhoneWithCountryCode(raw, countryCode = null) {
@@ -165,7 +175,7 @@ export class PhoneMixin {
 
     migrateStoredPhonesWithCountryCode() {
         const defCode = this.defaultCountryCode || '+91';
-        let custChanged = false;
+        const custChanged = [];
         if (Array.isArray(this.customers)) {
             this.customers.forEach(c => {
                 if (c && c.phone) {
@@ -175,29 +185,30 @@ export class PhoneMixin {
                         if (c.phone !== formatted || c.countryCode !== parsed.countryCode) {
                             c.phone = formatted;
                             c.countryCode = parsed.countryCode;
-                            custChanged = true;
+                            custChanged.push(c.id);
                         }
                     }
                 }
             });
-            if (custChanged) {
-                this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+            if (custChanged.length) {
+                // Customers without an id (very old data) are still caught by the background check.
+                this.saveToStorage(STORAGE_KEYS.customers, this.customers, custChanged.some(id => !id) ? undefined : custChanged);
             }
         }
 
-        let histChanged = false;
+        const histChanged = [];
         if (Array.isArray(this.history)) {
             this.history.forEach(h => {
                 if (h && h.custPhone) {
                     const formatted = this.formatPhoneWithCountryCode(h.custPhone, h.custCountryCode || defCode);
                     if (formatted && h.custPhone !== formatted) {
                         h.custPhone = formatted;
-                        histChanged = true;
+                        histChanged.push(h.id);
                     }
                 }
             });
-            if (histChanged) {
-                this.saveToStorage(STORAGE_KEYS.history, this.history);
+            if (histChanged.length) {
+                this.saveToStorage(STORAGE_KEYS.history, this.history, histChanged.some(id => !id) ? undefined : histChanged);
             }
         }
 

@@ -41,7 +41,7 @@ export const hashData = (data) => hashString(stableStringify(data));
  * Index the phone's data. local = { customers: [], history: [], settings: { brand: {...}, ... } }
  * Returns Map key → { kind, id, data, hash }. Entries without an id are skipped (callers assign ids first).
  */
-export function indexLocal(local) {
+export function indexLocal(local, hashFor = (kind, data) => hashData(data)) {
     const index = new Map();
     const addList = (list, kind) => {
         for (const item of Array.isArray(list) ? list : []) {
@@ -49,7 +49,7 @@ export function indexLocal(local) {
             const id = String(item.id);
             const key = recordKey(kind, id);
             if (index.has(key)) continue; // keep the first (newest) copy of a duplicated id
-            index.set(key, { kind, id, data: item, hash: hashData(item) });
+            index.set(key, { kind, id, data: item, hash: hashFor(kind, item) });
         }
     };
     addList(local.customers, 'customer');
@@ -164,30 +164,49 @@ export function applyToLocal(local, applyRows) {
         settings: { ...(local.settings || {}) }
     };
     const changed = new Set();
-    const upsert = (list, row) => {
-        const i = list.findIndex((x) => x && String(x.id) === row.id);
-        if (row.deleted) {
-            if (i !== -1) list.splice(i, 1);
-        } else if (i !== -1) {
-            list[i] = row.data;
-        } else {
-            list.unshift(row.data);
-        }
-    };
+    const LIST = { customer: 'customers', bill: 'history', stock: 'stock' };
+    const rowsFor = { customers: [], history: [], stock: [] };
     for (const row of applyRows) {
-        if (row.kind === 'customer') { upsert(out.customers, row); changed.add('customers'); }
-        else if (row.kind === 'bill') { upsert(out.history, row); changed.add('history'); }
-        else if (row.kind === 'stock') { upsert(out.stock, row); changed.add('stock'); }
+        if (LIST[row.kind]) { rowsFor[LIST[row.kind]].push(row); changed.add(LIST[row.kind]); }
         else if (row.kind === 'setting' && SETTING_IDS.includes(row.id)) {
             if (row.deleted) delete out.settings[row.id];
             else out.settings[row.id] = row.data;
             changed.add(row.id);
         }
     }
+    for (const name of ['customers', 'history', 'stock']) out[name] = upsertAll(out[name], rowsFor[name]);
     if (changed.has('history')) {
         // Newest bill first, the way the bill book always shows it.
         const t = (h) => Date.parse(h?.createdAt || '') || Number(h?.id) || 0;
         out.history.sort((a, b) => t(b) - t(a));
     }
     return { local: out, changed };
+}
+
+/**
+ * Apply cloud rows to a list in one pass (a lookup table instead of searching the list per row,
+ * which took minutes for a first sync of 50,000 bills). Same result as applying the rows one by
+ * one: replace in place, remove deleted, new ones in front (latest row first).
+ */
+function upsertAll(list, rows) {
+    if (!rows.length) return list;
+    const pos = new Map();
+    list.forEach((x, i) => {
+        if (x && x.id !== undefined && x.id !== null && x.id !== '' && !pos.has(String(x.id))) pos.set(String(x.id), i);
+    });
+    const out = list;
+    const removed = new Set();
+    const added = new Map(); // id → data, in the order first added
+    for (const row of rows) {
+        if (pos.has(row.id)) {
+            const i = pos.get(row.id);
+            if (row.deleted) { removed.add(i); pos.delete(row.id); } else out[i] = row.data;
+        } else if (added.has(row.id)) {
+            if (row.deleted) added.delete(row.id); else added.set(row.id, row.data);
+        } else if (!row.deleted) {
+            added.set(row.id, row.data);
+        }
+    }
+    const kept = removed.size ? out.filter((_, i) => !removed.has(i)) : out;
+    return added.size ? [...[...added.values()].reverse(), ...kept] : kept;
 }

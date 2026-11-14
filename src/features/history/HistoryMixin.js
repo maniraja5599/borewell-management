@@ -60,7 +60,7 @@ export class HistoryMixin {
                     });
                     if (upserted && cGst) {
                         upserted.gstNumber = cGst;
-                        this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                        this.saveToStorage(STORAGE_KEYS.customers, this.customers, upserted.id ? [upserted.id] : undefined);
                     }
                 }
             } else {
@@ -73,7 +73,7 @@ export class HistoryMixin {
                 });
                 if (upserted && cGst) {
                     upserted.gstNumber = cGst;
-                    this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                    this.saveToStorage(STORAGE_KEYS.customers, this.customers, upserted.id ? [upserted.id] : undefined);
                 }
             }
         } else if (cName || cPhone) {
@@ -85,7 +85,7 @@ export class HistoryMixin {
                 const activeCust = this.findActiveBillCustomer();
                 if (activeCust) {
                     activeCust.gstNumber = cGst;
-                    this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                    this.saveToStorage(STORAGE_KEYS.customers, this.customers, activeCust.id ? [activeCust.id] : undefined);
                 }
             }
         }
@@ -154,7 +154,7 @@ export class HistoryMixin {
                     snapshot: snapCopy
                 };
                 this.syncBillPaymentSnapshot(this.history[idx]);
-                this.saveToStorage(STORAGE_KEYS.history, this.history);
+                this.saveToStorage(STORAGE_KEYS.history, this.history, []); // replaced, not edited in place
                 this.isBillPreviewOpen = true;
                 this.isBillSavedAndReadyToShare = true;
                 if (postSaveBannerTitle) {
@@ -212,7 +212,7 @@ export class HistoryMixin {
         this.syncBillPaymentSnapshot(record);
 
         this.history.unshift(record);
-        this.saveToStorage(STORAGE_KEYS.history, this.history);
+        this.saveToStorage(STORAGE_KEYS.history, this.history, []); // a new bill only
 
         // Compute next auto sequence in brand storage while keeping current saved bill active on screen
         this.getNextAutoDocNumber(this.state.docType);
@@ -620,7 +620,7 @@ export class HistoryMixin {
                         if (this.loadedHistoryBillId === delId) {
                             this.exitSavedBillMode(true);
                         }
-                        this.saveToStorage(STORAGE_KEYS.history, this.history);
+                        this.saveToStorage(STORAGE_KEYS.history, this.history, []);
                         this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
                         this.renderCustomerDirectory();
                         this.applyBrandToUI();
@@ -629,7 +629,7 @@ export class HistoryMixin {
                             if (!this.history.some(h => h.id === deletedBill.id)) {
                                 const insertAt = Math.min(origIdx, this.history.length);
                                 this.history.splice(insertAt, 0, deletedBill);
-                                this.saveToStorage(STORAGE_KEYS.history, this.history);
+                                this.saveToStorage(STORAGE_KEYS.history, this.history, []);
                                 this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
                                 this.renderCustomerDirectory();
                                 this.applyBrandToUI();

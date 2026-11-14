@@ -54,7 +54,7 @@ export class CustomerRecordMixin {
             this.customers.unshift(existing);
         }
 
-        this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+        this.saveToStorage(STORAGE_KEYS.customers, this.customers, existing?.id ? [existing.id] : undefined);
         this.renderCustomerDirectory();
         return existing;
     }

@@ -8,12 +8,21 @@ import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
 import { initStockUI } from './features/stock/stockUI.js';
+import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 
-function boot() {
+async function boot() {
     try {
+        // Bills, customers and stock come from IndexedDB; load them before the app draws anything.
+        await initStorage();
+        // Read-only status for support and tests: where data lives and how many changes are not on disk yet.
+        window.drillrigStorageStatus = () => ({ mode: storageMode(), pending: storage.pending() });
         initPWAAndZoomLock();
         applyRoleClass(); // staff role from the last sync, so the app looks right offline too
         window.boreBillApp = new BoreBillSaaSApp();
+        setStorageErrorHandler((e) => {
+            console.error('Save failed:', e);
+            window.boreBillApp?.showToast('⚠️ Could not save to this phone — storage may be full. Download a backup now.');
+        });
         initRigBar(window.boreBillApp);
         initStockUI(window.boreBillApp);
         initAccountUI(window.boreBillApp);

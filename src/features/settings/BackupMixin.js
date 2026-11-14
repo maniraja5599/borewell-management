@@ -26,11 +26,11 @@ export class BackupMixin {
                     }
                     if (Array.isArray(parsed.customers)) {
                         this.customers = sanitizeList(parsed.customers, 'cust');
-                        this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                        this.saveToStorage(STORAGE_KEYS.customers, this.customers, []);
                     }
                     if (Array.isArray(parsed.history)) {
                         this.history = sanitizeList(parsed.history, 'bill');
-                        this.saveToStorage(STORAGE_KEYS.history, this.history);
+                        this.saveToStorage(STORAGE_KEYS.history, this.history, []);
                     }
                     if (Array.isArray(parsed.savedExtras)) {
                         this.savedExtras = parsed.savedExtras.filter((x) => x !== null && x !== undefined);
@@ -41,7 +41,7 @@ export class BackupMixin {
                         this.saveToStorage(STORAGE_KEYS.waFormat, this.waFormat);
                     }
                     if (Array.isArray(parsed.stock)) {
-                        this.saveToStorage(STORAGE_KEYS.stock, sanitizeList(parsed.stock, 'stk'));
+                        this.saveToStorage(STORAGE_KEYS.stock, sanitizeList(parsed.stock, 'stk'), []);
                         try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch (_) { /* ignore */ }
                     }
                     if (Array.isArray(parsed.savedNotes)) {

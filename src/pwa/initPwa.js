@@ -1,3 +1,5 @@
+import { storage, STORAGE_KEYS } from '../data/storage.js';
+
 export function initPWAAndZoomLock() {
     // 1. Prevent Multi-Touch Pinch-to-Zoom on Mobile
     document.addEventListener('touchmove', (e) => {
@@ -100,8 +102,7 @@ export function initPWAAndZoomLock() {
     // A brand-new user should see the app first; ask to install once they have saved a bill.
     function hasSavedBill() {
         try {
-            const list = JSON.parse(localStorage.getItem('borebill_history') || '[]');
-            return Array.isArray(list) && list.length > 0;
+            return storage.getList(STORAGE_KEYS.history).length > 0;
         } catch (_) {
             return false;
         }

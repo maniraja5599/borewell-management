@@ -8,7 +8,7 @@ import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
 import { isSafeId, sanitizeRecordData } from '../data/sanitize.js';
 import { setAccessFromServer, clearAccess, getCurrentRig, canCreateBill, rigPrefix } from './access.js';
-import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting } from './syncPlan.js';
+import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting, hashData } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
 const PUSH_BATCH = 200;
@@ -48,27 +48,33 @@ function readLocal() {
         const v = readJson(STORAGE_KEYS[id], undefined);
         if (v !== undefined) settings[id] = v;
     }
+    // The big lists are the live in-memory lists (no copy): applyToLocal never edits records in place.
     return {
-        customers: readJson(STORAGE_KEYS.customers, []),
-        history: readJson(STORAGE_KEYS.history, []),
-        stock: readJson(STORAGE_KEYS.stock, []),
+        customers: storage.getList(STORAGE_KEYS.customers),
+        history: storage.getList(STORAGE_KEYS.history),
+        stock: storage.getList(STORAGE_KEYS.stock),
         settings
     };
 }
 
+const LIST_KEY = { customer: STORAGE_KEYS.customers, bill: STORAGE_KEYS.history, stock: STORAGE_KEYS.stock };
+/** Record hashes: the big lists reuse the hash saved with each record instead of re-hashing 50,000 bills. */
+const hashFor = (kind, data) => (LIST_KEY[kind] ? storage.hashOf(LIST_KEY[kind], data, hashData) : hashData(data));
+const indexPhone = (local) => indexLocal(local, hashFor);
+
 /** Old customers may have no id; give them one so they can be synced. */
 function ensureCustomerIds(app) {
-    const list = readJson(STORAGE_KEYS.customers, []);
+    const list = storage.getList(STORAGE_KEYS.customers);
     if (!Array.isArray(list)) return;
-    let fixed = 0;
+    const fixed = [];
     list.forEach((c, i) => {
         if (c && (c.id === undefined || c.id === null || c.id === '')) {
             c.id = `cust_${Date.now()}_${i}_${Math.floor(Math.random() * 1000)}`;
-            fixed++;
+            fixed.push(c.id);
         }
     });
-    if (!fixed) return;
-    storage.setRaw(STORAGE_KEYS.customers, JSON.stringify(list));
+    if (!fixed.length) return;
+    storage.setList(STORAGE_KEYS.customers, list, fixed);
     app.customers = list;
 }
 
@@ -76,15 +82,15 @@ function ensureCustomerIds(app) {
 function writeLocal(app, local, changed) {
     if (!changed.size) return;
     if (changed.has('customers')) {
-        storage.setRaw(STORAGE_KEYS.customers, JSON.stringify(local.customers));
+        storage.setList(STORAGE_KEYS.customers, local.customers);
         app.customers = local.customers;
     }
     if (changed.has('history')) {
-        storage.setRaw(STORAGE_KEYS.history, JSON.stringify(local.history));
+        storage.setList(STORAGE_KEYS.history, local.history);
         app.history = local.history;
     }
     if (changed.has('stock')) {
-        storage.setRaw(STORAGE_KEYS.stock, JSON.stringify(local.stock));
+        storage.setList(STORAGE_KEYS.stock, local.stock);
         try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch { /* ignore */ }
     }
     const merge = (id, defaults, isArray) => {
@@ -212,8 +218,9 @@ export function setPreferredCompany(id) {
 /** Role or rigs changed: drop the bills on this phone and download what is visible now. */
 function reloadVisibleBills(app) {
     const st = ctx.state;
-    storage.setRaw(STORAGE_KEYS.history, '[]');
-    app.history = [];
+    const none = [];
+    storage.setList(STORAGE_KEYS.history, none);
+    app.history = none;
     for (const key of Object.keys(st.hashes)) if (key.startsWith('bill:')) delete st.hashes[key];
     if (st.rejected) for (const key of Object.keys(st.rejected)) if (key.startsWith('bill:')) delete st.rejected[key];
     st.lastRev = 0;
@@ -331,6 +338,8 @@ async function syncOnce() {
     const accessChanged = await refreshAccess();
     const role = st.role || 'owner';
     ensureCustomerIds(app);
+    // Saved hashes must include any bill edited in place since the last save check.
+    storage.verifyNow();
 
     const firstSync = !st.firstSyncDone;
     const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
@@ -356,7 +365,7 @@ async function syncOnce() {
     for (const r of pulled) {
         if (!rows.includes(r)) delete st.hashes[recordKey(r.kind, r.id)];
     }
-    const before = indexLocal(readLocal());
+    const before = indexPhone(readLocal());
     const plan = planPull(rows, before, st.hashes, { firstSync, defaults, cloudWinsSettings: role !== 'owner' });
     if (plan.conflicts?.length) notifyConflicts(app, plan.conflicts, before);
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
@@ -369,7 +378,7 @@ async function syncOnce() {
     st.lastRev = rawPulled.reduce((m, r) => Math.max(m, Number(r.rev) || 0), st.lastRev || 0);
     saveState(st);
 
-    const toPush = filterPushable(planPush(indexLocal(readLocal()), st.hashes, defaults), role, st.rejected || {}, await serverCaps());
+    const toPush = filterPushable(planPush(indexPhone(readLocal()), st.hashes, defaults), role, st.rejected || {}, await serverCaps());
     const refused = await pushRows(toPush);
     notifyRejected(app, refused);
 
@@ -473,8 +482,8 @@ function hookApp(app) {
     app.__drillrigHooked = true;
 
     const origSave = app.saveToStorage.bind(app);
-    app.saveToStorage = (key, data) => {
-        const ok = origSave(key, data);
+    app.saveToStorage = (key, data, changed) => {
+        const ok = origSave(key, data, changed);
         if (ok && ctx && SYNCED_KEYS.has(key)) scheduleSync();
         return ok;
     };
@@ -543,7 +552,8 @@ export function checkPhoneOwner(app, account) {
     if (!bills && !customers && !realBrand) return null;
     let unsynced = 0;
     try {
-        unsynced = planPush(indexLocal(local), st.hashes || {}, defaults).filter((r) => !r.deleted).length;
+        storage.verifyNow();
+        unsynced = planPush(indexPhone(local), st.hashes || {}, defaults).filter((r) => !r.deleted).length;
     } catch { /* count is only informational */ }
     return { email: st.email || '', bills, customers, unsynced };
 }

@@ -268,7 +268,7 @@ export class CustomerListeners {
                     existing.updatedAt = new Date().toISOString();
                     savedRecord = existing;
                 }
-                this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+                this.saveToStorage(STORAGE_KEYS.customers, this.customers, savedRecord ? [savedRecord.id] : undefined);
                 this.renderCustomerDirectory();
                 this.showToast('✅ Customer updated!');
             } else {

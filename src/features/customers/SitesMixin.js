@@ -64,7 +64,34 @@ export class SitesMixin {
         if (modal) modal.style.display = 'none';
     }
 
-    getCustomerSiteSuggestions(cust) {
+    /**
+     * Bill positions by mobile and by name, built once per screen draw. Looking up every
+     * customer's sites by scanning all bills took 44 s for a 20,000-bill search.
+     */
+    buildCustomerSiteIndex() {
+        // Reused until bills are saved again (or replaced, e.g. by cloud sync).
+        const c = this._siteIndexCache;
+        if (c && c.history === this.history && c.version === (this._bigListVersion || 0) && c.length === this.history.length) return c.index;
+        const index = this.buildCustomerSiteIndexNow();
+        this._siteIndexCache = { history: this.history, version: this._bigListVersion || 0, length: this.history.length, index };
+        return index;
+    }
+
+    buildCustomerSiteIndexNow() {
+        const byPhone = new Map();
+        const byName = new Map();
+        const add = (map, key, i) => { const a = map.get(key); if (a) a.push(i); else map.set(key, [i]); };
+        (this.history || []).forEach((b, i) => {
+            if (!(b?.custLocation || '').trim()) return;
+            const p = this.normalizeMobileNumber(b.custPhone || '');
+            if (p.length === 10) add(byPhone, p, i);
+            const n = (b.custName || '').trim().toLowerCase();
+            if (n) add(byName, n, i);
+        });
+        return { byPhone, byName };
+    }
+
+    getCustomerSiteSuggestions(cust, siteIndex = null) {
         if (!cust) return { nativePlace: '', pastSites: [], allSites: [] };
         const nativePlace = (cust.village || '').trim();
         const cleanPhone = this.normalizeMobileNumber(cust.phone || '');
@@ -91,8 +118,14 @@ export class SitesMixin {
             cust.sites.forEach(addSite);
         }
 
-        // 2. Sites from past saved bills in this.history for this customer
-        (this.history || []).forEach(b => {
+        // 2. Sites from past saved bills in this.history for this customer (in bill-book order)
+        if (siteIndex) {
+            const hits = new Set([
+                ...(cleanPhone.length === 10 ? siteIndex.byPhone.get(cleanPhone) || [] : []),
+                ...(cleanName ? siteIndex.byName.get(cleanName) || [] : [])
+            ]);
+            [...hits].sort((a, b) => a - b).forEach(i => addSite(this.history[i]?.custLocation));
+        } else (this.history || []).forEach(b => {
             const bPhone = this.normalizeMobileNumber(b.custPhone || '');
             const bName = (b.custName || '').trim().toLowerCase();
             const phoneMatches = cleanPhone.length === 10 && bPhone === cleanPhone;
@@ -131,7 +164,7 @@ export class SitesMixin {
         if (!alreadyInSites && !isSameAsPlace) {
             existing.sites.unshift(cleanSite);
         }
-        this.saveToStorage(STORAGE_KEYS.customers, this.customers);
+        this.saveToStorage(STORAGE_KEYS.customers, this.customers, existing.id ? [existing.id] : undefined);
     }
 
     findActiveBillCustomer() {

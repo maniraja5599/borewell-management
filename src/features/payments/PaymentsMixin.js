@@ -223,7 +223,7 @@ export class PaymentsMixin {
         });
 
         this.syncBillPaymentSnapshot(item);
-        this.saveToStorage(STORAGE_KEYS.history, this.history);
+        this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
 
         if (amtInput) amtInput.value = '';
 
@@ -259,7 +259,7 @@ export class PaymentsMixin {
             item.snapshot.initialAdvanceAmount = 0;
         }
         this.syncBillPaymentSnapshot(item);
-        this.saveToStorage(STORAGE_KEYS.history, this.history);
+        this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
 
         this.renderRecordPaymentModalContent(item);
         this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
@@ -275,7 +275,7 @@ export class PaymentsMixin {
         this.showUndoToast(`🗑️ Removed payment ${this.formatINR(removed.amount)}`, () => {
             entries.splice(idx, 0, removed);
             this.syncBillPaymentSnapshot(item);
-            this.saveToStorage(STORAGE_KEYS.history, this.history);
+            this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
             this.renderRecordPaymentModalContent(item);
             this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
             this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');

@@ -93,8 +93,8 @@ export function initStockUI(app) {
     window.addEventListener('drillrig:stock-changed', render);
     // Bills change stock: re-draw whenever the bill book is saved.
     const origSave = app.saveToStorage.bind(app);
-    app.saveToStorage = (key, data) => {
-        const ok = origSave(key, data);
+    app.saveToStorage = (key, data, changed) => {
+        const ok = origSave(key, data, changed);
         if (key === STORAGE_KEYS.history || key === STORAGE_KEYS.stock || key === STORAGE_KEYS.brand) {
             try { render(); } catch { /* ignore */ }
         }

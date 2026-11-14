@@ -28,14 +28,14 @@ export class HistoryBackupListeners {
                     if (this.loadedHistoryBillId) {
                         this.exitSavedBillMode(true);
                     }
-                    this.saveToStorage(STORAGE_KEYS.history, this.history);
+                    this.saveToStorage(STORAGE_KEYS.history, this.history, []);
                     this.renderHistoryList();
                     this.renderCustomerDirectory();
                     this.applyBrandToUI();
 
                     this.showUndoToast(`🗑️ Cleared all ${backupBills.length} bills`, () => {
                         this.history = backupBills;
-                        this.saveToStorage(STORAGE_KEYS.history, this.history);
+                        this.saveToStorage(STORAGE_KEYS.history, this.history, []);
                         this.renderHistoryList();
                         this.renderCustomerDirectory();
                         this.applyBrandToUI();
