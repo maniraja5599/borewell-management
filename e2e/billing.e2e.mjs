@@ -219,8 +219,9 @@ await step('12 reload', async () => {
 // ---------- 13. dashboard ----------
 await step('13 dashboard', async () => {
     await p.goto(`${BASE}/dashboard.html`, { waitUntil: 'networkidle0' }); await wait(800);
-    const d = await app(() => document.body.innerText.match(/Total Billed\s*₹([\d,]+)/)?.[1]);
-    check('13 dashboard today: billed ₹1,18,500', d === '1,18,500', d);
+    await app(() => document.querySelector('#timePillGroup [data-range="today"]').click()); await wait(300);
+    const d = await app(() => document.getElementById('kpiTotalBilled')?.textContent.trim());
+    check('13 report, Today: billed ₹1,18,500', d === '₹1,18,500', d);
 });
 
 await finish();

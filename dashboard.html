@@ -898,6 +898,118 @@
             background: var(--card-bg);
             color: var(--text-main);
         }
+
+        /* ==================== REPORT: CLEAN CARDS & CHARTS ==================== */
+        :root {
+            --series-1: #2a78d6;      /* billed (validated pair with --series-2) */
+            --series-2: #eb6834;      /* received */
+            --good: #0ca30c;
+            --critical: #d03b3b;
+            --good-text: #15803d;
+            --critical-text: #b91c1c;
+            --grid: #edf1f5;
+            --axis: #cbd5e1;
+        }
+        .time-pill-btn.active {
+            background: var(--brand-primary);
+            border-color: var(--brand-primary);
+            box-shadow: none;
+        }
+        .rp-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+        .rp-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .rp-card-head h2 { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+        .rp-card-sub { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+        .rp-label { display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
+
+        .rp-hero { gap: 6px; }
+        .rp-hero-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .rp-period { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); background: #f1f5f9; padding: 3px 8px; border-radius: 999px; }
+        .rp-hero-val { font-size: 2.4rem; font-weight: 800; line-height: 1.05; color: var(--text-main); letter-spacing: -0.02em; }
+        .rp-delta { font-size: 0.76rem; font-weight: 700; color: var(--text-muted); min-height: 1em; }
+        .rp-delta.up { color: var(--good-text); }
+        .rp-delta.down { color: var(--critical-text); }
+        .rp-meter { display: flex; gap: 2px; height: 8px; margin-top: 8px; border-radius: 999px; overflow: hidden; background: #f1f5f9; }
+        .rp-meter > div { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+        .rp-meter-paid { background: var(--good); }
+        .rp-meter-due { background: var(--critical); }
+        .rp-split { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+        .rp-split > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .rp-split strong { font-size: 1.02rem; font-weight: 800; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rp-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .rp-dot.paid { background: var(--good); }
+        .rp-dot.due { background: var(--critical); }
+
+        .rp-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .rp-tile { background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .rp-tile strong { font-size: 1.25rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rp-tile small { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+
+        .rp-grid-3 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 640px) { .rp-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (min-width: 860px) { .rp-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+        /* Charts (src/features/report/reportCharts.js) */
+        .rc-chart { position: relative; }
+        .rc-legend { display: flex; gap: 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+        .rc-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .rc-swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+        .rc-plot { position: relative; width: 100%; }
+        .rc-plot svg { display: block; overflow: visible; }
+        .rc-grid { stroke: var(--grid); stroke-width: 1; }
+        .rc-axis { stroke: var(--axis); stroke-width: 1; }
+        .rc-tick { font-size: 10px; fill: var(--text-muted); font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+        .rc-hover { fill: #f1f5f9; }
+        .rc-hit { fill: transparent; cursor: pointer; outline: none; }
+        .rc-hit:focus-visible { stroke: var(--axis); stroke-width: 1; }
+        .rc-tip { position: absolute; top: 0; z-index: 5; background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 10px; box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12); pointer-events: none; min-width: 140px; font-size: 0.76rem; }
+        .rc-tip-title { font-weight: 700; color: var(--text-muted); margin-bottom: 4px; font-size: 0.72rem; }
+        .rc-tip-row { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .rc-tip-row strong { color: var(--text-main); font-weight: 800; }
+        .rc-tip-key { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+        .rc-tip-extra { margin-top: 4px; color: var(--text-muted); font-size: 0.72rem; }
+        .rc-empty { font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 22px 0; }
+        .rc-table-wrap { font-size: 0.76rem; color: var(--text-muted); }
+        .rc-table-wrap summary { cursor: pointer; font-weight: 700; padding: 4px 0; }
+        .rc-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-variant-numeric: tabular-nums; }
+        .rc-table th, .rc-table td { text-align: right; padding: 5px 4px; border-bottom: 1px solid var(--grid); }
+        .rc-table th:first-child, .rc-table td:first-child { text-align: left; }
+        .rc-table th { color: var(--text-muted); font-weight: 700; }
+        .rc-table td { color: var(--text-main); }
+
+        .rc-list { display: flex; flex-direction: column; gap: 12px; }
+        .rc-row { display: flex; flex-direction: column; gap: 5px; }
+        .rc-row-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .rc-row-name { display: flex; flex-direction: column; min-width: 0; }
+        .rc-row-name span { font-size: 0.82rem; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rc-row-name small { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rc-row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .rc-row-right strong { font-size: 0.84rem; font-weight: 800; color: var(--text-main); white-space: nowrap; }
+        .rc-row-act { font-size: 0.7rem; font-weight: 800; color: var(--good-text); text-decoration: none; border: 1px solid var(--border-color); border-radius: 999px; padding: 3px 9px; min-height: 26px; display: inline-flex; align-items: center; }
+        .rc-track { height: 8px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+        .rc-fill { height: 100%; border-radius: 999px; }
+
+        /* Quieter WhatsApp bar and bills card, matching the cards above */
+        .wa-action-bar { background: #ffffff; color: var(--text-main); border: 1px solid var(--border-color); box-shadow: none; }
+        .bores-card { box-shadow: none; }
+        /* Hidden toast is invisible, not just pushed below the screen (it peeked out on phones) */
+        .toast-dash { opacity: 0; visibility: hidden; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s; }
+        .toast-dash.show { opacity: 1; visibility: visible; }
+        /* Phones: all six period buttons visible (3 x 2), Demo Data on its own line */
+        @media (max-width: 600px) {
+            .filter-strip { flex-wrap: wrap; }
+            .time-pill-group { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); flex: 1 1 100%; overflow: visible; }
+            .time-pill-btn { width: 100%; padding: 0 6px; }
+            .sample-toggle-chip { margin-left: auto; }
+        }
     </style>
 </head>
 <body>
@@ -913,7 +1025,7 @@
                     <div class="brand-title-row">
                         <h1 id="rigCompanyName">DrillRig</h1>
                     </div>
-                    <span class="brand-sub">Owner Executive Dashboard</span>
+                    <span class="brand-sub">Business report</span>
                 </div>
             </div>
 
@@ -933,18 +1045,18 @@
     <!-- ==================== MAIN CONTENT ==================== -->
     <main class="dash-container">
 
-        <!-- 2. COMPACT FILTER & DEMO BAR -->
+        <!-- 2. PERIOD FILTER (scopes everything below) -->
         <div class="filter-strip">
             <div class="time-pill-group" id="timePillGroup">
-                <button type="button" class="time-pill-btn active" data-range="today">Today</button>
-                <button type="button" class="time-pill-btn" data-range="yesterday">Yesterday</button>
-                <button type="button" class="time-pill-btn" data-range="this_week">This Week</button>
-                <button type="button" class="time-pill-btn" data-range="this_month">This Month</button>
-                <button type="button" class="time-pill-btn" data-range="all">All Time</button>
+                <button type="button" class="time-pill-btn" data-range="today">Today</button>
+                <button type="button" class="time-pill-btn" data-range="7d">7 days</button>
+                <button type="button" class="time-pill-btn active" data-range="this_month">This month</button>
+                <button type="button" class="time-pill-btn" data-range="last_month">Last month</button>
+                <button type="button" class="time-pill-btn" data-range="all">All</button>
                 <button type="button" class="time-pill-btn" data-range="custom">Custom</button>
             </div>
 
-            <label class="sample-toggle-chip" title="Toggle realistic sample rig data for preview">
+            <label class="sample-toggle-chip" title="Show sample bills to preview the report">
                 <input type="checkbox" id="sampleDataSwitch">
                 <span>Demo Data</span>
             </label>
@@ -958,89 +1070,98 @@
             <button type="button" class="time-pill-btn active" id="applyCustomDateBtn" style="height: 28px; padding: 0 10px;">Apply</button>
         </div>
 
-        <!-- 3. HERO FINANCIAL SUMMARY (THE BIG 3 NUMBERS) -->
-        <div class="hero-fin-card">
-            <div class="hfc-title-row">
-                <span>💰 Financial Collections Summary</span>
-                <span style="font-size: 0.72rem; color: var(--brand-emerald-dark); font-weight: 800;" id="kpiCollectionRate">0% Rec.</span>
+        <!-- 3. SUMMARY -->
+        <section class="rp-card rp-hero" aria-labelledby="rpHeroLabel">
+            <div class="rp-hero-top">
+                <span class="rp-label" id="rpHeroLabel">Total Billed</span>
+                <span class="rp-period" id="periodLabel"></span>
             </div>
+            <strong class="rp-hero-val" id="kpiTotalBilled">₹0</strong>
+            <span class="rp-delta" id="kpiBilledDelta"></span>
 
-            <div class="hfc-grid">
-                <div class="hfc-col">
-                    <span class="hfc-lbl">Total Billed</span>
-                    <strong class="hfc-val billed" id="kpiTotalBilled">₹0</strong>
+            <div class="rp-meter" id="collectMeter" role="img" aria-label="Collected and pending">
+                <div class="rp-meter-paid" id="progCashBar" style="width: 0%;"></div>
+                <div class="rp-meter-due" id="progDueBar" style="width: 0%;"></div>
+            </div>
+            <div class="rp-split">
+                <div>
+                    <span class="rp-label"><i class="rp-dot paid"></i>Collected</span>
+                    <strong id="kpiCollected">₹0</strong>
                 </div>
-                <div class="hfc-col">
-                    <span class="hfc-lbl">Collected</span>
-                    <strong class="hfc-val collected" id="kpiCollected">₹0</strong>
+                <div>
+                    <span class="rp-label"><i class="rp-dot due"></i>Pending</span>
+                    <strong id="kpiPendingDue">₹0</strong>
                 </div>
-                <div class="hfc-col">
-                    <span class="hfc-lbl">Pending Due</span>
-                    <strong class="hfc-val due" id="kpiPendingDue">₹0</strong>
+                <div>
+                    <span class="rp-label">Collected %</span>
+                    <strong id="kpiCollectionRate">0%</strong>
                 </div>
             </div>
+        </section>
 
-            <!-- Recovery Bar -->
-            <div>
-                <div class="recovery-track">
-                    <div class="recovery-fill-cash" id="progCashBar" style="width: 0%;"></div>
-                    <div class="recovery-fill-due" id="progDueBar" style="width: 0%;"></div>
-                </div>
-                <div class="recovery-sub" style="margin-top: 5px;">
-                    <span style="color: #15803d;" id="progCashLabel">Collected: ₹0 (0%)</span>
-                    <span style="color: #b91c1c;" id="progDueLabel">Due: ₹0 (0%)</span>
-                </div>
+        <!-- 4. WORK TILES -->
+        <section class="rp-tiles">
+            <div class="rp-tile">
+                <span class="rp-label">Bores</span>
+                <strong id="kpiTotalBores">0</strong>
+                <small id="kpiBoresSub">—</small>
             </div>
-        </div>
+            <div class="rp-tile">
+                <span class="rp-label">Footage drilled</span>
+                <strong id="kpiTotalFeet">0 ft</strong>
+                <small id="kpiAvgDepth">—</small>
+            </div>
+            <div class="rp-tile">
+                <span class="rp-label">Average bill</span>
+                <strong id="kpiAvgBill">₹0</strong>
+                <small id="kpiRatePerFt">—</small>
+            </div>
+            <div class="rp-tile">
+                <span class="rp-label">Casing pipe</span>
+                <strong id="kpiTotalCasing">0 ft</strong>
+                <small id="kpiCasingSub">—</small>
+            </div>
+        </section>
 
-        <!-- 4. FIELD OPERATIONS STATS (4 COMPACT TILES) -->
-        <div class="ops-grid">
-            <!-- 1. Drilling Footage -->
-            <div class="ops-card">
-                <div class="ops-head">
-                    <span class="ops-lbl">Footage Drilled</span>
-                    <i data-lucide="layers" class="ops-icon"></i>
-                </div>
-                <div class="ops-val" id="kpiTotalFeet">0 ft</div>
-                <div class="ops-sub" id="kpiTotalBores">0 Bores</div>
+        <!-- 5. TREND -->
+        <section class="rp-card">
+            <div class="rp-card-head">
+                <h2>Billed vs received</h2>
+                <span class="rp-card-sub" id="trendSub"></span>
             </div>
+            <div id="trendChart" class="rc-chart"></div>
+        </section>
 
-            <!-- 2. Casing Pipes -->
-            <div class="ops-card">
-                <div class="ops-head">
-                    <span class="ops-lbl">Casing Pipes</span>
-                    <i data-lucide="cylinder" class="ops-icon"></i>
+        <!-- 6. LISTS -->
+        <div class="rp-grid-3">
+            <section class="rp-card">
+                <div class="rp-card-head">
+                    <h2>Who owes the most</h2>
+                    <span class="rp-card-sub">Pending on bills in this period</span>
                 </div>
-                <div class="ops-val" id="kpiTotalCasing">0 ft</div>
-                <div class="ops-sub">7": <span id="kpiPvc7">0 ft</span> • 10": <span id="kpiPvc10">0 ft</span></div>
-            </div>
-
-            <!-- 3. Bata & Extras -->
-            <div class="ops-card">
-                <div class="ops-head">
-                    <span class="ops-lbl">Bata & Extras</span>
-                    <i data-lucide="plus-circle" class="ops-icon"></i>
+                <div id="duesList"></div>
+            </section>
+            <section class="rp-card">
+                <div class="rp-card-head">
+                    <h2>How you got paid</h2>
+                    <span class="rp-card-sub" id="modesSub">Money received in this period</span>
                 </div>
-                <div class="ops-val" id="kpiBataCost">₹0</div>
-                <div class="ops-sub">Included in bills</div>
-            </div>
-
-            <!-- 4. Avg Depth -->
-            <div class="ops-card">
-                <div class="ops-head">
-                    <span class="ops-lbl">Avg Depth</span>
-                    <i data-lucide="trending-up" class="ops-icon"></i>
+                <div id="modesList"></div>
+            </section>
+            <section class="rp-card">
+                <div class="rp-card-head">
+                    <h2>Bores by depth</h2>
+                    <span class="rp-card-sub">Final bills in this period</span>
                 </div>
-                <div class="ops-val" id="kpiAvgDepth">0 ft/bore</div>
-                <div class="ops-sub">Efficiency Rate</div>
-            </div>
+                <div id="depthList"></div>
+            </section>
         </div>
 
         <!-- 5. 1-TAP WHATSAPP DAILY REPORT BAR -->
         <div class="wa-action-bar">
             <div class="wa-bar-text">
                 <i data-lucide="message-circle" style="width: 18px; height: 18px; color: #25d366;"></i>
-                <span>Daily Rig Operations Report</span>
+                <span>Share this report</span>
             </div>
             <button type="button" class="wa-btn-pill" id="oneTapWhatsAppQuickBtn">
                 <i data-lucide="send" style="width: 14px; height: 14px;"></i>
@@ -1053,7 +1174,7 @@
             <div class="bores-header">
                 <h2>
                     <i data-lucide="clipboard-list" style="width: 16px; height: 16px; color: var(--brand-emerald-dark);"></i>
-                    <span>Completed Bores &amp; Invoices</span>
+                    <span>Bills in this period</span>
                 </h2>
                 <span class="bores-count-badge" id="boresCountBadge">0 Bores</span>
             </div>
@@ -1128,6 +1249,12 @@
     <div id="dashToast" class="toast-dash"></div>
 
     <script type="module">
+        import {
+            rangeFor, inRange, billDay, isInvoice, summarize, change, trend, paymentModes, topDues, depthBands,
+            bucketLabel, bucketTitle, parseYmd
+        } from './src/features/report/reportMath.js';
+        import { columnChart, barList, inr } from './src/features/report/reportCharts.js';
+
         // Demo Dataset for Borewell Rig Owners
         const DEMO_BILLS = [
             {
@@ -1243,9 +1370,11 @@
             return d.length >= 11 ? d : '';
         }
 
-        let activeDateRange = 'today';
+        let activeDateRange = 'this_month';
         let useSampleData = false;
         let currentFilteredBills = [];
+        let currentRange = null;
+        let currentInvoices = [];
         let activeRigId = 'all';
 
         // Several rigs (cloud, see src/cloud/access.js): add a "which rig" filter.
@@ -1313,6 +1442,11 @@
                     const customBox = document.getElementById('customDateRow');
                     if (activeDateRange === 'custom') {
                         customBox.style.display = 'flex';
+                        // Start from the period being looked at, so Apply always has two dates.
+                        const s = document.getElementById('dashStartDate');
+                        const e = document.getElementById('dashEndDate');
+                        if (!s.value && currentRange) s.value = currentRange.start;
+                        if (!e.value && currentRange) e.value = currentRange.end;
                     } else {
                         customBox.style.display = 'none';
                         refreshDashboard();
@@ -1352,112 +1486,146 @@
             }
         }
 
-        function filterBillsByDate(allBills) {
-            const todayStr = localDateStr();
-            const now = new Date();
-
-            return allBills.filter(b => {
-                const bDate = b.billDate || b.createdAt?.split('T')[0] || todayStr;
-                const d = new Date(bDate);
-
-                if (activeDateRange === 'today') {
-                    return bDate === todayStr;
-                } else if (activeDateRange === 'yesterday') {
-                    const yest = localDateStr(new Date(now.getTime() - 86400000));
-                    return bDate === yest;
-                } else if (activeDateRange === 'this_week') {
-                    const weekStart = localDateStr(new Date(now.getTime() - 6 * 86400000));
-                    return bDate >= weekStart && bDate <= todayStr;
-                } else if (activeDateRange === 'this_month') {
-                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-                } else if (activeDateRange === 'custom') {
-                    const start = document.getElementById('dashStartDate').value;
-                    const end = document.getElementById('dashEndDate').value;
-                    if (!start || !end) return true;
-                    return bDate >= start && bDate <= end;
-                }
-                return true;
-            });
+        const fmtDay = (s, withYear) => parseYmd(s).toLocaleDateString('en-IN', withYear ? { day: 'numeric', month: 'short', year: 'numeric' } : { day: 'numeric', month: 'short' });
+        function periodText(r) {
+            if (r.start === r.end) return r.end === localDateStr() ? `Today, ${fmtDay(r.end)}` : fmtDay(r.end, true);
+            return `${fmtDay(r.start, r.start.slice(0, 4) !== r.end.slice(0, 4))} – ${fmtDay(r.end, true)}`;
         }
+        const plural = (n, one, many) => `${n.toLocaleString('en-IN')} ${n === 1 ? one : many}`;
 
         function refreshDashboard() {
-            const allBills = getDataSource();
-            const invoicesOnly = allBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE'
+            const invoices = getDataSource().filter(b => isInvoice(b)
                 && (useSampleData || activeRigId === 'all' || billRigId(b) === activeRigId));
-            const filtered = filterBillsByDate(invoicesOnly);
-            currentFilteredBills = filtered;
+            const r = rangeFor(activeDateRange, localDateStr(), {
+                start: document.getElementById('dashStartDate').value,
+                end: document.getElementById('dashEndDate').value
+            }, invoices);
+            const inPeriod = invoices.filter(b => inRange(billDay(b), r))
+                .sort((a, b) => billDay(b).localeCompare(billDay(a)) || String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+            currentRange = r;
+            currentInvoices = invoices;
+            currentFilteredBills = inPeriod;
 
-            renderKPIs(filtered);
-            renderBores(filtered);
+            const now = summarize(inPeriod);
+            const before = r.prev ? summarize(invoices.filter(b => inRange(billDay(b), r.prev))) : null;
+            renderKPIs(now, before, r);
+            renderTrend();
+            renderLists(invoices, inPeriod, r);
+            renderBores(inPeriod);
             lucide.createIcons();
         }
 
-        function renderKPIs(bills) {
-            let totalFeet = 0;
-            let freshBores = 0;
-            let repairBores = 0;
-            let totalBilled = 0;
-            let totalCollected = 0;
-            let pvc7Feet = 0;
-            let pvc10Feet = 0;
-            let totalBata = 0;
+        function renderKPIs(s, before, r) {
+            document.getElementById('periodLabel').textContent = periodText(r);
+            document.getElementById('kpiTotalBilled').textContent = inr(s.billed);
 
-            bills.forEach(b => {
-                const snap = b.snapshot || {};
-                const depth = Number(snap.totalDepth) || 0;
-                totalFeet += depth;
+            const deltaEl = document.getElementById('kpiBilledDelta');
+            const pct = before ? change(s.billed, before.billed) : null;
+            deltaEl.className = 'rp-delta' + (pct > 0 ? ' up' : pct < 0 ? ' down' : '');
+            if (!r.prev) deltaEl.textContent = plural(s.bills, 'final bill', 'final bills');
+            else if (pct === null) deltaEl.textContent = `No bills in the ${r.prevLabel} to compare`;
+            else deltaEl.textContent = `${pct > 0 ? '▲' : pct < 0 ? '▼' : '■'} ${Math.abs(pct)}% vs ${r.prevLabel} (${inr(before.billed)})`;
 
-                if (snap.drillingType === 'repair') {
-                    repairBores++;
-                } else {
-                    freshBores++;
-                }
+            const paidPct = s.billed ? (s.collected / s.billed) * 100 : 0;
+            document.getElementById('kpiCollected').textContent = inr(s.collected);
+            document.getElementById('kpiPendingDue').textContent = inr(s.due);
+            document.getElementById('kpiCollectionRate').textContent = s.billed ? `${s.collectedPct}%` : '—';
+            document.getElementById('progCashBar').style.width = paidPct + '%';
+            document.getElementById('progDueBar').style.width = (s.billed ? 100 - paidPct : 0) + '%';
+            document.getElementById('collectMeter').setAttribute('aria-label', `Collected ${inr(s.collected)}, pending ${inr(s.due)}`);
 
-                pvc7Feet += (Number(snap.pvc7Length) || 0);
-                pvc10Feet += (Number(snap.pvc10Length) || 0);
-                totalBata += (Number(snap.boreBataCost) || 0);
-
-                const grand = Math.round(Number(snap.grandTotal) || 0);
-                totalBilled += grand;
-
-                let paid = 0;
-                if (Array.isArray(b.payments)) {
-                    paid = b.payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-                } else if (snap.advancePaidAmount) {
-                    paid = Number(snap.advancePaidAmount) || 0;
-                }
-                totalCollected += paid;
-            });
-
-            const totalPendingDue = Math.max(0, totalBilled - totalCollected);
-            const totalBores = freshBores + repairBores;
-            const avgDepth = totalBores > 0 ? Math.round(totalFeet / totalBores) : 0;
-            const collectionRate = totalBilled > 0 ? Math.round((totalCollected / totalBilled) * 100) : 0;
-            const dueRate = totalBilled > 0 ? (100 - collectionRate) : 0;
-
-            // Update Financial Big 3
-            document.getElementById('kpiTotalBilled').textContent = '₹' + totalBilled.toLocaleString('en-IN');
-            document.getElementById('kpiCollected').textContent = '₹' + totalCollected.toLocaleString('en-IN');
-            document.getElementById('kpiPendingDue').textContent = '₹' + totalPendingDue.toLocaleString('en-IN');
-            document.getElementById('kpiCollectionRate').textContent = collectionRate + '% Collected';
-
-            // Recovery bar
-            document.getElementById('progCashBar').style.width = collectionRate + '%';
-            document.getElementById('progDueBar').style.width = dueRate + '%';
-            document.getElementById('progCashLabel').textContent = 'Collected: ₹' + totalCollected.toLocaleString('en-IN') + ' (' + collectionRate + '%)';
-            document.getElementById('progDueLabel').textContent = 'Due: ₹' + totalPendingDue.toLocaleString('en-IN') + ' (' + dueRate + '%)';
-
-            // Update Field Ops
-            document.getElementById('kpiTotalFeet').textContent = totalFeet.toLocaleString('en-IN') + ' ft';
-            document.getElementById('kpiTotalBores').textContent = totalBores + ' Bores (' + freshBores + ' Fresh / ' + repairBores + ' Re)';
-            document.getElementById('kpiTotalCasing').textContent = (pvc7Feet + pvc10Feet).toLocaleString('en-IN') + ' ft';
-            document.getElementById('kpiPvc7').textContent = pvc7Feet + ' ft';
-            document.getElementById('kpiPvc10').textContent = pvc10Feet + ' ft';
-            document.getElementById('kpiBataCost').textContent = '₹' + totalBata.toLocaleString('en-IN');
-            document.getElementById('kpiAvgDepth').textContent = avgDepth + ' ft/bore';
-
-            document.getElementById('boresCountBadge').textContent = totalBores + (totalBores === 1 ? ' Bore' : ' Bores');
+            document.getElementById('kpiTotalBores').textContent = s.bores.toLocaleString('en-IN');
+            document.getElementById('kpiBoresSub').textContent = s.bores ? `${s.fresh} new · ${s.rebore} re-bore` : 'No bores yet';
+            document.getElementById('kpiTotalFeet').textContent = s.feet.toLocaleString('en-IN') + ' ft';
+            document.getElementById('kpiAvgDepth').textContent = s.bores ? `Avg ${s.avgDepth.toLocaleString('en-IN')} ft per bore` : '—';
+            document.getElementById('kpiAvgBill').textContent = inr(s.avgBill);
+            document.getElementById('kpiRatePerFt').textContent = s.ratePerFt ? `Drilling ₹${s.ratePerFt} per ft` : '—';
+            document.getElementById('kpiTotalCasing').textContent = (s.pvc7 + s.pvc10).toLocaleString('en-IN') + ' ft';
+            document.getElementById('kpiCasingSub').textContent = `7": ${s.pvc7.toLocaleString('en-IN')} ft · 10": ${s.pvc10.toLocaleString('en-IN')} ft`;
+            document.getElementById('boresCountBadge').textContent = plural(s.bores, 'Bore', 'Bores');
         }
+
+        function renderTrend() {
+            const host = document.getElementById('trendChart');
+            const r = currentRange;
+            if (!host || !r) return;
+            const sub = document.getElementById('trendSub');
+            if (r.start === r.end) {
+                sub.textContent = '';
+                host.textContent = '';
+                const note = document.createElement('div');
+                note.className = 'rc-empty';
+                note.textContent = 'Choose 7 days or a month to see the trend.';
+                host.appendChild(note);
+                return;
+            }
+            const t = trend(currentInvoices, r);
+            sub.textContent = { day: 'By day', week: 'By week (Mon–Sun)', month: 'By month' }[t.size];
+            columnChart(host, {
+                buckets: t.buckets,
+                series: [
+                    { key: 'billed', label: 'Billed', color: 'var(--series-1)' },
+                    { key: 'received', label: 'Received', color: 'var(--series-2)' }
+                ],
+                label: (b) => bucketLabel(b.start, t.size),
+                title: (b) => bucketTitle(b.start, t.size),
+                extra: (b) => b.bores ? `${plural(b.bores, 'bore', 'bores')} · ${b.feet.toLocaleString('en-IN')} ft` : '',
+                extraHeading: 'Bores',
+                extraValue: (b) => b.bores ? String(b.bores) : '',
+                periodHeading: { day: 'Day', week: 'Week', month: 'Month' }[t.size],
+                ariaLabel: 'Billed and received over time',
+                emptyText: 'No bills or payments in this period yet'
+            });
+        }
+
+        function renderLists(invoices, inPeriod, r) {
+            const dues = topDues(inPeriod, 5);
+            barList(document.getElementById('duesList'), dues.map(d => {
+                const wa = waDigits(d.phone);
+                return {
+                    label: d.name,
+                    sub: [d.place, plural(d.bills, 'bill', 'bills'), `since ${fmtDay(d.oldest)}`].filter(Boolean).join(' · '),
+                    value: d.due,
+                    valueText: inr(d.due),
+                    action: wa ? {
+                        href: `https://wa.me/${wa}?text=${encodeURIComponent(`Hello ${d.name}, a gentle reminder: your borewell bill balance is ${inr(d.due)}. Thank you.`)}`,
+                        text: 'Remind',
+                        title: `Send ${d.name} a WhatsApp reminder`
+                    } : null
+                };
+            }), { color: 'var(--series-1)', emptyText: 'Nothing pending — all bills in this period are paid.' });
+
+            const modes = paymentModes(invoices, r);
+            const got = modes.reduce((s, m) => s + m.amount, 0);
+            // Not the same as "Collected" above: this is all money that came in during the period,
+            // including payments on bills from before it.
+            document.getElementById('modesSub').textContent = got
+                ? `${inr(got)} received in this period, including older bills`
+                : 'Money received in this period';
+            barList(document.getElementById('modesList'), modes.map(m => ({
+                label: m.mode,
+                value: m.amount,
+                valueText: `${inr(m.amount)} · ${Math.round((m.amount / got) * 100)}%`
+            })), { color: 'var(--series-2)', emptyText: 'No money received in this period yet.' });
+
+            const bands = depthBands(inPeriod);
+            barList(document.getElementById('depthList'), bands.map(b => ({
+                label: b.label,
+                value: b.bores,
+                valueText: plural(b.bores, 'bore', 'bores')
+            })), { color: 'var(--series-1)', emptyText: 'No bores in this period yet.' });
+        }
+
+        // The trend is drawn to the card's width: redraw when the screen turns or resizes.
+        let resizeTimer = null;
+        let lastWidth = 0;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                const w = document.getElementById('trendChart')?.clientWidth || 0;
+                if (w && w !== lastWidth) { lastWidth = w; renderTrend(); }
+            }, 150);
+        });
 
         function renderBores(bills) {
             const mobileContainer = document.getElementById('boresMobileList');
@@ -1614,17 +1782,13 @@
                 if (b.companyName) companyName = b.companyName;
             } catch (e) {}
 
-            let rangeLabel = 'TODAY';
-            if (activeDateRange === 'yesterday') rangeLabel = 'YESTERDAY';
-            else if (activeDateRange === 'this_week') rangeLabel = 'THIS WEEK';
-            else if (activeDateRange === 'this_month') rangeLabel = 'THIS MONTH';
-            else if (activeDateRange === 'all') rangeLabel = 'ALL TIME';
+            const rangeLabel = ({ today: 'TODAY', '7d': 'LAST 7 DAYS', this_month: 'THIS MONTH', last_month: 'LAST MONTH', all: 'ALL TIME', custom: 'CUSTOM' })[activeDateRange] || 'TODAY';
 
             let report = `🚜 *DRILLRIG OWNER OPERATIONS REPORT*
 `;
             report += `🏢 *${companyName}*${activeRigName() ? ` — 🚜 ${activeRigName()}` : ''}
 `;
-            report += `📅 Period: *${rangeLabel} (${todayStr})*
+            report += `📅 Period: *${rangeLabel} (${currentRange ? periodText(currentRange) : todayStr})*
 `;
             report += `────────────────────────────
 `;
