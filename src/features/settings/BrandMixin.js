@@ -191,6 +191,7 @@ export class BrandMixin {
         const headerCompEl = document.getElementById('headerCompanyName');
         if (headerCompEl) {
             headerCompEl.textContent = compName;
+            this.fitHeaderTitles?.();
         }
         const headerTaglineEl = document.getElementById('headerCompanyTagline');
         if (headerTaglineEl) {

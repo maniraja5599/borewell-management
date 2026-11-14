@@ -14295,3 +14295,65 @@ html.role-driver .stock-card { display: none !important; }
 .slab-quick-box .sq-custom-input { min-width: 0; width: auto; box-sizing: border-box; margin: 0; }
 .slab-quick-box .ssg-apply-btn { flex: 0 0 auto; width: auto; margin: 0; }
 .slab-quick-box .sq-custom { width: 100%; box-sizing: border-box; }
+
+/* ==========================================================================
+   HEADER ROTATOR — READABLE ON EVERY PHONE (Nov 2026)
+   Earlier phone rules stacked up to 11.8px titles and 8px badges. Text now scales with
+   the screen width (clamp), and HeaderMixin.fitHeaderTitles() shrinks a long title
+   (e.g. a long company name) only as far as needed, never below 12px.
+   ========================================================================== */
+.header-dynamic-marquee {
+    height: 44px !important;
+    padding: 0 12px !important;
+}
+.header-dynamic-marquee .marquee-slide {
+    padding: 0 2px !important;
+    gap: 8px !important;
+}
+.header-dynamic-marquee .slide-content-wrap { gap: 7px !important; }
+.header-dynamic-marquee .slide-main-title {
+    font-size: clamp(0.94rem, 4.1vw, 1.12rem) !important;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+.header-dynamic-marquee .slide-due-icon,
+.header-dynamic-marquee .slide-work-icon,
+.header-dynamic-marquee .slide-notify-icon {
+    font-size: clamp(1rem, 4.4vw, 1.2rem) !important;
+}
+.header-dynamic-marquee .slide-badge {
+    font-size: clamp(0.72rem, 3.1vw, 0.84rem) !important;
+    padding: 4px 9px !important;
+    letter-spacing: 0.02em;
+}
+@media (max-width: 440px) {
+    .header-dashboard-btn,
+    .header-settings-btn,
+    .pwa-install-btn,
+    .brand-logo-wrap {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 11px !important;
+    }
+    .header-controls { gap: 6px !important; }
+}
+@media (max-width: 360px) {
+    .header-dynamic-marquee { padding: 0 9px !important; }
+    .header-dashboard-btn,
+    .header-settings-btn,
+    .pwa-install-btn,
+    .brand-logo-wrap {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    .header-dynamic-marquee .slide-badge { padding: 3px 7px !important; }
+}
+.header-dynamic-marquee .slide-main-title.is-two-line {
+    white-space: normal !important; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    line-height: 1.12 !important; max-height: 2.3em; text-overflow: clip; overflow-wrap: anywhere; letter-spacing: 0;
+}
+@media (max-width: 360px) {
+    .header-dynamic-marquee .slide-due-icon, .header-dynamic-marquee .slide-work-icon { display: none !important; }
+}
+/* No size animation on header titles: fitHeaderTitles() must measure the final size, not a mid-transition one. */
+.header-dynamic-marquee .slide-main-title { transition: none !important; }

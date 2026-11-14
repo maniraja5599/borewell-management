@@ -1,5 +1,47 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 export class HeaderMixin {
+    // Header rotator text is sized by CSS for the screen width. A title that still does not fit
+    // (a long company name on a small phone) is shrunk step by step, down to 12px; past that it
+    // ends with "…". Re-runs when the phone rotates or the window is resized.
+    fitHeaderTitles() {
+        if (typeof document === 'undefined' || typeof document.querySelectorAll !== 'function' || typeof getComputedStyle !== 'function') return;
+        const titles = document.querySelectorAll('.header-dynamic-marquee .slide-main-title');
+        if (!titles || !titles.length) return;
+        const setSize = (t, px) => t.style.setProperty('font-size', `${px}px`, 'important');
+        titles.forEach((t) => {
+            t.style.removeProperty('font-size');
+            t.classList.remove('is-two-line');
+            if (!t.clientWidth) return; // hidden slide
+            let size = parseFloat(getComputedStyle(t).fontSize) || 16;
+            // One line, shrinking to 14px at most.
+            while (t.scrollWidth > t.clientWidth + 1 && size > 14) {
+                size = Math.max(14, size - 0.5);
+                setSize(t, size);
+            }
+            if (t.scrollWidth <= t.clientWidth + 1) return;
+            // Still too long (a long company name): two lines, 15px down to 12px.
+            t.classList.add('is-two-line');
+            size = 15;
+            setSize(t, size);
+            while (t.scrollHeight > t.clientHeight + 1 && size > 12) {
+                size = Math.max(12, size - 0.5);
+                setSize(t, size);
+            }
+        });
+        if (!this._headerFitBound && typeof window !== 'undefined') {
+            this._headerFitBound = true;
+            let raf = 0;
+            const refit = () => {
+                cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(() => this.fitHeaderTitles());
+            };
+            window.addEventListener('resize', refit);
+            window.addEventListener('orientationchange', refit);
+            // Web fonts load after first paint and change text widths.
+            document.fonts?.ready?.then(refit).catch(() => {});
+        }
+    }
+
     updateHeaderDueTicker(explicitTotalPending = null) {
         this.updateTopHeaderDynamicMarquee(explicitTotalPending);
     }
@@ -55,7 +97,7 @@ export class HeaderMixin {
         }
         if (dueBadgeEl) {
             dueBadgeEl.textContent = totalPending > 0
-                ? `${this.formatINR(totalPending)} DUE`
+                ? this.formatINR(totalPending) // "8 Unpaid" beside it already says it is due
                 : 'SETTLED';
             dueBadgeEl.style.background = totalPending > 0 ? '#ef4444' : '#16a34a';
         }
@@ -83,6 +125,8 @@ export class HeaderMixin {
                 todayDepthBadge.textContent = 'READY';
             }
         }
+
+        this.fitHeaderTitles();
 
         // 3. Start Multi-Slide Swipe-Up Rotator Timer (4.2 seconds loop)
         if (!this._topMarqueeTimer) {
