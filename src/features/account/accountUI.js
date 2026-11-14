@@ -48,7 +48,24 @@ export function initAccountUI(app) {
         syncText.textContent = lastStatus.kind === 'ok' ? `Synced ${timeAgo(lastStatus.at)}` : lastStatus.text;
     };
     setInterval(paintStatus, 30000);
-    const onStatus = (st) => { lastStatus = st; paintStatus(); };
+    // Top-bar messages for sync events. Only changes are announced: a quiet minute-by-minute
+    // "Synced" says nothing; new data, a backup, going offline or a failure does.
+    let lastNoticeKind = null;
+    const announce = (st) => {
+        const say = (n) => app.showHeaderNotice?.(n);
+        const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+        if (st.kind === 'ok') {
+            if (st.pulled > 0) say({ icon: '☁️', text: 'Synced', badge: `${plural(st.pulled, 'update', 'updates')} in`, tone: 'ok' });
+            else if (st.pushed > 0) say({ icon: '☁️', text: 'Backed up', badge: plural(st.pushed, 'change', 'changes'), tone: 'ok' });
+            else if (lastNoticeKind === 'offline' || lastNoticeKind === 'error') say({ icon: '☁️', text: 'Back online', badge: 'SYNCED', tone: 'ok' });
+        } else if (st.kind !== lastNoticeKind) {
+            if (st.kind === 'offline') say({ icon: '📴', text: 'Offline', badge: 'SAVED ON PHONE', tone: 'warn', ms: 6000 });
+            else if (st.kind === 'error') say({ icon: '⚠️', text: 'Sync failed', badge: 'WILL RETRY', tone: 'error', ms: 6000 });
+            else if (st.kind === 'blocked') say({ icon: '⏸️', text: 'Cloud paused', badge: 'TAP SYNC', tone: 'error', ms: 7000 });
+        }
+        if (st.kind !== 'syncing') lastNoticeKind = st.kind;
+    };
+    const onStatus = (st) => { lastStatus = st; paintStatus(); try { announce(st); } catch (_) { /* never break sync */ } };
 
     // Set when this phone still holds another account's company data: syncing is paused
     // until the user agrees to remove it (otherwise it would be uploaded into this account).

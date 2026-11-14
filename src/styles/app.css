@@ -14357,3 +14357,99 @@ html.role-driver .stock-card { display: none !important; }
 }
 /* No size animation on header titles: fitHeaderTitles() must measure the final size, not a mid-transition one. */
 .header-dynamic-marquee .slide-main-title { transition: none !important; }
+
+/* ==========================================================================
+   iOS "ADD TO HOME SCREEN" GUIDE (Nov 2026) — src/pwa/iosInstallGuide.js
+   Each step shows a chip that looks like the button on the phone (iOS blue symbol).
+   ========================================================================== */
+.pwa-install-backdrop.is-ios .pwa-features-row { display: none; }
+.pwa-install-backdrop.is-ios .pwa-confirm-btn i,
+.pwa-install-backdrop.is-ios .pwa-confirm-btn svg { display: none; }
+.pwa-install-backdrop.is-ios .pwa-install-dialog { max-height: calc(100dvh - 24px); overflow-y: auto; }
+.pwa-install-backdrop.is-ios .pwa-ios-instructions {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 6px 12px;
+    margin-top: 12px;
+    gap: 0;
+}
+.pwa-install-backdrop.is-ios .pwa-ios-step {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 0;
+    color: #0f172a;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+.pwa-install-backdrop.is-ios .pwa-ios-step + .pwa-ios-step { border-top: 1px solid #e2e8f0; }
+.pwa-install-backdrop.is-ios .pwa-step-num {
+    width: 24px; height: 24px; margin-top: 3px; font-size: 0.8rem;
+    background: var(--brand-primary, #15803d);
+}
+.ios-step-body { min-width: 0; flex: 1; }
+.ios-step-line { font-weight: 600; }
+.ios-step-hint { margin-top: 4px; font-size: 0.8rem; color: #64748b; line-height: 1.55; }
+.ios-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    vertical-align: middle;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+    padding: 2px 8px 2px 6px;
+    margin: 1px 1px;
+    color: #111827;
+    font-weight: 700;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    white-space: nowrap;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+.ios-chip .ios-chip-ic { display: inline-flex; color: #007aff; }
+.ios-chip .ios-chip-ic svg { width: 18px; height: 18px; display: block; }
+.ios-chip.is-icon-only { padding: 2px 4px; }
+.ios-chip.is-ios-blue { color: #007aff; padding: 2px 10px; }
+.ios-step-hint .ios-chip { font-size: 0.78rem; padding: 1px 7px 1px 5px; }
+.ios-step-hint .ios-chip.is-icon-only { padding: 1px 3px; }
+.ios-step-hint .ios-chip .ios-chip-ic svg { width: 15px; height: 15px; }
+.ios-open-safari {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 6px 0 4px;
+}
+.ios-open-safari-head { display: flex; align-items: center; gap: 8px; color: #92400e; }
+.ios-open-safari p { margin: 6px 0 8px; font-size: 0.82rem; color: #78350f; line-height: 1.5; }
+.ios-copy-link-btn {
+    font: inherit; font-weight: 800; font-size: 0.85rem;
+    background: #ffffff; color: #92400e; border: 1px solid #fcd34d; border-radius: 9px;
+    padding: 7px 12px; cursor: pointer; max-width: 100%; overflow-wrap: anywhere; text-align: left;
+}
+
+/* Header rotator alignment: slides are absolutely positioned, so the bar's own padding never
+   applied and text/badges touched the edges. The inset now lives on each slide. */
+.header-dynamic-marquee { padding: 0 !important; }
+.header-dynamic-marquee .marquee-slide {
+    box-sizing: border-box;
+    padding: 0 8px 0 13px !important;
+}
+@media (max-width: 360px) {
+    .header-dynamic-marquee .marquee-slide { padding: 0 6px 0 10px !important; }
+}
+.header-dynamic-marquee .slide-badge { margin-left: auto; }
+
+/* Notice slide (sync / offline …) — colour by tone */
+.slide-notify[data-tone="ok"] .slide-main-title { color: #bbf7d0; }
+.slide-notify[data-tone="ok"] .badge-notify { background: #16a34a; border-color: rgba(187, 247, 208, 0.45); color: #fff; }
+.slide-notify[data-tone="info"] .slide-main-title { color: #dbeafe; }
+.slide-notify[data-tone="info"] .badge-notify { background: #2563eb; border-color: rgba(191, 219, 254, 0.45); color: #fff; }
+.slide-notify[data-tone="warn"] .slide-main-title { color: #fde68a; }
+.slide-notify[data-tone="warn"] .badge-notify { background: #d97706; border-color: rgba(253, 230, 138, 0.45); color: #fff; }
+.slide-notify[data-tone="error"] .slide-main-title { color: #fecaca; }
+.slide-notify[data-tone="error"] .badge-notify { background: #dc2626; border-color: rgba(254, 202, 202, 0.45); color: #fff; }
+@media (max-width: 360px) {
+    .header-dynamic-marquee .slide-notify-icon { display: none !important; }
+}

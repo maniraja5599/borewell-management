@@ -42,6 +42,56 @@ export class HeaderMixin {
         }
     }
 
+    /**
+     * Shows a short message in the top bar right away (e.g. "Synced · 3 new from cloud"), holds it
+     * for `ms`, then the normal rotation carries on. Messages that arrive meanwhile wait their turn;
+     * a repeat of the message already queued or showing is dropped.
+     * tone: 'ok' (green) | 'info' (blue) | 'warn' (amber) | 'error' (red)
+     */
+    showHeaderNotice({ icon = '🔔', text = '', badge = '', tone = 'info', ms = 5000 } = {}) {
+        if (!text || typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
+        this._noticeQueue = this._noticeQueue || [];
+        const key = `${text}|${badge}`;
+        if (this._noticeShowing === key || this._noticeQueue.some((n) => `${n.text}|${n.badge}` === key)) return;
+        this._noticeQueue.push({ icon, text, badge, tone, ms });
+        if (!this._noticeShowing) this._showNextHeaderNotice();
+    }
+
+    _showNextHeaderNotice() {
+        const slide = document.getElementById('marqueeSlideNotice');
+        const next = (this._noticeQueue || []).shift();
+        const all = () => Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
+        if (!slide) { this._noticeQueue = []; this._noticeShowing = null; return; }
+        if (!next) {
+            // Done: hide the notice, back to the company name; rotation resumes on its next tick.
+            this._noticeShowing = null;
+            slide.classList.remove('active');
+            slide.classList.add('exit-up');
+            const home = document.getElementById('marqueeSlide0');
+            home?.classList.remove('exit-up');
+            home?.classList.add('active');
+            setTimeout(() => { if (!this._noticeShowing) { slide.style.display = 'none'; slide.classList.remove('exit-up'); } }, 800);
+            return;
+        }
+        this._noticeShowing = `${next.text}|${next.badge}`;
+        document.getElementById('marqueeNoticeIcon').textContent = next.icon;
+        document.getElementById('marqueeNoticeText').textContent = next.text;
+        const badge = document.getElementById('marqueeNoticeBadge');
+        badge.textContent = next.badge || '';
+        badge.hidden = !next.badge;
+        slide.dataset.tone = next.tone;
+        slide.style.display = '';
+        all().forEach((s) => {
+            if (s === slide) return;
+            if (s.classList.contains('active')) { s.classList.remove('active'); s.classList.add('exit-up'); }
+        });
+        slide.classList.remove('exit-up');
+        // Next frame, so the slide-in animation runs from below.
+        requestAnimationFrame(() => { slide.classList.add('active'); this.fitHeaderTitles(); });
+        clearTimeout(this._noticeTimer);
+        this._noticeTimer = setTimeout(() => this._showNextHeaderNotice(), Math.max(1500, next.ms));
+    }
+
     updateHeaderDueTicker(explicitTotalPending = null) {
         this.updateTopHeaderDynamicMarquee(explicitTotalPending);
     }
@@ -132,7 +182,9 @@ export class HeaderMixin {
         if (!this._topMarqueeTimer) {
             this._topMarqueeCurrentIndex = 0;
             this._topMarqueeTimer = setInterval(() => {
-                const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
+                if (this._noticeShowing) return; // a message is on screen: let it finish
+                const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'))
+                    .filter(s => s.id !== 'marqueeSlideNotice');
                 const visibleSlides = allSlides.filter(s => s.style.display !== 'none');
                 // One slide (a new company with no bills: just its name) stays put. Rotating it onto
                 // itself marked it both "leaving" and "active", and the company name went blank.

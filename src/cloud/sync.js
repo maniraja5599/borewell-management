@@ -129,8 +129,8 @@ function writeLocal(app, local, changed) {
     run(() => app.calculateAndRender());
 }
 
-function status(kind, text) {
-    ctx?.onStatus?.({ kind, text, at: Date.now() });
+function status(kind, text, extra = {}) {
+    ctx?.onStatus?.({ kind, text, at: Date.now(), ...extra });
 }
 
 async function rpc(name, args) {
@@ -433,11 +433,16 @@ export async function syncNow() {
     ctx.running = true;
     status('syncing', 'Syncing…');
     try {
+        let pulled = 0;
+        let pushed = 0;
         do {
             ctx.again = false;
-            await syncOnce();
+            const r = await syncOnce();
+            pulled += r?.pulled || 0;
+            pushed += r?.pushed || 0;
         } while (ctx?.again);
-        status('ok', 'Synced');
+        // pulled / pushed let the top bar say "3 new from cloud" only when something moved.
+        status('ok', 'Synced', { pulled, pushed });
     } catch (err) {
         console.warn('[sync]', err);
         // The DrillRig team paused this business (see 0007): stop retrying, keep everything on the phone.

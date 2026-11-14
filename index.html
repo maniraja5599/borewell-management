@@ -157,6 +157,15 @@
                         </div>
                         <span class="slide-badge badge-work" id="marqueeTodayDepthBadge">0 FT</span>
                     </div>
+
+                    <!-- Notice slide: shown for a few seconds when something happens (sync, offline …). See HeaderMixin.showHeaderNotice -->
+                    <div class="marquee-slide slide-notify" id="marqueeSlideNotice" data-slide-index="9" style="display: none;" role="status" aria-live="polite">
+                        <div class="slide-content-wrap">
+                            <span class="slide-notify-icon" id="marqueeNoticeIcon"></span>
+                            <span class="slide-main-title" id="marqueeNoticeText"></span>
+                        </div>
+                        <span class="slide-badge badge-notify" id="marqueeNoticeBadge" hidden></span>
+                    </div>
                 </div>
 
                 <!-- Right Quick Controls -->
@@ -3049,16 +3058,8 @@
                 </div>
 
                 <!-- iOS Safari Specific Step-by-Step Instructions -->
-                <div class="pwa-ios-instructions" id="pwaIosInstructions" style="display: none;">
-                    <div class="pwa-ios-step">
-                        <span class="pwa-step-num">1</span>
-                        <span>Tap Safari's <strong class="pwa-highlight">Share</strong> button <svg class="pwa-safari-share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at bottom</span>
-                    </div>
-                    <div class="pwa-ios-step">
-                        <span class="pwa-step-num">2</span>
-                        <span>Scroll down and tap <strong class="pwa-highlight">Add to Home Screen ⊞</strong></span>
-                    </div>
-                </div>
+                <!-- Filled by src/pwa/iosInstallGuide.js for the browser in use (Safari iPhone / iPad, Chrome, other apps) -->
+                <div class="pwa-ios-instructions" id="pwaIosInstructions" hidden></div>
             </div>
 
             <div class="cust-popup-foot pwa-install-foot">

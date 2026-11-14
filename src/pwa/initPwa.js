@@ -1,4 +1,5 @@
 import { storage, STORAGE_KEYS } from '../data/storage.js';
+import { renderIosInstallGuide } from './iosInstallGuide.js';
 
 export function initPWAAndZoomLock() {
     // 1. Prevent Multi-Touch Pinch-to-Zoom on Mobile
@@ -115,8 +116,18 @@ export function initPWAAndZoomLock() {
         if (!modalOverlay) return;
 
         if (isIOS && iosInstructions) {
+            // iPhone / iPad have no install button: show the exact taps for this browser.
+            renderIosInstallGuide(iosInstructions, {
+                onCopied: (ok) => window.boreBillApp?.showToast?.(ok ? 'Link copied. Open Safari and paste it.' : 'Copy the link shown, then open it in Safari.')
+            });
+            iosInstructions.hidden = false;
             iosInstructions.style.display = 'flex';
-            if (confirmBtnText) confirmBtnText.textContent = 'Got It';
+            modalOverlay.classList.add('is-ios');
+            const title = document.getElementById('pwaInstallTitle');
+            const desc = document.getElementById('pwaInstallDesc');
+            if (title) title.textContent = 'Add DrillRig to your Home Screen';
+            if (desc) desc.textContent = 'It opens like an app, full screen, and works without internet at the rig. It takes 3 taps:';
+            if (confirmBtnText) confirmBtnText.textContent = 'Got it';
         }
 
         modalOverlay.style.display = 'flex';
