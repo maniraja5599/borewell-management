@@ -9,6 +9,7 @@ import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
 import { initStockUI } from './features/stock/stockUI.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
+import { FEATURES } from './config/features.js';
 
 async function boot() {
     try {
@@ -24,7 +25,7 @@ async function boot() {
             window.boreBillApp?.showToast('⚠️ Could not save to this phone — storage may be full. Download a backup now.');
         });
         initRigBar(window.boreBillApp);
-        initStockUI(window.boreBillApp);
+        if (FEATURES.pipeStock) initStockUI(window.boreBillApp);
         initAccountUI(window.boreBillApp);
         initTeamUI(window.boreBillApp);
         // First-run setup opens after the splash has faded.
