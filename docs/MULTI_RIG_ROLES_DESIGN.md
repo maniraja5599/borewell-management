@@ -85,17 +85,17 @@ go to the company's first rig, and the old 3-argument bill-number function still
 
 1. Run `supabase/drillrig/0003_rigs_roles_subscription.sql` in the Supabase SQL editor
    (it includes 0002's soft delete, so 0002 does not need to be run separately).
-2. Deploy the app.
-3. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
+2. Run `supabase/drillrig/0004_activity_log.sql` (activity log: who created / edited / deleted /
+   took a payment on each bill; shown in the bill popup and in Team & Rigs → Recent activity).
+3. Deploy the app.
+4. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
 
 ---
 
 ## How I would improve DrillRig after this (recommended order)
 
 1. **Razorpay auto-renewal** for rig subscriptions (removes manual activation work for you).
-2. **Activity log** — who created/edited/deleted which bill and when (the server already
-   records `updated_by`; add a history table like the Flutter app's `edit_log`). Owners with
-   staff ask "who changed this bill?" within the first month.
+2. ~~Activity log~~ — done (0004).
 3. **Owner daily summary on WhatsApp** — one tap at night: bores, feet, billed, collected,
    per rig. Uses data the dashboard already computes.
 4. **Due reminders** — list of customers with dues older than N days, one-tap WhatsApp

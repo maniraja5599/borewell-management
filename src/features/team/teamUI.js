@@ -6,6 +6,7 @@ import { getSupabase } from '../../cloud/auth.js';
 import { getAccess, getRole, hasRigs, onAccessChange, rigDaysLeft } from '../../cloud/access.js';
 import { syncNow } from '../../cloud/sync.js';
 import { renewLink, PLANS } from '../../config/plans.js';
+import { fetchActivity, renderActivityList } from '../../cloud/activity.js';
 
 const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
 const ROLE_HELP = {
@@ -141,7 +142,7 @@ function openSheet(app) {
             } catch { /* another rig already uses it: shown as is */ }
         }
         body.textContent = '';
-        body.append(rigsSection(team), staffSection(team), inviteSection(team));
+        body.append(rigsSection(team), staffSection(team), inviteSection(team), activitySection());
     }
 
     function rigsSection(team) {
@@ -193,6 +194,28 @@ function openSheet(app) {
                 })
             ])
         ]);
+    }
+
+    // Company-wide log of who changed what (needs migration 0004; hidden until then).
+    function activitySection() {
+        const list = el('div', { class: 'act-list', text: 'Loading…' });
+        const more = el('button', { type: 'button', class: 'tm-btn ghost', text: 'Show older', hidden: true });
+        const section = el('section', { class: 'tm-section' }, [
+            el('h3', { text: 'Recent activity' }),
+            el('p', { class: 'tm-help', text: 'Who created, edited, deleted or took payments on bills — from every phone.' }),
+            list, more
+        ]);
+        let shown = [];
+        const page = async (before) => {
+            const entries = await fetchActivity({ limit: 30, before });
+            if (entries === null) { if (!before) section.remove(); return; }
+            shown = shown.concat(entries);
+            renderActivityList(list, shown, (n) => app.formatINR(n));
+            more.hidden = entries.length < 30;
+        };
+        more.addEventListener('click', () => page(shown[shown.length - 1]?.id));
+        page(null);
+        return section;
     }
 
     function staffSection(team) {

@@ -13954,3 +13954,15 @@ html.role-driver #headerDashboardBtn { display: none !important; }
     border: 1.5px solid var(--border-strong);
     border-radius: var(--radius-md);
 }
+
+/* Activity log (cloud/activity.js) — bill History and owner's Recent activity */
+.act-box { margin-top: 14px; padding: 12px; border-radius: var(--radius-md); background: var(--bg-muted); border: 1px solid var(--border-color); }
+.act-head { margin-bottom: 6px; font-size: var(--fs-md); font-weight: 800; color: var(--text-main); }
+.act-list { display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-sm); color: var(--text-muted); }
+.act-row { display: flex; flex-direction: column; gap: 1px; padding: 6px 0 6px 10px; border-left: 3px solid var(--border-strong); }
+.act-row.act-create { border-left-color: #16a34a; }
+.act-row.act-delete { border-left-color: var(--danger); }
+.act-row.act-restore { border-left-color: #2563eb; }
+.act-text { color: var(--text-main); font-weight: 600; overflow-wrap: anywhere; }
+.act-time { font-size: var(--fs-xs); color: var(--text-muted); }
+.act-empty { margin: 0; }

@@ -1,4 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
+import { getAccess } from '../../cloud/access.js';
+import { fetchActivity, renderActivityList } from '../../cloud/activity.js';
 export class BillDetailMixin {
     openBillDetailModal(billId) {
         const item = (this.history || []).find(h => h.id === billId);
@@ -208,6 +210,25 @@ export class BillDetailMixin {
 
         overlay.style.display = 'flex';
         this.refreshIcons();
+
+        // Signed-in companies: "who changed this bill" from the cloud activity log.
+        if (getAccess()) {
+            const box = document.createElement('div');
+            box.className = 'act-box';
+            const head = document.createElement('div');
+            head.className = 'act-head';
+            head.textContent = '🕘 History';
+            const list = document.createElement('div');
+            list.className = 'act-list';
+            list.textContent = 'Loading…';
+            box.append(head, list);
+            bodyEl.appendChild(box);
+            fetchActivity({ kind: 'bill', record: String(item.id), limit: 20 }).then((entries) => {
+                if (this.activeDetailBillId !== item.id) return; // another bill was opened meanwhile
+                if (entries === null) { box.remove(); return; }  // offline / not available
+                renderActivityList(list, entries, (n) => this.formatINR(n));
+            });
+        }
     }
 
     closeBillDetailModal() {
