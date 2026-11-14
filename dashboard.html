@@ -886,6 +886,18 @@
                 font-size: 0.68rem;
             }
         }
+        .dash-rig-select {
+            flex: 0 0 auto;
+            min-height: 34px;
+            max-width: 140px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--card-bg);
+            color: var(--text-main);
+        }
     </style>
 </head>
 <body>
@@ -1234,10 +1246,47 @@
         let activeDateRange = 'today';
         let useSampleData = false;
         let currentFilteredBills = [];
+        let activeRigId = 'all';
+
+        // Several rigs (cloud, see src/cloud/access.js): add a "which rig" filter.
+        function readRigs() {
+            try {
+                const a = JSON.parse(localStorage.getItem('drillrig_access_v1') || 'null');
+                return Array.isArray(a?.rigs) ? a.rigs : [];
+            } catch (e) { return []; }
+        }
+        const dashRigs = readRigs();
+        const defaultRigId = (dashRigs.find(r => r.is_default) || dashRigs[0])?.id || null;
+        const billRigId = (b) => b.rigId || defaultRigId;
+        function activeRigName() {
+            return activeRigId === 'all' ? '' : (dashRigs.find(r => r.id === activeRigId)?.name || '');
+        }
+        function setupRigFilter() {
+            if (dashRigs.length < 2) return;
+            const strip = document.querySelector('.filter-strip');
+            if (!strip) return;
+            const sel = document.createElement('select');
+            sel.id = 'dashRigFilter';
+            sel.className = 'dash-rig-select';
+            sel.setAttribute('aria-label', 'Rig');
+            const all = document.createElement('option');
+            all.value = 'all';
+            all.textContent = 'All rigs';
+            sel.appendChild(all);
+            dashRigs.forEach(r => {
+                const o = document.createElement('option');
+                o.value = r.id;
+                o.textContent = r.name;
+                sel.appendChild(o);
+            });
+            sel.addEventListener('change', () => { activeRigId = sel.value; refreshDashboard(); });
+            strip.appendChild(sel);
+        }
 
         function initDashboard() {
             lucide.createIcons();
             loadBrandProfile();
+            setupRigFilter();
             bindEvents();
             refreshDashboard();
         }
@@ -1333,7 +1382,8 @@
 
         function refreshDashboard() {
             const allBills = getDataSource();
-            const invoicesOnly = allBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE');
+            const invoicesOnly = allBills.filter(b => (b.snapshot?.docType || 'QUOTATION') === 'INVOICE'
+                && (useSampleData || activeRigId === 'all' || billRigId(b) === activeRigId));
             const filtered = filterBillsByDate(invoicesOnly);
             currentFilteredBills = filtered;
 
@@ -1572,7 +1622,7 @@
 
             let report = `🚜 *DRILLRIG OWNER OPERATIONS REPORT*
 `;
-            report += `🏢 *${companyName}*
+            report += `🏢 *${companyName}*${activeRigName() ? ` — 🚜 ${activeRigName()}` : ''}
 `;
             report += `📅 Period: *${rangeLabel} (${todayStr})*
 `;

@@ -2,6 +2,7 @@
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { ratesForSnapshot } from '../../core/billRates.js';
 import { getCurrentRig } from '../../cloud/access.js';
+import { ensureRigFilterUI, matchesRigFilter, rigBadgeHtml } from '../team/rigFilter.js';
 
 export class HistoryMixin {
     saveCurrentBillToHistory() {
@@ -417,10 +418,17 @@ export class HistoryMixin {
         const docFilter = this.historyDocFilter === 'QUOTATION' ? 'QUOTATION' : 'INVOICE';
         const payFilter = this.historyPayFilter || 'all';
         const q = (query || '').toLowerCase().trim();
+        // Several rigs: filter the bill book by rig (hidden for single-rig companies).
+        this.historyRigFilter = ensureRigFilterUI(listEl, this.historyRigFilter, (v) => {
+            this.historyRigFilter = v;
+            this.historyPage = 1;
+            this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+        });
 
         const filtered = (this.history || []).filter(item => {
             const docTag = item.snapshot?.docType || 'QUOTATION';
             if (docTag !== docFilter) return false;
+            if (!matchesRigFilter(item, this.historyRigFilter)) return false;
 
             if (docFilter === 'INVOICE') {
                 const isUnpaid = this.isBillItemUnpaid(item);
@@ -511,6 +519,7 @@ export class HistoryMixin {
                                     📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'})
                                 </div>
                                 <span class="party-date-badge">📅 ${dateStr || 'N/A'}</span>
+                                ${rigBadgeHtml(item, (v) => this.escapeHtml(v))}
                             </div>
                         </div>
                     </div>
