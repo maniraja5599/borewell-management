@@ -87,6 +87,12 @@ export function initAccountUI(app) {
         window.location.reload(); // every screen starts clean; the Google session is kept
     };
     const explainBlocked = (err) => {
+        if (err.code === 'DRILLRIG_SUSPENDED') {
+            // Nothing is removed: the phone keeps every bill and keeps billing.
+            const why = String(err.message || '').split(': ').slice(1).join(': ');
+            app.showToast(`⏸️ Cloud sync is paused for this business${why ? ` (${why})` : ''}. Billing on this phone keeps working. Contact DrillRig support on WhatsApp +91 83000 30123.`);
+            return;
+        }
         if (err.code === 'DRILLRIG_REMOVED') {
             app.confirmDeleteModal({
                 title: 'No access to this company',

@@ -92,8 +92,13 @@ go to the company's first rig, and the old 3-argument bill-number function still
 4. Run `supabase/drillrig/0006_pull_with_server_time.sql` (can run any time, before or after 0003-0005).
    Without it every open phone re-downloads the company's last ~50 changed records every minute;
    with it only the last two minutes of changes are read twice. The app works either way.
-5. Deploy the app.
-6. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
+5. Run `supabase/drillrig/0007_admin_console.sql` (after 0003-0006), then add yourself as admin, once:
+   `insert into drillrig.admin (user_id) select id from auth.users where email = 'YOUR_EMAIL';`
+   The console is at `admin.html` (not linked from the app; the server refuses non-admins).
+   It can pause a business (cloud sync stops; phones keep billing), set rig free / paid-until dates,
+   export a business's cloud data and delete a business on request. Every action is in the admin log.
+6. Deploy the app.
+7. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
 
 ---
 

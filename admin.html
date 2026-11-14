@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>DrillRig Admin</title>
+    <link rel="icon" href="./favicon.png">
+    <style>
+        :root {
+            --brand: #15803d; --brand-dark: #14532d; --brand-soft: #f0fdf4;
+            --text: #0f172a; --muted: #64748b; --line: #e2e8f0; --bg: #f8fafc; --card: #ffffff;
+            --warn: #b45309; --warn-soft: #fffbeb; --bad: #b91c1c; --bad-soft: #fef2f2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        header { background: var(--brand-dark); color: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+        header h1 { font-size: 1.05rem; font-weight: 800; flex: 1; }
+        header .who { font-size: 0.8rem; opacity: 0.85; }
+        header button { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 0.8rem; cursor: pointer; }
+        main { max-width: 1100px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+        .center { text-align: center; padding: 48px 16px; }
+        .center p { color: var(--muted); margin: 8px 0 18px; }
+        .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tabs button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; color: #334155; cursor: pointer; }
+        .tabs button.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+        .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+        .tile { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+        .tile span { display: block; font-size: 0.75rem; color: var(--muted); font-weight: 700; }
+        .tile strong { display: block; font-size: 1.45rem; font-weight: 800; }
+        .tile small { color: var(--muted); font-size: 0.74rem; }
+        h2 { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; }
+        .bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        input[type="search"], input[type="text"], input[type="date"] { font: inherit; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; background: #fff; color: var(--text); }
+        input[type="search"] { flex: 1; min-width: 200px; }
+        .btn { font: inherit; font-weight: 700; border-radius: 8px; padding: 7px 12px; cursor: pointer; border: 1px solid var(--line); background: #fff; color: #334155; white-space: nowrap; }
+        .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+        .btn.warn { color: var(--warn); border-color: #fde68a; }
+        .btn.bad { color: var(--bad); border-color: #fecaca; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+        th { font-size: 0.74rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+        td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        tr.click { cursor: pointer; }
+        tr.click:hover td { background: #f8fafc; }
+        .sub { display: block; color: var(--muted); font-size: 0.78rem; }
+        .chip { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #f1f5f9; color: #334155; margin: 1px 2px 1px 0; }
+        .chip.free { background: var(--brand-soft); color: var(--brand-dark); }
+        .chip.paid { background: #eff6ff; color: #1d4ed8; }
+        .chip.ended, .chip.paused { background: var(--bad-soft); color: var(--bad); }
+        .chip.archived { background: #f1f5f9; color: var(--muted); }
+        .muted { color: var(--muted); }
+        .empty { color: var(--muted); text-align: center; padding: 24px; }
+        .scroll { overflow-x: auto; }
+        dialog { margin: auto; border: none; border-radius: 16px; padding: 0; width: min(900px, calc(100vw - 24px)); max-height: calc(100vh - 32px); }
+        dialog::backdrop { background: rgba(15, 23, 42, 0.45); }
+        .dlg-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; z-index: 1; }
+        .dlg-head h3 { flex: 1; font-size: 1.05rem; }
+        .dlg-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        .section h4 { font-size: 0.82rem; font-weight: 800; margin-bottom: 6px; }
+        .kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+        .kv div { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+        .kv span { display: block; font-size: 0.72rem; color: var(--muted); font-weight: 700; }
+        .danger { border: 1px solid #fecaca; background: var(--bad-soft); border-radius: 12px; padding: 12px; }
+        .note { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+        .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 9px 16px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; z-index: 50; }
+        .rig-row td { white-space: nowrap; }
+        .rig-dates { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        @media (max-width: 640px) { .hide-sm { display: none; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>DrillRig Admin</h1>
+        <span class="who" id="who"></span>
+        <button type="button" id="signOutBtn" hidden>Sign out</button>
+    </header>
+    <main id="root">
+        <div class="card center">Loading…</div>
+    </main>
+    <script type="module" src="./src/admin/admin.js"></script>
+</body>
+</html>

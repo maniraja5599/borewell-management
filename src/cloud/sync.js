@@ -139,6 +139,7 @@ async function rpc(name, args) {
     if (error) {
         const err = new Error(error.message || String(error));
         err.code = error.code;
+        err.hint = error.hint;
         throw err;
     }
     return data;
@@ -439,10 +440,12 @@ export async function syncNow() {
         status('ok', 'Synced');
     } catch (err) {
         console.warn('[sync]', err);
-        if (err?.code === 'DRILLRIG_REMOVED' || err?.code === 'DRILLRIG_STAFF_LOCAL_DATA') {
+        // The DrillRig team paused this business (see 0007): stop retrying, keep everything on the phone.
+        if (err?.hint === 'DRILLRIG_SUSPENDED' || /paused for this business/i.test(err?.message || '')) err.code = 'DRILLRIG_SUSPENDED';
+        if (err?.code === 'DRILLRIG_REMOVED' || err?.code === 'DRILLRIG_STAFF_LOCAL_DATA' || err?.code === 'DRILLRIG_SUSPENDED') {
             status('blocked', err.code === 'DRILLRIG_REMOVED'
                 ? `No access to ${err.companyName || 'this company'} — tap to fix`
-                : 'Not syncing — tap to fix');
+                : err.code === 'DRILLRIG_SUSPENDED' ? 'Cloud paused — tap for details' : 'Not syncing — tap to fix');
             try { ctx?.onBlocked?.(err); } catch { /* ignore */ }
             return;
         }
