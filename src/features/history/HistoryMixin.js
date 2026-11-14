@@ -823,6 +823,11 @@ export class HistoryMixin {
 
     exitSavedBillMode(resetInputs = true) {
         this.restoreLiveRates();
+        // A new bill starts on the applied rate card, the same as after reopening the app. A price
+        // typed into one bill (pipe ₹/ft, bata, base rate) used to carry into the next bill until reload.
+        if (resetInputs && !this.isRateStudioOpen()) {
+            this.applyRateProfileToBill(this.activeRateProfileId, false);
+        }
         this.loadedHistoryBillId = null;
         this.isSavedBillReadOnly = false;
         this.isBillPreviewOpen = false;

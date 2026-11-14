@@ -3,63 +3,15 @@
 //   npm run build && npx vite preview --port 4173      (in one terminal)
 //   npm run e2e:billing                                  (in another)
 // Needs Google Chrome; set CHROME_PATH if it is not in the default Windows location.
-import puppeteer from 'puppeteer-core';
 import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
 import { computeBillTotals } from '../src/core/slabEngine.js';
+import { startHarness, wait, BASE } from './harness.mjs';
 
-const OUT = process.argv[2] || fs.mkdtempSync(path.join(os.tmpdir(), 'drillrig-e2e-'));
-const DL = process.argv[3] || path.join(OUT, 'downloads');
-fs.mkdirSync(DL, { recursive: true });
-for (const f of fs.readdirSync(DL)) fs.unlinkSync(`${DL}/${f}`);
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const results = [];
-const check = (name, ok, detail = '') => results.push({ ok: !!ok, name, detail: typeof detail === 'string' ? detail : JSON.stringify(detail) });
+const { p, OUT, DL, check, app, typeInto, clickId, text, step, freshCompany, finish } = await startHarness('billing');
 const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 
-const b = await puppeteer.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: 'new' });
-const p = await b.newPage();
-const errors = [];
-p.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
-p.on('console', (m) => { if (m.type() === 'error' && !/GSI|supabase|Failed to load resource/i.test(m.text())) errors.push('console: ' + m.text()); });
-p.on('dialog', async (d) => { errors.push('native dialog: ' + d.message()); await d.dismiss(); });
-await p.setRequestInterception(true);
-p.on('request', (r) => (/supabase\.co|accounts\.google\.com|wa\.me|api\.whatsapp/.test(r.url()) ? r.abort() : r.continue()));
-const cdp = await p.target().createCDPSession();
-await cdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: DL.replace(/\//g, '\\') });
-// Headless Chrome cannot show a share sheet: test the download path (the share path is checked separately).
-await p.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'canShare', { value: undefined }); });
-await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1.5, isMobile: true, hasTouch: true });
-
-const app = (fn, ...args) => p.evaluate(fn, ...args);
-async function typeInto(id, value) {
-    const visible = await app((id) => { const e = document.getElementById(id); return !!e && e.offsetParent !== null; }, id);
-    if (visible) {
-        await p.$eval(`#${id}`, (e) => { e.focus(); e.select?.(); });
-        await p.$eval(`#${id}`, (e) => { e.value = ''; });
-        await p.type(`#${id}`, String(value));
-        await p.$eval(`#${id}`, (e) => e.dispatchEvent(new Event('change', { bubbles: true })));
-        await p.$eval(`#${id}`, (e) => e.blur());
-    } else {
-        await app((id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); }, id, String(value));
-    }
-    return visible;
-}
-const clickId = (id) => app((id) => { const e = document.getElementById(id); if (!e) return false; e.click(); return true; }, id);
-const text = (id) => app((id) => document.getElementById(id)?.textContent.trim() || '', id);
-const step = async (name, fn) => { try { await fn(); } catch (e) { check(name, false, 'THREW: ' + e.message); } };
-
 // ---------- fresh company ----------
-await p.goto('http://localhost:4173/index.html');
-await app(() => {
-    localStorage.clear();
-    localStorage.setItem('drillrig_setup_skipped', '1');
-    localStorage.setItem('drillrig_pwa_prompt_dismissed_at', String(Date.now()));
-    localStorage.setItem('borebill_brand', JSON.stringify({ companyName: 'Sri Murugan Borewells', phones: '+91 9842712345', billPrefix: 'SM', nextBillSeq: 101, nextQuoteSeq: 101, upiId: 'murugan@okaxis', upiName: 'Sri Murugan Borewells', address: 'Namakkal' }));
-});
-await p.reload({ waitUntil: 'networkidle0' });
-await wait(800);
+await freshCompany();
 
 // ---------- 1. customer ----------
 await step('1 add customer from the bill screen', async () => {
@@ -259,14 +211,9 @@ await step('12 reload', async () => {
 
 // ---------- 13. dashboard ----------
 await step('13 dashboard', async () => {
-    await p.goto('http://localhost:4173/dashboard.html', { waitUntil: 'networkidle0' }); await wait(800);
+    await p.goto(`${BASE}/dashboard.html`, { waitUntil: 'networkidle0' }); await wait(800);
     const d = await app(() => document.body.innerText.match(/Total Billed\s*₹([\d,]+)/)?.[1]);
     check('13 dashboard today: billed ₹1,18,500', d === '1,18,500', d);
 });
 
-check('no page errors / native dialogs', errors.length === 0, errors);
-const pass = results.filter((r) => r.ok).length;
-for (const r of results) console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.name}${r.ok ? '' : `  →  ${r.detail}`}`);
-console.log(`\n${pass}/${results.length} passed`);
-await b.close();
-process.exitCode = pass === results.length ? 0 : 1;
+await finish();

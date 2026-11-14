@@ -885,9 +885,11 @@ export class RatesMixin {
     }
 
     updateSsgBasePill() {
+        // Shows the card being edited (it used to target a missing element and stay at "₹90/ft").
         const baseVal = this.rates?.baseDrillingRate || 90;
-        const pill = document.getElementById('ssgBaseRatePill');
-        if (pill) pill.textContent = `₹${baseVal}/ft`;
+        const firstEnd = this.normalizeSlabArray(this.rates?.slabRates, baseVal)[0]?.end || 300;
+        const pill = document.getElementById('ssgBasePillPreview');
+        if (pill) pill.textContent = `Base: 1–${firstEnd} ft @ ₹${baseVal}/ft`;
     }
 
     applyStepIncrementToAllSlabs(stepVal) {

@@ -265,7 +265,7 @@ export class RateListeners {
             document.getElementById('baseDrillingRate').value = 90;
             this.renderMasterSlabsGrid();
             this.calculateAndRender();
-            this.showToast('🔄 Standard Anjaneya Slabs restored!');
+            this.showToast('🔄 Standard slab rates restored!');
         });
 
         document.getElementById('resetDefaultRatesBtn')?.addEventListener('click', () => {

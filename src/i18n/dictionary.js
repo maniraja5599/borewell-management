@@ -93,7 +93,7 @@ export const I18N_DICTIONARY = {
         boreBataFixed: "Bore Bata (Per Bore ₹)",
         slabBufferGrace: "Slab Grace Buffer (ft)",
         depthSlabRatesTitle: "19 Depth Slab Rates (1–2200 ft)",
-        depthSlabRatesSub: "Anjaneya progressive 100-ft depth slab pricing",
+        depthSlabRatesSub: "Progressive 100-ft depth slab pricing",
         bulkAdjustAllSlabs: "Quick Shift:",
         saveAllPriceSettings: "Save & Apply Price Settings",
         companyBrandingTitle: "Company Profile & Branding",
