@@ -274,7 +274,7 @@ export class BoreBillSaaSApp {
         this.renderSavedNotesUI();
         this.refreshIcons();
 
-        // Smooth 2.5s App Launch Splash Screen with animated drop dot
+        // Launch splash: stays ~0.85s after the app is ready, then fades
         const splashEl = document.getElementById('appSplashScreen');
         if (splashEl) {
             setTimeout(() => {
@@ -282,7 +282,7 @@ export class BoreBillSaaSApp {
                 setTimeout(() => {
                     try { splashEl.remove(); } catch (_) {}
                 }, 400);
-            }, 350);
+            }, 850);
         }
 
         // Restore exact scroll position where user left off

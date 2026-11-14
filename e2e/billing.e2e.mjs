@@ -55,6 +55,22 @@ await step('2 typed values reach the bill', async () => {
     const banner = await text('liveTotalBannerAmount');
     const cta = await text('previewBtnLiveTotal');
     check('2d live total banner + preview button show ₹83,500', banner.includes('83,500') && cta.includes('83,500'), { banner, cta });
+    const v3 = await app(() => {
+        const vis = (id) => { const e = document.getElementById(id); return !!e && e.offsetParent !== null && e.getBoundingClientRect().width > 0; };
+        const r = (id) => document.getElementById(id)?.getBoundingClientRect();
+        const fresh = r('freshBillCtaBtn');
+        const prev = r('openBillPreviewBtn');
+        return {
+            on: document.documentElement.classList.contains('ui-v3'),
+            meta: document.getElementById('stickyBillMeta')?.textContent || '',
+            fresh: vis('freshBillCtaBtn'), preview: vis('openBillPreviewBtn'),
+            sameRow: !!(fresh && prev) && Math.abs(fresh.top - prev.top) < 2,
+            inside: !!prev && prev.right <= window.innerWidth,
+            hScroll: document.documentElement.scrollWidth > window.innerWidth + 1
+        };
+    });
+    check('2e new look: top strip shows #SM-101 · date; Fresh bill sits beside Preview; no sideways scroll',
+        v3.on && /#SM-101 · \d{2} \w{3} \d{4}/.test(v3.meta) && v3.fresh && v3.preview && v3.sameRow && v3.inside && !v3.hScroll, v3);
     await p.screenshot({ path: `${OUT}/b1_entry.png`, fullPage: true });
 });
 
@@ -78,6 +94,13 @@ await step('3 receipt preview', async () => {
         && rc.collar.includes('1,500') && rc.sub.includes('84,500') && rc.disc.includes('1,000') && rc.grand.includes('83,500')
         && rc.adv.includes('20,000') && rc.bal.includes('63,500'), rc);
     check('3a receipt shows slab breakup rows and UPI QR', rc.slabRows >= 3 && rc.qr, { slabRows: rc.slabRows, qr: rc.qr });
+    const ft = await app(() => {
+        const a = document.getElementById('rcptDrillrigLink');
+        const r = a?.getBoundingClientRect();
+        return { tag: a?.tagName, href: a?.href || '', target: a?.target, text: a?.textContent.replace(/\s+/g, ' ').trim() || '', h: r ? Math.round(r.height) : 0, w: r ? Math.round(r.width) : 0 };
+    });
+    check('3b bill footer "Made with DrillRig" opens WhatsApp to 83000 30123', ft.tag === 'A' && ft.href.startsWith('https://wa.me/918300030123?text=') && ft.target === '_blank'
+        && /Made with DrillRig/.test(ft.text) && /83000 30123/.test(ft.text) && !/Powered by/i.test(ft.text) && ft.h >= 16, ft);
     await p.screenshot({ path: `${OUT}/b2_receipt.png`, fullPage: true });
 });
 
@@ -104,6 +127,8 @@ await step('5a PDF download', async () => {
     const pdf = fs.readdirSync(DL).filter((f) => f.endsWith('.pdf'));
     const size = pdf[0] ? fs.statSync(`${DL}/${pdf[0]}`).size : 0;
     check('5a PDF downloads (A4 receipt)', pdf.length === 1 && size > 20000, { files: fs.readdirSync(DL), size });
+    const raw = pdf[0] ? fs.readFileSync(`${DL}/${pdf[0]}`, 'latin1') : '';
+    check('5a PDF footer is a tappable WhatsApp link', /\/URI\s*\(https:\/\/wa\.me\/918300030123\?text=/.test(raw), raw.match(/\/URI[^>]{0,80}/)?.[0] || 'no link');
 });
 await step('5b image download', async () => {
     await clickId('downloadImageBtn'); await wait(5000);
@@ -177,7 +202,8 @@ await step('8 quotation then convert', async () => {
 
 // ---------- 9. re-bore + GST ----------
 await step('9 re-bore with GST', async () => {
-    await clickId('freshBillQuickBtn'); await wait(500);
+    await p.click('#freshBillCtaBtn').catch(() => clickId('freshBillQuickBtn')); await wait(500);
+    check('9 Fresh bill (next to Preview) clears the depth', (await app(() => document.getElementById('totalDepth').value)) === '', await app(() => document.getElementById('totalDepth').value));
     await app(() => document.querySelector('#drillingTypeToggle [data-type="repair"]')?.click()); await wait(300);
     await typeInto('oldBoreDepth', 200);
     await typeInto('totalDepth', 400);
@@ -196,6 +222,11 @@ await step('10 customer ledger', async () => {
     const l = await app(() => ({ billed: document.getElementById('crmTotalBilled')?.textContent, pending: document.getElementById('crmTotalPending')?.textContent }));
     // SM-101 ₹89,500 (due 6,000) + SM-102 (300 ft: 27,000 + bata 2,000 = 29,000, unpaid)
     check('10 ledger totals: billed ₹1,18,500, pending ₹35,000', (l.billed || '').includes('1,18,500') && (l.pending || '').includes('35,000'), l);
+    await app(() => window.boreBillApp.switchTab('tab-history')); await wait(500);
+    const t = await app(() => ({ billed: document.getElementById('histTotalBilled')?.textContent, received: document.getElementById('histTotalReceived')?.textContent, due: document.getElementById('histTotalDue')?.textContent, shown: document.getElementById('historyTotalsStrip')?.offsetParent !== null }));
+    // received = 1,18,500 billed − 35,000 due
+    check('10b Bills page totals: billed ₹1,18,500, received ₹83,500, due ₹35,000', t.shown && (t.billed || '').includes('1,18,500') && (t.received || '').includes('83,500') && (t.due || '').includes('35,000'), t);
+    await app(() => window.boreBillApp.switchTab('tab-customers')); await wait(300);
 });
 
 // ---------- 11. delete + undo ----------

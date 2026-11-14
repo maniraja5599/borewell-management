@@ -240,6 +240,8 @@ export class ReceiptMixin {
         document.getElementById('receiptDateText').textContent = formattedDate;
         const ctrlDateBadge = document.getElementById('controlLiveDateBadge');
         if (ctrlDateBadge) ctrlDateBadge.textContent = formattedDate;
+        const stickyMeta = document.getElementById('stickyBillMeta');
+        if (stickyMeta) stickyMeta.textContent = `#${billNoVal} · ${formattedDate}`;
 
         const cName = this.state.custName;
         const cPhone = this.formatPhoneWithCountryCode(this.state.custPhone || '');

@@ -1,4 +1,5 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
+import { billFooterEnquiryLink } from '../../config/plans.js';
 export class ShareExportMixin {
     formatWhatsAppBubbleHtml(rawText) {
         const safe = String(rawText || '')
@@ -564,6 +565,7 @@ export class ShareExportMixin {
             const yOffset = 10;
 
             pdf.addImage(imgData, 'PNG', xOffset, yOffset, drawW, drawH, undefined, 'FAST');
+            this.addPdfFooterLink(pdf, cloneHost, { xOffset, yOffset, drawW });
 
             const safeComp = compName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '');
             const safeBillNo = billNo.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -577,6 +579,26 @@ export class ShareExportMixin {
             if (cloneHost && cloneHost.parentNode) {
                 cloneHost.parentNode.removeChild(cloneHost);
             }
+        }
+    }
+    /** Make the "Made with DrillRig" line in the PDF tappable (opens WhatsApp to DrillRig). */
+    addPdfFooterLink(pdf, cloneHost, { xOffset, yOffset, drawW }) {
+        try {
+            const el = cloneHost.querySelector('.receipt-saas-branding');
+            if (!el || typeof pdf.link !== 'function') return;
+            const host = cloneHost.getBoundingClientRect();
+            const r = el.getBoundingClientRect();
+            if (!host.width || !r.width) return;
+            const mmPerPx = drawW / host.width;
+            pdf.link(
+                xOffset + (r.left - host.left) * mmPerPx,
+                yOffset + (r.top - host.top) * mmPerPx,
+                r.width * mmPerPx,
+                r.height * mmPerPx,
+                { url: billFooterEnquiryLink() }
+            );
+        } catch (e) {
+            console.warn('PDF footer link skipped:', e);
         }
     }
     printReceipt() {

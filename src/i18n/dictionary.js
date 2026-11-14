@@ -73,7 +73,7 @@ export const I18N_DICTIONARY = {
         totalCustomersStat: "Customers",
         totalBilledStat: "Total Billed",
         pendingBalanceStat: "Pending Due",
-        customerDirectoryTitle: "Customer Ledger",
+        customerDirectoryTitle: "Customers",
         customerDirectorySub: "Manage parties, track borewell dues & create instant bills",
         addCustomerBtnLabel: "Add Customer",
         addCustomerTitle: "New Customer Details",

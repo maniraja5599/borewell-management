@@ -288,17 +288,17 @@ export class CustomerLedgerMixin {
                     <div class="cmr-avatar cl-avatar">${this.escapeHtml(initials)}</div>
                     <div class="cl-main">
                         <div class="cmr-name cl-name">${this.escapeHtml(c.name)}</div>
-                        <div class="cmr-sub cl-sub">
-                            ${placeText ? `<span class="cmr-place">${this.escapeHtml(placeText)}</span>` : ''}
-                            ${placeText && countBadgeHtml ? '<span class="cl-dot">·</span>' : ''}
-                            ${countBadgeHtml}
+                        <div class="cl-line2">
+                            <div class="cmr-sub cl-sub">
+                                ${placeText ? `<span class="cmr-place">${this.escapeHtml(placeText)}</span>` : ''}
+                                ${placeText && countBadgeHtml ? '<span class="cl-dot">·</span>' : ''}
+                                ${countBadgeHtml}
+                            </div>
+                            <div class="cmr-right cl-side">${statusBadgeHtml}</div>
                         </div>
                         ${dispPhone ? `<div class="cl-phone">${this.escapeHtml(dispPhone)}</div>` : ''}
                     </div>
-                    <div class="cmr-right cl-side">
-                        ${statusBadgeHtml}
-                        <span class="cmr-chevron" aria-hidden="true">›</span>
-                    </div>
+                    <span class="cmr-chevron" aria-hidden="true">›</span>
                 </div>
             `;
         }).join('');
@@ -852,12 +852,12 @@ export class CustomerLedgerMixin {
 
             let pillsHtml = `
                 <button type="button" class="wiz-flt-pill ${this.wizCustFilter === 'ALL' ? 'active' : ''}" data-wflt="ALL">All (${this.customers.length})</button>
-                <button type="button" class="wiz-flt-pill ${this.wizCustFilter === 'RECENT' ? 'active' : ''}" data-wflt="RECENT">🕒 Recent</button>
+                <button type="button" class="wiz-flt-pill ${this.wizCustFilter === 'RECENT' ? 'active' : ''}" data-wflt="RECENT">Recent</button>
             `;
             uniqueVillages.forEach(v => {
                 const isAct = this.wizCustFilter.toLowerCase() === v.toLowerCase();
                 pillsHtml += `
-                    <button type="button" class="wiz-flt-pill ${isAct ? 'active' : ''}" data-wflt="${v}">🏠 ${v}</button>
+                    <button type="button" class="wiz-flt-pill ${isAct ? 'active' : ''}" data-wflt="${v}">${v}</button>
                 `;
             });
             filterPillsEl.innerHTML = pillsHtml;
@@ -945,25 +945,25 @@ export class CustomerLedgerMixin {
                 (!currentSelectedPhone && currentSelectedName && (c.name || '').trim().toLowerCase() === currentSelectedName);
             const agg = this.getCustomerAggregates(c, billsIndex);
             const { pastSites } = this.getCustomerSiteSuggestions(c, siteIndex);
-            const sitesSub = pastSites.length > 0 ? ` • 📍 +${pastSites.length} site` : '';
-            const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">Due: ${this.formatINR(agg.totalPending)}</span>` : '';
+            const sitesSub = pastSites.length > 0 ? ` · +${pastSites.length} site${pastSites.length === 1 ? '' : 's'}` : '';
+            const dueChipHtml = agg.totalPending > 0 ? `<span class="wiz-cust-due-chip">Due ${this.formatINR(agg.totalPending)}</span>` : '';
+            const metaParts = [c.village ? this.escapeHtml(c.village) : '', dispPhone ? this.escapeHtml(dispPhone) : '', `${agg.billsCount} ${agg.billsCount === 1 ? 'bill' : 'bills'}`].filter(Boolean);
 
             return `
             <button type="button" class="wiz-cust-card ${isSelected ? 'is-selected' : ''}" data-id="${c.id}">
                 <div class="wiz-cc-left">
-                    <div class="wiz-cc-avatar">${this.escapeHtml(this.getInitials(c.name))}</div>
+                    <div class="wiz-cc-avatar ${agg.totalPending > 0 ? 'has-due' : ''}">${this.escapeHtml(this.getInitials(c.name))}</div>
                     <div class="wiz-cc-info">
                         <div class="wiz-cc-name-row">
                             <span class="wiz-cc-name">${this.escapeHtml(c.name)}</span>
-                            ${c.village ? `<span class="wiz-cc-place-tag">🏠 ${this.escapeHtml(c.village)}</span>` : ''}
-                            ${dueChipHtml}
                         </div>
-                        <div class="wiz-cc-meta">
-                            📞 ${dispPhone || 'N/A'} • ${agg.billsCount} ${agg.billsCount === 1 ? 'Bill' : 'Bills'}${sitesSub}
-                        </div>
+                        <div class="wiz-cc-meta">${metaParts.join(' · ')}${sitesSub}</div>
                     </div>
                 </div>
-                <span class="wiz-cc-pick-badge">${isSelected ? '✓ Picked' : 'Pick'}</span>
+                <span class="wiz-cc-right">
+                    ${dueChipHtml}
+                    <span class="wiz-cc-pick-badge">${isSelected ? '✓ Picked' : 'Pick'}</span>
+                </span>
             </button>
         `;
         }).join('');

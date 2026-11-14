@@ -89,7 +89,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous" defer></script>
 
 
-    <!-- Inline Fail-Safe: Dismiss Splash Screen within 1000ms under any network/script latency -->
+    <!-- Inline Fail-Safe: Dismiss Splash Screen within 1500ms under any network/script latency -->
     <script id="appSplashFailSafe">
         setTimeout(function() {
             var s = document.getElementById('appSplashScreen');
@@ -97,7 +97,7 @@
                 s.classList.add('fade-out');
                 setTimeout(function() { try { s.remove(); } catch(e) {} }, 400);
             }
-        }, 1000);
+        }, 1500);
     </script>
     
 </head>
@@ -186,6 +186,7 @@
                         <div class="live-doc-indicator">
                             <span class="live-doc-tag" id="stickyDocTypeTag">FINAL BILL</span>
                             <span class="live-bar-label" data-i18n="netPayableLabel">NET TOTAL</span>
+                            <span class="live-bar-meta" id="stickyBillMeta"></span>
                             <span class="live-avg-pill" id="liveSummaryPerFt">Base: ₹90/ft</span>
                         </div>
                     </div>
@@ -339,7 +340,7 @@
                     <!-- Smart Customer Picker Area (Search + Filter Chips + 1-Click Cards + +Add Customer) -->
                     <div class="wiz-customer-picker-box" id="quickCustPickerPanel">
                         <div class="wiz-cp-top-row">
-                            <span class="wiz-cp-step-tag">1. SELECT OR ADD CUSTOMER</span>
+                            <span class="wiz-cp-step-tag"><span class="step-n" aria-hidden="true">1</span><span class="step-t">Select or add customer</span></span>
                             <div class="wiz-cp-top-right">
                                 <span class="wiz-cp-count" id="wizCustCountBadge">0 Saved</span>
                                 <button type="button" class="icon-close-btn" id="closeQuickCustPickerBtn" style="display: none;" title="Hide List">
@@ -452,7 +453,7 @@
 
                     <div class="simple-card-head">
                         <label for="totalDepth" class="simple-card-title">
-                            <span>2. Borewell Drilling Depth</span>
+                            <span class="step-n" aria-hidden="true">2</span><span class="step-t">Drilling depth</span>
                         </label>
                         <strong class="simple-card-amount" id="liveInlineDrillingCostBadge">₹0</strong>
                     </div>
@@ -567,7 +568,7 @@
                 <div class="ui-card prog-reveal-card simple-work-card" id="progCasingSection" style="display: none;">
                     <div class="simple-card-head">
                         <div class="sc-head-left">
-                            <span class="simple-card-title">3. Casing Pipes</span>
+                            <span class="simple-card-title"><span class="step-n" aria-hidden="true">3</span><span class="step-t">Casing pipes</span></span>
                             <button type="button" class="casing-settings-trigger-btn" id="casingSettingsTriggerBtn" title="Customize Casing Names & Rates" aria-label="Casing Pipe Settings">
                                 <i data-lucide="settings-2" class="icon-xs"></i>
                                 <span>Settings</span>
@@ -857,6 +858,10 @@
 
                     <!-- Primary Action: Preview & Save Bill Button -->
                     <div class="proceed-preview-bar" id="proceedToPreviewBar">
+                        <button type="button" class="btn-fresh-cta" id="freshBillCtaBtn" title="Clear and start a fresh bill" aria-label="Fresh bill">
+                            <i data-lucide="sparkles" class="icon-xs"></i>
+                            <span>Fresh bill</span>
+                        </button>
                         <button type="button" class="btn-preview-save-cta" id="openBillPreviewBtn">
                             <div class="bps-left">
                                 <i data-lucide="eye" class="icon-sm"></i>
@@ -1057,11 +1062,19 @@
                                 <span data-i18n="forCompany">For</span> <strong id="rcptSignCompany">DrillRig.</strong>
                             </div>
                         </div>
-                        <div class="receipt-saas-branding">
-                            <span class="rsb-label">⚡ Powered by</span>
-                            <img src="icon.svg" alt="DrillRig." class="rsb-logo">
-                            <strong class="rsb-name">DrillRig.</strong>
-                        </div>
+                        <a class="receipt-saas-branding" id="rcptDrillrigLink" href="https://wa.me/918300030123" target="_blank" rel="noopener" aria-label="Made with DrillRig. Want this billing app for your rig? Message DrillRig on WhatsApp, 83000 30123">
+                            <span class="rsb-made">
+                                <img src="icon.svg" alt="" class="rsb-logo">
+                                <span>Made with <strong class="rsb-name">DrillRig.</strong></span>
+                            </span>
+                            <span class="rsb-cta">
+                                <span class="rsb-cta-q">Want this app for your rig?</span>
+                                <span class="rsb-wa">
+                                    <svg class="rsb-wa-ic" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.66 15l-1.3 4.76 4.88-1.28A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-2.9.76.78-2.83-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.14c-.25-.12-1.46-.72-1.69-.8-.23-.08-.39-.12-.55.12-.16.25-.63.8-.78.97-.14.16-.29.18-.53.06a6.7 6.7 0 0 1-3.34-2.92c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.42l-.75-1.8c-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3 2.74 2.74 0 0 0-.86 2.04 4.76 4.76 0 0 0 1 2.53 10.9 10.9 0 0 0 4.18 3.69c1.55.67 2.16.73 2.94.61.47-.07 1.46-.6 1.66-1.17.2-.58.2-1.07.15-1.17-.06-.1-.22-.16-.46-.28z"/></svg>
+                                    <span id="rcptDrillrigWaNum">83000 30123</span>
+                                </span>
+                            </span>
+                        </a>
                     </div>
                 </div>
 
@@ -1151,31 +1164,6 @@
              TAB 2: CUSTOMER KHATA & CRM LEDGER (VYAPAR / KHATABOOK STYLE)
              ==================================================================== -->
         <section class="tab-panel" id="tab-customers">
-            <!-- Top KPI Summary Cards -->
-            <div class="kpi-grid-3">
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl" data-i18n="totalCustomersStat">Customers</span>
-                        <i data-lucide="users" class="icon-xs text-muted"></i>
-                    </div>
-                    <strong class="kpi-val" id="crmTotalCustomers">0</strong>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl" data-i18n="totalBilledStat">Total Billed</span>
-                        <i data-lucide="trending-up" class="icon-xs text-brand"></i>
-                    </div>
-                    <strong class="kpi-val text-brand" id="crmTotalBilled">₹0</strong>
-                </div>
-                <div class="kpi-card due-kpi">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl" data-i18n="pendingBalanceStat">Pending Due</span>
-                        <i data-lucide="alert-circle" class="icon-xs text-danger"></i>
-                    </div>
-                    <strong class="kpi-val text-danger" id="crmTotalPending">₹0</strong>
-                </div>
-            </div>
-
             <!-- Customer Directory Header + Add Customer Button -->
             <div class="ui-card">
                 <div class="page-head-row">
@@ -1194,6 +1182,30 @@
                     </div>
                 </div>
 
+            <!-- Top KPI Summary Cards -->
+                <div class="kpi-grid-3">
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-lbl" data-i18n="totalCustomersStat">Customers</span>
+                            <i data-lucide="users" class="icon-xs text-muted"></i>
+                        </div>
+                        <strong class="kpi-val" id="crmTotalCustomers">0</strong>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-lbl" data-i18n="totalBilledStat">Total Billed</span>
+                            <i data-lucide="trending-up" class="icon-xs text-brand"></i>
+                        </div>
+                        <strong class="kpi-val text-brand" id="crmTotalBilled">₹0</strong>
+                    </div>
+                    <div class="kpi-card due-kpi">
+                        <div class="kpi-top">
+                            <span class="kpi-lbl" data-i18n="pendingBalanceStat">Pending Due</span>
+                            <i data-lucide="alert-circle" class="icon-xs text-danger"></i>
+                        </div>
+                        <strong class="kpi-val text-danger" id="crmTotalPending">₹0</strong>
+                    </div>
+                </div>
                 <!-- Search & Filter Bar (All | Pending Balance | Settled) -->
                 <!-- Search & Filter Bar (All | Pending Balance | Settled) + Due Sort & Date Range Filter -->
                 <div class="ledger-toolbar">
@@ -1211,10 +1223,10 @@
 
                         <div class="crm-tools-right">
                             <button type="button" class="crm-tool-btn" id="crmSortDueBtn" title="Sort by Due Amount (High to Low)">
-                                <span>↕ Due Sort</span>
+                                <i data-lucide="arrow-down-wide-narrow" class="icon-xs"></i><span>Due</span>
                             </button>
                             <button type="button" class="crm-tool-btn" id="crmFilterToggleBtn" title="Date Range Filter">
-                                <span>📅 Filter</span>
+                                <i data-lucide="calendar" class="icon-xs"></i><span>Filter</span>
                                 <span class="sif-badge" id="crmFilterBadge" style="display: none;">0</span>
                             </button>
                         </div>
@@ -1280,6 +1292,13 @@
                     </div>
                 </div>
 
+                <!-- Totals of all final bills (filled by HistoryMixin.renderHistoryTotals) -->
+                <div class="kpi-grid-3 hist-totals" id="historyTotalsStrip" aria-label="Bill totals">
+                    <div class="kpi-card"><div class="kpi-top"><span class="kpi-lbl">Billed</span></div><strong class="kpi-val" id="histTotalBilled">₹0</strong></div>
+                    <div class="kpi-card"><div class="kpi-top"><span class="kpi-lbl">Received</span></div><strong class="kpi-val text-brand" id="histTotalReceived">₹0</strong></div>
+                    <div class="kpi-card due-kpi"><div class="kpi-top"><span class="kpi-lbl">Due</span></div><strong class="kpi-val text-danger" id="histTotalDue">₹0</strong></div>
+                </div>
+
                 <!-- Separate Sub-Tabs: 1. Bills (Always Default View) | 2. Quotations -->
                 <div class="bills-quotations-tab-bar" id="historyDocTabSwitcher">
                     <button type="button" class="bq-tab-btn active" data-doctab="INVOICE" id="histSubTabBillsBtn">
@@ -1309,11 +1328,11 @@
                     <!-- Quick 1-Tap Payment Status Pills (Shown in Bills Tab) & Active Date Filter Chip -->
                     <div class="bills-quick-filter-row" id="historyQuickFilterBar">
                         <div class="filter-chip-group" id="historyPaymentQuickPills">
-                            <button type="button" class="f-chip active" data-payfilter="all">All Bills</button>
+                            <button type="button" class="f-chip active" data-payfilter="all">All</button>
                             <button type="button" class="f-chip unpaid-chip" data-payfilter="unpaid">
-                                🔴 Unpaid / Pending <span class="fc-mini-count" id="histUnpaidQuickCount">0</span>
+                                Unpaid <span class="fc-mini-count" id="histUnpaidQuickCount">0</span>
                             </button>
-                            <button type="button" class="f-chip" data-payfilter="paid">✅ Paid</button>
+                            <button type="button" class="f-chip" data-payfilter="paid">Paid</button>
                         </div>
                         <button type="button" class="active-date-filter-chip" id="historyActiveDateChip" style="display: none;" title="Tap to clear date filter">
                             <span id="historyActiveDateChipText">📅 Today</span>

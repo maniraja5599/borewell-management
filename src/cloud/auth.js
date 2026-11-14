@@ -68,7 +68,8 @@ export async function onAccountChange(cb) {
  * Render Google's "Continue with Google" button into `container`.
  * onResult({ account }) on success, onResult({ error }) on failure.
  */
-export async function renderGoogleButton(container, onResult) {
+/** Draws Google's own sign-in button. `look` can override its theme / width (e.g. the sign-in page). */
+export async function renderGoogleButton(container, onResult, look = {}) {
     const google = await loadGoogleScript();
     google.accounts.id.initialize({
         client_id: CLOUD.googleClientId,
@@ -93,7 +94,8 @@ export async function renderGoogleButton(container, onResult) {
         shape: 'pill',
         text: 'continue_with',
         logo_alignment: 'left',
-        width: Math.min(320, Math.max(220, container.clientWidth || 280))
+        width: Math.min(look.maxWidth || 320, Math.max(220, container.clientWidth || 280)),
+        ...(look.theme ? { theme: look.theme } : {})
     });
 }
 

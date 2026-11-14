@@ -270,6 +270,11 @@ export class ShellListeners {
             this.showToast(`✨ Fresh Bill ready (#${document.getElementById('billNoInput')?.value})`);
         });
 
+        // "Fresh bill" next to Preview does the same as the quick button in the top card.
+        document.getElementById('freshBillCtaBtn')?.addEventListener('click', () => {
+            document.getElementById('freshBillQuickBtn')?.click();
+        });
+
         document.getElementById('openBrandTabBtn')?.addEventListener('click', () => {
             this.switchTab('tab-brand');
         });

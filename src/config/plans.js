@@ -45,3 +45,15 @@ export function renewLink({ companyName, rigName, rigId }) {
     const text = `Hi, I want to renew DrillRig for my rig.\nCompany: ${companyName || '-'}\nRig: ${rigName || '-'}\nRig ID: ${String(rigId || '').slice(0, 8)}`;
     return `https://wa.me/${PLANS.supportWhatsApp}?text=${encodeURIComponent(text)}`;
 }
+
+/** "83000 30123": the DrillRig WhatsApp number as printed on bills. */
+export function supportWhatsAppDisplay() {
+    const d = PLANS.supportWhatsApp.replace(/^91/, '');
+    return `${d.slice(0, 5)} ${d.slice(5)}`;
+}
+
+/** WhatsApp link on the "Made with DrillRig" line at the bottom of every bill. */
+export function billFooterEnquiryLink() {
+    const text = 'Hi DrillRig team, I saw DrillRig on a borewell bill. I want to use it for my rig.';
+    return `https://wa.me/${PLANS.supportWhatsApp}?text=${encodeURIComponent(text)}`;
+}
