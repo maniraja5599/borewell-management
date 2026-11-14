@@ -1467,7 +1467,7 @@
                     </button>
                     <button type="button" class="studio-tab-btn" id="studioTabBtnSlabs" data-studiotab="slabs">
                         <i data-lucide="bar-chart-3" class="icon-xs"></i>
-                        <span>2. 19 Depth Slabs Calculator</span>
+                        <span id="studioSlabsTabLabel">2. Depth Slabs</span>
                     </button>
                 </div>
 
@@ -1548,8 +1548,8 @@
                             </div>
                             <div class="rate-metric-tile next-prompt-tile" id="jumpToSlabsPanelBtn" role="button" tabindex="0">
                                 <div class="npt-text">
-                                    <strong>Go to 19 Depth Slabs →</strong>
-                                    <small id="corePanelSlabsHint">Set +Step or view full slab ladder</small>
+                                    <strong id="corePanelSlabsTitle">Depth slab rates →</strong>
+                                    <small id="corePanelSlabsHint">See or change the rate for each depth</small>
                                 </div>
                                 <i data-lucide="arrow-right" class="icon-sm"></i>
                             </div>
@@ -1559,45 +1559,38 @@
 
                 <!-- TAB 2: 19 DEPTH SLABS (THE EASY SLAB RATE CALCULATOR) -->
                 <div class="studio-tab-panel" id="studioPanelSlabs" style="display: none;">
-                    <!-- 1. Smart 1-Tap Auto-Step Generator -->
-                    <div class="smart-slab-generator-box">
-                        <div class="ssg-header">
-                            <div class="ssg-title-line">
-                                <span class="ssg-badge">⚡ SMART SLAB CALCULATOR</span>
-                                <span class="ssg-base-pill" id="ssgBasePillPreview">Base: 1–300 ft @ ₹90/ft</span>
-                            </div>
-                            <p class="ssg-sub">Tap an increment below to auto-calculate all 19 slabs in 1 click:</p>
-                        </div>
+                    <!-- What this card covers: how many slabs, how deep, and the new-bill depth limit -->
+                    <div class="slab-ladder-summary" id="slabLadderSummary" aria-live="polite"></div>
 
-                        <!-- 1-Tap Step Preset Chips -->
+                    <!-- Quick fill: same step for every slab, or the standard ladder at this card's base rate -->
+                    <div class="smart-slab-generator-box slab-quick-box">
+                        <div class="sq-head">
+                            <strong>Fill all slabs quickly</strong>
+                            <span class="ssg-base-pill" id="ssgBasePillPreview">Base: 1–300 ft @ ₹90/ft</span>
+                        </div>
+                        <p class="sq-sub">Each slab costs this much more per ft than the slab before it. Your slab ranges stay the same.</p>
                         <div class="ssg-step-presets-row" id="ssgStepPresetsRow">
-                            <button type="button" class="ssg-step-chip" data-step-val="5">+₹5/ft</button>
-                            <button type="button" class="ssg-step-chip active" data-step-val="10">+₹10/ft (Standard)</button>
-                            <button type="button" class="ssg-step-chip" data-step-val="15">+₹15/ft</button>
-                            <button type="button" class="ssg-step-chip" data-step-val="20">+₹20/ft</button>
-                            <button type="button" class="ssg-step-chip" data-step-val="25">+₹25/ft</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="5">+₹5</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="10">+₹10</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="15">+₹15</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="20">+₹20</button>
+                            <button type="button" class="ssg-step-chip" data-step-val="25">+₹25</button>
                         </div>
-
-                        <!-- Custom Step Input -->
-                        <div class="ssg-custom-step-bar">
-                            <span class="ssg-cs-label">Custom Step:</span>
-                            <div class="ssg-cs-input-wrap">
-                                <span>+₹</span>
-                                <input type="number" id="customSlabStepInput" value="10" min="1" step="1" inputmode="numeric">
-                                <small>/100ft</small>
-                            </div>
-                            <button type="button" class="btn-brand-sm ssg-apply-btn" id="applyCustomStepToAllBtn">
-                                ⚡ Apply Step to All Slabs
-                            </button>
-                            <button type="button" class="btn-secondary-sm" id="slabResetStandardBtn" title="Reset standard 19 slabs">
-                                Standard Slabs
-                            </button>
+                        <div class="sq-custom">
+                            <label class="sq-custom-input" for="customSlabStepInput">
+                                <span>Own step +₹</span>
+                                <input type="number" id="customSlabStepInput" value="10" min="0" step="1" inputmode="numeric">
+                            </label>
+                            <button type="button" class="btn-brand-sm ssg-apply-btn" id="applyCustomStepToAllBtn">Apply</button>
                         </div>
+                        <button type="button" class="sq-standard-btn" id="slabResetStandardBtn">
+                            Use the standard ladder (+₹10, +₹20, +₹30 …) from ₹<span id="slabStandardBaseTxt">90</span>/ft
+                        </button>
                     </div>
 
                     <!-- Base Slab Span Quick Buttons (100 / 200 / 300 / 500 ft) -->
                     <div class="base-span-selector-bar">
-                        <span class="bss-lbl">1st Base Slab Range:</span>
+                        <span class="bss-lbl">First slab:</span>
                         <div class="sbtc-base-pills" id="baseSlabSpanPills">
                             <button type="button" class="sbtc-pill" data-base-span="100">1–100 ft</button>
                             <button type="button" class="sbtc-pill" data-base-span="200">1–200 ft</button>
@@ -1608,9 +1601,9 @@
 
                     <!-- Clean 3-Column Slabs Table Header -->
                     <div class="slab-builder-table-head">
-                        <span class="sbth-col-range">DEPTH SLAB (FT)</span>
-                        <span class="sbth-col-step">+ STEP</span>
-                        <span class="sbth-col-rate">RATE (₹/FT)</span>
+                        <span class="sbth-col-range">Depth</span>
+                        <span class="sbth-col-step">More than before</span>
+                        <span class="sbth-col-rate">Rate ₹/ft</span>
                         <span class="sbth-col-del"></span>
                     </div>
 
@@ -1627,7 +1620,7 @@
                             <span class="bans-preview-pill" id="addNextSlabBtnPreviewPill">+₹10</span>
                         </button>
                         <div class="slab-autofill-strip">
-                            <span class="sas-lbl">Auto-Fill To:</span>
+                            <span class="sas-lbl">Add slabs up to:</span>
                             <button type="button" class="sas-chip" id="slabFill1000Btn">1000 ft</button>
                             <button type="button" class="sas-chip" id="slabFill1500Btn">1500 ft</button>
                             <button type="button" class="sas-chip" id="slabFill2200Btn">2200 ft</button>

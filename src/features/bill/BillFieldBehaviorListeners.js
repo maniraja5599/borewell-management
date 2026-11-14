@@ -158,7 +158,7 @@ export class BillFieldBehaviorListeners {
                     inp.value = this.rates.boreBataRate ?? 2000;
                     this.calculateAndRender();
                 } else if (inp.id === 'customSlabStepInput') {
-                    inp.value = 1;
+                    inp.value = 10;
                 } else if (inp.id === 'drillingSlabBufferInput') {
                     inp.value = this.rates.slabBufferFt ?? 5;
                     this.calculateAndRender();

@@ -281,24 +281,23 @@ export class CustomerLedgerMixin {
                 statusBadgeHtml = `<span class="cmr-badge neutral">View</span>`;
             }
 
-            const badgeHtml = `${countBadgeHtml}${statusBadgeHtml}`;
-
+            // Name gets the full width; place + bore count on line 2, phone on line 3; only the
+            // money status sits on the right, so long names and numbers are never cut off.
             return `
-                <div class="crm-minimal-row" data-cust-id="${c.id}" title="Tap to open customer summary & bore details">
-                    <div class="cmr-left">
-                        <div class="cmr-avatar">${this.escapeHtml(initials)}</div>
-                        <div class="cmr-info">
-                            <div class="cmr-name">${this.escapeHtml(c.name)}</div>
-                            <div class="cmr-sub">
-                                ${placeText ? `<span class="cmr-place">📍 ${this.escapeHtml(placeText)}</span>` : ''}
-                                ${placeText && dispPhone ? `<span class="cmr-dot">•</span>` : ''}
-                                ${dispPhone ? `<span class="cmr-phone">📞 ${this.escapeHtml(dispPhone)}</span>` : (!placeText ? '<span class="cmr-phone">Tap to view details</span>' : '')}
-                            </div>
+                <div class="crm-minimal-row cl-row ${hasDue ? 'cl-has-due' : ''}" data-cust-id="${c.id}" title="Open ${this.escapeHtml(c.name)}">
+                    <div class="cmr-avatar cl-avatar">${this.escapeHtml(initials)}</div>
+                    <div class="cl-main">
+                        <div class="cmr-name cl-name">${this.escapeHtml(c.name)}</div>
+                        <div class="cmr-sub cl-sub">
+                            ${placeText ? `<span class="cmr-place">${this.escapeHtml(placeText)}</span>` : ''}
+                            ${placeText && countBadgeHtml ? '<span class="cl-dot">·</span>' : ''}
+                            ${countBadgeHtml}
                         </div>
+                        ${dispPhone ? `<div class="cl-phone">${this.escapeHtml(dispPhone)}</div>` : ''}
                     </div>
-                    <div class="cmr-right">
-                        ${badgeHtml}
-                        <span class="cmr-chevron">›</span>
+                    <div class="cmr-right cl-side">
+                        ${statusBadgeHtml}
+                        <span class="cmr-chevron" aria-hidden="true">›</span>
                     </div>
                 </div>
             `;

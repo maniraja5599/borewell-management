@@ -502,42 +502,41 @@ export class HistoryMixin {
             const pendingAmt = this.getBillPendingAmount(item);
             const hasDue = pendingAmt > 0;
             const displayCust = (item.custName && item.custName !== 'Walk-in Customer') ? item.custName : 'Direct Bill';
-            const initials = this.getInitials(displayCust);
             const dateStr = this.getHistoryItemDateStr(item);
+            const dateTxt = dateStr ? this.formatPaymentDateDisplay(dateStr) : '';
             const payEntries = this.getBillPaymentEntries(item);
-            const lastPayDate = payEntries.length > 0 ? this.formatPaymentDateDisplay(payEntries[payEntries.length - 1].date) : '';
+            const depthTxt = snap.totalDepth ? `${snap.totalDepth} ft${snap.boreDia ? ` · ${snap.boreDia}` : ''}` : '';
+            const placeTxt = (item.custLocation || '').trim();
+            const payCount = payEntries.length;
 
             return `
-            <div class="khata-card clickable-bill-card" data-billid="${item.id}">
-                <div class="khata-top">
-                    <div class="khata-identity">
-                        <div class="party-avatar">${this.escapeHtml(initials)}</div>
-                        <div class="party-info">
-                            <div class="party-name">#${this.escapeHtml(item.billNo)} — ${this.escapeHtml(displayCust)}</div>
-                            <div class="party-meta-row">
-                                <div class="party-meta">
-                                    📍 ${this.escapeHtml(item.custLocation || 'Site N/A')} • ${snap.totalDepth || 0} ft (${snap.boreDia || '6.5"'})
-                                </div>
-                                <span class="party-date-badge">📅 ${dateStr || 'N/A'}</span>
-                                ${rigBadgeHtml(item, (v) => this.escapeHtml(v))}
-                            </div>
+            <div class="khata-card clickable-bill-card bl-card" data-billid="${item.id}">
+                <div class="bl-top">
+                    <div class="bl-main">
+                        <div class="party-name bl-name">${this.escapeHtml(displayCust)}</div>
+                        <div class="party-meta bl-meta">
+                            <span class="bl-no">#${this.escapeHtml(item.billNo)}</span>${dateTxt ? `<span class="bl-dot">·</span><span>${this.escapeHtml(dateTxt)}</span>` : ''}
                         </div>
+                        ${placeTxt || depthTxt ? `<div class="bl-meta bl-site">${placeTxt ? `<span class="bl-place">${this.escapeHtml(placeTxt)}</span>` : ''}${placeTxt && depthTxt ? '<span class="bl-dot">·</span>' : ''}${depthTxt ? `<span>${this.escapeHtml(depthTxt)}</span>` : ''}</div>` : ''}
+                        ${rigBadgeHtml(item, (v) => this.escapeHtml(v))}
                     </div>
-                    <div class="khata-amounts">
+                    <div class="khata-amounts bl-amt">
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>
                         ${isInvoice
                             ? (hasDue
-                                ? `<span class="status-pill due static-badge">Due: ${this.formatINR(pendingAmt)}</span>`
-                                : `<span class="status-pill paid static-badge">✅ Paid${lastPayDate ? ` (${lastPayDate})` : ''}</span>`)
-                            : `<span class="status-pill quote static-badge">📋 Quotation</span>`
+                                ? `<span class="status-pill due static-badge">Due ${this.formatINR(pendingAmt)}</span>`
+                                : `<span class="status-pill paid static-badge">Paid</span>`)
+                            : `<span class="status-pill quote static-badge">Quotation</span>`
                         }
                     </div>
                 </div>
-                <div class="khata-actions">
+                <div class="khata-actions bl-actions">
                     <span class="khata-Quick-stats">
                         ${isInvoice
-                            ? `Paid: <strong>${this.formatINR(paidAmt)}</strong>${payEntries.length > 0 ? ` (${payEntries.length})` : ''}`
-                            : `Base: ₹${snap.baseDrillingRate}/ft • Casing: ${snap.pvc7Length || 0}ft/${snap.pvc10Length || 0}ft`
+                            ? (paidAmt > 0
+                                ? `Received <strong>${this.formatINR(paidAmt)}</strong>${payCount > 1 ? ` · ${payCount} payments` : ''}`
+                                : 'No payment yet')
+                            : `₹${snap.baseDrillingRate}/ft${(snap.pvc7Length || snap.pvc10Length) ? ` · pipe ${(snap.pvc7Length || 0) + (snap.pvc10Length || 0)} ft` : ''}`
                         }
                     </span>
                     <div class="khata-btn-group">
@@ -551,7 +550,7 @@ export class HistoryMixin {
                             </svg>
                         </button>
                         <button type="button" class="btn-secondary-sm hist-detail-btn" data-id="${item.id}">Details</button>
-                        <button type="button" class="btn-danger-xs hist-del-btn" data-id="${item.id}">✕</button>
+                        <button type="button" class="btn-danger-xs hist-del-btn" data-id="${item.id}" title="Delete" aria-label="Delete ${isInvoice ? 'bill' : 'quotation'} #${this.escapeHtml(item.billNo)}">✕</button>
                     </div>
                 </div>
             </div>

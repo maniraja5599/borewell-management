@@ -233,4 +233,42 @@ await step('R15 saved bill keeps the old limit', async () => {
     await freshBill();
 });
 
+// Slab tools on the VIP card (base ₹110), then close without saving.
+const ladder = () => app(() => window.boreBillApp.rates.slabRates.map((s) => `${s.start}-${s.end}:${s.rate}`));
+await step('R16 slab tools', async () => {
+    await nav('tab-rates'); await wait(300);
+    await app((id) => document.querySelector(`.rcr-edit-btn[data-editbtn="${id}"]`)?.click(), vipId); await wait(400);
+    await app(() => window.boreBillApp.switchStudioTab('slabs')); await wait(300);
+    await clickId('addNextSlabRowBtn'); await wait(300);                         // 20 rows: …, 2201–2300
+    await app(() => document.querySelector('.ssg-step-chip[data-step-val="20"]').click()); await wait(300);
+    const a = await ladder();
+    const summary = await app(() => document.getElementById('slabLadderSummary').textContent);
+    check('R16a "+₹20" really applies +₹20 (was always +₹10) and keeps the card\'s 20 rows up to 2300 ft',
+        a.length === 20 && a[0] === '1-300:110' && a[1] === '301-400:130' && a[19] === '2201-2300:490' && /20 slabs/.test(summary) && /up to 2300 ft/.test(summary),
+        { first: a.slice(0, 2), last: a[19], n: a.length, summary });
+
+    await typeInto('customSlabStepInput', 7); await clickId('applyCustomStepToAllBtn'); await wait(300);
+    const b = await ladder();
+    check('R16b own step +₹7 → 110, 117, 124 …', b[1] === '301-400:117' && b[2] === '401-500:124' && b.length === 20, b.slice(0, 3));
+
+    await clickId('slabResetStandardBtn'); await wait(300);
+    const c = await ladder();
+    check('R16c standard ladder starts from the card\'s ₹110 (was reset to ₹90): 110 / 120 / 140 … 2001–2200 @ 1590',
+        c.length === 19 && c[0] === '1-300:110' && c[1] === '301-400:120' && c[2] === '401-500:140' && c[18] === '2001-2200:1590', { n: c.length, first: c.slice(0, 3), last: c[18] });
+
+    const dels = await app(() => [...document.querySelectorAll('#masterSlabsGrid .slab-row-del-btn')].map((x) => x.dataset.delSlabIdx));
+    await app(() => document.querySelector('#masterSlabsGrid .slab-row-del-btn').click()); await wait(300);
+    const d = await ladder();
+    check('R16d only the last slab has ✕; removing it leaves 18 slabs ending at 2000 ft with ranges unchanged',
+        JSON.stringify(dels) === '["18"]' && d.length === 18 && d[17] === '1901-2000:1390' && d[4] === '601-700:210', { dels, n: d.length, last: d[17], row5: d[4] });
+
+    await app(() => { const i = document.querySelector('.slab-edit-input[data-index="3"]'); i.value = '100'; i.dispatchEvent(new Event('input', { bubbles: true })); }); await wait(200);
+    const warn = await app(() => ({ badge: document.getElementById('stepBadge_3').textContent, warn: document.querySelector('#slabLadderSummary .sls-warn')?.textContent || '' }));
+    check('R16e a slab cheaper than the one before shows "−₹40" and a warning', warn.badge === '−₹40' && /cheaper/.test(warn.warn), warn);
+
+    await clickId('closeRateEditorBtn'); await wait(300);
+    const s = await bill();
+    check('R16f closing without saving keeps VIP\'s saved ladder (19 slabs, 301–400 @ ₹125)', s.rates.slabRates.length === 19 && s.rates.slabRates[1].rate === 125, { n: s.rates.slabRates.length, r1: s.rates.slabRates[1]?.rate });
+});
+
 await finish();

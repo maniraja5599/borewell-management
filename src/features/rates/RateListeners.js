@@ -74,15 +74,22 @@ export class RateListeners {
         // Smart 1-Tap Slab Generator Preset Chips (+5, +10, +15, +20, +25)
         document.querySelectorAll('.ssg-step-chip').forEach(chip => {
             chip.addEventListener('click', () => {
-                const step = parseFloat(chip.dataset.step) || 10;
-                this.applyStepIncrementToAllSlabs(step);
+                // The chips carry data-step-val (reading data-step made every chip apply +₹10).
+                const step = parseFloat(chip.dataset.stepVal);
+                this.applyStepIncrementToAllSlabs(Number.isFinite(step) ? step : 10);
             });
         });
 
-        // Apply Custom Step to All 19 Slabs
+        // Apply the owner's own step to every slab
         document.getElementById('applyCustomStepToAllBtn')?.addEventListener('click', () => {
-            const step = parseFloat(document.getElementById('customSlabStepInput')?.value) || 10;
-            this.applyStepIncrementToAllSlabs(step);
+            const step = parseFloat(document.getElementById('customSlabStepInput')?.value);
+            this.applyStepIncrementToAllSlabs(Number.isFinite(step) ? step : 10);
+        });
+        document.getElementById('customSlabStepInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('applyCustomStepToAllBtn')?.click();
+            }
         });
 
         document.getElementById('closeRateEditorBtn')?.addEventListener('click', () => {
@@ -171,7 +178,7 @@ export class RateListeners {
                 nameEl.placeholder = 'Enter New Rate Name (e.g. 4.75" Rate / VIP Rate)';
             }
             if (defCheck) defCheck.checked = false;
-            if (stepInp) stepInp.value = 1;
+            if (stepInp) stepInp.value = 10;
             if (modeBadge) {
                 modeBadge.textContent = '✨ Creating New Rate Card';
                 modeBadge.classList.add('new-mode');
@@ -258,14 +265,22 @@ export class RateListeners {
             const step = Math.max(1, parseFloat(document.getElementById('customSlabStepInput')?.value) || 1);
             this.bulkShiftMasterSlabs(step);
         });
+        // Standard ladder (1–2200 ft, +10/+20/+30 … steps) starting from THIS card's base rate.
+        // It used to drop every card back to ₹90.
         document.getElementById('slabResetStandardBtn')?.addEventListener('click', () => {
-            this.rates.slabRates = DEPTH_SLABS_DEFINITION.map(s => ({ ...s, rate: s.defaultRate }));
-            this.rates.baseDrillingRate = 90;
-            document.getElementById('masterBaseRate').value = 90;
-            document.getElementById('baseDrillingRate').value = 90;
+            const base = Math.max(1, parseFloat(this.rates.baseDrillingRate) || DEPTH_SLABS_DEFINITION[0].defaultRate);
+            const shift = base - DEPTH_SLABS_DEFINITION[0].defaultRate;
+            const before = JSON.parse(JSON.stringify(this.rates.slabRates || []));
+            this.rates.slabRates = DEPTH_SLABS_DEFINITION.map(s => ({
+                start: s.start, end: s.end, span: s.span, rangeStr: s.rangeStr, rate: Math.max(1, s.defaultRate + shift)
+            }));
             this.renderMasterSlabsGrid();
             this.calculateAndRender();
-            this.showToast('🔄 Standard slab rates restored!');
+            this.showUndoToast(`Standard ladder from ₹${base}/ft (1–2200 ft)`, () => {
+                this.rates.slabRates = before;
+                this.renderMasterSlabsGrid();
+                this.calculateAndRender();
+            });
         });
 
         document.getElementById('resetDefaultRatesBtn')?.addEventListener('click', () => {

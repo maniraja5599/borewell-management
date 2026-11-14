@@ -150,7 +150,7 @@ export class RatesMixin {
                                 ${isActive ? '<span class="rcr-tag rcr-active-tag">Applied</span>' : ''}
                             </div>
                             <div class="rcr-sub">
-                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> • 7" Pipe: <strong>₹${r.pvc7Rate}/ft</strong> • ${slabs.length} Slabs
+                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> • 7" Pipe: <strong>₹${r.pvc7Rate}/ft</strong> • up to ${slabs[slabs.length - 1]?.end || 0} ft
                             </div>
                         </div>
                     </div>
@@ -639,7 +639,20 @@ export class RatesMixin {
         document.getElementById('masterSlabBuffer').value = r.slabBufferFt;
         document.getElementById('masterGstPercent').value = r.gstPercentage;
         const stepInp = document.getElementById('customSlabStepInput');
-        if (stepInp) stepInp.value = 1;
+        if (stepInp) stepInp.value = this.uniformSlabStep(this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90)) ?? 10;
+    }
+
+    // The step every slab shares (e.g. all +₹10), or null when the steps differ.
+    uniformSlabStep(slabs) {
+        if (!slabs || slabs.length < 2) return null;
+        const first = slabs[1].rate - slabs[0].rate;
+        return slabs.every((x, i) => i === 0 || x.rate - slabs[i - 1].rate === first) ? first : null;
+    }
+
+    formatSlabStep(diff) {
+        if (diff > 0) return `+₹${diff}`;
+        if (diff < 0) return `−₹${Math.abs(diff)}`;
+        return 'same';
     }
 
     saveOrUpdateRateProfile(asNew = false) {
@@ -729,8 +742,35 @@ export class RatesMixin {
         }
         const tabSlabsLbl = document.getElementById('studioSlabsTabLabel');
         if (tabSlabsLbl) {
-            tabSlabsLbl.textContent = `Depth Slabs (${slabs.length})`;
+            tabSlabsLbl.textContent = `2. Depth Slabs (${slabs.length})`;
         }
+        const endFt = last?.end || 0;
+        const summary = document.getElementById('slabLadderSummary');
+        if (summary) {
+            const lower = slabs.findIndex((x, i) => i > 0 && x.rate < slabs[i - 1].rate);
+            summary.textContent = '';
+            const main = document.createElement('div');
+            main.className = 'sls-main';
+            main.textContent = `${slabs.length} ${slabs.length === 1 ? 'slab' : 'slabs'} · 1–${endFt} ft · ₹${slabs[0]?.rate || 0} to ₹${last?.rate || 0} per ft`;
+            const sub = document.createElement('div');
+            sub.className = 'sls-sub';
+            sub.textContent = `New bills on this card can go up to ${endFt} ft. Add a slab below to bill deeper.`;
+            summary.append(main, sub);
+            if (lower > 0) {
+                const warn = document.createElement('div');
+                warn.className = 'sls-warn';
+                warn.textContent = `⚠️ ${slabs[lower].rangeStr} is cheaper than the slab before it. Check the rate.`;
+                summary.append(warn);
+            }
+        }
+        const coreHint = document.getElementById('corePanelSlabsHint');
+        if (coreHint) coreHint.textContent = `${slabs.length} slabs · up to ${endFt} ft`;
+        const stdBase = document.getElementById('slabStandardBaseTxt');
+        if (stdBase) stdBase.textContent = String(slabs[0]?.rate || this.rates.baseDrillingRate || 90);
+        const uni = this.uniformSlabStep(slabs);
+        document.querySelectorAll('.ssg-step-chip').forEach(chip => {
+            chip.classList.toggle('active', uni !== null && parseFloat(chip.dataset.stepVal) === uni);
+        });
     }
 
     setBaseSlabSpan(newSpanFt, { skipReRender = false } = {}) {
@@ -892,29 +932,26 @@ export class RatesMixin {
         if (pill) pill.textContent = `Base: 1–${firstEnd} ft @ ₹${baseVal}/ft`;
     }
 
+    // Same step on every slab of THIS card. Keeps the card's own rows and ranges (it used to
+    // replace them with the built-in 19-row ladder).
     applyStepIncrementToAllSlabs(stepVal) {
-        const step = Math.max(0, parseFloat(stepVal) || 0);
-        const baseR = Math.max(1, parseFloat(this.rates?.baseDrillingRate) || 90);
-
-        this.rates.slabRates = DEPTH_SLABS_DEFINITION.map((s, idx) => ({
-            start: s.start,
-            end: s.end,
-            span: s.span,
-            rangeStr: s.rangeStr,
-            rate: idx === 0 ? baseR : (baseR + (idx * step))
-        }));
-
-        document.querySelectorAll('.ssg-step-chip').forEach(chip => {
-            const chipVal = parseFloat(chip.dataset.step);
-            chip.classList.toggle('active', chipVal === step);
-        });
+        const step = Math.max(0, Math.min(10000, parseFloat(stepVal) || 0));
+        const slabs = this.normalizeSlabArray(this.rates.slabRates, this.rates?.baseDrillingRate || 90);
+        const before = JSON.parse(JSON.stringify(slabs));
+        const baseR = Math.max(1, parseFloat(slabs[0]?.rate) || parseFloat(this.rates?.baseDrillingRate) || 90);
+        slabs.forEach((x, idx) => { x.rate = baseR + idx * step; });
+        this.rates.slabRates = slabs;
 
         const customInput = document.getElementById('customSlabStepInput');
         if (customInput) customInput.value = step;
 
         this.renderMasterSlabsGrid();
         this.calculateAndRender();
-        this.showToast(`⚡ All 19 slabs updated (+₹${step}/ft per 100 ft)`);
+        this.showUndoToast(`All ${slabs.length} slabs: ₹${baseR}, then +₹${step} each`, () => {
+            this.rates.slabRates = before;
+            this.renderMasterSlabsGrid();
+            this.calculateAndRender();
+        });
     }
 
     renderMasterSlabsGrid() {
@@ -928,23 +965,27 @@ export class RatesMixin {
         grid.innerHTML = slabs.map((s, idx) => {
             const currentRate = s.rate;
             const prevRate = idx > 0 ? slabs[idx - 1].rate : currentRate;
-            const stepDiff = idx === 0 ? 'Base' : `+₹${currentRate - prevRate}`;
+            const diff = currentRate - prevRate;
+            const stepDiff = idx === 0 ? 'Base' : this.formatSlabStep(diff);
             const isBase = idx === 0;
+            const isLast = idx === slabs.length - 1 && idx > 0;
 
             return `
                 <div class="slab-clean-row ${isBase ? 'is-base' : ''}" data-row-idx="${idx}">
                     <div class="scr-col-left">
                         <span class="scr-idx">${idx + 1}</span>
                         <span class="scr-range">${this.escapeHtml(s.rangeStr)}</span>
-                        <span class="scr-step-badge ${isBase ? 'scr-step-base' : ''}" id="stepBadge_${idx}">${stepDiff}</span>
+                        <span class="scr-step-badge ${isBase ? 'scr-step-base' : ''} ${!isBase && diff < 0 ? 'scr-step-neg' : ''}" id="stepBadge_${idx}">${stepDiff}</span>
                     </div>
                     <div class="scr-col-right">
                         <div class="scr-rate-wrap">
                             <span class="scr-cur">₹</span>
-                            <input type="number" class="slab-edit-input" data-index="${idx}" value="${currentRate}" min="1" step="1" inputmode="numeric">
+                            <input type="number" class="slab-edit-input" data-index="${idx}" value="${currentRate}" min="1" step="1" inputmode="numeric" aria-label="Rate for ${this.escapeHtml(s.rangeStr)}">
                             <span class="scr-unit">/ft</span>
                         </div>
-                        ${!isBase ? `<button type="button" class="slab-row-del-btn" data-del-slab-idx="${idx}" title="Remove this slab row">✕</button>` : '<span class="scr-lock-dot" title="Base Slab">★</span>'}
+                        ${isLast
+                            ? `<button type="button" class="slab-row-del-btn" data-del-slab-idx="${idx}" title="Remove the last slab" aria-label="Remove the last slab (${this.escapeHtml(s.rangeStr)})">✕</button>`
+                            : '<span class="scr-del-gap" aria-hidden="true"></span>'}
                     </div>
                 </div>
             `;
@@ -971,17 +1012,17 @@ export class RatesMixin {
                     if (bBase && document.activeElement !== bBase) bBase.value = val;
                 }
 
-                if (idx > 0) {
-                    const prev = this.rates.slabRates[idx - 1].rate;
-                    const badge = document.getElementById(`stepBadge_${idx}`);
-                    if (badge) badge.textContent = `+₹${val - prev}`;
-                }
-
-                if (idx + 1 < this.rates.slabRates.length) {
-                    const nextVal = this.rates.slabRates[idx + 1].rate;
-                    const nextBadge = document.getElementById(`stepBadge_${idx + 1}`);
-                    if (nextBadge) nextBadge.textContent = `+₹${nextVal - val}`;
-                }
+                const setBadge = (i) => {
+                    if (i <= 0 || i >= this.rates.slabRates.length) return;
+                    const d = this.rates.slabRates[i].rate - this.rates.slabRates[i - 1].rate;
+                    const badge = document.getElementById(`stepBadge_${i}`);
+                    if (badge) {
+                        badge.textContent = this.formatSlabStep(d);
+                        badge.classList.toggle('scr-step-neg', d < 0);
+                    }
+                };
+                setBadge(idx);
+                setBadge(idx + 1);
 
                 this.updateAddNextSlabButtonUI();
                 this.calculateAndRender();
@@ -993,14 +1034,16 @@ export class RatesMixin {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const delIdx = parseInt(btn.dataset.delSlabIdx, 10);
-                if (delIdx > 0 && delIdx < this.rates.slabRates.length) {
+                // Only the last slab can be removed: removing one in the middle slid every later
+                // range down, so its rate quietly applied to shallower depths.
+                if (delIdx > 0 && delIdx === this.rates.slabRates.length - 1) {
                     const removedSlab = this.rates.slabRates[delIdx];
                     const backupSlabs = JSON.parse(JSON.stringify(this.rates.slabRates));
                     this.rates.slabRates.splice(delIdx, 1);
                     this.rates.slabRates = this.normalizeSlabArray(this.rates.slabRates, this.rates.baseDrillingRate || 90);
                     this.renderMasterSlabsGrid();
                     this.calculateAndRender();
-                    this.showUndoToast(`🗑️ Removed Slab ${removedSlab.rangeStr || ''}`, () => {
+                    this.showUndoToast(`Removed ${removedSlab.rangeStr || 'the last slab'}`, () => {
                         this.rates.slabRates = backupSlabs;
                         this.renderMasterSlabsGrid();
                         this.calculateAndRender();
