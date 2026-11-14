@@ -53,10 +53,9 @@ export class ShellMixin {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         if (tabId === 'tab-brand') {
-            const activeSeg = document.querySelector('.settings-nav-segmented .set-seg-btn.active');
-            const viewId = activeSeg?.dataset.view || 'set-view-company';
+            // Settings opens on its menu; links that need a section call switchSettingsView after this.
             if (typeof this.switchSettingsView === 'function') {
-                this.switchSettingsView(viewId);
+                this.switchSettingsView('menu');
             }
             this.syncCasingNamesUI();
             if (window.lucide && typeof window.lucide.createIcons === 'function') {

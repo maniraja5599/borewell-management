@@ -1656,13 +1656,12 @@
              ==================================================================== -->
         <section class="tab-panel" id="tab-brand">
             <!-- Settings Hub Premium Top Card -->
-            <div class="settings-hub-head">
+            <div class="settings-hub-head" id="settingsHubHead">
                 <div class="shh-title-row">
                     <div class="shh-title-left">
                         <span class="shh-icon"><i data-lucide="sliders"></i></span>
                         <div>
                             <h2 class="shh-title">Settings</h2>
-                            <p class="shh-sub">Company profile, casing specs, branding &amp; data vault</p>
                         </div>
                     </div>
                 </div>
@@ -1672,8 +1671,8 @@
                     <div class="acc-row" id="accSignedOut">
                         <span class="acc-icon"><i data-lucide="cloud"></i></span>
                         <div class="acc-text">
-                            <strong>Sign in with Google</strong>
-                            <span>One account for all your phones. Your bills stay on this phone too.</span>
+                            <strong>Back up &amp; use on more phones</strong>
+                            <span>Sign in with Google. Bills stay on this phone too.</span>
                         </div>
                         <div class="acc-gbtn" id="googleBtnSlot">
                             <button type="button" class="acc-load-btn" id="accLoadBtn">Continue with Google</button>
@@ -1693,41 +1692,56 @@
                         </button>
                     </div>
                     <p class="acc-msg" id="accMsg" hidden></p>
-                    <p class="acc-early" id="accEarlyAccess" hidden><strong></strong><span></span><a href="./terms.html#pricing" target="_blank" rel="noopener">Details</a></p>
-                    <p class="acc-legal">By signing in you agree to the <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+                    <div class="acc-foot">
+                        <p class="acc-early" id="accEarlyAccess" hidden><strong></strong><span></span><a href="./terms.html#pricing" target="_blank" rel="noopener">Details</a></p>
+                        <p class="acc-legal">Signing in means you agree to the <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and <a href="./privacy.html" target="_blank" rel="noopener">Privacy</a>.</p>
+                    </div>
                 </div>
 
                 <!-- Clean Segmented View Switcher (Instant Tab Views - No Long Scroll) -->
-                <div class="settings-nav-segmented">
-                    <button type="button" class="set-seg-btn active set-seg-company" data-view="set-view-company">
-                        <i data-lucide="building-2" class="icon-xs seg-icon-company"></i>
-                        <span>Company</span>
+                <!-- Settings menu: tap a row to open that section (SettingsListeners.switchSettingsView) -->
+                <nav class="settings-nav-segmented settings-menu" aria-label="Settings sections">
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-company" data-view="set-view-company">
+                        <span class="smr-ic"><i data-lucide="building-2" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>Company profile</strong><small id="smrCompanySub">Name, phone, bill numbers, UPI, logo</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="set-seg-btn set-seg-casing" data-view="set-view-casing">
-                        <i data-lucide="cylinder" class="icon-xs seg-icon-casing"></i>
-                        <span>Casing</span>
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-casing" data-view="set-view-casing">
+                        <span class="smr-ic"><i data-lucide="cylinder" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>Casing pipes</strong><small id="smrCasingSub">Pipe sizes and default rates</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="set-seg-btn set-seg-theme" data-view="set-view-theme">
-                        <i data-lucide="palette" class="icon-xs seg-icon-theme"></i>
-                        <span>Theme</span>
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-theme" data-view="set-view-theme">
+                        <span class="smr-ic"><i data-lucide="palette" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>Colour theme</strong><small id="smrThemeSub">App, bill and PDF colours</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="set-seg-btn set-seg-whatsapp" data-view="set-view-whatsapp">
-                        <i data-lucide="message-circle" class="icon-xs seg-icon-whatsapp"></i>
-                        <span>WhatsApp</span>
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-whatsapp" data-view="set-view-whatsapp">
+                        <span class="smr-ic"><i data-lucide="message-circle" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>WhatsApp bill format</strong><small id="smrWaSub">What the WhatsApp message shows</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="set-seg-btn set-seg-vault" data-view="set-view-vault">
-                        <i data-lucide="database-backup" class="icon-xs seg-icon-vault"></i>
-                        <span>Backup</span>
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-vault" data-view="set-view-vault">
+                        <span class="smr-ic"><i data-lucide="database-backup" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>Backup &amp; restore</strong><small id="smrVaultSub">Save or load all your data</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                    <button type="button" class="set-seg-btn set-seg-support" data-view="set-view-support">
-                        <i data-lucide="headphones" class="icon-xs seg-icon-support"></i>
-                        <span>Developer</span>
+                    <button type="button" class="set-seg-btn set-menu-row set-seg-support" data-view="set-view-support">
+                        <span class="smr-ic"><i data-lucide="headphones" class="icon-xs"></i></span>
+                        <span class="smr-tx"><strong>Help &amp; support</strong><small id="smrSupportSub">WhatsApp or call the developer</small></span>
+                        <span class="smr-chev" aria-hidden="true">›</span>
                     </button>
-                </div>
+                </nav>
+            </div>
+
+            <!-- Shown while a section is open -->
+            <div class="settings-back-bar" id="settingsBackBar" hidden>
+                <button type="button" class="settings-back-btn" id="settingsBackBtn" aria-label="Back to Settings"><span aria-hidden="true">‹</span> Settings</button>
+                <strong class="settings-back-title" id="settingsBackTitle"></strong>
             </div>
 
             <!-- VIEW 1: COMPANY PROFILE (Direct Entry + Live Preview) -->
-            <div class="settings-view-panel" id="set-view-company">
+            <div class="settings-view-panel" id="set-view-company" data-display="flex">
 
                 <!-- 1. Direct Business Details Entry Form Card -->
                 <div class="ui-card clean-settings-card" id="companyEditStudioCard" style="display: block; margin-bottom: 16px;">

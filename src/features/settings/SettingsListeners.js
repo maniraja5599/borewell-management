@@ -16,21 +16,30 @@ const WA_TOGGLES_MAP = {
 };
 
 export class SettingsListeners {
-    // Settings Hub Segmented View Switcher (Instant Tab Views without long page scrolling)
+    // Settings = a short menu (account + one row per section). Tapping a row opens only that
+    // section with a "‹ Settings" back bar; switchSettingsView('menu') goes back to the menu.
     switchSettingsView(viewId) {
+        const menuMode = !viewId || viewId === 'menu';
         const panels = document.querySelectorAll('.settings-view-panel');
         panels.forEach(panel => {
-            panel.style.display = panel.id === viewId ? 'block' : 'none';
+            panel.style.display = (!menuMode && panel.id === viewId) ? (panel.dataset?.display || 'block') : 'none';
         });
+        let title = '';
         document.querySelectorAll('.settings-nav-segmented .set-seg-btn').forEach(btn => {
-            const isActive = btn.dataset.view === viewId;
+            const isActive = !menuMode && btn.dataset.view === viewId;
             btn.classList.toggle('active', isActive);
-            if (isActive) {
-                try {
-                    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                } catch (_) {}
-            }
+            if (isActive) title = btn.querySelector?.('.smr-tx strong')?.textContent || (btn.textContent || '').trim();
         });
+        const tab = document.getElementById('tab-brand');
+        tab?.classList?.toggle('settings-in-view', !menuMode);
+        const hub = document.getElementById('settingsHubHead');
+        if (hub) hub.hidden = !menuMode;
+        const bar = document.getElementById('settingsBackBar');
+        if (bar) bar.hidden = menuMode;
+        const titleEl = document.getElementById('settingsBackTitle');
+        if (titleEl) titleEl.textContent = title;
+        this._settingsView = menuMode ? 'menu' : viewId;
+        if (menuMode) this.refreshSettingsMenuSubs?.();
         if (viewId === 'set-view-casing') {
             this.syncCasingNamesUI?.();
         }
@@ -42,6 +51,21 @@ export class SettingsListeners {
             try { window.lucide.createIcons(); } catch (_) {}
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // One-line summaries under the menu rows show what is set today.
+    refreshSettingsMenuSubs() {
+        const set = (id, text) => { const el = document.getElementById(id); if (el && text) el.textContent = text; };
+        const b = this.brand || {};
+        const companyBits = [b.companyName, b.billPrefix ? `bills ${b.billPrefix}-${b.nextBillSeq || ''}` : ''].filter(Boolean);
+        set('smrCompanySub', companyBits.join(' · '));
+        const c1 = this.getCasing1ShortName?.(); const c2 = this.getCasing2ShortName?.();
+        if (c1 || c2) set('smrCasingSub', [c1 && `${c1} ₹${this.rates?.pvc7Rate ?? ''}/ft`, c2 && `${c2} ₹${this.rates?.pvc10Rate ?? ''}/ft`].filter(Boolean).join(' · '));
+        const themeName = (document.getElementById('activeThemeBadgeLabel')?.textContent || '').replace(/^Active:\s*/, '');
+        if (themeName) set('smrThemeSub', themeName.trim());
+        const n = (this.history || []).length;
+        const cu = (this.customers || []).length;
+        set('smrVaultSub', `${n} ${n === 1 ? 'bill' : 'bills'} · ${cu} ${cu === 1 ? 'customer' : 'customers'} on this phone`);
     }
 
     syncWaFormatUI() {
@@ -395,6 +419,7 @@ export class SettingsListeners {
                 }
             });
         });
+        document.getElementById('settingsBackBtn')?.addEventListener('click', () => this.switchSettingsView('menu'));
 
         // Quick Casing Presets in Settings View 2
         document.querySelectorAll('#setCasingPresetChips .csd-preset-chip').forEach(chip => {

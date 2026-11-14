@@ -3,15 +3,16 @@
 import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut, getSupabase } from '../../cloud/auth.js';
 import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany } from '../../cloud/sync.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
-import { isEarlyAccess, earlyAccessLine, earlyAccessAfterLine } from '../../config/plans.js';
+import { isEarlyAccess, earlyAccessEndLabel } from '../../config/plans.js';
 
 export function initAccountUI(app) {
     // Free Early Access note (dates and discount come from config/plans.js).
     const early = document.getElementById('accEarlyAccess');
     if (early) {
         early.hidden = !isEarlyAccess();
-        early.querySelector('strong').textContent = earlyAccessLine();
-        early.querySelector('span').textContent = ' ' + earlyAccessAfterLine() + ' ';
+        // One short line here; the full pricing promise is in Terms → Pricing ("Details").
+        early.querySelector('strong').textContent = '🎁 Free Early Access';
+        early.querySelector('span').textContent = ` · everything free until ${earlyAccessEndLabel()} · `;
     }
     const card = document.getElementById('accountCard');
     if (!card) return;
