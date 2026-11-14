@@ -8,12 +8,12 @@ import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
 import { isSafeId, sanitizeRecordData } from '../data/sanitize.js';
 import { setAccessFromServer, clearAccess, getCurrentRig, canCreateBill, rigPrefix } from './access.js';
-import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting, hashData } from './syncPlan.js';
+import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting, hashData, safePullRev } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
 const PUSH_BATCH = 200;
 const PULL_PAGE = 500;
-const PULL_OVERLAP = 50;       // re-read a few revs back so a slow concurrent write is never missed
+const PULL_OVERLAP = 50;       // old servers only: re-read a few revs back so a slow concurrent write is never missed
 const DEBOUNCE_MS = 2000;
 const PERIODIC_MS = 60000;
 const CLAIM_TIMEOUT_MS = 4000;
@@ -258,9 +258,34 @@ function notifyRejected(app, rejected) {
     } catch { /* ignore */ }
 }
 
+/**
+ * Download what changed after `since`. Returns the rows and the new "seen up to" mark.
+ * With drillrig_pull_v2 (0006) only the last two minutes of changes are ever read twice;
+ * older servers re-read the last PULL_OVERLAP revs every time.
+ */
 async function pullAll(since) {
+    since = Math.max(0, Number(since) || 0);
+    if (!ctx.noPullV2) {
+        try {
+            const pages = [];
+            const all = [];
+            let cursor = since;
+            for (;;) {
+                const page = await rpc('drillrig_pull_v2', { p_company: ctx.state.companyId, p_since: cursor, p_limit: PULL_PAGE });
+                const rows = Array.isArray(page?.rows) ? page.rows : [];
+                pages.push({ now: page?.now, rows });
+                all.push(...rows);
+                if (rows.length < PULL_PAGE) break;
+                cursor = rows[rows.length - 1].rev;
+            }
+            return { rows: all, lastRev: safePullRev(pages, since) };
+        } catch (e) {
+            if (!isMissingFunction(e)) throw e;
+            ctx.noPullV2 = true; // server without 0006: ask again next app start
+        }
+    }
     const all = [];
-    let cursor = Math.max(0, since);
+    let cursor = since > 0 ? Math.max(0, since - PULL_OVERLAP) : 0;
     for (;;) {
         const page = await rpc('drillrig_pull', { p_company: ctx.state.companyId, p_since: cursor, p_limit: PULL_PAGE });
         const rows = Array.isArray(page) ? page : [];
@@ -268,7 +293,7 @@ async function pullAll(since) {
         if (rows.length < PULL_PAGE) break;
         cursor = rows[rows.length - 1].rev;
     }
-    return all;
+    return { rows: all, lastRev: all.reduce((m, r) => Math.max(m, Number(r.rev) || 0), since) };
 }
 
 /**
@@ -357,7 +382,7 @@ async function syncOnce() {
             throw err;
         }
     }
-    const rawPulled = await pullAll(firstSync ? 0 : st.lastRev - PULL_OVERLAP);
+    const { rows: rawPulled, lastRev: nextRev } = await pullAll(firstSync ? 0 : st.lastRev);
     const pulled = cleanPulledRows(rawPulled);
     // Only the owner's phone may upload settings, so staff never "keep" their own copy.
     const rows = role === 'owner' ? dropDefaultCloudSettings(pulled, readLocal(), defaults) : pulled;
@@ -374,8 +399,8 @@ async function syncOnce() {
         if (hash === null) delete st.hashes[key];
         else st.hashes[key] = hash;
     }
-    // Advance past every downloaded row, including ones dropped by cleanPulledRows.
-    st.lastRev = rawPulled.reduce((m, r) => Math.max(m, Number(r.rev) || 0), st.lastRev || 0);
+    // Advance past every downloaded row that is final (including ones dropped by cleanPulledRows).
+    st.lastRev = Math.max(st.lastRev || 0, nextRev);
     saveState(st);
 
     const toPush = filterPushable(planPush(indexPhone(readLocal()), st.hashes, defaults), role, st.rejected || {}, await serverCaps());

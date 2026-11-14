@@ -210,3 +210,24 @@ function upsertAll(list, rows) {
     const kept = removed.size ? out.filter((_, i) => !removed.has(i)) : out;
     return added.size ? [...[...added.values()].reverse(), ...kept] : kept;
 }
+
+/**
+ * How far this phone may move its "seen up to" mark after a download.
+ * pages: [{ now: server time, rows: [{ rev, updated_at }] }].
+ * A save that is still running when we download can commit later with a lower rev than rows we
+ * already got. A save never runs for minutes, so rows older than `safeMs` (by the server's own
+ * clock) are final: the mark moves past them. Newer rows are read once more on the next sync.
+ */
+export function safePullRev(pages, prevRev = 0, safeMs = 120000) {
+    let mark = Number(prevRev) || 0;
+    for (const page of pages || []) {
+        const now = Date.parse(page?.now || '');
+        if (!Number.isFinite(now)) continue;
+        for (const r of page.rows || []) {
+            const at = Date.parse(r?.updated_at || '');
+            const rev = Number(r?.rev) || 0;
+            if (Number.isFinite(at) && at <= now - safeMs && rev > mark) mark = rev;
+        }
+    }
+    return mark;
+}

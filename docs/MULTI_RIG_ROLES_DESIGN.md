@@ -89,8 +89,11 @@ go to the company's first rig, and the old 3-argument bill-number function still
    took a payment on each bill; shown in the bill popup and in Team & Rigs → Recent activity).
 3. Run `supabase/drillrig/0005_pipe_stock.sql` (casing pipe stock per rig). Until it runs, stock
    entries stay on the phone that made them and upload afterwards.
-4. Deploy the app.
-5. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
+4. Run `supabase/drillrig/0006_pull_with_server_time.sql` (can run any time, before or after 0003-0005).
+   Without it every open phone re-downloads the company's last ~50 changed records every minute;
+   with it only the last two minutes of changes are read twice. The app works either way.
+5. Deploy the app.
+6. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
 
 ---
 
