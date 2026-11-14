@@ -14010,3 +14010,107 @@ html.role-driver .stock-card { display: none !important; }
 .stk-big strong.is-neg { color: var(--danger); }
 .stk-big span { font-size: var(--fs-xs); color: var(--text-muted); }
 .stk-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+
+/* ==========================================================================
+   SETTINGS — CLEAN & CALM
+   One look for every settings block: white, thin grey border, no coloured stripes
+   or tints. Colour is kept for the selected tab and selected chip only, and it follows
+   the chosen theme (--brand-primary) instead of fixed black/yellow/green.
+   ========================================================================== */
+.settings-nav-segmented {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+.set-seg-btn {
+    border-color: #e2e8f0;
+    box-shadow: none;
+    color: #334155;
+}
+.set-seg-btn :is(.seg-icon-company, .seg-icon-casing, .seg-icon-theme, .seg-icon-whatsapp, .seg-icon-vault, .seg-icon-support) {
+    color: #64748b !important;
+}
+.set-seg-btn.active {
+    background: var(--brand-primary) !important;
+    border-color: var(--brand-primary) !important;
+    box-shadow: none !important;
+}
+.set-seg-btn.active :is(span, svg, i) {
+    color: #ffffff !important;
+}
+
+.account-card {
+    background: #ffffff;
+}
+
+/* Company: numbering tiles all alike; footer-note blocks without yellow/green stripes */
+.rate-metric-tile.highlight-tile {
+    background: var(--bg-muted);
+    border-color: var(--border-color);
+}
+.footer-setting-block,
+.footer-setting-block.quote-setting-block,
+.footer-setting-block.bill-setting-block {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left-width: 1px;
+}
+.fsb-mini-btn.danger {
+    background: #ffffff;
+    border-color: #e2e8f0;
+}
+.fsb-preset-chip {
+    border-color: #e2e8f0;
+    color: #334155;
+}
+.fsb-preset-chip.active {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #ffffff;
+}
+
+/* Company preview card: footer notes as plain rows */
+.bsc-fn-item.is-quote-fn,
+.bsc-fn-item.is-bill-fn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+.bsc-fn-item.is-quote-fn .bsc-fn-label,
+.bsc-fn-item.is-bill-fn .bsc-fn-label {
+    color: #64748b;
+}
+
+/* Casing, theme and developer labels */
+.cpb-badge.primary,
+.cpb-badge.secondary,
+.dev-badge-tag {
+    background: #f1f5f9;
+    color: #334155;
+}
+.theme-active-indicator-pill {
+    white-space: nowrap;
+}
+.bsc-footer-note.bsc-dual-footer-notes {
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+/* Every Settings save button in the theme colour (Company/WhatsApp were black, Casing green). */
+.settings-view-panel .btn-primary,
+.settings-view-panel .btn-save-profile,
+.settings-view-panel .btn-brand-full,
+#saveBrandProfileBtn,
+#saveCasingSettingsBtn,
+#saveWaSettingsBtn {
+    background: var(--brand-primary) !important;
+    border: 1px solid var(--brand-primary) !important;
+    box-shadow: none !important;
+}
+.settings-view-panel .btn-primary:hover,
+.settings-view-panel .btn-brand-full:hover,
+#saveBrandProfileBtn:hover,
+#saveCasingSettingsBtn:hover,
+#saveWaSettingsBtn:hover {
+    background: var(--brand-primary-dark) !important;
+    box-shadow: none !important;
+}

@@ -13,6 +13,13 @@ const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 // ---------- fresh company ----------
 await freshCompany();
 
+// ---------- 0. header on a brand-new company ----------
+await step('0 header keeps the company name', async () => {
+    await wait(9000); // two turns of the 4.2 s header rotator
+    const h = await app(() => { const s = document.getElementById('marqueeSlide0'); return { text: s?.textContent.trim(), op: s ? getComputedStyle(s).opacity : '0', cls: s?.className }; });
+    check('0 new company: header keeps showing the company name (no bills = no rotation)', h.text === 'Sri Murugan Borewells' && h.op === '1', h);
+});
+
 // ---------- 1. customer ----------
 await step('1 add customer from the bill screen', async () => {
     const opened = await clickId('headerAddCustPopupBtn') || await clickId('pickerAddCustPopupBtn');

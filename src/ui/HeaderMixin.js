@@ -90,7 +90,13 @@ export class HeaderMixin {
             this._topMarqueeTimer = setInterval(() => {
                 const allSlides = Array.from(document.querySelectorAll('.header-dynamic-marquee .marquee-slide'));
                 const visibleSlides = allSlides.filter(s => s.style.display !== 'none');
-                if (!visibleSlides || visibleSlides.length === 0) return;
+                // One slide (a new company with no bills: just its name) stays put. Rotating it onto
+                // itself marked it both "leaving" and "active", and the company name went blank.
+                if (visibleSlides.length <= 1) {
+                    allSlides.forEach(s => s.classList.remove('exit-up'));
+                    (visibleSlides[0] || document.getElementById('marqueeSlide0'))?.classList.add('active');
+                    return;
+                }
 
                 const currentSlide = document.querySelector('.header-dynamic-marquee .marquee-slide.active');
                 let currPos = visibleSlides.indexOf(currentSlide);
