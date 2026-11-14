@@ -97,6 +97,25 @@ go to the company's first rig, and the old 3-argument bill-number function still
 
 ---
 
+## Free Early Access (decided 14 Nov 2026)
+
+- Every feature is free for everyone until **31 March 2027** (end of day IST). One setting:
+  `src/config/plans.js` → `EARLY_ACCESS`; the server matches it in 0003 (`trial_ends_at` default).
+- After that: **billing on one phone stays free forever**; Cloud sync, staff and extra rigs are paid per rig.
+- **Founding members** (started before 31 March 2027): **50% off for life** while subscribed.
+- Published in: setup wizard, Settings → account card, and Terms → Pricing (`terms.html#pricing`).
+
+**Must be done before 31 March 2027:**
+1. By **1 March 2027**: set `PLANS.pricePerRigMonthlyInr`, show the price in the app and in the Terms
+   (the Terms promise at least 30 days' notice).
+2. Change what "unpaid" means: today an unpaid rig becomes *read-only* (0003 refuses new bills).
+   The promise is that **billing on the phone stays free**, so an unpaid rig must instead stop
+   *cloud sync / staff* while the phone keeps billing locally. Update 0003's push check, the
+   `canCreateBill` guard in `rigBar.js`, and the banner texts.
+3. Record who is a founding member (e.g. `drillrig.company.founding = created_at < 2027-04-01`).
+
+---
+
 ## How I would improve DrillRig after this (recommended order)
 
 1. **Razorpay auto-renewal** for rig subscriptions (removes manual activation work for you).

@@ -5,6 +5,7 @@
 // It fills the existing Settings form and runs the same save as "Save Company Profile",
 // so validation and storage stay in one place.
 import { storage } from '../../data/storage.js';
+import { isEarlyAccess, earlyAccessLine } from '../../config/plans.js';
 
 const SKIP_KEY = 'drillrig_setup_skipped';
 
@@ -79,6 +80,7 @@ export function initSetupWizard(app) {
 
     const title = el('h2', { id: 'swTitle', class: 'sw-title', text: 'Set up your business' });
     const sub = el('p', { class: 'sw-sub', text: 'Takes 30 seconds. This is printed on every bill.' });
+    const early = isEarlyAccess() ? el('p', { class: 'sw-early', text: `🎉 ${earlyAccessLine()}` }) : null;
     const dots = el('div', { class: 'sw-dots', 'aria-hidden': 'true' }, [el('span', { class: 'on' }), el('span')]);
     const backBtn = el('button', { type: 'button', class: 'sw-btn ghost', text: 'Back', hidden: '' });
     const nextBtn = el('button', { type: 'button', class: 'sw-btn primary', text: 'Next' });
@@ -86,7 +88,7 @@ export function initSetupWizard(app) {
     const signInBtn = el('button', { type: 'button', class: 'sw-link', text: 'Joining a team, or already use DrillRig? Sign in' });
 
     const card = el('div', { class: 'sw-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'swTitle' }, [
-        dots, title, sub, step1, step2, error,
+        dots, title, sub, early, step1, step2, error,
         el('div', { class: 'sw-actions' }, [backBtn, nextBtn]),
         el('div', { class: 'sw-links' }, [signInBtn, skipBtn])
     ]);
@@ -119,6 +121,7 @@ export function initSetupWizard(app) {
         backBtn.hidden = n === 1;
         nextBtn.textContent = n === 1 ? 'Next' : 'Finish';
         title.textContent = n === 1 ? 'Set up your business' : 'Bill numbers';
+        if (early) early.hidden = n !== 1;
         sub.textContent = n === 1 ? 'Takes 30 seconds. This is printed on every bill.' : 'How your bills will be numbered.';
         dots.children[1].classList.toggle('on', n === 2);
         clearError();

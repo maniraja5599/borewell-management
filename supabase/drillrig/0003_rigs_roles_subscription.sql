@@ -20,7 +20,9 @@ create table if not exists drillrig.rig (
     company_id     uuid not null references drillrig.company(id) on delete cascade,
     name           text not null check (length(trim(name)) between 1 and 60),
     bill_prefix    text not null check (bill_prefix ~ '^[A-Z0-9]{1,6}$'),
-    trial_ends_at  timestamptz not null default now() + interval '30 days',
+    -- Free Early Access: no rig's free period ends before 31 March 2027 (end of day, IST);
+    -- after that, new rigs get a 30-day trial. Keep in step with src/config/plans.js EARLY_ACCESS.
+    trial_ends_at  timestamptz not null default greatest(now() + interval '30 days', timestamptz '2027-03-31 23:59:59+05:30'),
     paid_until     timestamptz,
     archived_at    timestamptz,
     created_at     timestamptz not null default now(),

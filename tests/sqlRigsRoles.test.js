@@ -336,3 +336,19 @@ describe('team changes', () => {
         expect(now.companies).toHaveLength(2);
     });
 });
+
+describe('Free Early Access on the server', () => {
+    it('a new rig stays free until at least 31 March 2027 (end of day IST)', async () => {
+        const db = new PGlite();
+        await db.exec(`create role anon; create role authenticated; create role service_role; create schema auth;
+            create table auth.users (id uuid primary key, email text, email_confirmed_at timestamptz default now(), raw_user_meta_data jsonb default '{}');
+            create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+            insert into auth.users (id, email) values ('00000000-0000-4000-8000-0000000000e1', 'e@x.com');`);
+        for (const f of ['0001_drillrig_sync.sql', '0003_rigs_roles_subscription.sql']) await db.exec(readFileSync(new URL(`../supabase/drillrig/${f}`, import.meta.url), 'utf8'));
+        await db.query(`select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-0000000000e1', false)`);
+        const me = (await db.query(`select * from public.drillrig_my_company('Co', 'SM')`)).rows[0];
+        const rig = (await db.query(`select trial_ends_at from drillrig.rig where company_id = $1`, [me.company_id])).rows[0];
+        expect(new Date(rig.trial_ends_at).getTime()).toBeGreaterThanOrEqual(Date.parse('2027-03-31T23:59:59+05:30'));
+        expect(me.rigs[0].active).toBe(true);
+    }, 30000);
+});

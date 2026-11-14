@@ -14114,3 +14114,27 @@ html.role-driver .stock-card { display: none !important; }
     background: var(--brand-primary-dark) !important;
     box-shadow: none !important;
 }
+
+/* Free Early Access note (setup wizard + Settings account card) */
+.sw-early {
+    margin: 8px 0 14px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--brand-primary-soft, #f0fdf4);
+    color: var(--brand-primary-dark, #14532d);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.4;
+}
+.acc-early {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #475569;
+}
+.acc-early strong { display: block; color: #0f172a; font-size: 0.82rem; margin-bottom: 2px; }
+.acc-early a { color: var(--brand-primary, #15803d); font-weight: 700; white-space: nowrap; }

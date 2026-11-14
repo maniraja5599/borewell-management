@@ -4,7 +4,7 @@ import {
     hasRigs, visibleRigs, getCurrentRig, setCurrentRig, canCreateBill, onAccessChange,
     rigDaysLeft, getRole, getAccess
 } from '../../cloud/access.js';
-import { renewLink } from '../../config/plans.js';
+import { renewLink, isEarlyAccess } from '../../config/plans.js';
 
 function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -22,6 +22,7 @@ function statusLine(rig) {
     const days = rigDaysLeft(rig);
     if (!rig.active) return 'Subscription ended';
     const paid = Date.parse(rig.paid_until || '') > Date.parse(rig.trial_ends_at || '');
+    if (!paid && isEarlyAccess()) return 'Free Early Access';
     return `${paid ? 'Paid' : 'Free trial'} · ${days} day${days === 1 ? '' : 's'} left`;
 }
 
