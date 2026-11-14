@@ -8,6 +8,7 @@ import { initSetupWizard } from './features/onboarding/setupWizard.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
+import { initComingSoon } from './features/settings/comingSoon.js';
 import { initStockUI } from './features/stock/stockUI.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 import { FEATURES } from './config/features.js';
@@ -39,6 +40,7 @@ async function boot() {
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
+        initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
         // First-run setup opens after the splash has faded.
         setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 1400);
     } catch (err) {

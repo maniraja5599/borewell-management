@@ -53,6 +53,12 @@ export function supportWhatsAppDisplay() {
 }
 
 /** WhatsApp link on the "Made with DrillRig" line at the bottom of every bill. */
+/** WhatsApp link a user taps on a "Coming soon" tile: tells the team which feature they want. */
+export function comingSoonVoteLink(featureTitle) {
+    const text = `Hi DrillRig team, I want ${featureTitle} in DrillRig. Please tell me when it is ready.`;
+    return `https://wa.me/${PLANS.supportWhatsApp}?text=${encodeURIComponent(text)}`;
+}
+
 export function billFooterEnquiryLink() {
     const text = 'Hi DrillRig team, I saw DrillRig on a borewell bill. I want to use it for my rig.';
     return `https://wa.me/${PLANS.supportWhatsApp}?text=${encodeURIComponent(text)}`;

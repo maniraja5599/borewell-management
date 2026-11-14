@@ -18,6 +18,11 @@ const gate = () => app(() => {
         msg: g.querySelector('.sg-msg')?.hidden ? '' : g.querySelector('.sg-msg')?.textContent,
         retry: !!g.querySelector('.sg-retry'),
         legal: [...g.querySelectorAll('.sg-legal a')].map((a) => a.getAttribute('href')),
+        soon: [...g.querySelectorAll('.sg-hero #signInComingSoon .cs-tk-group:not([aria-hidden]) .cs-tk-chip')].map((a) => ({ name: a.querySelector('.cs-tk-name').textContent, wa: a.href.startsWith('https://wa.me/918300030123?text='), art: !!a.querySelector('svg linearGradient, svg radialGradient') })),
+        soonLoop: g.querySelectorAll('#signInComingSoon .cs-tk-group[aria-hidden="true"] .cs-tk-chip[tabindex="-1"]').length,
+        caps: [...g.querySelectorAll('.sg-slider .sg-cap')].map((c) => c.textContent),
+        dots: g.querySelectorAll('.sg-slider .sg-dot').length,
+        buttonOnScreen: (g.querySelector('#signInGateButton')?.getBoundingClientRect().bottom || 1e9) <= innerHeight,
         topmost: document.elementFromPoint(innerWidth / 2, innerHeight / 2)?.closest('#signInGate') != null
     };
 });
@@ -37,6 +42,14 @@ await step('S1 new phone', async () => {
     check('S1 a new phone sees "Sign in to start" over the whole app, with 3 reasons and Terms/Privacy links',
         g && g.covers && g.topmost && g.title === 'Sign in to start' && g.points === 3 && g.legal.join() === './terms.html,./privacy.html', g);
     check('S1 Google blocked → a clear message and a "Try again" button', g && /Google|internet/i.test(g.msg) && g.retry, g);
+    check('S1 top picture is 4 slides with a line each and dots', g && g.caps.length === 4 && g.dots === 4 && g.caps[0] === 'Type the feet. Get the full bill.', g && { caps: g.caps, dots: g.dots });
+    await app(() => document.querySelectorAll('#signInGate .sg-dot')[2].click()); await wait(700);
+    const slid = await app(() => ({ cur: [...document.querySelectorAll('#signInGate .sg-dot')].findIndex((d) => d.getAttribute('aria-current') === 'true'),
+        x: getComputedStyle(document.querySelector('#signInGate .sg-slides')).transform }));
+    check('S1 tapping the 3rd dot shows the WhatsApp slide', slid.cur === 2 && slid.x !== 'none', slid);
+    check('S1 "Coming soon" strip under the title: 4 chips with 3D icons, each opens WhatsApp; Google button still on the first screen',
+        g && g.soon.map((t) => t.name).join('|') === 'Expenses|Staff|Stock|Profit & Loss' && g.soon.every((t) => t.wa && t.art) && g.soonLoop === 4 && g.buttonOnScreen,
+        g && { soon: g.soon, loop: g.soonLoop, onScreen: g.buttonOnScreen });
     await p.screenshot({ path: `${OUT}/s1_gate.png` });
 });
 

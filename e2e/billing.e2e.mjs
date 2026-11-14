@@ -247,6 +247,25 @@ await step('12 reload', async () => {
     check('12 after reload: bills + customer kept, next number continues', JSON.stringify(r.bills) === '["SM-101","SM-102"]' && r.customers === 1 && /^SM-(103|Q102)$/.test(r.nextNo || ''), r);
 });
 
+// ---------- 12b. Settings: "Coming soon" tiles ----------
+await step('12b coming soon', async () => {
+    await app(() => document.querySelector('.b-nav-item[data-tab="tab-brand"]')?.click()); await wait(400);
+    const c = await app(() => {
+        const card = document.getElementById('comingSoonCard');
+        const tiles = [...(card?.querySelectorAll('.cs-tile') || [])];
+        return {
+            shown: !!card && card.getBoundingClientRect().height > 100,
+            names: tiles.map((t) => t.querySelector('.cs-name').textContent),
+            links: tiles.every((t) => t.href.startsWith('https://wa.me/918300030123?text=') && t.target === '_blank'),
+            art: tiles.every((t) => t.querySelector('.cs-art svg linearGradient, .cs-art svg radialGradient')),
+            badges: tiles.filter((t) => /Coming soon/.test(t.textContent)).length,
+            sideScroll: document.documentElement.scrollWidth > innerWidth
+        };
+    });
+    check('12b Settings shows 4 "Coming soon" tiles with 3D icons; each opens WhatsApp', c.shown && c.names.join('|') === 'Expenses|Staff|Stock|Profit & Loss'
+        && c.links && c.art && c.badges === 4 && !c.sideScroll, c);
+});
+
 // ---------- 13. dashboard ----------
 await step('13 dashboard', async () => {
     await p.goto(`${BASE}/dashboard.html`, { waitUntil: 'networkidle0' }); await wait(800);

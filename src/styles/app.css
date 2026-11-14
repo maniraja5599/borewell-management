@@ -14622,6 +14622,64 @@ html.role-driver .stock-card { display: none !important; }
 }
 #tab-brand .settings-menu .smr-chev { color: #cbd5e1; font-size: 1.4rem; line-height: 1; }
 
+/* "Coming soon" tiles on Settings (2×2). src/features/settings/comingSoon.js */
+:is(#tab-brand, .signin-gate) .coming-soon {
+    margin-top: 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 14px;
+}
+:is(#tab-brand, .signin-gate) .coming-soon .cs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-title { margin: 0; font: 800 1.05rem/1.2 'Plus Jakarta Sans', Inter, sans-serif; color: #0f172a; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-hint { font-size: 0.76rem; font-weight: 600; color: #64748b; text-align: right; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+    padding: 12px 12px 12px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    text-decoration: none;
+    color: #0f172a;
+    overflow: hidden;
+    transition: transform 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+:is(#tab-brand, .signin-gate) .coming-soon .cs-tile:active { transform: scale(0.97); }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-expenses { background: linear-gradient(160deg, #fff7ed 0%, #ffffff 70%); border-color: #fde4c8; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-staff { background: linear-gradient(160deg, #eff6ff 0%, #ffffff 70%); border-color: #d6e6fb; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-stock { background: linear-gradient(160deg, #eef2ff 0%, #ffffff 70%); border-color: #dde3fb; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-pnl { background: linear-gradient(160deg, #ecfdf3 0%, #ffffff 70%); border-color: #cdeedb; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-art { display: block; width: 54px; height: 54px; margin: -2px 0 6px -2px; animation: csFloat 3.6s ease-in-out infinite; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-staff .cs-art { animation-delay: -0.9s; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-stock .cs-art { animation-delay: -1.8s; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-pnl .cs-art { animation-delay: -2.7s; }
+@keyframes csFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-art svg { display: block; width: 54px; height: 54px; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-name { font: 800 0.95rem/1.2 'Plus Jakarta Sans', Inter, sans-serif; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-sub { font-size: 0.76rem; line-height: 1.3; color: #64748b; font-weight: 500; margin-bottom: 8px; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-badge {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: #0f172a;
+    color: #fde68a;
+    font: 700 0.68rem/1 Inter, sans-serif;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(#tab-brand, .signin-gate) .coming-soon .cs-art { animation: none; }
+}
+
 /* Back bar while a section is open */
 #tab-brand .settings-back-bar {
     position: sticky; top: var(--settings-back-top, 62px); z-index: 20;
@@ -14756,10 +14814,28 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
     color: rgba(255, 255, 255, 0.85);
     white-space: nowrap;
 }
-.signin-gate .sg-hero-art { position: relative; margin: 10px auto 0; width: min(300px, 82vw); }
+/* Hero slides (signInGate.js heroArt / startHeroSlider) */
+.signin-gate .sg-slider { position: relative; margin: 8px -22px 0; touch-action: pan-y; }
+.signin-gate .sg-slides-view { overflow: hidden; }
+.signin-gate .sg-slides { display: flex; transition: transform 0.55s cubic-bezier(.2, .8, .2, 1); will-change: transform; }
+.signin-gate .sg-slide { flex: 0 0 100%; min-width: 0; padding: 0 22px; }
+.signin-gate .sg-cap { position: relative; margin: 6px 0 0; font: 800 16px/1.3 'Plus Jakarta Sans', Inter, sans-serif; color: #fff; letter-spacing: -0.1px; }
+.signin-gate .sg-dots { display: flex; justify-content: center; gap: 6px; margin-top: 8px; }
+.signin-gate .sg-dot { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.3); cursor: pointer; transition: width 0.3s ease, background 0.3s ease; }
+.signin-gate .sg-dot[aria-current="true"] { width: 22px; background: #facc15; }
+.signin-gate .sg-dot::before { content: ''; display: block; margin: -10px -6px; height: 28px; } /* bigger tap area */
+.signin-gate .sg-hero-art { position: relative; margin: 0 auto; width: min(264px, 72vw); }
 .signin-gate .sg-hero-art svg { display: block; width: 100%; height: auto; overflow: visible; }
-.signin-gate .sg-float-a { animation: sgFloat 4.2s ease-in-out infinite; }
-.signin-gate .sg-float-b { animation: sgFloat 5s ease-in-out 0.7s infinite; }
+/* Hero demo: bill parts appear one by one (startHeroDemo); the arrow from the depth tag flows */
+.signin-gate .sgx-s { opacity: 0; transition: opacity 0.28s ease; }
+.signin-gate .sgx-s.on { opacity: 1; }
+.signin-gate g.sgx-s { transform: translateY(3px); transition: opacity 0.3s ease, transform 0.3s ease; }
+.signin-gate g.sgx-s.on { transform: none; }
+/* tspans (the typed 4-5-0 ft) fade with fill-opacity: opacity does not apply to tspan */
+.signin-gate tspan.sgx-s { opacity: 1; fill-opacity: 0; transition: fill-opacity 0.15s ease; }
+.signin-gate tspan.sgx-s.on { fill-opacity: 1; }
+.signin-gate .sgx-flow { stroke-dasharray: 4 5; animation: sgxFlow 0.9s linear infinite; }
+@keyframes sgxFlow { from { stroke-dashoffset: 9; } to { stroke-dashoffset: 0; } }
 @keyframes sgFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 .signin-gate .sg-title {
     position: relative;
@@ -14767,6 +14843,66 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
     font: 800 30px/1.12 'Plus Jakarta Sans', Inter, sans-serif;
     letter-spacing: -0.6px;
     color: #fff;
+}
+/* "Coming soon" strip under the subtitle: label + chips sliding left in a loop */
+.signin-gate .cs-ticker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px -6px 0;
+    padding: 5px 0 5px 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.signin-gate .cs-tk-label {
+    flex: none;
+    padding: 0 10px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: #facc15;
+    color: #1c1917;
+    font: 800 11px/1 Inter, sans-serif;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.signin-gate .cs-tk-viewport {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+}
+.signin-gate .cs-tk-track { display: flex; width: max-content; animation: csTicker 16s linear infinite; }
+.signin-gate .cs-ticker:hover .cs-tk-track,
+.signin-gate .cs-ticker:focus-within .cs-tk-track { animation-play-state: paused; }
+@keyframes csTicker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.signin-gate .cs-tk-group { display: flex; gap: 8px; padding-right: 8px; }
+.signin-gate .cs-tk-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px 0 2px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #fff;
+    font: 700 13px/1 'Plus Jakarta Sans', Inter, sans-serif;
+    text-decoration: none;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+}
+.signin-gate .cs-tk-art { display: inline-flex; width: 30px; height: 30px; margin: -4px 0 -2px; }
+.signin-gate .cs-tk-art svg { width: 30px; height: 30px; }
+@media (prefers-reduced-motion: reduce) {
+    .signin-gate .sg-slides { transition: none; }
+    .signin-gate .cs-tk-track { animation: none; }
+    .signin-gate .cs-tk-viewport { overflow-x: auto; scrollbar-width: none; }
 }
 .signin-gate .sg-sub {
     position: relative;
@@ -14949,13 +15085,17 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
 .signin-gate .sg-legal { margin: auto 0 0; padding-top: 2px; font-size: 12px; line-height: 1.5; color: #64748b; text-align: center; }
 .signin-gate .sg-legal a { color: #334155; text-underline-offset: 2px; }
 
-@media (max-height: 720px) {
-    .signin-gate .sg-hero-art { width: min(230px, 64vw); margin-top: 4px; }
+@media (max-height: 690px) {
+    .signin-gate .sg-hero-art { width: min(150px, 42vw) !important; }
+    .signin-gate .sg-cap { font-size: 14.5px; margin-top: 4px; }
+    .signin-gate .cs-ticker { margin-top: 10px; }
+}
+@media (max-height: 780px) {
+    .signin-gate .sg-hero-art { width: min(196px, 54vw); }
     .signin-gate .sg-title { font-size: 26px; }
 }
 @media (prefers-reduced-motion: reduce) {
-    .signin-gate .sg-float-a,
-    .signin-gate .sg-float-b,
+    .signin-gate .sgx-flow,
     .signin-gate .sg-body,
     .signin-gate .sg-gface::after { animation: none; }
 }
@@ -14977,7 +15117,9 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
     }
     .signin-gate .sg-hero { padding: 22px 24px 52px; }
-    .signin-gate .sg-hero-art { width: 230px; margin-top: 4px; }
+    .signin-gate .sg-hero-art { width: 210px; }
+    .signin-gate .sg-slider { margin-left: -24px; margin-right: -24px; }
+    .signin-gate .sg-slide { padding: 0 24px; }
     .signin-gate .sg-title { font-size: 27px; }
     .signin-gate .sg-body { padding: 18px 24px 20px; }
     .signin-gate .sg-legal { margin-top: 0; }
