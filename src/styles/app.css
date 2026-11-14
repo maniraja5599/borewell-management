@@ -13966,3 +13966,47 @@ html.role-driver #headerDashboardBtn { display: none !important; }
 .act-text { color: var(--text-main); font-weight: 600; overflow-wrap: anywhere; }
 .act-time { font-size: var(--fs-xs); color: var(--text-muted); }
 .act-empty { margin: 0; }
+
+/* Pipe stock (features/stock/stockUI.js) */
+.stock-card[hidden] { display: none; }
+html.role-driver .stock-card { display: none !important; }
+.stk-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stk-title { display: block; font-size: var(--fs-xl); font-weight: 800; }
+.stk-sub { display: block; font-size: var(--fs-sm); color: var(--text-muted); }
+.stk-open-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 0;
+    background: var(--brand-primary);
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+}
+.stk-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.stk-rig { flex: 1 0 100%; font-size: var(--fs-sm); font-weight: 700; color: var(--text-secondary); }
+.stk-bal {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-muted);
+    border: 1px solid var(--border-color);
+}
+.stk-bal small { color: var(--text-muted); font-weight: 700; }
+.stk-bal strong { font-size: var(--fs-xl); }
+.stk-bal.is-low { background: #fffbeb; border-color: #fde68a; }
+.stk-bal.is-low strong { color: #b45309; }
+.stk-bal.is-neg { background: var(--danger-light); border-color: var(--danger-border); }
+.stk-bal.is-neg strong { color: var(--danger); }
+.stk-big-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stk-big { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: 12px; background: var(--bg-muted); border: 1px solid var(--border-color); }
+.stk-big small { font-weight: 700; color: var(--text-muted); }
+.stk-big strong { font-size: 22px; font-weight: 800; }
+.stk-big strong.is-neg { color: var(--danger); }
+.stk-big span { font-size: var(--fs-xs); color: var(--text-muted); }
+.stk-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }

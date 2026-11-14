@@ -19,7 +19,7 @@ const PERIODIC_MS = 60000;
 const CLAIM_TIMEOUT_MS = 4000;
 
 const SYNCED_KEYS = new Set([
-    STORAGE_KEYS.customers, STORAGE_KEYS.history,
+    STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.stock,
     ...SETTING_IDS.map((id) => STORAGE_KEYS[id])
 ]);
 
@@ -51,6 +51,7 @@ function readLocal() {
     return {
         customers: readJson(STORAGE_KEYS.customers, []),
         history: readJson(STORAGE_KEYS.history, []),
+        stock: readJson(STORAGE_KEYS.stock, []),
         settings
     };
 }
@@ -81,6 +82,10 @@ function writeLocal(app, local, changed) {
     if (changed.has('history')) {
         storage.setRaw(STORAGE_KEYS.history, JSON.stringify(local.history));
         app.history = local.history;
+    }
+    if (changed.has('stock')) {
+        storage.setRaw(STORAGE_KEYS.stock, JSON.stringify(local.stock));
+        try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch { /* ignore */ }
     }
     const merge = (id, defaults, isArray) => {
         if (!changed.has(id)) return;
@@ -181,6 +186,20 @@ async function refreshAccess() {
     return changed;
 }
 
+/** What the server supports (re-asked every 10 minutes; older servers have no such function). */
+async function serverCaps() {
+    if (ctx.caps && Date.now() - ctx.capsAt < 600000) return ctx.caps;
+    try {
+        const caps = await rpc('drillrig_capabilities', {});
+        ctx.caps = Array.isArray(caps) ? caps : [];
+    } catch (err) {
+        if (!isMissingFunction(err)) throw err;
+        ctx.caps = [];
+    }
+    ctx.capsAt = Date.now();
+    return ctx.caps;
+}
+
 const PREF_KEY = 'drillrig_company_pref';
 function readPreferredCompany() {
     try { return storage.getRaw(PREF_KEY) || null; } catch { return null; }
@@ -202,9 +221,14 @@ function reloadVisibleBills(app) {
     try { app.renderHistoryList?.(''); app.showToast?.('🔄 Your access changed — reloading bills'); } catch { /* ignore */ }
 }
 
-/** Only rows this person may upload; and not ones the server already refused unchanged. */
-export function filterPushable(rows, role, rejected = {}) {
+/**
+ * Only rows this person may upload; and not ones the server already refused unchanged.
+ * Stock entries wait on the phone until the server supports them (migration 0005);
+ * drivers never upload stock.
+ */
+export function filterPushable(rows, role, rejected = {}, caps = []) {
     return rows.filter((r) => {
+        if (r.kind === 'stock' && (!caps.includes('stock') || role === 'driver')) return false;
         if (role && role !== 'owner' && (r.kind === 'setting' || r.deleted)) return false;
         const mark = rejected[r.key];
         return !(mark && mark.hash === (r.hash ?? 'deleted'));
@@ -248,7 +272,7 @@ async function pullAll(since) {
 export function cleanPulledRows(rows) {
     const out = [];
     for (const r of rows || []) {
-        if (!r || !isSafeId(String(r.id ?? '')) || !['customer', 'bill', 'setting'].includes(r.kind)) continue;
+        if (!r || !isSafeId(String(r.id ?? '')) || !['customer', 'bill', 'setting', 'stock'].includes(r.kind)) continue;
         if (r.deleted) { out.push(r); continue; }
         const data = sanitizeRecordData(r.kind, r.data);
         if (data === null) continue;
@@ -345,7 +369,7 @@ async function syncOnce() {
     st.lastRev = rawPulled.reduce((m, r) => Math.max(m, Number(r.rev) || 0), st.lastRev || 0);
     saveState(st);
 
-    const toPush = filterPushable(planPush(indexLocal(readLocal()), st.hashes, defaults), role, st.rejected || {});
+    const toPush = filterPushable(planPush(indexLocal(readLocal()), st.hashes, defaults), role, st.rejected || {}, await serverCaps());
     const refused = await pushRows(toPush);
     notifyRejected(app, refused);
 
@@ -528,7 +552,7 @@ export function checkPhoneOwner(app, account) {
 export function clearPhoneData() {
     stopSync();
     const keys = [
-        STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.lastSession,
+        STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.stock, STORAGE_KEYS.lastSession,
         ...SETTING_IDS.map((id) => STORAGE_KEYS[id]), STATE_KEY
     ];
     for (const k of keys) {

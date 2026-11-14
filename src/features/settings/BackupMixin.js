@@ -40,6 +40,10 @@ export class BackupMixin {
                         this.waFormat = { ...this.defaultWaFormat, ...parsed.waFormat };
                         this.saveToStorage(STORAGE_KEYS.waFormat, this.waFormat);
                     }
+                    if (Array.isArray(parsed.stock)) {
+                        this.saveToStorage(STORAGE_KEYS.stock, sanitizeList(parsed.stock, 'stk'));
+                        try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch (_) { /* ignore */ }
+                    }
                     if (Array.isArray(parsed.savedNotes)) {
                         this.savedNotes = parsed.savedNotes.filter((x) => x !== null && x !== undefined);
                         this.saveToStorage(STORAGE_KEYS.savedNotes, this.savedNotes);

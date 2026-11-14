@@ -6,6 +6,7 @@ export const STORAGE_KEYS = Object.freeze({
     // Business data (will move to the cloud, per company)
     customers: 'borebill_customers',
     history: 'borebill_history',            // saved bills & quotations, with payments
+    stock: 'borebill_stock',                // casing pipe stock movements (opening / purchase / adjustment)
     rateProfiles: 'borebill_rate_profiles',
     rates: 'borebill_rates',
     brand: 'borebill_brand',                // company profile, bill counters, terms

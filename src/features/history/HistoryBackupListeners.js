@@ -1,5 +1,5 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
-import { STORAGE_KEYS } from '../../data/storage.js';
+import { STORAGE_KEYS, storage } from '../../data/storage.js';
 
 export class HistoryBackupListeners {
     setupHistoryAndBackupListeners() {
@@ -56,7 +56,8 @@ export class HistoryBackupListeners {
                 history: this.history,
                 savedExtras: this.savedExtras,
                 savedNotes: this.savedNotes,
-                waFormat: this.waFormat
+                waFormat: this.waFormat,
+                stock: (() => { try { return JSON.parse(storage.getRaw(STORAGE_KEYS.stock) || '[]'); } catch (_) { return []; } })()
             };
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);

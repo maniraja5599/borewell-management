@@ -81,7 +81,7 @@ export function sanitizeList(list, idPrefix = 'item') {
 
 /** Clean one downloaded sync record's data. Returns null to drop the record. */
 export function sanitizeRecordData(kind, data) {
-    if (kind === 'customer' || kind === 'bill') return sanitizeEntry(data);
+    if (kind === 'customer' || kind === 'bill' || kind === 'stock') return sanitizeEntry(data);
     if (kind === 'setting') {
         if (data === null || typeof data !== 'object') return null;
         return neutralize(data);

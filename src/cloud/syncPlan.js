@@ -54,6 +54,7 @@ export function indexLocal(local) {
     };
     addList(local.customers, 'customer');
     addList(local.history, 'bill');
+    addList(local.stock, 'stock');
     for (const id of SETTING_IDS) {
         const data = local.settings?.[id];
         if (data === undefined || data === null) continue;
@@ -159,6 +160,7 @@ export function applyToLocal(local, applyRows) {
     const out = {
         customers: [...(local.customers || [])],
         history: [...(local.history || [])],
+        stock: [...(local.stock || [])],
         settings: { ...(local.settings || {}) }
     };
     const changed = new Set();
@@ -175,6 +177,7 @@ export function applyToLocal(local, applyRows) {
     for (const row of applyRows) {
         if (row.kind === 'customer') { upsert(out.customers, row); changed.add('customers'); }
         else if (row.kind === 'bill') { upsert(out.history, row); changed.add('history'); }
+        else if (row.kind === 'stock') { upsert(out.stock, row); changed.add('stock'); }
         else if (row.kind === 'setting' && SETTING_IDS.includes(row.id)) {
             if (row.deleted) delete out.settings[row.id];
             else out.settings[row.id] = row.data;

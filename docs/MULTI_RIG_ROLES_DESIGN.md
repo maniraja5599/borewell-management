@@ -87,8 +87,10 @@ go to the company's first rig, and the old 3-argument bill-number function still
    (it includes 0002's soft delete, so 0002 does not need to be run separately).
 2. Run `supabase/drillrig/0004_activity_log.sql` (activity log: who created / edited / deleted /
    took a payment on each bill; shown in the bill popup and in Team & Rigs → Recent activity).
-3. Deploy the app.
-4. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
+3. Run `supabase/drillrig/0005_pipe_stock.sql` (casing pipe stock per rig). Until it runs, stock
+   entries stay on the phone that made them and upload afterwards.
+4. Deploy the app.
+5. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
 
 ---
 
@@ -100,8 +102,7 @@ go to the company's first rig, and the old 3-argument bill-number function still
    per rig. Uses data the dashboard already computes.
 4. **Due reminders** — list of customers with dues older than N days, one-tap WhatsApp
    reminder with the UPI QR. This directly brings money in, which sells the subscription.
-5. **Pipe stock per rig** (ROADMAP phase 3) — deduct 7"/10" pipe feet when a final bill is saved;
-   low-stock alert.
+5. ~~Pipe stock per rig~~ — done (0005): Bills tab → Pipe stock.
 6. **Diesel & expenses per rig** (ROADMAP phase 3–4) → per-rig profit, the number owners
    care about most.
 7. **Tamil-first UI** — the dictionary exists; finish translating every screen and make
