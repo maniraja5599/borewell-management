@@ -44,7 +44,7 @@ beforeAll(async () => {
 
     // An existing company on the OLD version: brand setting, two bills, a used counter.
     await as(OWNER);
-    const old = await one(`select * from public.drillrig_my_company('Sri Murugan Borewells')`);
+    const old = await one(`select * from public.drillrig_my_company('Your Borewell Company')`);
     company = old.company_id;
     await db.query(`select public.drillrig_push($1, $2::jsonb)`, [company, JSON.stringify([
         { kind: 'setting', id: 'brand', data: { companyName: 'Sri Murugan Borewells', billPrefix: 'sm' } },
@@ -61,6 +61,7 @@ describe('0003 migration on existing data', () => {
         await as(OWNER);
         const me = await myCompany();
         expect(me.company_id).toBe(company);
+        expect(me.company_name).toBe('Sri Murugan Borewells'); // placeholder name fixed from the company profile
         expect(me.role).toBe('owner');
         expect(me.rigs).toHaveLength(1);
         expect(me.rigs[0]).toMatchObject({ name: 'Rig 1', bill_prefix: 'SM', active: true, is_default: true });
@@ -80,6 +81,16 @@ describe('0003 migration on existing data', () => {
     it('can be run twice without changing anything', async () => {
         await db.exec(sql('0003_rigs_roles_subscription.sql'));
         expect((await rows(`select id from drillrig.rig where company_id = $1`, [company]))).toHaveLength(1);
+    });
+});
+
+describe('company name follows the owner Settings', () => {
+    it('owner sync renames; placeholders and staff never do', async () => {
+        await as(OWNER);
+        expect((await myCompany({ name: 'Your Borewell Company' })).company_name).toBe('Sri Murugan Borewells');
+        expect((await myCompany({ name: '  Sri Murugan Borewells & Sons ' })).company_name).toBe('Sri Murugan Borewells & Sons');
+        expect((await myCompany({ name: '' })).company_name).toBe('Sri Murugan Borewells & Sons');
+        await myCompany({ name: 'Sri Murugan Borewells' });
     });
 });
 
@@ -115,6 +126,7 @@ describe('staff sign-in joins the company from the invite', () => {
         const me = await myCompany({ name: 'Should not be created' });
         expect(me.company_id).toBe(company);
         expect(me.role).toBe('driver');
+        expect(me.company_name).toBe('Sri Murugan Borewells'); // staff can never rename the company
         expect(me.rigs.map((r) => r.id)).toEqual([rig1]);
     });
 

@@ -83,6 +83,15 @@ from drillrig.company c
 left join drillrig.record s on s.company_id = c.id and s.kind = 'setting' and s.id = 'brand' and not s.deleted
 where not exists (select 1 from drillrig.rig r where r.company_id = c.id);
 
+-- Companies still named with the app's placeholder take the name from their company profile.
+update drillrig.company c
+set name = trim(s.data->>'companyName')
+from drillrig.record s
+where s.company_id = c.id and s.kind = 'setting' and s.id = 'brand' and not s.deleted
+  and c.name in ('Your Borewell Company', 'My Borewell Company')
+  and length(trim(coalesce(s.data->>'companyName', ''))) between 1 and 200
+  and trim(s.data->>'companyName') not in ('Your Borewell Company', 'My Borewell Company');
+
 update drillrig.record r
 set rig_id = (select g.id from drillrig.rig g where g.company_id = r.company_id order by g.created_at, g.id limit 1)
 where r.kind = 'bill' and r.rig_id is null;
@@ -263,6 +272,16 @@ begin
         insert into drillrig.member (company_id, user_id, role, email, display_name)
         values (v_company, v_uid, 'owner', v_email,
                 (select coalesce(u.raw_user_meta_data->>'full_name', u.raw_user_meta_data->>'name') from auth.users u where u.id = v_uid));
+    end if;
+
+    -- The company name follows the owner's Settings (it was only set once, at first sign-in,
+    -- often to the app's placeholder). Staff see this name on invites.
+    if nullif(trim(p_name), '') is not null
+       and trim(p_name) not in ('Your Borewell Company', 'My Borewell Company')
+       and length(trim(p_name)) <= 200
+       and drillrig.my_role(v_company) = 'owner' then
+        update drillrig.company c set name = trim(p_name)
+        where c.id = v_company and c.name is distinct from trim(p_name);
     end if;
 
     -- Every company has at least one rig.

@@ -137,7 +137,10 @@ export function initAccountUI(app) {
         if (!a || signedIn.hidden) return;
         const line = document.createElement('span');
         line.className = 'acc-company-name';
-        line.textContent = `${ROLE[a.role] || a.role} · ${a.companyName || 'Company'}`;
+        // The owner's own Settings name is the freshest (the cloud name may lag until the next sync).
+        const ownName = a.role === 'owner' ? String(app.brand?.companyName || '').trim() : '';
+        const name = ownName && ownName !== app.defaultBrand?.companyName ? ownName : a.companyName;
+        line.textContent = `${ROLE[a.role] || a.role} · ${name || 'Company'}`;
         companyLine.appendChild(line);
         for (const c of (a.companies || []).filter((x) => x.company_id !== a.companyId)) {
             const b = document.createElement('button');
