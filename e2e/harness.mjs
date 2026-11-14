@@ -55,6 +55,7 @@ export async function startHarness(label) {
         await app(() => {
             localStorage.clear();
             localStorage.setItem('drillrig_setup_skipped', '1');
+            localStorage.setItem('drillrig_signin_gate_skip', '1'); // tests cannot sign in to Google
             localStorage.setItem('drillrig_pwa_prompt_dismissed_at', String(Date.now()));
             localStorage.setItem('borebill_brand', JSON.stringify({ companyName: 'Sri Murugan Borewells', phones: '+91 9842712345', billPrefix: 'SM', nextBillSeq: 101, nextQuoteSeq: 101, upiId: 'murugan@okaxis', upiName: 'Sri Murugan Borewells', address: 'Namakkal' }));
         });

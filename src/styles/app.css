@@ -14657,3 +14657,58 @@ html.role-driver .stock-card { display: none !important; }
 #set-view-company #companyEditStudioCard > .clean-section-head { display: none !important; }
 #set-view-company #companyEditStudioCard .clean-settings-block:first-of-type { border-top: none !important; padding-top: 0 !important; }
 #set-view-company #companyLiveHeroCard { padding: 12px !important; }
+
+/* ==========================================================================
+   SIGN-IN GATE (Nov 2026) — src/features/account/signInGate.js
+   Full screen until the phone has a Google session.
+   ========================================================================== */
+html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
+.signin-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, var(--brand-primary-dark, #14532d) 0%, #0f172a 100%);
+    overflow-y: auto;
+}
+.signin-gate .sg-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 22px;
+    padding: 24px 20px 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    margin: auto;
+}
+.signin-gate .sg-logo { width: 64px; height: 64px; border-radius: 16px; border: 1px solid #e2e8f0; padding: 6px; background: #fff; }
+.signin-gate .sg-title { font-size: 1.45rem; font-weight: 800; color: #0f172a; margin: 4px 0 0; }
+.signin-gate .sg-sub { font-size: 0.92rem; color: #475569; line-height: 1.5; margin: 0; }
+.signin-gate .sg-points {
+    list-style: none; margin: 6px 0 2px; padding: 12px 14px; width: 100%;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;
+    display: flex; flex-direction: column; gap: 9px; text-align: left;
+}
+.signin-gate .sg-points li { display: flex; gap: 10px; font-size: 0.88rem; color: #1e293b; line-height: 1.45; }
+.signin-gate .sg-ic { flex-shrink: 0; width: 22px; text-align: center; }
+.signin-gate .sg-local {
+    width: 100%; margin: 0; font-size: 0.84rem; color: #166534; line-height: 1.45;
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 9px 12px; text-align: left;
+}
+.signin-gate .sg-gbtn { min-height: 46px; width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 4px; }
+.signin-gate .sg-retry {
+    font: inherit; font-weight: 800; font-size: 0.92rem; min-height: 44px; padding: 0 22px; border-radius: 999px;
+    border: 1px solid #cbd5e1; background: #fff; color: #0f172a; cursor: pointer;
+}
+.signin-gate .sg-msg { margin: 0; font-size: 0.84rem; line-height: 1.45; color: #475569; }
+.signin-gate .sg-msg[data-tone="warn"] { color: #b45309; }
+.signin-gate .sg-msg[data-tone="error"] { color: #b91c1c; }
+.signin-gate .sg-legal { margin: 4px 0 0; font-size: 0.76rem; color: #94a3b8; }
+.signin-gate .sg-legal a { color: #64748b; }

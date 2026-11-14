@@ -97,8 +97,10 @@ go to the company's first rig, and the old 3-argument bill-number function still
    The console is at `admin.html` (not linked from the app; the server refuses non-admins).
    It can pause a business (cloud sync stops; phones keep billing), set rig free / paid-until dates,
    export a business's cloud data and delete a business on request. Every action is in the admin log.
-6. Deploy the app.
-7. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
+6. Run `supabase/drillrig/0008_admin_business_data.sql` (after 0007): the admin console's Report, Bills and
+   Customers tabs for each business, and "New businesses (last 30 days)". Read-only; every view is in the admin log.
+7. Deploy the app.
+8. Owner sees *Rig 1* in Settings → Team & Rigs; can rename it, add rigs, invite staff.
 
 ---
 
@@ -136,3 +138,13 @@ go to the company's first rig, and the old 3-argument bill-number function still
    Tamil the default for new users in Tamil Nadu.
 8. **Error reporting** (e.g. Sentry free tier) so you hear about crashes before customers call.
 9. **Custom domain** (e.g. `drillrig.in`) — more trust than `github.io` for a paid product.
+
+---
+
+## Sign-in required + team can see business data (decided 15 Nov 2026)
+
+- The app opens only after a Google sign-in (`src/features/account/signInGate.js`). A phone with a saved
+  session opens straight in, also offline. Bills already on a phone stay and upload after sign-in.
+  Tests skip the gate with localStorage `drillrig_signin_gate_skip = 1` (e2e/harness.mjs).
+- The admin console shows each business's report (same maths as the app), bills and customers (0008).
+  Disclosed in privacy.html §2 / terms.html §2; every view is written to `drillrig.admin_log`.

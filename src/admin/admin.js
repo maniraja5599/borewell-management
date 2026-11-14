@@ -21,6 +21,10 @@ function h(tag, attrs = {}, children = []) {
     return n;
 }
 const num = (n) => Number(n || 0).toLocaleString('en-IN');
+const inr = (n) => '₹' + Math.round(Number(n || 0)).toLocaleString('en-IN');
+const monthLabel = (ym) => { const [y, m] = String(ym).split('-').map(Number); return new Date(y, (m || 1) - 1, 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }); };
+const missing0008 = (e) => /drillrig_admin_(report|bills|bill|customers|new_businesses)/.test(e?.message || '') && /function|schema cache|does not exist|Could not find/i.test(e?.message || '');
+const need0008 = () => h('div', { class: 'empty', text: 'Not installed on the server yet: run supabase/drillrig/0008_admin_business_data.sql in the Supabase SQL editor.' });
 const mb = (b) => `${(Number(b || 0) / 1e6).toFixed(Number(b) < 1e7 ? 2 : 0)} MB`;
 const day = (s) => (s ? new Date(s).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 const when = (s) => {
@@ -125,8 +129,26 @@ async function overview() {
         h('div', { class: 'card' }, [
             h('h2', { text: 'Rigs' }),
             h('div', {}, ['free', 'paid', 'ended', 'archived'].map((s) => h('span', { style: 'margin-right:14px' }, [chip(s), ' ', h('strong', { text: num(rigs[s]) })])))
-        ])
+        ]),
+        newBusinessesCard()
     );
+}
+
+// Who joined in the last 30 days, newest first (0008).
+function newBusinessesCard() {
+    const box = h('div', { class: 'scroll' }, h('div', { class: 'muted', text: 'Loading…' }));
+    rpc('drillrig_admin_new_businesses', { p_days: 30 }).then((rows) => {
+        if (!rows?.length) { box.replaceChildren(h('div', { class: 'empty', text: 'Nobody new in the last 30 days' })); return; }
+        box.replaceChildren(h('table', {}, [
+            h('thead', {}, h('tr', {}, [h('th', { text: 'Business' }), h('th', { text: 'Joined' }), h('th', { class: 'num', text: 'Bills' })])),
+            h('tbody', {}, rows.map((c) => h('tr', { class: 'click', tabindex: 0, onclick: () => openBusiness(c.id), onkeydown: (e) => { if (e.key === 'Enter') openBusiness(c.id); } }, [
+                h('td', {}, [h('strong', { text: c.name }), h('span', { class: 'sub', text: c.owner_email || 'no owner' })]),
+                h('td', { text: when(c.created_at) }),
+                h('td', { class: 'num', text: num(c.bills) })
+            ])))
+        ]));
+    }).catch((e) => box.replaceChildren(missing0008(e) ? need0008() : h('div', { class: 'empty', text: e.message })));
+    return h('div', { class: 'card' }, [h('h2', { text: 'New businesses (last 30 days)' }), box]);
 }
 
 /* ---------- businesses ---------- */
@@ -161,13 +183,14 @@ async function businesses() {
 const dlg = h('dialog', { 'aria-label': 'Business' });
 document.body.append(dlg);
 
-async function openBusiness(id) {
+async function openBusiness(id, keepView = false) {
+    if (!keepView) delete dlg.dataset.view;
     dlg.replaceChildren(h('div', { class: 'dlg-body', text: 'Loading…' }));
     if (!dlg.open) dlg.showModal();
     let d;
     try { d = await rpc('drillrig_admin_company', { p_company: id }); } catch (e) { dlg.replaceChildren(h('div', { class: 'dlg-body', text: e.message })); return; }
     const c = d.company;
-    const reload = () => openBusiness(id);
+    const reload = () => openBusiness(id, true);
     const counts = d.counts || {};
 
     // Pause / resume
@@ -189,10 +212,7 @@ async function openBusiness(id) {
         go(current);
     });
 
-    dlg.replaceChildren(
-        h('div', { class: 'dlg-head' }, [h('h3', { text: c.name }), c.suspended_at ? chip('paused', 'Paused') : chip('free', 'Active'),
-            h('button', { type: 'button', class: 'btn', text: 'Close', onclick: () => dlg.close() })]),
-        h('div', { class: 'dlg-body' }, [
+    const detailsBody = h('div', { class: 'dlg-body' }, [
             h('div', { class: 'kv' }, [
                 ...[['Created', day(c.created_at)], ['Last active', when(d.last_change)], ['Bills', num(counts.bill)], ['Customers', num(counts.customer)],
                     ['Deleted items', num((counts.bill_deleted || 0) + (counts.customer_deleted || 0))], ['Cloud data', mb(d.bytes)]]
@@ -217,8 +237,140 @@ async function openBusiness(id) {
             h('div', { class: 'section' }, [h('h4', { text: 'Recent activity' }), activityList(d.activity)]),
             h('div', { class: 'danger' }, [h('h4', { text: 'Delete (only when the owner asks)', style: 'margin-bottom:6px' }), h('div', { class: 'bar' }, [confirmName, delBtn]),
                 h('p', { class: 'note', text: 'Removes the business, its people, rigs and every cloud record. Phones keep their own copy until they sign out.' })])
-        ])
+        ]);
+
+    // Tabs: Details | Report | Bills | Customers (the last three read the business's data; each view is logged)
+    const pane = h('div');
+    const VIEWS = [['details', 'Details'], ['report', 'Report'], ['bills', 'Bills'], ['customers', 'Customers']];
+    const tabs = h('div', { class: 'tabs dlg-tabs', role: 'tablist' }, VIEWS.map(([k, label]) =>
+        h('button', { type: 'button', role: 'tab', 'data-view': k, text: label, onclick: () => openView(k) })));
+    function openView(k) {
+        dlg.dataset.view = k;
+        tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.view === k));
+        if (k === 'details') { pane.replaceChildren(detailsBody); return; }
+        const box = h('div', { class: 'dlg-body' }, h('div', { class: 'muted', text: 'Loading…' }));
+        pane.replaceChildren(box);
+        ({ report: bizReport, bills: bizBills, customers: bizCustomers })[k](id, box)
+            .catch((e) => box.replaceChildren(missing0008(e) ? need0008() : h('div', { class: 'empty', text: e.message })));
+    }
+    dlg.replaceChildren(
+        h('div', { class: 'dlg-head' }, [h('h3', { text: c.name }), c.suspended_at ? chip('paused', 'Paused') : chip('free', 'Active'),
+            h('button', { type: 'button', class: 'btn', text: 'Close', onclick: () => dlg.close() })]),
+        h('div', { class: 'dlg-tabbar' }, tabs),
+        pane
     );
+    openView(dlg.dataset.view || 'details');
+}
+
+/* ---------- one business: report / bills / customers (0008) ---------- */
+async function bizReport(id, box) {
+    const r = await rpc('drillrig_admin_report', { p_company: id });
+    const tile = (label, value, note) => h('div', { class: 'tile' }, [h('span', { text: label }), h('strong', { text: value }), note ? h('small', { text: note }) : null]);
+    const period = (title, p) => h('div', { class: 'section' }, [h('h4', { text: title }), h('div', { class: 'tiles' }, [
+        tile('Bills', num(p.bills), `${num(p.feet)} ft drilled`), tile('Billed', inr(p.billed)), tile('Received', inr(p.received))])]);
+    const months = (r.months || []).slice().reverse();
+    box.replaceChildren(
+        h('div', { class: 'section' }, [h('h4', { text: 'All time (final bills)' }), h('div', { class: 'tiles' }, [
+            tile('Bills', num(r.all.bills), `${num(r.quotes)} quotations · ${num(r.all.feet)} ft`),
+            tile('Billed', inr(r.all.billed)), tile('Received', inr(r.all.received)),
+            tile('Due', inr(r.all.due), `${num(r.all.unpaid_bills)} unpaid bills`)])]),
+        period('This month', r.this_month),
+        period('Last month', r.last_month),
+        h('div', { class: 'section' }, [h('h4', { text: 'Last 12 months' }), h('div', { class: 'scroll' }, h('table', {}, [
+            h('thead', {}, h('tr', {}, ['Month', 'Bills', 'Feet', 'Billed', 'Received'].map((t, i) => h('th', { class: i ? 'num' : '', text: t })))),
+            h('tbody', {}, months.map((m) => h('tr', {}, [h('td', { text: monthLabel(m.month) }), h('td', { class: 'num', text: num(m.bills) }),
+                h('td', { class: 'num', text: num(m.feet) }), h('td', { class: 'num', text: inr(m.billed) }), h('td', { class: 'num', text: inr(m.received) })])))
+        ]))]),
+        h('div', { class: 'section' }, [h('h4', { text: 'Biggest dues' }), (r.top_dues || []).length ? h('div', { class: 'scroll' }, h('table', {}, [
+            h('thead', {}, h('tr', {}, ['Customer', 'Unpaid bills', 'Oldest', 'Due'].map((t, i) => h('th', { class: i ? 'num' : '', text: t })))),
+            h('tbody', {}, r.top_dues.map((d) => h('tr', {}, [h('td', {}, [h('strong', { text: d.customer }), d.phone ? h('span', { class: 'sub', text: d.phone }) : null]),
+                h('td', { class: 'num', text: num(d.bills) }), h('td', { class: 'num', text: d.oldest ? day(d.oldest) : '—' }), h('td', { class: 'num', text: inr(d.due) })])))
+        ])) : h('div', { class: 'muted', text: 'No dues' })]),
+        (r.rigs || []).length > 1 ? h('div', { class: 'section' }, [h('h4', { text: 'By rig' }), h('div', { class: 'scroll' }, h('table', {}, [
+            h('thead', {}, h('tr', {}, ['Rig', 'Bills', 'Billed', 'Due'].map((t, i) => h('th', { class: i ? 'num' : '', text: t })))),
+            h('tbody', {}, r.rigs.map((g) => h('tr', {}, [h('td', { text: g.rig }), h('td', { class: 'num', text: num(g.bills) }),
+                h('td', { class: 'num', text: inr(g.billed) }), h('td', { class: 'num', text: inr(g.due) })])))
+        ]))]) : null,
+        h('p', { class: 'note', text: 'Same maths as the app’s Report page. Opening this report is written to the admin log.' })
+    );
+}
+
+async function bizBills(id, box) {
+    let search = '';
+    let status = 'all';
+    let offset = 0;
+    const input = h('input', { type: 'search', placeholder: 'Search bill no, customer, phone, place', 'aria-label': 'Search bills' });
+    const pills = h('div', { class: 'tabs' }, [['all', 'All bills'], ['due', 'Unpaid'], ['paid', 'Paid'], ['quote', 'Quotations']].map(([k, label]) =>
+        h('button', { type: 'button', 'data-k': k, class: k === status ? 'on' : '', text: label, onclick: () => { status = k; pills.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.k === k)); load(true).catch((e) => toast(e.message)); } })));
+    const sum = h('p', { class: 'note' });
+    const tbody = h('tbody');
+    const more = h('button', { type: 'button', class: 'btn', text: 'Load more', hidden: true, onclick: () => load(false).catch((e) => toast(e.message)) });
+    const detail = h('div');
+    let timer;
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { search = input.value.trim(); load(true).catch((e) => toast(e.message)); }, 300); });
+    box.replaceChildren(h('div', { class: 'bar' }, [input]), pills, sum, h('div', { class: 'scroll' }, h('table', {}, [
+        h('thead', {}, h('tr', {}, ['Bill', 'Customer', 'Depth', 'Total', 'Paid', 'Due'].map((t, i) => h('th', { class: i >= 2 ? 'num' : '', text: t })))), tbody])), more, detail);
+    async function load(reset) {
+        if (reset) { offset = 0; tbody.replaceChildren(); detail.replaceChildren(); }
+        const r = await rpc('drillrig_admin_bills', { p_company: id, p_search: search || null, p_status: status, p_limit: 50, p_offset: offset });
+        offset += r.rows.length;
+        sum.textContent = `${num(r.total)} ${status === 'quote' ? 'quotations' : 'bills'} · billed ${inr(r.sum.billed)} · received ${inr(r.sum.received)} · due ${inr(r.sum.due)}`;
+        if (!r.rows.length && reset) tbody.replaceChildren(h('tr', {}, h('td', { colspan: 6, class: 'empty', text: 'No bills found' })));
+        tbody.append(...r.rows.map((b) => h('tr', { class: 'click', tabindex: 0, onclick: () => showBill(b), onkeydown: (e) => { if (e.key === 'Enter') showBill(b); } }, [
+            h('td', {}, [h('strong', { text: b.bill_no || '—' }), h('span', { class: 'sub', text: [b.day ? day(b.day) : '', b.rig].filter(Boolean).join(' · ') })]),
+            h('td', {}, [h('strong', { text: b.customer || 'Direct bill' }), h('span', { class: 'sub', text: [b.phone, b.place].filter(Boolean).join(' · ') })]),
+            h('td', { class: 'num', text: b.depth ? `${num(b.depth)} ft` : '—' }),
+            h('td', { class: 'num', text: inr(b.total) }),
+            h('td', { class: 'num', text: inr(b.paid) }),
+            h('td', { class: 'num' }, Number(b.due) > 0 ? h('strong', { style: 'color:var(--bad)', text: inr(b.due) }) : (b.doc === 'quote' ? '—' : chip('free', 'Paid')))
+        ])));
+        more.hidden = offset >= r.total;
+    }
+    async function showBill(b) {
+        detail.replaceChildren(h('div', { class: 'muted', text: 'Loading bill…' }));
+        let full;
+        try { full = await rpc('drillrig_admin_bill', { p_company: id, p_bill: b.id }); } catch (e) { detail.replaceChildren(h('div', { class: 'empty', text: e.message })); return; }
+        const pays = Array.isArray(full.payments) ? full.payments : [];
+        detail.replaceChildren(h('div', { class: 'section card', style: 'margin-top:10px' }, [
+            h('h4', { text: `${full.billNo || b.bill_no} · ${full.custName || 'Direct bill'}` }),
+            h('div', { class: 'kv' }, [['Date', b.day ? day(b.day) : '—'], ['Place', full.custLocation || '—'], ['Phone', full.custPhone || '—'],
+                ['Depth', `${num(full.snapshot?.totalDepth)} ft`], ['Total', inr(b.total)], ['Paid', inr(b.paid)], ['Due', inr(b.due)], ['Made by', b.made_by || '—']]
+                .map(([k, v]) => h('div', {}, [h('span', { text: k }), v]))),
+            pays.length ? h('p', { class: 'note', text: 'Payments: ' + pays.map((p) => `${inr(p.amount)}${p.date ? ` on ${day(p.date)}` : ''}${p.mode ? ` (${p.mode})` : ''}`).join(', ') }) : null,
+            h('details', {}, [h('summary', { text: 'Full bill data (JSON)' }), h('pre', { style: 'white-space:pre-wrap;font-size:0.72rem;max-height:320px;overflow:auto', text: JSON.stringify(full, null, 2) })])
+        ]));
+        detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    await load(true);
+}
+
+async function bizCustomers(id, box) {
+    let search = '';
+    let offset = 0;
+    const input = h('input', { type: 'search', placeholder: 'Search name, phone, village', 'aria-label': 'Search customers' });
+    const note = h('p', { class: 'note' });
+    const tbody = h('tbody');
+    const more = h('button', { type: 'button', class: 'btn', text: 'Load more', hidden: true, onclick: () => load(false).catch((e) => toast(e.message)) });
+    let timer;
+    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { search = input.value.trim(); load(true).catch((e) => toast(e.message)); }, 300); });
+    box.replaceChildren(h('div', { class: 'bar' }, [input]), note, h('div', { class: 'scroll' }, h('table', {}, [
+        h('thead', {}, h('tr', {}, ['Customer', 'Bills', 'Billed', 'Due', 'Last bill'].map((t, i) => h('th', { class: i ? 'num' : '', text: t })))), tbody])), more);
+    async function load(reset) {
+        if (reset) { offset = 0; tbody.replaceChildren(); }
+        const r = await rpc('drillrig_admin_customers', { p_company: id, p_search: search || null, p_limit: 50, p_offset: offset });
+        offset += r.rows.length;
+        note.textContent = `${num(r.total)} customers · biggest due first`;
+        if (!r.rows.length && reset) tbody.replaceChildren(h('tr', {}, h('td', { colspan: 5, class: 'empty', text: 'No customers found' })));
+        tbody.append(...r.rows.map((c) => h('tr', {}, [
+            h('td', {}, [h('strong', { text: c.name || '—' }), h('span', { class: 'sub', text: [c.phone, c.village].filter(Boolean).join(' · ') })]),
+            h('td', { class: 'num', text: num(c.bills) }),
+            h('td', { class: 'num', text: inr(c.billed) }),
+            h('td', { class: 'num' }, Number(c.due) > 0 ? h('strong', { style: 'color:var(--bad)', text: inr(c.due) }) : '—'),
+            h('td', { class: 'num', text: c.last_day ? day(c.last_day) : '—' })
+        ])));
+        more.hidden = offset >= r.total;
+    }
+    await load(true);
 }
 
 function rigRow(r, reload) {
@@ -292,7 +444,8 @@ async function users() {
 /* ---------- admin log ---------- */
 async function log() {
     const rows = await rpc('drillrig_admin_log', { p_limit: 200 });
-    const label = { view_business: 'Opened', set_rig_dates: 'Changed rig dates', pause: 'Paused', resume: 'Resumed', export: 'Exported data', delete_business: 'Deleted' };
+    const label = { view_business: 'Opened', set_rig_dates: 'Changed rig dates', pause: 'Paused', resume: 'Resumed', export: 'Exported data', delete_business: 'Deleted',
+        view_report: 'Viewed report', view_bills: 'Viewed bills', view_bill: 'Opened a bill', view_customers: 'Viewed customers' };
     body.replaceChildren(h('div', { class: 'card' }, [h('h2', { text: 'Everything done in this console' }), rows.length ? h('div', { class: 'scroll' }, h('table', {}, [
         h('thead', {}, h('tr', {}, ['When', 'Admin', 'Action', 'Business', 'Details'].map((t) => h('th', { text: t })))),
         h('tbody', {}, rows.map((l) => h('tr', {}, [

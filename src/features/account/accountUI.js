@@ -1,5 +1,5 @@
 // The "Sign in with Google" card at the top of Settings.
-// Sign-in is optional: nothing else in the app depends on it yet.
+// Sign-in itself is required before the app opens (signInGate.js); this card shows the account and sync.
 import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut, getSupabase } from '../../cloud/auth.js';
 import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany } from '../../cloud/sync.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';

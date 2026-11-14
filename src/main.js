@@ -10,6 +10,7 @@ import { initTeamUI } from './features/team/teamUI.js';
 import { initStockUI } from './features/stock/stockUI.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 import { FEATURES } from './config/features.js';
+import { initSignInGate } from './features/account/signInGate.js';
 
 async function boot() {
     try {
@@ -27,6 +28,7 @@ async function boot() {
         initRigBar(window.boreBillApp);
         if (FEATURES.pipeStock) initStockUI(window.boreBillApp);
         initAccountUI(window.boreBillApp);
+        initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
         // First-run setup opens after the splash has faded.
         setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 900);
