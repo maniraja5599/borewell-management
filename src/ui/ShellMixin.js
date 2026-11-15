@@ -81,14 +81,14 @@ export class ShellMixin {
         return 'is-ok';
     }
 
-    /** Slide the message up and away, then remove it. */
+    /** Slide the message up and away with graceful fade, then remove it. */
     dismissToast(el) {
         if (!el || el.classList.contains('is-leaving')) return;
         el.classList.add('is-leaving');
-        setTimeout(() => el.remove(), 320);
+        setTimeout(() => el.remove(), 340);
     }
 
-    // Messages drop in at the top of the screen and slide back up after a moment.
+    // Messages float gracefully at the top of the screen and dissolve after a moment.
     showToast(msg) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
@@ -100,7 +100,7 @@ export class ShellMixin {
         // keep at most 3 on screen
         const all = container.querySelectorAll('.toast-msg:not(.toast-undo-bar):not(.is-leaving)');
         if (all.length > 3) this.dismissToast(all[0]);
-        setTimeout(() => this.dismissToast(el), 2600);
+        setTimeout(() => this.dismissToast(el), 2800);
     }
 
     confirmDeleteModal({

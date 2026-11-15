@@ -20,7 +20,7 @@ function el(tag, attrs = {}, children = []) {
         else if (k === 'class') node.className = v;
         else node.setAttribute(k, v === true ? '' : v);
     }
-    for (const c of [].concat(children)) if (c) node.appendChild(c);
+    for (const c of [].concat(children)) if (c) node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
     return node;
 }
 
@@ -53,18 +53,31 @@ function show(app, acc, { needName, needPhone }) {
     open = true;
     const nameIn = el('input', { id: 'ppName', type: 'text', autocomplete: 'organization', maxlength: '80', placeholder: 'e.g. Sri Murugan Borewells' });
     const phoneIn = el('input', { id: 'ppPhone', type: 'tel', inputmode: 'numeric', autocomplete: 'tel', maxlength: '14', placeholder: '98427 12345' });
+    const placeIn = needName ? el('input', { id: 'ppPlace', type: 'text', maxlength: '120', placeholder: 'e.g. Namakkal, Tamil Nadu' }) : null;
     const error = el('p', { class: 'sw-error', role: 'alert' });
-    const saveBtn = el('button', { type: 'button', class: 'sw-btn primary', text: 'Save' });
+    const saveBtn = el('button', { type: 'button', class: 'sw-btn primary', text: 'Save & Start Billing' });
     const laterBtn = el('button', { type: 'button', class: 'sw-link', text: 'Later' });
-    const first = String(acc.name || '').split(' ')[0];
+    
+    // Fetch user name and email from Google OAuth session
+    const fullName = String(acc.name || acc.user_metadata?.full_name || '').trim();
+    const first = fullName ? fullName.split(' ')[0] : String(acc.email || '').split('@')[0];
+    const emailStr = String(acc.email || '').trim();
+
+    const accountChip = el('div', { class: 'sw-user-chip', style: 'display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 4px 10px; border-radius: 999px; font-size: 12px; color: #475569; margin: 4px 0 10px; font-weight: 600;' }, [
+        el('span', { style: 'color: #16a34a;' }, '✓'),
+        el('span', { text: fullName ? `${fullName} (${emailStr})` : emailStr })
+    ]);
 
     const card = el('div', { class: 'sw-card pp-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'ppTitle' }, [
         el('h2', { id: 'ppTitle', class: 'sw-title', text: first ? `Welcome, ${first}!` : 'Welcome!' }),
-        el('p', { class: 'sw-sub', text: needName ? 'Two quick details for your bills and your account.' : 'One quick detail for your account.' }),
+        accountChip,
+        el('p', { class: 'sw-sub', text: needName ? 'A few quick details for your bills and your account.' : 'One quick detail for your account.' }),
         needName ? el('div', { class: 'sw-field' }, [el('label', { for: 'ppName', text: 'Business name *' }), nameIn,
             el('small', { class: 'sw-hint', text: 'Printed at the top of every bill.' })]) : null,
         needPhone ? el('div', { class: 'sw-field' }, [el('label', { for: 'ppPhone', text: 'Your mobile number *' }), phoneIn,
-            el('small', { class: 'sw-hint', text: 'For DrillRig support and for your team. Not shown to your customers unless you add it to bills.' })]) : null,
+            el('small', { class: 'sw-hint', text: 'For bills and customer WhatsApp receipts.' })]) : null,
+        placeIn ? el('div', { class: 'sw-field' }, [el('label', { for: 'ppPlace', text: 'Place / Address (optional)' }), placeIn,
+            el('small', { class: 'sw-hint', text: 'Printed on your bills.' })]) : null,
         error,
         el('div', { class: 'sw-actions' }, [saveBtn]),
         el('div', { class: 'sw-links' }, [laterBtn])
@@ -75,7 +88,7 @@ function show(app, acc, { needName, needPhone }) {
 
     saveBtn.addEventListener('click', async () => {
         error.textContent = '';
-        [nameIn, phoneIn].forEach((i) => i.removeAttribute('aria-invalid'));
+        [nameIn, phoneIn, placeIn].filter(Boolean).forEach((i) => i.removeAttribute('aria-invalid'));
         const name = nameIn.value.trim();
         if (needName && !name) return fail('Enter your business name.', nameIn);
         let digits = '';
@@ -96,6 +109,7 @@ function show(app, acc, { needName, needPhone }) {
                 const set = (id, val) => { const x = document.getElementById(id); if (x) x.value = val; };
                 set('brandCompanyName', name);
                 if (needPhone && !String(app.brand?.phones || '').trim()) set('brandCompanyPhones', phoneIn.value.replace(/\D/g, '').slice(-10));
+                if (placeIn && placeIn.value.trim()) set('brandCompanyAddress', placeIn.value.trim());
                 const prefix = String(app.brand?.billPrefix || '').trim();
                 if (!prefix || prefix === 'AB') set('brandBillPrefix', suggestPrefix(name));
                 app.syncBrandFromInputs(true);
@@ -105,10 +119,10 @@ function show(app, acc, { needName, needPhone }) {
             }
             try { storage.setRaw(doneKey(acc.id), '1'); } catch { /* ignore */ }
             close();
-            app?.showToast?.('✅ Saved');
+            app?.showToast?.('✅ Business profile set up! Ready to bill.');
         } catch (err) {
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
+            saveBtn.textContent = 'Save & Start Billing';
             fail(`Could not save: ${err.message || 'try again'}`);
         }
     });

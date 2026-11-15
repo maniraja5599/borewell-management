@@ -71,8 +71,7 @@ async function boot() {
         { const v = document.getElementById('appVersionChip'); if (v) { v.textContent = versionLabel(); if (APP_BUILD_DATE) v.title = `DrillRig ${versionLabel()} · built ${APP_BUILD_DATE}`; } }
         initFitText(); // shrink money amounts that would not fit (narrow / zoomed phones)
         initSuperAdmin(); // admins only (checked on the server): Super admin card in Settings
-        // First-run setup opens after the splash has faded.
-        setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 1400);
+        // Note: First-run profile onboarding is now handled seamlessly after Google Sign-in by maybeAskProfile (no duplicate banners)
     } catch (err) {
         console.error('DrillRig App Boot Error:', err);
     } finally {

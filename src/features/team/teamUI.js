@@ -91,10 +91,13 @@ export function initTeamUI(app) {
         card.append(
             el('span', { class: 'tm-card-icon', text: '👷' }),
             el('div', { class: 'tm-card-text' }, [
-                el('strong', { text: 'Team & Rigs' }),
-                el('span', { text: `${rigs.length} rig${rigs.length === 1 ? '' : 's'}${ended ? ` · ${ended} need renewal` : ''} · invite managers & drivers` })
+                el('div', { style: 'display: flex; align-items: center; gap: 8px;' }, [
+                    el('strong', { text: 'Team & Rigs' }),
+                    el('span', { class: 'cs-badge', text: 'BUILDING IT', style: 'background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.03em;' })
+                ]),
+                el('span', { text: `${rigs.length} rig${rigs.length === 1 ? '' : 's'}${ended ? ` · ${ended} need renewal` : ''} · Multi-rig & driver sync coming soon` })
             ]),
-            el('button', { type: 'button', class: 'tm-manage-btn', text: 'Manage', onclick: () => openSheet(app) })
+            el('button', { type: 'button', class: 'tm-manage-btn', text: 'View Details', onclick: () => openSheet(app) })
         );
     };
     onAccessChange(renderCard);
@@ -114,8 +117,18 @@ function openSheet(app) {
     const overlay = el('div', { class: 'tm-overlay' }, [
         el('div', { class: 'tm-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'tmTitle' }, [
             el('div', { class: 'tm-head' }, [
-                el('h2', { id: 'tmTitle', text: 'Team & Rigs' }),
+                el('div', { style: 'display: flex; align-items: center; gap: 8px;' }, [
+                    el('h2', { id: 'tmTitle', text: 'Team & Rigs' }),
+                    el('span', { text: 'BUILDING IT', style: 'background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px;' })
+                ]),
                 el('button', { type: 'button', class: 'tm-close', 'aria-label': 'Close', text: '✕', onclick: close })
+            ]),
+            el('div', { class: 'tm-building-banner', style: 'background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 14px; margin: 0 16px 14px; display: flex; align-items: flex-start; gap: 10px;' }, [
+                el('span', { style: 'font-size: 20px; line-height: 1;' }, '🔨'),
+                el('div', { style: 'flex: 1;' }, [
+                    el('strong', { text: 'Multi-Rig & Driver Sync (Building It)', style: 'display: block; font-size: 13.5px; color: #1e40af; margin-bottom: 2px;' }),
+                    el('p', { text: 'Multi-rig vehicle management and staff driver accounts are currently being built. Below is a preview of the upcoming architecture and your active default rig details:', style: 'margin: 0; font-size: 12px; line-height: 1.4; color: #475569;' })
+                ])
             ]),
             msg,
             body

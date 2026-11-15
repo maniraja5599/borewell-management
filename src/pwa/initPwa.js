@@ -100,11 +100,32 @@ export function initPWAAndZoomLock() {
         }
     }
 
-    // A brand-new user should see the app first; ask to install once they have saved a bill.
-    function hasSavedBill() {
+    function isLoggedIn() {
         try {
-            return storage.getList(STORAGE_KEYS.history).length > 0;
-        } catch (_) {
+            const raw = localStorage.getItem('drillrig_auth');
+            if (!raw) return false;
+            const s = JSON.parse(raw);
+            return !!(s?.user?.id || s?.currentSession?.user?.id);
+        } catch {
+            return false;
+        }
+    }
+
+    function isAnyPopupOpen() {
+        try {
+            const isVisible = (sel) => {
+                const node = document.querySelector(sel);
+                if (!node) return false;
+                const style = window.getComputedStyle ? window.getComputedStyle(node) : node.style;
+                return style.display !== 'none' && style.visibility !== 'hidden' && !node.hidden;
+            };
+            return (
+                isVisible('.signin-gate') ||
+                isVisible('#profilePromptOverlay.show') ||
+                isVisible('.sw-overlay.show') ||
+                isVisible('.cust-popup-backdrop:not(#pwaInstallModalOverlay):not([style*="display: none"])')
+            );
+        } catch {
             return false;
         }
     }
@@ -115,6 +136,11 @@ export function initPWAAndZoomLock() {
 
         if (!modalOverlay) return;
 
+        const title = document.getElementById('pwaInstallTitle');
+        const desc = document.getElementById('pwaInstallDesc');
+        const badge = modalOverlay.querySelector('.pwa-install-badge-pill');
+        const benefitsList = document.getElementById('pwaBenefitsList');
+
         if (isIOS && iosInstructions) {
             // iPhone / iPad have no install button: show the exact taps for this browser.
             renderIosInstallGuide(iosInstructions, {
@@ -123,15 +149,26 @@ export function initPWAAndZoomLock() {
             iosInstructions.hidden = false;
             iosInstructions.style.display = 'flex';
             modalOverlay.classList.add('is-ios');
-            const title = document.getElementById('pwaInstallTitle');
-            const desc = document.getElementById('pwaInstallDesc');
-            if (title) title.textContent = 'Add DrillRig to your Home Screen';
-            if (desc) desc.textContent = 'It opens like an app, full screen, and works without internet at the rig. It takes 3 taps:';
+            if (badge) badge.textContent = '🍎 iPHONE & iPAD · 100% OFFLINE';
+            if (title) title.textContent = 'Add DrillRig to Home Screen';
+            if (desc) desc.textContent = 'Opens full screen like an App, works 100% offline at the rig without network. Takes just 3 quick taps:';
             if (confirmBtnText) confirmBtnText.textContent = 'Got it';
+            if (benefitsList) benefitsList.hidden = true;
+        } else {
+            // Android / Desktop / Chrome: Instant 1-tap install
+            modalOverlay.classList.remove('is-ios');
+            if (iosInstructions) iosInstructions.hidden = true;
+            if (badge) badge.textContent = '⚡ 1-TAP INSTALL · 100% OFFLINE';
+            if (title) title.textContent = 'Install DrillRig App';
+            if (desc) desc.textContent = 'Install on your mobile phone for lightning-fast 1-tap access. Works 100% offline at remote borewell rig sites with zero delay!';
+            if (confirmBtnText) confirmBtnText.textContent = '⚡ Install App Now';
+            if (benefitsList) benefitsList.hidden = false;
         }
 
         modalOverlay.style.display = 'flex';
-        if (window.lucide) window.lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            try { window.lucide.createIcons(); } catch (_) {}
+        }
     }
 
     // Expose showPwaModal globally
@@ -144,10 +181,43 @@ export function initPWAAndZoomLock() {
         window.deferredInstallPrompt = e;
     });
 
-    // Auto-popup 3 seconds after launch, only for users who already saved a bill.
-    setTimeout(() => {
-        if (hasSavedBill()) showPwaModal();
-    }, 3000);
+    // Smart Schedule: After user is logged in, and NO active popups are open, wait 5 seconds then show Install Popup
+    let installScheduled = false;
+    function scheduleInstallModalCheck() {
+        if (installScheduled || isStandalone || recentlyDismissed()) return;
+        installScheduled = true;
+
+        const pollAndTrigger = () => {
+            if (isStandalone || recentlyDismissed()) return;
+            if (!isLoggedIn()) {
+                // Check again in 2 seconds for login
+                setTimeout(pollAndTrigger, 2000);
+                return;
+            }
+
+            // User is logged in! Now check if any popup is active:
+            if (isAnyPopupOpen()) {
+                // A modal is currently open (e.g. Profile Setup): wait and check again in 2 seconds
+                setTimeout(pollAndTrigger, 2000);
+                return;
+            }
+
+            // User is logged in AND screen is clear! Wait 5 seconds as requested:
+            setTimeout(() => {
+                if (isStandalone || recentlyDismissed()) return;
+                if (!isLoggedIn() || isAnyPopupOpen()) {
+                    // A popup opened during the 5s window: retry polling
+                    setTimeout(pollAndTrigger, 2000);
+                    return;
+                }
+                showPwaModal();
+            }, 5000);
+        };
+
+        setTimeout(pollAndTrigger, 1500);
+    }
+
+    scheduleInstallModalCheck();
 
     closeBtn?.addEventListener('click', closePwaModal);
     dismissBtn?.addEventListener('click', closePwaModal);
