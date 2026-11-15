@@ -53,6 +53,16 @@ async function boot() {
             const orig = app.switchTab.bind(app);
             app.switchTab = (tabId, ...rest) => { const r = orig(tabId, ...rest); try { trackScreen(tabId); } catch { /* never break the app */ } return r; };
         }
+        // App shortcuts (long-press the app icon): ?tab=bill | history | customers | rates | brand
+        try {
+            const url = new URL(window.location.href);
+            const t = url.searchParams.get('tab');
+            if (t && ['bill', 'history', 'customers', 'rates', 'brand'].includes(t)) {
+                window.boreBillApp.switchTab(`tab-${t}`);
+                url.searchParams.delete('tab');
+                window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+            }
+        } catch { /* ignore */ }
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);

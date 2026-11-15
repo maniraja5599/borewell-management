@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "DrillRig. — Borewell Billing & Accounts",
   "short_name": "DrillRig.",
-  "description": "Borewell bills, quotations, customer dues and WhatsApp receipts. Works offline at the rig site.",
+  "description": "Borewell bills and quotations with step rates, customer dues, payments and WhatsApp/PDF receipts. Works offline at the rig site.",
+  "lang": "en-IN",
+  "dir": "ltr",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -12,24 +15,102 @@
   "background_color": "#15803d",
   "theme_color": "#15803d",
   "orientation": "portrait-primary",
+  "categories": [
+    "business",
+    "finance",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/1_new_bill.webp",
+      "sizes": "1080x2340",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "New bill: type the depth, get the full bill"
+    },
+    {
+      "src": "screenshots/2_bill_preview.webp",
+      "sizes": "1080x2340",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Bill ready to send on WhatsApp or PDF"
+    },
+    {
+      "src": "screenshots/3_bills.webp",
+      "sizes": "1080x2340",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "All bills with dues and payments"
+    },
+    {
+      "src": "screenshots/5_customer_detail.webp",
+      "sizes": "1080x2340",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Customer dues at a glance"
+    },
+    {
+      "src": "screenshots/7_step_rate.webp",
+      "sizes": "1080x2340",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Your own step rates"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New bill",
+      "short_name": "New bill",
+      "url": "./index.html?tab=bill",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Bills",
+      "short_name": "Bills",
+      "url": "./index.html?tab=history",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
