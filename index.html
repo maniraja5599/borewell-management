@@ -1411,47 +1411,19 @@
              TAB 4: MULTI-RATE PROFILES, MASTER PRICE SETTINGS & 19 DEPTH SLABS
              ==================================================================== -->
         <section class="tab-panel" id="tab-rates">
-            <!-- Top KPI Summary Strip for Rates -->
-            <div class="kpi-grid-3">
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl">Applied in Bill</span>
-                        <i data-lucide="zap" class="icon-xs text-brand"></i>
-                    </div>
-                    <strong class="kpi-val text-brand kpi-truncate" id="rateKpiActiveName">Standard 6.5"</strong>
+            <!-- Rates: page head + rate cards (RatesMixin.renderRateProfilesUI) -->
+            <div class="rates2-head">
+                <div class="rates2-head-txt">
+                    <h2 class="rates2-h1"><span data-i18n="savedRateProfilesTitle">Rates</span></h2>
+                    <p class="rates2-sub" id="ratesHeadSub">Your drilling, pipe and bata prices</p>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl">Default Rate</span>
-                        <i data-lucide="check-circle-2" class="icon-xs" style="color: #059669;"></i>
-                    </div>
-                    <strong class="kpi-val kpi-truncate" id="rateKpiDefaultName">Standard 6.5"</strong>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="kpi-lbl">Saved Rates</span>
-                        <i data-lucide="layers" class="icon-xs text-muted"></i>
-                    </div>
-                    <strong class="kpi-val" id="rateKpiTotalCount">2 Rates</strong>
-                </div>
+                <button type="button" class="rates2-new-btn" id="createNewRateProfileBtn">
+                    <i data-lucide="plus" class="icon-xs"></i>
+                    <span data-i18n="newRateProfileBtnLabel">New rate</span>
+                </button>
             </div>
-
-            <!-- 1. Saved Rate Cards Deck (Clean Numbered 1, 2, 3 List) -->
-            <div class="ui-card">
-                <div class="page-head-row" style="margin-bottom: 10px;">
-                    <div>
-                        <h2 class="page-title"><i data-lucide="layers" class="icon-sm text-brand"></i> <span data-i18n="savedRateProfilesTitle">Rate List</span></h2>
-                        <p class="page-sub">Tap any rate row to view full details</p>
-                    </div>
-                    <button type="button" class="btn-brand-sm" id="createNewRateProfileBtn">
-                        <i data-lucide="plus" class="icon-xs"></i>
-                        <span data-i18n="newRateProfileBtnLabel">New Rate</span>
-                    </button>
-                </div>
-
-                <div class="rate-deck-list" id="savedRateProfilesList">
-                    <!-- Populated dynamically by app.js -->
-                </div>
+            <div class="rate-deck-list rates2-list" id="savedRateProfilesList">
+                <!-- Populated by RatesMixin.renderRateProfilesUI -->
             </div>
 
             <!-- 2. Simplified Modern Rate Card Studio -->
@@ -1506,11 +1478,11 @@
                 <div class="studio-seg-pills">
                     <button type="button" class="studio-tab-btn active" id="studioTabBtnCore" data-studiotab="core">
                         <i data-lucide="sliders" class="icon-xs"></i>
-                        <span>1. Base Rates &amp; Pipes</span>
+                        <span>Rates &amp; pipes</span>
                     </button>
                     <button type="button" class="studio-tab-btn" id="studioTabBtnSlabs" data-studiotab="slabs">
                         <i data-lucide="bar-chart-3" class="icon-xs"></i>
-                        <span id="studioSlabsTabLabel">2. Depth Slabs</span>
+                        <span id="studioSlabsTabLabel">Depth slabs</span>
                     </button>
                 </div>
 
@@ -1520,7 +1492,7 @@
                         <!-- Profile Name & Default Switch -->
                         <div class="studio-identity-bar">
                             <div class="studio-name-field">
-                                <label for="masterProfileName" data-i18n="rateProfileNameLabel">RATE LIST NAME *</label>
+                                <label for="masterProfileName" data-i18n="rateProfileNameLabel">Rate name</label>
                                 <input type="text" id="masterProfileName" placeholder="e.g. Standard 6.5&quot; Rate / Hard Rock Rate" value="Standard 6.5&quot; Rate">
                             </div>
                             <label class="studio-default-toggle" for="masterIsDefaultCheckbox" title="Make this the default rate profile for new bills">
@@ -1535,7 +1507,7 @@
                         <!-- Core Rates Tiles Grid -->
                         <div class="rate-tiles-grid-3" style="margin-top: 8px;">
                             <div class="rate-metric-tile highlight-tile">
-                                <label for="masterBaseRate" id="masterBaseRateLabel" data-i18n="baseDrillingRate">Base Rate (1–300 ft) *</label>
+                                <label for="masterBaseRate" id="masterBaseRateLabel" data-i18n="baseDrillingRate">Drilling (1–300 ft)</label>
                                 <div class="rmt-input-row">
                                     <input type="number" id="masterBaseRate" value="90" inputmode="numeric">
                                     <span class="rmt-unit">₹/ft</span>
@@ -1583,7 +1555,7 @@
 
                         <div class="rate-tiles-grid-2" style="margin-top: 8px;">
                             <div class="rate-metric-tile">
-                                <label for="masterGstPercent">Default GST Tax</label>
+                                <label for="masterGstPercent">GST</label>
                                 <div class="rmt-input-row">
                                     <input type="number" id="masterGstPercent" value="18" step="0.5" inputmode="decimal">
                                     <span class="rmt-unit">%</span>
@@ -1591,7 +1563,7 @@
                             </div>
                             <div class="rate-metric-tile next-prompt-tile" id="jumpToSlabsPanelBtn" role="button" tabindex="0">
                                 <div class="npt-text">
-                                    <strong id="corePanelSlabsTitle">Depth slab rates →</strong>
+                                    <strong id="corePanelSlabsTitle">Depth slab rates</strong>
                                     <small id="corePanelSlabsHint">See or change the rate for each depth</small>
                                 </div>
                                 <i data-lucide="arrow-right" class="icon-sm"></i>
@@ -1679,7 +1651,7 @@
                     </button>
                     <button type="button" class="btn-outline-full" id="saveAsNewProfileBtn">
                         <i data-lucide="plus-circle" class="icon-sm"></i>
-                        <span data-i18n="saveAsNewProfileLabel">Save as New Card</span>
+                        <span data-i18n="saveAsNewProfileLabel">Save as new</span>
                     </button>
                 </div>
             </div>
@@ -2693,122 +2665,77 @@
 
     <!-- ==================== CUSTOMER FULL BOREWELL & PAYMENT DETAIL MODAL ==================== -->
     <div class="cust-popup-backdrop" id="custDetailModalOverlay" style="display: none;">
-        <div class="cust-popup-dialog cust-bore-detail-modal" role="dialog" aria-modal="true" aria-labelledby="cdmName">
-            <!-- 1. Clean Customer Identity Header -->
-            <div class="cust-popup-head cdm-head">
-                <div class="cph-left">
-                    <div class="party-avatar cdm-avatar" id="cdmAvatar">C</div>
-                    <div class="cdm-title-wrap">
-                        <h4 id="cdmName">Customer Name</h4>
-                        <p class="cph-sub" id="cdmMeta">🏠 Place • 📞 Mobile</p>
-                    </div>
+        <div class="cust-popup-dialog cust-bore-detail-modal cdm2" role="dialog" aria-modal="true" aria-labelledby="cdmName">
+            <!-- Customer: name + place, edit / delete / close (CustomerLedgerMixin.openCustomerDetailModal) -->
+            <div class="cdm2-head">
+                <div class="party-avatar cdm-avatar" id="cdmAvatar">C</div>
+                <div class="cdm2-title">
+                    <h4 id="cdmName">Customer Name</h4>
+                    <p class="cph-sub" id="cdmMeta">Place · Mobile</p>
                 </div>
-                <button type="button" class="icon-close-btn" id="closeCustDetailModalBtn" title="Close"><i data-lucide="x" class="icon-xs"></i></button>
+                <button type="button" class="cdm2-icon-btn" id="cdmEditCustomerBtn" title="Edit customer" aria-label="Edit customer"><i data-lucide="pencil" class="icon-xs"></i></button>
+                <button type="button" class="cdm2-icon-btn is-danger" id="cdmDeleteCustomerBtn" title="Delete customer" aria-label="Delete customer"><i data-lucide="trash-2" class="icon-xs"></i></button>
+                <button type="button" class="icon-close-btn" id="closeCustDetailModalBtn" title="Close" aria-label="Close"><i data-lucide="x" class="icon-xs"></i></button>
             </div>
 
-            <!-- 2. Clean Quick Actions Bar -->
-            <div class="cdm-quick-actions-bar">
-                <button type="button" class="cdm-qa-btn primary" id="cdmNewBillBtn">
-                    <span>+ New Bill</span>
-                </button>
-                <button type="button" class="cdm-qa-btn whatsapp" id="cdmWhatsAppRemindBtn">
-                    <span id="cdmWhatsAppRemindTxt">Remind</span>
-                </button>
-                <a href="#" class="cdm-qa-btn call" id="cdmCallBtn">
-                    <span>Call</span>
-                </a>
-                <button type="button" class="cdm-qa-btn edit" id="cdmEditCustomerBtn">
-                    <span>Edit</span>
-                </button>
-                <button type="button" class="cdm-qa-btn danger icon-only" id="cdmDeleteCustomerBtn" title="Delete Customer">
-                    <i data-lucide="trash-2" class="icon-xs"></i>
-                </button>
-            </div>
-
-            <!-- 3. Separate View Switcher Tabs (1. Summary Overview | 2. Bore-by-Bore Details) -->
-            <div class="cdm-view-tabs" id="cdmViewTabs">
-                <button type="button" class="cdm-vtab active" data-cdmview="overview" id="cdmTabOverviewBtn">
-                    <span>Overall Summary</span>
-                </button>
-                <button type="button" class="cdm-vtab" data-cdmview="bores" id="cdmTabBoresBtn">
-                    <span>Bore Details</span>
-                    <span class="cdm-vtab-badge" id="cdmTabBoresCountBadge">0</span>
-                </button>
-            </div>
-
-            <!-- 4. Scrollable Modal Body -->
-            <div class="cdm-scroll-body">
-                <!-- VIEW 1: CLEAN OVERALL SUMMARY (Payments + Drilling & Pipes) -->
-                <div class="cdm-view-pane" id="cdmOverviewPane">
-                    <!-- A. Compact 1-Line Trio Summary -->
-                    <div class="cdm-compact-summary-strip">
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Billed</span>
-                            <strong class="cdm-css-val" id="cdmTotalBilled">₹0</strong>
-                        </div>
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Paid</span>
-                            <strong class="cdm-css-val paid-val" id="cdmTotalPaid">₹0</strong>
-                        </div>
-                        <div class="cdm-css-item">
-                            <span class="cdm-css-lbl">Due</span>
-                            <strong class="cdm-css-val due-val" id="cdmTotalDue">₹0</strong>
-                        </div>
-                    </div>
-
-                    <!-- B. Borewell & Pipe Totals Card (Clean Vertical Rows) -->
-                    <div class="cdm-clean-card">
-                        <div class="cdm-cc-head">
-                            <span>Borewell &amp; Pipe Summary</span>
-                            <span class="cdm-sec-pill" id="cdmSitesCountPill">0 Sites</span>
-                        </div>
-                        <div class="cdm-kv-list">
-                            <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Bores Done</span>
-                                <div class="ckv-right">
-                                    <strong id="cdmTotalBoresCount">0 Bores</strong>
-                                    <small id="cdmBoresTypeSub">New: 0 • Re-Bore: 0</small>
-                                </div>
-                            </div>
-                            <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Depth Drilled</span>
-                                <div class="ckv-right">
-                                    <strong class="text-brand" id="cdmTotalDrilledFt">0 ft</strong>
-                                    <small id="cdmTotalDrillCostSub">Drilling Cost: ₹0</small>
-                                </div>
-                            </div>
-                            <div class="cdm-kv-row">
-                                <span class="ckv-label">Total Casing Pipe Installed</span>
-                                <div class="ckv-right">
-                                    <strong id="cdmTotalPipeFt">0 ft</strong>
-                                    <small id="cdmPipeBreakdownSub">7": 0 ft • 10": 0 ft</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Row: View Overall Receipt + View Each Bore Detail Separately -->
-                    <div class="cdm-overview-actions-wrap">
-                        <button type="button" class="btn-brand-sm cdm-overall-rcpt-btn" id="cdmOverallReceiptBtn">
-                            <span>🧾 Overall Receipt / Statement</span>
-                        </button>
-                        <button type="button" class="cdm-goto-bores-btn" id="cdmGotoBoresViewBtn">
-                            <span>🚜 View Each Bore Detail Separately</span>
-                            <span>→</span>
-                        </button>
-                    </div>
+            <div class="cdm-scroll-body cdm2-body">
+                <div class="cdm2-actions">
+                    <button type="button" class="cdm2-act is-pri" id="cdmNewBillBtn"><i data-lucide="file-plus-2" class="icon-xs"></i><span>New bill</span></button>
+                    <button type="button" class="cdm2-act is-wa" id="cdmWhatsAppRemindBtn"><i data-lucide="message-circle" class="icon-xs"></i><span id="cdmWhatsAppRemindTxt">WhatsApp</span></button>
+                    <a href="#" class="cdm2-act" id="cdmCallBtn"><i data-lucide="phone" class="icon-xs"></i><span>Call</span></a>
                 </div>
 
-                <!-- VIEW 2: SEPARATE BORE-BY-BORE DETAILED VIEW -->
-                <div class="cdm-view-pane" id="cdmBoresPane" style="display: none;">
-                    <!-- Individual Bore Selector Pills (Bore #1 | Bore #2 | ... | All) -->
-                    <div class="cdm-bore-selector-bar" id="cdmBoreSelectorBar">
-                        <!-- Populated dynamically by app.js -->
+                <!-- Balance: what is still to come in, then billed / received / bores -->
+                <section class="cdm2-balance" id="cdmBalanceCard" aria-label="Balance">
+                    <span class="cdm2-bal-lbl" id="cdmBalanceLbl">Still to receive</span>
+                    <strong class="cdm2-bal-amt" id="cdmTotalDue">₹0</strong>
+                    <div class="cdm2-bar" aria-hidden="true"><i id="cdmPaidBar"></i></div>
+                    <div class="cdm2-trio">
+                        <div><span>Billed</span><strong id="cdmTotalBilled">₹0</strong></div>
+                        <div><span>Received</span><strong class="is-paid" id="cdmTotalPaid">₹0</strong></div>
+                        <div><span>Bores</span><strong id="cdmBoresMini">0</strong></div>
                     </div>
+                </section>
 
-                    <div class="cdm-bores-list" id="cdmBoresList">
-                        <!-- Populated dynamically with clean Bore Detail card(s) -->
-                    </div>
+                <div class="cdm-view-tabs cdm2-tabs" id="cdmViewTabs" role="tablist">
+                    <button type="button" class="cdm-vtab active" data-cdmview="bores" id="cdmTabBoresBtn" role="tab">
+                        <span>Bores</span>
+                        <span class="cdm-vtab-badge" id="cdmTabBoresCountBadge">0</span>
+                    </button>
+                    <button type="button" class="cdm-vtab" data-cdmview="overview" id="cdmTabOverviewBtn" role="tab">
+                        <span>Work summary</span>
+                    </button>
+                </div>
+
+                <!-- Bores: one row per bill; tap to open it -->
+                <div class="cdm-view-pane" id="cdmBoresPane">
+                    <div class="cdm-bore-selector-bar" id="cdmBoreSelectorBar"></div>
+                    <div class="cdm-bores-list" id="cdmBoresList"></div>
+                </div>
+
+                <!-- Work summary: bores, depth, casing for this customer -->
+                <div class="cdm-view-pane" id="cdmOverviewPane" style="display: none;">
+                    <section class="cdm2-card" aria-label="Work summary">
+                        <div class="cdm2-kv">
+                            <span>Bores done</span>
+                            <div><strong id="cdmTotalBoresCount">0 Bores</strong><small id="cdmBoresTypeSub">New: 0 · Re-bore: 0</small></div>
+                        </div>
+                        <div class="cdm2-kv">
+                            <span>Depth drilled</span>
+                            <div><strong id="cdmTotalDrilledFt">0 ft</strong><small id="cdmTotalDrillCostSub">Drilling: ₹0</small></div>
+                        </div>
+                        <div class="cdm2-kv">
+                            <span>Casing pipe</span>
+                            <div><strong id="cdmTotalPipeFt">0 ft</strong><small id="cdmPipeBreakdownSub">7": 0 ft · 10": 0 ft</small></div>
+                        </div>
+                        <div class="cdm2-kv">
+                            <span>Sites</span>
+                            <div><strong id="cdmSitesCountPill">0</strong></div>
+                        </div>
+                    </section>
+                    <button type="button" class="cdm2-statement-btn" id="cdmOverallReceiptBtn">
+                        <i data-lucide="receipt" class="icon-xs"></i><span>Open latest bill / statement</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -2887,7 +2814,7 @@
 
     <!-- ==================== SINGLE BILL FULL DETAIL MODAL ==================== -->
     <div class="cust-popup-backdrop" id="billDetailModalOverlay" style="display: none;">
-        <div class="cust-popup-dialog cust-bore-detail-modal bill-single-detail-modal" role="dialog" aria-modal="true" aria-labelledby="bdmTitle">
+        <div class="cust-popup-dialog cust-bore-detail-modal bill-single-detail-modal bdm2" role="dialog" aria-modal="true" aria-labelledby="bdmTitle">
             <div class="cust-popup-head cdm-head">
                 <div class="cph-left">
                     <div class="party-avatar cdm-avatar" id="bdmAvatar">B</div>
@@ -2903,7 +2830,7 @@
                 <!-- Populated dynamically by app.js with this bill's exact borewell, pipe & payment details -->
             </div>
 
-            <div class="cust-popup-foot bdm-foot-bar" id="bdmFooterActions">
+            <div class="cust-popup-foot bdm-foot-bar bdm2-foot" id="bdmFooterActions">
                 <!-- Populated dynamically by app.js -->
             </div>
         </div>
@@ -2997,7 +2924,7 @@
 
     <!-- ==================== RATE CARD FULL DETAILS MODAL ==================== -->
     <div class="cust-popup-backdrop" id="rateDetailModalOverlay" style="display: none;">
-        <div class="cust-popup-dialog cust-bore-detail-modal rate-detail-modal" role="dialog" aria-modal="true" aria-labelledby="rdmTitle">
+        <div class="cust-popup-dialog cust-bore-detail-modal rate-detail-modal bdm2" role="dialog" aria-modal="true" aria-labelledby="rdmTitle">
             <div class="cust-popup-head cdm-head">
                 <div class="cph-left">
                     <div class="party-avatar cdm-avatar rdm-num-avatar" id="rdmNumBadge">1</div>
@@ -3013,7 +2940,7 @@
                 <!-- Populated dynamically by app.js -->
             </div>
 
-            <div class="cust-popup-foot bdm-foot-bar" id="rdmFooterActions">
+            <div class="cust-popup-foot bdm-foot-bar bdm2-foot" id="rdmFooterActions">
                 <!-- Populated dynamically by app.js -->
             </div>
         </div>

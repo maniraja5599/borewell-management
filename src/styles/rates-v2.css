@@ -1,0 +1,161 @@
+/* Rates page: rate cards, rate popup and the rate editor (index.html #tab-rates,
+   #rateDetailModalOverlay; RatesMixin). Colours follow the chosen theme (--brand-*). */
+
+/* ---------- Page head ---------- */
+#tab-rates .rates2-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: 4px 0 12px; }
+#tab-rates .rates2-head-txt { min-width: 0; }
+#tab-rates .rates2-h1 { margin: 0; font: 800 24px/1.15 var(--pp-head); letter-spacing: -0.3px; color: var(--pp-ink); }
+#tab-rates .rates2-sub { margin: 3px 0 0; font: 500 13px/1.35 Inter, sans-serif; color: var(--pp-mut); overflow-wrap: anywhere; }
+#tab-rates .rates2-new-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 12px; border: 0; background: var(--pp-pri); color: #fff; font: 600 14px/1 Inter, sans-serif; cursor: pointer; }
+#tab-rates .rates2-new-btn svg { width: 16px; height: 16px; }
+#tab-rates .rates2-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+
+/* ---------- One rate card ---------- */
+#tab-rates .rc2 { display: block; padding: 14px 16px; border-radius: 18px; background: #fff; border: 1px solid var(--pp-line); box-shadow: none; cursor: pointer; }
+#tab-rates .rc2.is-active-rate { border-color: var(--pp-pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-pri) 12%, transparent); }
+#tab-rates .rc2.is-editing-card { border-style: dashed; }
+#tab-rates .rc2-top { display: flex; align-items: center; gap: 12px; }
+#tab-rates .rc2-num { flex: none; width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #f1f5f2; color: #334155; font: 800 15px/1 var(--pp-head); }
+#tab-rates .rc2.is-active-rate .rc2-num { background: var(--pp-pri); color: #fff; }
+#tab-rates .rc2-title { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+#tab-rates .rc2 .rcr-name { font: 800 16.5px/1.25 var(--pp-head); color: var(--pp-ink); overflow-wrap: anywhere; }
+#tab-rates .rc2-tags { display: inline-flex; gap: 5px; }
+#tab-rates .rc2 .rcr-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; font: 700 11.5px/1 Inter, sans-serif; border: 1px solid transparent; }
+#tab-rates .rc2 .rcr-def-tag { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+#tab-rates .rc2 .rcr-active-tag { background: var(--pp-pri-soft); color: var(--pp-pri); border-color: var(--pp-pri-light); }
+#tab-rates .rc2-chev { flex: none; color: #94a3b8; font-size: 22px; line-height: 1; }
+#tab-rates .rc2-figs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 12px; padding: 10px 0; border-top: 1px solid var(--pp-hair); border-bottom: 1px solid var(--pp-hair); }
+#tab-rates .rc2-figs > div { min-width: 0; padding: 0 8px; border-left: 1px solid var(--pp-hair); }
+#tab-rates .rc2-figs > div:first-child { padding-left: 0; border-left: 0; }
+#tab-rates .rc2-figs span { display: block; font: 600 10.5px/1.2 Inter, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pp-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tab-rates .rc2-figs strong { display: block; margin-top: 3px; font: 800 16px/1.15 var(--pp-head); color: var(--pp-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#tab-rates .rc2-figs strong small { font: 600 11px/1 Inter, sans-serif; color: var(--pp-mut); margin-left: 1px; }
+#tab-rates .rc2-figs em { display: block; margin-top: 2px; font: 500 11px/1.2 Inter, sans-serif; font-style: normal; color: var(--pp-mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#tab-rates .rc2-ladder { display: flex; align-items: flex-end; gap: 2px; height: 30px; margin-top: 10px; }
+#tab-rates .rc2-ladder i { flex: 1 1 0; min-width: 2px; border-radius: 3px 3px 0 0; background: color-mix(in srgb, var(--pp-pri) 30%, #e2e8f0); }
+#tab-rates .rc2.is-active-rate .rc2-ladder i { background: color-mix(in srgb, var(--pp-pri) 70%, #ffffff); }
+#tab-rates .rc2-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 8px; margin-top: 12px; }
+#tab-rates .rc2 .rcr-action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--pp-line); background: #fff; color: var(--pp-ink); font: 600 14px/1 Inter, sans-serif; white-space: nowrap; box-shadow: none; cursor: pointer; margin: 0; }
+#tab-rates .rc2 .rcr-action-btn svg { width: 15px; height: 15px; }
+#tab-rates .rc2 .rcr-apply-btn { background: var(--pp-pri); border-color: var(--pp-pri); color: #fff; }
+#tab-rates .rc2 .rcr-apply-btn.is-applied { background: var(--pp-pri-soft); border-color: var(--pp-pri-light); color: var(--pp-pri); }
+#tab-rates .rc2 .rcr-icon-btn { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--pp-line); background: #fff; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; cursor: pointer; padding: 0; margin: 0; }
+#tab-rates .rc2 .rcr-default-btn.is-def { color: #d97706; background: #fffbeb; border-color: #fde68a; }
+#tab-rates .rc2 .rcr-del-btn { color: var(--pp-due); border-color: var(--pp-due-line); }
+#tab-rates .rc2 .rcr-del-btn svg { width: 16px; height: 16px; }
+
+/* ---------- Rate popup ---------- */
+.rate-detail-modal .rdm-num-avatar { border-radius: 12px !important; background: var(--pp-pri) !important; color: #fff !important; }
+.rate-detail-modal .rd2-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rate-detail-modal .rd2-chip { display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 999px; background: #fff; border: 1px solid var(--pp-line); color: #475569; font: 700 12.5px/1 Inter, sans-serif; }
+.rate-detail-modal .rd2-chip.is-def { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+.rate-detail-modal .rd2-chip.is-use { background: var(--pp-pri-soft); border-color: var(--pp-pri-light); color: var(--pp-pri); }
+.rate-detail-modal .rd2-card { margin-top: 12px; padding: 4px 16px 8px; border-radius: 16px; background: #fff; border: 1px solid var(--pp-line); }
+.rate-detail-modal .rd2-figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.rate-detail-modal .rd2-fig { padding: 12px 0; border-top: 1px solid var(--pp-hair); min-width: 0; }
+.rate-detail-modal .rd2-fig:nth-child(-n+2) { border-top: 0; }
+.rate-detail-modal .rd2-fig:nth-child(even) { padding-left: 14px; border-left: 1px solid var(--pp-hair); }
+.rate-detail-modal .rd2-fig span { display: block; font: 600 11px/1.25 Inter, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pp-mut); }
+.rate-detail-modal .rd2-fig strong { display: block; margin-top: 4px; font: 800 18px/1.15 var(--pp-head); color: var(--pp-ink); font-variant-numeric: tabular-nums; }
+.rate-detail-modal .rd2-fig em { display: block; margin-top: 2px; font: 500 12px/1.2 Inter, sans-serif; font-style: normal; color: var(--pp-mut); }
+.rate-detail-modal .rd2-sec-head { display: flex; align-items: center; justify-content: space-between; min-height: 40px; font: 700 11.5px/1 Inter, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pp-pri-d); }
+.rate-detail-modal .rd2-sec-head span + span { letter-spacing: 0; text-transform: none; font-weight: 600; color: var(--pp-mut); }
+.rate-detail-modal .rd2-slabs { max-height: 320px; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+.rate-detail-modal .rd2-slab { display: grid; grid-template-columns: 94px minmax(0, 1fr) 54px 56px; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--pp-hair); font: 500 13px/1.2 Inter, sans-serif; font-variant-numeric: tabular-nums; }
+.rate-detail-modal .rd2-s-range { font-weight: 600; color: var(--pp-ink); white-space: nowrap; }
+.rate-detail-modal .rd2-s-bar { height: 8px; border-radius: 999px; background: #eef2ef; overflow: hidden; }
+.rate-detail-modal .rd2-s-bar i { display: block; height: 100%; border-radius: 999px; background: color-mix(in srgb, var(--pp-pri) 75%, #ffffff); }
+.rate-detail-modal .rd2-s-step { color: var(--pp-mut); text-align: right; white-space: nowrap; }
+.rate-detail-modal .rd2-s-rate { text-align: right; font: 800 14px/1.2 var(--pp-head); color: var(--pp-pri); white-space: nowrap; }
+.bdm-act.is-danger { color: var(--pp-due); border-color: var(--pp-due-line); }
+.bdm-act.is-def-on { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+
+/* ---------- Rate editor ---------- */
+#tab-rates #rateEditorCard { padding: 16px; border-radius: 18px; border: 1px solid var(--pp-line); background: #fff; box-shadow: none; }
+#tab-rates #rateEditorCard .studio-header-banner { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 0 0 12px; margin: 0 0 12px; border-bottom: 1px solid var(--pp-hair); background: transparent; }
+#tab-rates #rateEditorCard .studio-mode-pill { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 999px; background: var(--pp-pri-soft); color: var(--pp-pri); border: 1px solid var(--pp-pri-light); font: 700 11.5px/1 Inter, sans-serif; letter-spacing: 0; text-transform: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#tab-rates #rateEditorCard .studio-header-banner .page-title { margin: 6px 0 0; font: 800 20px/1.2 var(--pp-head); color: var(--pp-ink); }
+#tab-rates #rateEditorCard .studio-head-actions { display: flex; gap: 8px; flex: none; }
+#tab-rates #rateEditorCard .studio-head-actions .btn-secondary-sm { height: 36px; border-radius: 10px; }
+#tab-rates #rateEditorCard .studio-seg-pills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 3px; margin: 0 0 12px; border-radius: 12px; background: #eef2ef; border: 1px solid var(--pp-line); }
+#tab-rates #rateEditorCard .studio-tab-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; border-radius: 9px; border: 0; background: transparent; color: #334155; font: 600 14px/1.15 Inter, sans-serif; box-shadow: none; text-align: center; }
+#tab-rates #rateEditorCard .studio-tab-btn.active { background: #fff; color: var(--pp-pri-d); box-shadow: 0 1px 2px rgba(15, 26, 20, 0.08); }
+#tab-rates #rateEditorCard .studio-tab-btn svg { width: 15px; height: 15px; flex: none; }
+#tab-rates #rateEditorCard .rate-core-form-card { padding: 0; border: 0; background: transparent; box-shadow: none; }
+#tab-rates #rateEditorCard .studio-identity-bar { display: flex; align-items: flex-end; gap: 10px; padding: 0; border: 0; background: transparent; }
+#tab-rates #rateEditorCard .studio-name-field { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+#tab-rates #rateEditorCard .studio-name-field label,
+#tab-rates #rateEditorCard .rate-metric-tile label { font: 600 12.5px/1.25 Inter, sans-serif; letter-spacing: 0; text-transform: none; color: #334155; }
+#tab-rates #rateEditorCard .studio-name-field input { height: 46px; padding: 0 12px; border-radius: 12px; border: 1px solid #d5ddd8; font: 700 16px/1 Inter, sans-serif; color: var(--pp-ink); background: #fff; }
+#tab-rates #rateEditorCard .studio-default-toggle .sdt-box { height: 46px; border-radius: 12px; }
+#tab-rates #rateEditorCard .rate-tiles-grid-3,
+#tab-rates #rateEditorCard .rate-tiles-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px !important; }
+#tab-rates #rateEditorCard .rate-metric-tile { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: transparent; box-shadow: none; min-width: 0; }
+#tab-rates #rateEditorCard .rate-metric-tile.highlight-tile label { color: var(--pp-pri-d); }
+#tab-rates #rateEditorCard .rmt-input-row { display: flex; align-items: center; height: 46px; padding: 0 12px; border-radius: 12px; border: 1px solid #d5ddd8; background: #fff; }
+#tab-rates #rateEditorCard .rate-metric-tile.highlight-tile .rmt-input-row { border-color: var(--pp-pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-pri) 12%, transparent); }
+#tab-rates #rateEditorCard .rmt-input-row:focus-within { border-color: var(--pp-pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-pri) 12%, transparent); }
+#tab-rates #rateEditorCard .rmt-input-row input { flex: 1 1 auto; min-width: 0; width: 100%; height: 100%; border: 0; outline: 0; padding: 0; background: transparent; font: 800 17px/1 var(--pp-head); color: var(--pp-ink); box-shadow: none; }
+#tab-rates #rateEditorCard .rmt-unit { flex: none; font: 600 12.5px/1 Inter, sans-serif; color: var(--pp-mut); }
+#tab-rates #rateEditorCard .next-prompt-tile { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--pp-pri-light); background: var(--pp-pri-soft); color: var(--pp-pri-d); cursor: pointer; align-self: end; min-height: 46px; }
+#tab-rates #rateEditorCard .next-prompt-tile .npt-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#tab-rates #rateEditorCard .next-prompt-tile strong { font: 700 13.5px/1.2 Inter, sans-serif; }
+#tab-rates #rateEditorCard .next-prompt-tile small { font: 500 12px/1.25 Inter, sans-serif; color: var(--pp-mut); }
+
+/* slabs tab */
+#tab-rates #rateEditorCard .slab-ladder-summary { padding: 12px 14px; border-radius: 14px; background: var(--pp-pri-soft); border: 1px solid var(--pp-pri-light); }
+#tab-rates #rateEditorCard .slab-quick-box { margin-top: 12px; padding: 14px; border-radius: 14px; border: 1px solid var(--pp-line); background: #fff; box-shadow: none; }
+#tab-rates #rateEditorCard .ssg-step-chip { border-radius: 10px; }
+#tab-rates #rateEditorCard .base-span-selector-bar { margin-top: 12px; }
+#tab-rates #rateEditorCard .slab-builder-table-head { margin-top: 12px; padding: 8px 12px; border-radius: 10px; background: #f6f8f7; font: 600 11px/1.2 Inter, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pp-mut); }
+#tab-rates #rateEditorCard .slabs-editor-grid { display: flex; flex-direction: column; gap: 0; margin-top: 6px; border: 1px solid var(--pp-line); border-radius: 14px; overflow: hidden; background: #fff; }
+#tab-rates #rateEditorCard .slab-clean-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 !important; padding: 8px 10px 8px 12px; border: 0; border-top: 1px solid var(--pp-hair); border-radius: 0; background: #fff; box-shadow: none; }
+#tab-rates #rateEditorCard .slab-clean-row:first-child { border-top: 0; }
+#tab-rates #rateEditorCard .slab-clean-row.is-base { background: var(--pp-pri-soft); }
+#tab-rates #rateEditorCard .scr-col-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#tab-rates #rateEditorCard .scr-idx { flex: none; width: 22px; height: 22px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: #f1f5f2; color: #475569; font: 700 11.5px/1 Inter, sans-serif; }
+#tab-rates #rateEditorCard .scr-range { font: 600 14px/1.2 Inter, sans-serif; color: var(--pp-ink); white-space: nowrap; letter-spacing: 0; }
+#tab-rates #rateEditorCard .scr-step-badge { height: 20px; padding: 0 7px; display: inline-flex; align-items: center; border-radius: 999px; background: #eff6ff; color: #1d4ed8; font: 700 11.5px/1 Inter, sans-serif; white-space: nowrap; }
+#tab-rates #rateEditorCard .scr-step-badge.scr-step-base { background: var(--pp-pri-light); color: var(--pp-pri-d); }
+#tab-rates #rateEditorCard .scr-step-badge.scr-step-neg { background: var(--pp-due-bg); color: var(--pp-due); }
+#tab-rates #rateEditorCard .scr-col-right { display: flex; align-items: center; gap: 6px; flex: none; }
+#tab-rates #rateEditorCard .scr-rate-wrap { display: flex; align-items: center; gap: 2px; width: 112px; height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid #d5ddd8; background: #fff; }
+#tab-rates #rateEditorCard .scr-rate-wrap:focus-within { border-color: var(--pp-pri); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-pri) 12%, transparent); }
+#tab-rates #rateEditorCard .scr-rate-wrap input { flex: 1 1 auto; min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; padding: 0; text-align: right; font: 800 16px/1 var(--pp-head); color: var(--pp-ink); box-shadow: none; }
+#tab-rates #rateEditorCard .scr-cur, #tab-rates #rateEditorCard .scr-unit { font: 600 12px/1 Inter, sans-serif; color: var(--pp-mut); }
+#tab-rates #rateEditorCard .slab-row-del-btn { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--pp-due-line); background: var(--pp-due-bg); color: var(--pp-due); font-weight: 800; }
+#tab-rates #rateEditorCard .scr-del-gap { width: 32px; }
+#tab-rates #rateEditorCard .slab-builder-add-bar { margin-top: 10px; }
+#tab-rates #rateEditorCard .btn-add-next-slab { border-radius: 12px; }
+
+/* save buttons */
+#tab-rates #rateEditorCard .dual-save-bar { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px; margin-top: 16px !important; padding-top: 14px; border-top: 1px solid var(--pp-hair); }
+#tab-rates #rateEditorCard .dual-save-bar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 48px; padding: 0 12px; border-radius: 12px; font: 700 14.5px/1.15 Inter, sans-serif; white-space: nowrap; box-shadow: none; margin: 0; width: auto; }
+#tab-rates #rateEditorCard #saveMasterRatesBtn { background: var(--pp-pri); border: 1px solid var(--pp-pri); color: #fff; }
+#tab-rates #rateEditorCard #saveAsNewProfileBtn { background: #fff; border: 1px solid var(--pp-line); color: var(--pp-ink); }
+#tab-rates #rateEditorCard .dual-save-bar svg { width: 17px; height: 17px; flex: none; }
+
+@media (max-width: 379px) {
+    #tab-rates .rc2-figs strong { font-size: 14.5px; }
+    #tab-rates .rc2-figs > div { padding: 0 6px; }
+    #tab-rates .rc2 .rcr-action-btn { padding: 0 10px; font-size: 13.5px; }
+    #tab-rates .rc2 .rcr-icon-btn { width: 38px; }
+    .rate-detail-modal .rd2-slab { grid-template-columns: 86px minmax(0, 1fr) 46px 50px; gap: 6px; }
+    #tab-rates #rateEditorCard .dual-save-bar button { font-size: 13.5px; }
+}
+
+/* fixes after first look */
+#tab-rates .rc2 .rcr-action-btn.rcr-edit-btn { background: #fff !important; border: 1px solid var(--pp-line) !important; box-shadow: none !important; color: var(--pp-ink) !important; }
+/* one even 2-column grid for all price fields (no half-empty rows) */
+#tab-rates #rateEditorCard .rate-core-form-card { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; }
+#tab-rates #rateEditorCard .rate-core-form-card > .studio-identity-bar { grid-column: 1 / -1; }
+#tab-rates #rateEditorCard .rate-core-form-card > .rate-tiles-grid-3,
+#tab-rates #rateEditorCard .rate-core-form-card > .rate-tiles-grid-2 { display: contents; }
+#tab-rates #rateEditorCard .next-prompt-tile { align-self: stretch; margin-top: 0; }
+/* slab list: rows explain themselves; the old header did not line up */
+#tab-rates #rateEditorCard .slab-builder-table-head { display: none; }
+#tab-rates #rateEditorCard .scr-rate-wrap { width: 96px; }
+#tab-rates #rateEditorCard .scr-unit { display: none; }
+#tab-rates #rateEditorCard .scr-col-left { flex: 1 1 auto; flex-wrap: wrap; row-gap: 3px; }
+#tab-rates #rateEditorCard .base-span-selector-bar .bss-lbl { font: 600 12.5px/1.2 Inter, sans-serif; color: #334155; }
+@media (max-width: 379px) { #tab-rates #rateEditorCard .studio-tab-btn svg { display: none; } #tab-rates #rateEditorCard .studio-tab-btn { font-size: 13.5px; } }

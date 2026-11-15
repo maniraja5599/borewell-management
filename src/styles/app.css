@@ -15178,3 +15178,9 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
 .rpm-hi-date > .rpm-hi-mode { grid-column: 2; justify-self: start; }
 .cphb-r-left { white-space: nowrap; }
 .cphb-r-amt { text-align: right; }
+
+/* Bottom bar 3D icons (src/ui/navIcons3d.js): full colour on the open tab, softer on the others */
+.b-nav-icon.is-3d { height: 28px; }
+.b-nav-icon.is-3d svg { width: 26px !important; height: 26px !important; filter: saturate(0.6) opacity(0.9); transition: transform 0.16s ease, filter 0.16s ease; }
+.b-nav-item.active .b-nav-icon.is-3d svg { filter: none; transform: translateY(-1px) scale(1.1); }
+@media (prefers-reduced-motion: reduce) { .b-nav-icon.is-3d svg { transition: none; } }

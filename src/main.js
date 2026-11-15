@@ -1,6 +1,8 @@
 // App entry point (bundled by Vite).
 import './styles/app.css';
-import './styles/ui-v3.css'; // new look; only applies with FEATURES.uiV3 (html.ui-v3)
+import './styles/ui-v3.css';
+import './styles/popups-v2.css'; // bill + customer popups (after ui-v3 so its rules win)
+import './styles/rates-v2.css'; // Rates page, rate popup, rate editor // new look; only applies with FEATURES.uiV3 (html.ui-v3)
 import { BoreBillSaaSApp } from './app/App.js';
 import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
@@ -9,6 +11,7 @@ import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
 import { initComingSoon } from './features/settings/comingSoon.js';
+import { applyNavIcons3d } from './ui/navIcons3d.js';
 import { initStockUI } from './features/stock/stockUI.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 import { FEATURES } from './config/features.js';
@@ -41,6 +44,7 @@ async function boot() {
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
+        applyNavIcons3d(); // bottom bar: 3D icons
         // First-run setup opens after the splash has faded.
         setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 1400);
     } catch (err) {

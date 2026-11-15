@@ -128,9 +128,14 @@ export class RatesMixin {
             });
         }
 
-        // 2. Render Clean Numbered (1, 2, 3...) Minimal Rate List on Tab 4 with well-spaced Default & Apply buttons
+        // 2. Rates page: one card per rate (figures, slab ladder, Use / Edit / Default / Delete)
+        const headSub = document.getElementById('ratesHeadSub');
+        if (headSub && activeProf) {
+            headSub.textContent = `New bills use ${activeProf.name}`;
+        }
         const listEl = document.getElementById('savedRateProfilesList');
         if (!listEl) return;
+        const canDelete = this.rateProfiles.length > 1;
 
         listEl.innerHTML = this.rateProfiles.map((p, idx) => {
             const num = idx + 1;
@@ -138,33 +143,34 @@ export class RatesMixin {
             const isActive = p.id === this.activeRateProfileId;
             const isEditing = studioVisible && p.id === editingId;
             const slabs = this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90);
-
+            const endFt = slabs[slabs.length - 1]?.end || 0;
+            const firstEnd = slabs[0]?.end || 300;
+            const maxRate = Math.max(1, ...slabs.map((x) => Number(x.rate) || 0));
+            const ladder = slabs.length > 1
+                ? `<div class="rc2-ladder" aria-hidden="true">${slabs.map((x) => `<i style="height:${Math.max(12, Math.round((Number(x.rate) || 0) / maxRate * 100))}%"></i>`).join('')}</div>`
+                : '';
             return `
-                <div class="rate-clean-row ${isActive ? 'is-active-rate' : ''} ${isEditing ? 'is-editing-card' : ''}" data-rateid="${p.id}">
-                    <div class="rcr-left">
-                        <div class="rcr-num-badge">${num}</div>
-                        <div class="rcr-info">
-                            <div class="rcr-title-line">
-                                <span class="rcr-name">${this.escapeHtml(p.name)}</span>
-                                ${p.isDefault ? '<span class="rcr-tag rcr-def-tag">Default</span>' : ''}
-                                ${isActive ? '<span class="rcr-tag rcr-active-tag">Applied</span>' : ''}
-                            </div>
-                            <div class="rcr-sub">
-                                Base: <strong>₹${r.baseDrillingRate}/ft</strong> • 7" Pipe: <strong>₹${r.pvc7Rate}/ft</strong> • up to ${slabs[slabs.length - 1]?.end || 0} ft
-                            </div>
+                <div class="rate-clean-row rc2 ${isActive ? 'is-active-rate' : ''} ${isEditing ? 'is-editing-card' : ''}" data-rateid="${p.id}">
+                    <div class="rc2-top">
+                        <span class="rc2-num">${num}</span>
+                        <div class="rc2-title">
+                            <span class="rcr-name">${this.escapeHtml(p.name)}</span>
+                            <span class="rc2-tags">${p.isDefault ? '<span class="rcr-tag rcr-def-tag">Default</span>' : ''}${isActive ? '<span class="rcr-tag rcr-active-tag">Applied</span>' : ''}</span>
                         </div>
+                        <span class="rc2-chev" aria-hidden="true">›</span>
                     </div>
-                    <div class="rcr-right">
-                        <button type="button" class="rcr-action-btn rcr-edit-btn" data-editbtn="${p.id}" title="Edit Rate in Studio">✏️ Edit</button>
-                        <button type="button" class="rcr-action-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Default Rate' : 'Set as Default Rate'}">
-                            ${p.isDefault ? '★ Default' : 'Set Default'}
-                        </button>
-                        <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" data-applybtn="${p.id}" title="${isActive ? 'Applied in Bill' : 'Apply Rate to Bill'}">
-                            ${isActive ? '✓ Applied' : 'Apply'}
-                        </button>
-                        ${this.rateProfiles.length > 1
-                            ? `<button type="button" class="rcr-del-btn" data-delbtn="${p.id}" title="Delete Rate" aria-label="Delete ${this.escapeHtml(p.name)}"><i data-lucide="trash-2" class="icon-xs"></i></button>`
-                            : ''}
+                    <div class="rc2-figs">
+                        <div><span>Drilling</span><strong>₹${r.baseDrillingRate}<small>/ft</small></strong><em>1–${firstEnd} ft</em></div>
+                        <div><span>${this.escapeHtml((this.getCasing1Name?.() || '7"').replace(/\s*casing\s*pipe/i, ''))} pipe</span><strong>₹${r.pvc7Rate}<small>/ft</small></strong></div>
+                        <div><span>${this.escapeHtml((this.getCasing2Name?.() || '10"').replace(/\s*casing\s*pipe/i, ''))} pipe</span><strong>₹${r.pvc10Rate}<small>/ft</small></strong></div>
+                        <div><span>Slabs</span><strong>${slabs.length}</strong><em>to ${endFt.toLocaleString('en-IN')} ft</em></div>
+                    </div>
+                    ${ladder}
+                    <div class="rc2-actions">
+                        <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" data-applybtn="${p.id}" title="${isActive ? 'New bills use this rate' : 'Use this rate on bills'}">${isActive ? '✓ In use on bills' : 'Use on bills'}</button>
+                        <button type="button" class="rcr-action-btn rcr-edit-btn" data-editbtn="${p.id}" title="Edit this rate"><i data-lucide="pencil" class="icon-xs"></i><span>Edit</span></button>
+                        <button type="button" class="rcr-icon-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" data-defbtn="${p.id}" title="${p.isDefault ? 'Default rate' : 'Make default'}" aria-label="${p.isDefault ? 'Default rate' : 'Make default'}">★</button>
+                        ${canDelete ? `<button type="button" class="rcr-icon-btn rcr-del-btn" data-delbtn="${p.id}" title="Delete rate" aria-label="Delete ${this.escapeHtml(p.name)}"><i data-lucide="trash-2" class="icon-xs"></i></button>` : ''}
                     </div>
                 </div>
             `;
@@ -241,102 +247,47 @@ export class RatesMixin {
         const titleEl = document.getElementById('rdmTitle');
         const subEl = document.getElementById('rdmSub');
         if (numEl) numEl.textContent = String(num);
-        if (titleEl) titleEl.textContent = `${num}. ${p.name}`;
-        if (subEl) subEl.textContent = `Base ₹${r.baseDrillingRate}/ft (${baseRangeText}) • ${slabs.length} Slabs (1–${maxEndDepth} ft)`;
+        if (titleEl) titleEl.textContent = p.name;
+        if (subEl) subEl.textContent = `${slabs.length} slabs · up to ${maxEndDepth.toLocaleString('en-IN')} ft`;
 
+        const maxRate = Math.max(1, ...slabs.map((x) => Number(x.rate) || 0));
+        const fig = (lbl, val, sub = '') => `<div class="rd2-fig"><span>${lbl}</span><strong>${val}</strong>${sub ? `<em>${sub}</em>` : ''}</div>`;
         bodyEl.innerHTML = `
-            <!-- Clean Status & Quick Actions Bar inside Modal -->
-            <div class="rdm-status-bar">
-                <button type="button" class="rcr-action-btn rcr-default-btn ${p.isDefault ? 'is-def' : ''}" id="rdmMakeDefaultBtn">
-                    ${p.isDefault ? '★ Default Rate' : 'Set Default'}
-                </button>
-                <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" id="rdmInlineApplyBtn">
-                    ${isActive ? '✓ Applied in Bill' : 'Apply to Bill'}
-                </button>
+            <div class="rd2-chips">
+                ${p.isDefault ? '<span class="rd2-chip is-def">★ Default rate</span>' : ''}
+                ${isActive ? '<span class="rd2-chip is-use">✓ In use on bills</span>' : '<span class="rd2-chip">Not in use</span>'}
             </div>
-
-            <!-- Core Drilling & Casing Pipe Rates -->
-            <div class="cdm-clean-card" style="margin-bottom: 10px;">
-                <div class="cdm-cc-head">
-                    <span>⚙️ Drilling, Casing Pipe &amp; Labour Rates</span>
-                    <span class="cdm-sec-pill">Rate #${num}</span>
+            <section class="rd2-card" aria-label="Prices">
+                <div class="rd2-figs">
+                    ${fig('Drilling', `₹${r.baseDrillingRate}/ft`, baseRangeText)}
+                    ${fig('Old bore flushing', `₹${r.oldBoreRate}/ft`)}
+                    ${fig(this.escapeHtml(this.getCasing1Name?.() || '7" casing pipe'), `₹${r.pvc7Rate}/ft`)}
+                    ${fig(this.escapeHtml(this.getCasing2Name?.() || '10" casing pipe'), `₹${r.pvc10Rate}/ft`)}
+                    ${fig('Bore bata', this.formatINR(r.boreBataRate ?? 2000), 'per bore')}
+                    ${fig('GST · grace', `${r.gstPercentage ?? 18}%`, `${r.slabBufferFt ?? 5} ft grace`)}
                 </div>
-                <div class="cbc-clean-rows">
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">⛏️ Base Drilling Rate (${baseRangeText})</span>
-                        <span class="cbc-r-val text-brand" style="font-size: var(--fs-lg);">₹${r.baseDrillingRate}/ft</span>
-                    </div>
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">🟦 7" Casing Pipe Rate</span>
-                        <span class="cbc-r-val">₹${r.pvc7Rate}/ft</span>
-                    </div>
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">🟦 10" Casing Pipe Rate</span>
-                        <span class="cbc-r-val">₹${r.pvc10Rate}/ft</span>
-                    </div>
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">🛠️ Bore Bata (Labour)</span>
-                        <span class="cbc-r-val">₹${r.boreBataRate ?? 2000}</span>
-                    </div>
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">💧 Old Bore Flushing Rate</span>
-                        <span class="cbc-r-val">₹${r.oldBoreRate}/ft</span>
-                    </div>
-                    <div class="cbc-row">
-                        <span class="cbc-r-lbl">📏 Slab Grace Buffer &amp; GST</span>
-                        <span class="cbc-r-val">${r.slabBufferFt ?? 5} ft Grace • ${r.gstPercentage ?? 18}% GST</span>
-                    </div>
+            </section>
+            <section class="rd2-card" aria-label="Depth slabs">
+                <div class="rd2-sec-head"><span>Depth slabs</span><span>${slabs.length} · 1–${maxEndDepth.toLocaleString('en-IN')} ft</span></div>
+                <div class="rd2-slabs">
+                    ${slabs.map((x, i) => `
+                        <div class="rd2-slab">
+                            <span class="rd2-s-range">${this.escapeHtml(x.rangeStr)}</span>
+                            <span class="rd2-s-bar" aria-hidden="true"><i style="width:${Math.max(6, Math.round((Number(x.rate) || 0) / maxRate * 100))}%"></i></span>
+                            <span class="rd2-s-step">${i === 0 ? 'Base' : this.formatSlabStep(x.rate - slabs[i - 1].rate)}</span>
+                            <strong class="rd2-s-rate">₹${x.rate}</strong>
+                        </div>`).join('')}
                 </div>
-            </div>
-
-            <!-- Complete Depth Slab Schedule Table -->
-            <div class="cdm-clean-card" style="margin-bottom: 0;">
-                <div class="cdm-cc-head">
-                    <span>📐 Depth Slab Schedule (${slabs.length} Slabs)</span>
-                    <span class="cdm-sec-pill">1 – ${maxEndDepth} ft</span>
-                </div>
-                <div style="max-height: 260px; overflow-y: auto;">
-                    <table class="cbc-slab-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Depth Slab (ft)</th>
-                                <th>+ Step</th>
-                                <th>Rate / ft</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${slabs.map((s, sIdx) => {
-                                const stepDiff = sIdx === 0 ? 'Base' : `+₹${s.rate - slabs[sIdx - 1].rate}`;
-                                return `
-                                    <tr>
-                                        <td>${sIdx + 1}</td>
-                                        <td><strong>${this.escapeHtml(s.rangeStr)}</strong></td>
-                                        <td>${stepDiff}</td>
-                                        <td><strong class="text-brand">₹${s.rate}/ft</strong></td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            </section>
         `;
 
         footEl.innerHTML = `
-            <div class="bdm-foot-left">
-                ${this.rateProfiles.length > 1
-                    ? `<button type="button" class="btn-danger-xs" id="rdmFootDeleteBtn" title="Delete Rate">🗑️ Delete</button>`
-                    : ''
-                }
-                <button type="button" class="btn-secondary-sm" id="rdmFootEditBtn">✏️ Edit Rate</button>
-            </div>
-            <div class="bdm-foot-right">
-                <button type="button" class="btn-brand-sm" id="rdmFootApplyBtn">
-                    ${isActive ? '✓ Applied' : 'Apply to Bill'}
-                </button>
-            </div>
+            <button type="button" class="bdm-act is-pri" id="rdmFootApplyBtn">${isActive ? '✓ In use · New bill' : 'Use on bills'}</button>
+            <button type="button" class="bdm-act" id="rdmFootEditBtn">Edit</button>
+            <button type="button" class="bdm-act ${p.isDefault ? 'is-def-on' : ''}" id="rdmMakeDefaultBtn">${p.isDefault ? '★ Default' : '☆ Make default'}</button>
+            ${this.rateProfiles.length > 1 ? '<button type="button" class="bdm-act is-danger" id="rdmFootDeleteBtn">Delete</button>' : ''}
         `;
+        footEl.classList.toggle('has-four', this.rateProfiles.length > 1);
 
         document.getElementById('rdmMakeDefaultBtn')?.addEventListener('click', () => {
             if (!p.isDefault) {
@@ -626,7 +577,7 @@ export class RatesMixin {
             if (nameEl) nameEl.value = prof.name || 'Standard Rate';
             if (defCheck) defCheck.checked = Boolean(prof.isDefault);
             if (modeBadge) {
-                modeBadge.textContent = `✏️ Editing: ${prof.name}`;
+                modeBadge.textContent = `Editing · ${prof.name}`;
                 modeBadge.classList.remove('new-mode');
             }
         }
@@ -738,11 +689,11 @@ export class RatesMixin {
 
         const masterBaseLbl = document.getElementById('masterBaseRateLabel');
         if (masterBaseLbl) {
-            masterBaseLbl.textContent = `Base Rate (1–${baseSpan} ft)`;
+            masterBaseLbl.textContent = `Drilling (1–${baseSpan} ft)`;
         }
         const tabSlabsLbl = document.getElementById('studioSlabsTabLabel');
         if (tabSlabsLbl) {
-            tabSlabsLbl.textContent = `2. Depth Slabs (${slabs.length})`;
+            tabSlabsLbl.textContent = `Depth slabs (${slabs.length})`;
         }
         const endFt = last?.end || 0;
         const summary = document.getElementById('slabLadderSummary');
