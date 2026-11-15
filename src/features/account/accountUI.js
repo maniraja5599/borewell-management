@@ -5,7 +5,7 @@ import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPrefe
 import { consumeJoinCode, pendingJoinCode } from '../team/joinLink.js';
 import { maybeAskProfile } from './profilePrompt.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
-import { isEarlyAccess, earlyAccessEndLabel } from '../../config/plans.js';
+import { isEarlyAccess, earlyAccessEndLabel, earlyAccessDaysLeft } from '../../config/plans.js';
 
 export function initAccountUI(app) {
     // Free Early Access note (dates and discount come from config/plans.js).
@@ -14,7 +14,8 @@ export function initAccountUI(app) {
         early.hidden = !isEarlyAccess();
         // One short line here; the full pricing promise is in Terms → Pricing ("Details").
         early.querySelector('strong').textContent = '🎁 Free Early Access';
-        early.querySelector('span').textContent = ` · everything free until ${earlyAccessEndLabel()} · `;
+        const days = earlyAccessDaysLeft();
+        early.querySelector('span').textContent = ` · ${days} day${days === 1 ? '' : 's'} left · everything free until ${earlyAccessEndLabel()} · `;
     }
     const card = document.getElementById('accountCard');
     if (!card) return;

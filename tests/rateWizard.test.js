@@ -62,3 +62,13 @@ describe('step rate: my own steps', () => {
         expect(own.map((s) => s.rate)).toEqual(std.map((s) => s.rate));
     });
 });
+
+describe('free early access days left', () => {
+    it('counts whole days to 31 March 2027 (IST) and stops at 0', async () => {
+        const { earlyAccessDaysLeft } = await import('../src/config/plans.js');
+        expect(earlyAccessDaysLeft(Date.parse('2027-03-31T10:00:00+05:30'))).toBe(1);
+        expect(earlyAccessDaysLeft(Date.parse('2027-03-30T23:59:59+05:30'))).toBe(2);
+        expect(earlyAccessDaysLeft(Date.parse('2027-04-01T00:00:01+05:30'))).toBe(0);
+        expect(earlyAccessDaysLeft(Date.parse('2026-11-15T12:00:00+05:30'))).toBe(137);
+    });
+});

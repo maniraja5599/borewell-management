@@ -25,6 +25,14 @@ export function isEarlyAccess(now = Date.now()) {
     return now <= earlyAccessEnd();
 }
 
+/** Whole days of Free Early Access left, counting today (0 once it has ended). */
+export function earlyAccessDaysLeft(now = Date.now()) {
+    if (now > earlyAccessEnd()) return 0;
+    // calendar days in India time: on 31 March it is 1 (today), on 30 March 2
+    const istDay = (t) => Math.floor((t + 5.5 * 3600e3) / 864e5);
+    return istDay(earlyAccessEnd()) - istDay(now) + 1;
+}
+
 /** "31 March 2027" */
 export function earlyAccessEndLabel() {
     return new Date(earlyAccessEnd()).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });

@@ -6,7 +6,7 @@
 import { getSupabase } from '../../cloud/auth.js';
 import { getAccess, getRole, hasRigs, onAccessChange, rigDaysLeft } from '../../cloud/access.js';
 import { syncNow } from '../../cloud/sync.js';
-import { renewLink, PLANS, isEarlyAccess } from '../../config/plans.js';
+import { renewLink, PLANS, isEarlyAccess, earlyAccessDaysLeft } from '../../config/plans.js';
 import { fetchActivity, renderActivityList } from '../../cloud/activity.js';
 
 const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
@@ -53,7 +53,7 @@ function rigStatus(rig) {
     const days = rigDaysLeft(rig);
     if (!rig.active) return { text: 'Subscription ended', cls: 'bad' };
     const paid = Date.parse(rig.paid_until || '') > Date.parse(rig.trial_ends_at || '');
-    if (!paid && isEarlyAccess()) return { text: 'Free Early Access', cls: 'ok' };
+    if (!paid && isEarlyAccess()) return { text: `Free Early Access · ${earlyAccessDaysLeft()} days left`, cls: 'ok' };
     return { text: `${paid ? 'Paid' : 'Free trial'} · ${days} day${days === 1 ? '' : 's'} left`, cls: days <= 7 ? 'warn' : 'ok' };
 }
 
