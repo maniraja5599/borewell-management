@@ -117,6 +117,7 @@ export class CustomerListeners {
             if (amtInp && pending > 0) {
                 amtInp.value = Math.max(0, pending - disc);
                 amtInp.focus();
+                this.rpmAutoFull = true; // a discount typed next lowers this amount to match
             }
             this.updateRecordPaymentDiscountHint();
         });
@@ -127,8 +128,21 @@ export class CustomerListeners {
             if (wrap) wrap.hidden = false;
             document.getElementById('rpmDiscountInput')?.focus();
         });
-        ['rpmAmountInput', 'rpmDiscountInput'].forEach((id) => {
-            document.getElementById(id)?.addEventListener('input', () => this.updateRecordPaymentDiscountHint());
+        document.getElementById('rpmAmountInput')?.addEventListener('input', () => {
+            this.rpmAutoFull = false; // typed by hand: leave it as typed
+            this.updateRecordPaymentDiscountHint();
+        });
+        document.getElementById('rpmDiscountInput')?.addEventListener('input', () => {
+            // After "Full due", amount + discount keep matching the balance.
+            if (this.rpmAutoFull) {
+                const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
+                const item = (this.history || []).find(h => h.id === billId);
+                const pending = item ? Math.round(this.getBillPendingAmount(item)) : 0;
+                const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
+                const amtInp = document.getElementById('rpmAmountInput');
+                if (amtInp) amtInp.value = String(Math.max(0, pending - disc));
+            }
+            this.updateRecordPaymentDiscountHint();
         });
         document.getElementById('rpmSettleBtn')?.addEventListener('click', (e) => {
             const left = Math.max(0, parseInt(e.currentTarget.dataset.left, 10) || 0);
@@ -136,6 +150,7 @@ export class CustomerListeners {
             const discInp = document.getElementById('rpmDiscountInput');
             const cur = Math.max(0, Math.round(parseFloat(discInp?.value) || 0));
             if (discInp) discInp.value = String(cur + left);
+            this.rpmAutoFull = false;
             const wrap = document.getElementById('rpmDiscountWrap');
             if (wrap) wrap.hidden = false;
             const toggle = document.getElementById('rpmDiscountToggleBtn');

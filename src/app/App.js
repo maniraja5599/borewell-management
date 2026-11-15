@@ -16,6 +16,7 @@ import { CustomerRecordMixin } from '../features/customers/CustomerRecordMixin.j
 import { PaymentsMixin } from '../features/payments/PaymentsMixin.js';
 import { BillDetailMixin } from '../features/history/BillDetailMixin.js';
 import { BillSheetMixin } from '../features/history/BillSheetMixin.js';
+import { RateWizardMixin } from '../features/rates/RateWizardMixin.js';
 import { CustomerLedgerMixin } from '../features/customers/CustomerLedgerMixin.js';
 import { HeaderMixin } from '../ui/HeaderMixin.js';
 import { BrandMixin } from '../features/settings/BrandMixin.js';
@@ -368,6 +369,7 @@ applyMixins(BoreBillSaaSApp, [
     PaymentsMixin,
     BillDetailMixin,
     BillSheetMixin,
+    RateWizardMixin,
     CustomerLedgerMixin,
     HeaderMixin,
     BrandMixin,

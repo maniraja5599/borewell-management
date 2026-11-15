@@ -145,10 +145,6 @@ export class RatesMixin {
             const slabs = this.normalizeSlabArray(r.slabRates, r.baseDrillingRate || 90);
             const endFt = slabs[slabs.length - 1]?.end || 0;
             const firstEnd = slabs[0]?.end || 300;
-            const maxRate = Math.max(1, ...slabs.map((x) => Number(x.rate) || 0));
-            const ladder = slabs.length > 1
-                ? `<div class="rc2-ladder" aria-hidden="true">${slabs.map((x) => `<i style="height:${Math.max(12, Math.round((Number(x.rate) || 0) / maxRate * 100))}%"></i>`).join('')}</div>`
-                : '';
             return `
                 <div class="rate-clean-row rc2 ${isActive ? 'is-active-rate' : ''} ${isEditing ? 'is-editing-card' : ''}" data-rateid="${p.id}">
                     <div class="rc2-top">
@@ -165,7 +161,6 @@ export class RatesMixin {
                         <div><span>${this.escapeHtml((this.getCasing2Name?.() || '10"').replace(/\s*casing\s*pipe/i, ''))} pipe</span><strong>₹${r.pvc10Rate}<small>/ft</small></strong></div>
                         <div><span>Slabs</span><strong>${slabs.length}</strong><em>to ${endFt.toLocaleString('en-IN')} ft</em></div>
                     </div>
-                    ${ladder}
                     <div class="rc2-actions">
                         <button type="button" class="rcr-action-btn rcr-apply-btn ${isActive ? 'is-applied' : ''}" data-applybtn="${p.id}" title="${isActive ? 'New bills use this rate' : 'Use this rate on bills'}">${isActive ? '✓ In use on bills' : 'Use on bills'}</button>
                         <button type="button" class="rcr-action-btn rcr-edit-btn" data-editbtn="${p.id}" title="Edit this rate"><i data-lucide="pencil" class="icon-xs"></i><span>Edit</span></button>
@@ -250,7 +245,6 @@ export class RatesMixin {
         if (titleEl) titleEl.textContent = p.name;
         if (subEl) subEl.textContent = `${slabs.length} slabs · up to ${maxEndDepth.toLocaleString('en-IN')} ft`;
 
-        const maxRate = Math.max(1, ...slabs.map((x) => Number(x.rate) || 0));
         const fig = (lbl, val, sub = '') => `<div class="rd2-fig"><span>${lbl}</span><strong>${val}</strong>${sub ? `<em>${sub}</em>` : ''}</div>`;
         bodyEl.innerHTML = `
             <div class="rd2-chips">
@@ -273,7 +267,6 @@ export class RatesMixin {
                     ${slabs.map((x, i) => `
                         <div class="rd2-slab">
                             <span class="rd2-s-range">${this.escapeHtml(x.rangeStr)}</span>
-                            <span class="rd2-s-bar" aria-hidden="true"><i style="width:${Math.max(6, Math.round((Number(x.rate) || 0) / maxRate * 100))}%"></i></span>
                             <span class="rd2-s-step">${i === 0 ? 'Base' : this.formatSlabStep(x.rate - slabs[i - 1].rate)}</span>
                             <strong class="rd2-s-rate">₹${x.rate}</strong>
                         </div>`).join('')}

@@ -73,16 +73,34 @@ export class ShellMixin {
         this.updateQuickTabJumpLabel();
     }
 
+    /** Kind of message from its first sign: warning, delete, or done. Sets the colour strip. */
+    toastKind(msg) {
+        const m = String(msg || '').trim();
+        if (/^(⚠|❌|✕)/.test(m)) return 'is-warn';
+        if (/^🗑/.test(m)) return 'is-del';
+        return 'is-ok';
+    }
+
+    /** Slide the message up and away, then remove it. */
+    dismissToast(el) {
+        if (!el || el.classList.contains('is-leaving')) return;
+        el.classList.add('is-leaving');
+        setTimeout(() => el.remove(), 320);
+    }
+
+    // Messages drop in at the top of the screen and slide back up after a moment.
     showToast(msg) {
         const container = document.getElementById('toastContainer');
         if (!container) return;
         const el = document.createElement('div');
-        el.className = 'toast-msg';
+        el.className = `toast-msg ${this.toastKind(msg)}`;
+        el.setAttribute('role', 'status');
         el.textContent = msg;
         container.appendChild(el);
-        setTimeout(() => {
-            el.remove();
-        }, 2500);
+        // keep at most 3 on screen
+        const all = container.querySelectorAll('.toast-msg:not(.toast-undo-bar):not(.is-leaving)');
+        if (all.length > 3) this.dismissToast(all[0]);
+        setTimeout(() => this.dismissToast(el), 2600);
     }
 
     confirmDeleteModal({
@@ -193,7 +211,7 @@ export class ShellMixin {
         }
 
         const el = document.createElement('div');
-        el.className = 'toast-msg toast-undo-bar';
+        el.className = 'toast-msg toast-undo-bar is-del';
 
         const txt = document.createElement('span');
         txt.className = 'toast-undo-text';
@@ -205,7 +223,7 @@ export class ShellMixin {
         undoBtn.innerHTML = '↩ Undo';
 
         const timerId = setTimeout(() => {
-            el.remove();
+            this.dismissToast(el);
         }, 10000);
 
         this.lastUndoState = {

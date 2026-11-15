@@ -165,42 +165,9 @@ export class RateListeners {
         });
 
         // Multi-Rate Profile Creation & Base Rate Auto-Slab Shift
+        // New rate: one question at a time (RateWizardMixin), then check, save, "use it now?"
         document.getElementById('createNewRateProfileBtn')?.addEventListener('click', () => {
-            this.toggleRateStudio(true);
-            const idEl = document.getElementById('editingRateProfileId');
-            const nameEl = document.getElementById('masterProfileName');
-            const defCheck = document.getElementById('masterIsDefaultCheckbox');
-            const modeBadge = document.getElementById('studioEditingModeBadge');
-            const stepInp = document.getElementById('customSlabStepInput');
-            if (idEl) idEl.value = '';
-            if (nameEl) {
-                nameEl.value = '';
-                nameEl.placeholder = 'Enter New Rate Name (e.g. 4.75" Rate / VIP Rate)';
-            }
-            if (defCheck) defCheck.checked = false;
-            if (stepInp) stepInp.value = 10;
-            if (modeBadge) {
-                modeBadge.textContent = '✨ Creating New Rate Card';
-                modeBadge.classList.add('new-mode');
-            }
-
-            // Start the new card from the standard slab ladder, moved to the current base rate
-            // (e.g. base ₹110 → 110 / 120 / 140 …). Rows can then be edited, removed or added.
-            const curBaseRate = this.rates.baseDrillingRate || 90;
-            const shift = curBaseRate - DEPTH_SLABS_DEFINITION[0].defaultRate;
-            this.rates.slabRates = DEPTH_SLABS_DEFINITION.map(s => ({
-                start: s.start,
-                end: s.end,
-                span: s.span,
-                rangeStr: s.rangeStr,
-                rate: Math.max(1, s.defaultRate + shift)
-            }));
-
-            this.renderMasterSlabsGrid();
-            this.setRateStudioStage(1);
-            this.renderRateProfilesUI();
-            setTimeout(() => nameEl?.focus(), 220);
-            this.showToast('➕ Step 1: Enter Rate Card Name');
+            this.openRateWizard();
         });
 
         document.getElementById('masterBaseRate')?.addEventListener('input', (e) => {

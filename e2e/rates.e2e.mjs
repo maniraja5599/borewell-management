@@ -43,27 +43,52 @@ await step('R1 bill on the standard rate', async () => {
 });
 
 let vipId = '';
-await step('R2 new rate card', async () => {
+await step('R2 new rate card (one question at a time)', async () => {
     await freshBill();
     await nav('tab-rates'); await wait(400);
     await clickId('createNewRateProfileBtn'); await wait(400);
-    await typeInto('masterProfileName', 'VIP 4.5in');
-    await clickId('rateStage1NextBtn'); await wait(300);
-    await typeInto('masterBaseRate', 110);
-    await clickId('rateStage2NextBtn'); await wait(300);
-    await typeInto('masterPvc7Rate', 450);
-    await clickId('rateStage3NextBtn'); await wait(300);
-    await p.screenshot({ path: `${OUT}/r1_new_card.png`, fullPage: true });
-    await clickId('saveMasterRatesBtn'); await wait(600);
+    const stepTxt = () => app(() => ({ kicker: document.getElementById('rwKicker')?.textContent, body: document.getElementById('rwBody')?.innerText.replace(/\s+/g, ' ') }));
+    const first = await stepTxt();
+    // Next with no name: stays on step 1
+    await clickId('rwNext'); await wait(300);
+    const stayed = await stepTxt();
+    check('R2 "New rate" opens step 1 of 9 asking the name; Next without a name does not move on',
+        /Step 1 of 9/.test(first.kicker || '') && /What do you call this rate/.test(first.body || '') && /Step 1 of 9/.test(stayed.kicker || ''), { first, stayed });
+    const fill = async (id, v) => { await app(([id, v]) => { const e = document.getElementById(id); e.value = String(v); e.dispatchEvent(new Event('input', { bubbles: true })); }, [id, v]); };
+    await fill('rwName', 'VIP 4.5in'); await clickId('rwNext'); await wait(250);
+    await fill('rwBase', 110); await clickId('rwNext'); await wait(250);
+    const slabs = await stepTxt();
+    check('R2a depth step previews the standard ladder from ₹110 (110 / 120 / 140)', /₹110\/ft.*₹120\/ft.*₹140\/ft/.test(slabs.body || ''), slabs.body?.slice(0, 200));
+    await clickId('rwNext'); await wait(250);
+    await fill('rwPvc7', 450); await fill('rwPvc10', 760); await clickId('rwNext'); await wait(250);
+    await fill('rwBata', 2000); await clickId('rwNext'); await wait(250);
+    await fill('rwFlush', 45); await clickId('rwNext'); await wait(250);
+    const grace = await stepTxt();
+    check('R2b grace step explains with an example (305 ft billed at the 1–300 ft rate)', /Grace feet/.test(grace.body || '') && /305 ft/.test(grace.body || '') && /301–400 ft/.test(grace.body || ''), grace.body?.slice(0, 260));
+    await fill('rwGrace', 5); await clickId('rwNext'); await wait(250);
+    await fill('rwGst', 18); await clickId('rwNext'); await wait(300);
+    const review = await stepTxt();
+    const saveOn = await app(() => !document.getElementById('rwSave')?.disabled);
+    check('R2c review lists every value and says everything checks out',
+        saveOn && /Everything checks out/.test(review.body || '') && /VIP 4\.5in/.test(review.body) && /₹110\/ft/.test(review.body) && /₹450\/ft/.test(review.body) && /₹760\/ft/.test(review.body)
+        && /₹2,000/.test(review.body) && /₹45\/ft/.test(review.body) && /5 ft/.test(review.body) && /18%/.test(review.body), review.body);
+    await clickId('rwSave'); await wait(400);
+    const ask = await stepTxt();
+    check('R2d after saving it asks "use it on new bills now?"', /use .*VIP 4\.5in.* on new bills now/i.test(ask.body || ''), ask.body);
+    await clickId('rwApplyYes'); await wait(600);
     const s = await bill();
     const vip = s.profiles.find((x) => x.name === 'VIP 4.5in');
     vipId = vip?.id || '';
+    const r = vip?.rates || {};
     const rows = await app(() => document.querySelectorAll('#savedRateProfilesList .rate-clean-row').length);
     const chips = await app(() => [...document.querySelectorAll('#billRateProfilePills .rp-chip[data-rpid]')].map((c) => c.textContent.replace(/\s+/g, ' ').trim()));
     check('R2 new card "VIP 4.5in" saved and applied: base ₹110, ladder keeps its steps (110/120/140), 7" pipe ₹450',
         s.profiles.length === 3 && vip && s.activeId === vip.id && s.rates.baseDrillingRate === 110
-        && vip.rates.slabRates[1].rate === 120 && vip.rates.slabRates[2].rate === 140 && vip.rates.pvc7Rate === 450,
-        { n: s.profiles.length, active: s.activeId === vip?.id, base: s.rates.baseDrillingRate, slabs: vip?.rates.slabRates.slice(0, 3).map((x) => x.rate), pvc7: vip?.rates.pvc7Rate });
+        && r.slabRates[1].rate === 120 && r.slabRates[2].rate === 140 && r.pvc7Rate === 450,
+        { n: s.profiles.length, active: s.activeId === vip?.id, base: s.rates.baseDrillingRate, slabs: r.slabRates?.slice(0, 3).map((x) => x.rate), pvc7: r.pvc7Rate });
+    check('R2e every value saved exactly (10" ₹760, bata ₹2,000, flush ₹45, grace 5 ft, GST 18%, 19 slabs to 2,200 ft)',
+        r.pvc10Rate === 760 && r.boreBataRate === 2000 && r.oldBoreRate === 45 && r.slabBufferFt === 5 && r.gstPercentage === 18
+        && r.slabRates.length === 19 && r.slabRates[18].end === 2200 && s.rates.pvc10Rate === 760, r);
     check('R2a card list shows 3 cards, bill screen shows 3 rate chips', rows === 3 && chips.length === 3 && /VIP 4\.5in/.test(chips[2]), { rows, chips });
 });
 

@@ -343,6 +343,32 @@ await step('12c other items + payment discount', async () => {
     check('12c "New bill" starts without items or payment discount', clean.rows === 0 && !clean.pd && clean.items === 0, clean);
 });
 
+// ---------- 12d. Record payment: paid bill locked, Full due + discount, over-balance blocked ----------
+await step('12d record payment checks', async () => {
+    const ids = await app(() => { const a = window.boreBillApp; const paid = a.history.find((b) => b.billNo === 'SM-103'); const due = a.history.find((b) => b.billNo === 'SM-102'); return { paid: paid.id, due: due.id, pending: a.getBillPendingAmount(due) }; });
+    await app((id) => window.boreBillApp.openRecordPaymentModal(id), ids.paid); await wait(300);
+    const locked = await app(() => ({ form: document.getElementById('rpmAddPaymentFormCard').hidden, note: !document.getElementById('rpmPaidNote').hidden }));
+    check('12d a fully paid bill shows "Fully paid" and no payment form', locked.form && locked.note, locked);
+    await app(() => window.boreBillApp.closeRecordPaymentModal());
+
+    await app((id) => window.boreBillApp.openRecordPaymentModal(id), ids.due); await wait(300);
+    await clickId('rpmFillFullBalanceBtn'); await wait(150);
+    const full = await app(() => document.getElementById('rpmAmountInput').value);
+    await clickId('rpmDiscountToggleBtn'); await wait(100);
+    await p.type('#rpmDiscountInput', '2000'); await wait(200);
+    const after = await app(() => ({ amt: document.getElementById('rpmAmountInput').value, line: document.getElementById('rpmCheckLine').textContent, btn: !document.getElementById('rpmSavePaymentBtn').disabled }));
+    check(`12d "Full due" fills ${inr(ids.pending)}; a ₹2,000 discount lowers it to ${inr(ids.pending - 2000)} and the check says it closes the bill`,
+        Number(full) === ids.pending && Number(after.amt) === ids.pending - 2000 && /closes the bill/.test(after.line) && after.btn, { full, ...after });
+    await app(() => { const e = document.getElementById('rpmAmountInput'); e.value = '999999'; e.dispatchEvent(new Event('input', { bubbles: true })); }); await wait(150);
+    const over = await app(() => ({ line: document.getElementById('rpmCheckLine').textContent, bad: document.getElementById('rpmCheckLine').classList.contains('is-bad'), disabled: document.getElementById('rpmSavePaymentBtn').disabled }));
+    check('12d more than the balance: red message and the Add button is off', over.bad && over.disabled && /more than the balance/.test(over.line), over);
+    const before = await app((id) => window.boreBillApp.history.find((b) => b.id === id).payments.length, ids.due);
+    await app(() => document.getElementById('rpmSavePaymentBtn').click()); await wait(200);
+    const afterN = await app((id) => window.boreBillApp.history.find((b) => b.id === id).payments.length, ids.due);
+    check('12d nothing is saved while it does not add up', before === afterN, { before, afterN });
+    await app(() => window.boreBillApp.closeRecordPaymentModal());
+});
+
 // ---------- 13. dashboard ----------
 await step('13 dashboard', async () => {
     await p.goto(`${BASE}/dashboard.html`, { waitUntil: 'networkidle0' }); await wait(800);

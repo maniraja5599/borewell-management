@@ -133,6 +133,7 @@ export class PaymentsMixin {
         if (discWrap) discWrap.hidden = true;
         const discToggle = document.getElementById('rpmDiscountToggleBtn');
         if (discToggle) discToggle.hidden = false;
+        this.rpmAutoFull = false;
 
         this.renderRecordPaymentModalContent(item);
         this.updateRecordPaymentDiscountHint();
@@ -172,6 +173,11 @@ export class PaymentsMixin {
             dueEl.className = `cdm-pt-val ${hasDue ? 'text-danger' : 'text-green'}`;
         }
         if (dueBox) dueBox.classList.toggle('has-due', hasDue);
+        // Fully paid: no more payments can be typed (remove one below to change it).
+        const formCard = document.getElementById('rpmAddPaymentFormCard');
+        if (formCard) formCard.hidden = !hasDue;
+        const paidNote = document.getElementById('rpmPaidNote');
+        if (paidNote) paidNote.hidden = hasDue;
 
         const fullBtn = document.getElementById('rpmFillFullBalanceBtn');
         if (fullBtn) {
@@ -272,6 +278,7 @@ export class PaymentsMixin {
 
         if (amtInput) amtInput.value = '';
         if (discInput) discInput.value = '';
+        this.rpmAutoFull = false;
         this.updateRecordPaymentDiscountHint();
 
         this.renderRecordPaymentModalContent(item);
@@ -317,6 +324,23 @@ export class PaymentsMixin {
         } else {
             hint.hidden = true;
         }
+        // Live check of what will be saved; the Add button only works when it adds up.
+        const line = document.getElementById('rpmCheckLine');
+        const saveBtn = document.getElementById('rpmSavePaymentBtn');
+        const over = amt + disc > pending;
+        const empty = amt + disc <= 0;
+        if (line) {
+            line.hidden = empty;
+            line.classList.toggle('is-bad', over);
+            line.classList.toggle('is-close', !over && left === 0);
+            if (over) {
+                line.textContent = `✕ ${this.formatINR(amt)}${disc ? ` + ${this.formatINR(disc)} discount` : ''} is more than the balance ${this.formatINR(pending)}`;
+            } else if (!empty) {
+                const parts = `${this.formatINR(amt)}${disc ? ` + ${this.formatINR(disc)} discount` : ''}`;
+                line.textContent = left === 0 ? `✓ ${parts} = ${this.formatINR(pending)} · closes the bill` : `✓ ${parts} · ${this.formatINR(left)} will still be due`;
+            }
+        }
+        if (saveBtn) saveBtn.disabled = over || empty;
     }
 
     deleteBillPaymentEntry(billId, payId) {

@@ -15184,3 +15184,25 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
 .b-nav-icon.is-3d svg { width: 26px !important; height: 26px !important; filter: saturate(0.6) opacity(0.9); transition: transform 0.16s ease, filter 0.16s ease; }
 .b-nav-item.active .b-nav-icon.is-3d svg { filter: none; transform: translateY(-1px) scale(1.1); }
 @media (prefers-reduced-motion: reduce) { .b-nav-icon.is-3d svg { transition: none; } }
+
+/* Messages: drop in at the top, slide back up (ShellMixin.showToast) */
+.toast-container { top: calc(10px + var(--safe-top, 0px)); bottom: auto !important; width: min(440px, calc(100vw - 24px)); max-width: none; align-items: stretch; gap: 8px; }
+.toast-msg { position: relative; display: block; padding: 12px 14px 12px 18px !important; border-radius: 14px !important; background: #fff !important; color: #0f1a14 !important; border: 1px solid #e3e9e5 !important; box-shadow: 0 10px 30px rgba(15, 26, 20, 0.18) !important; font: 600 14px/1.4 Inter, sans-serif !important; text-align: left !important; overflow: hidden; animation: toastDrop 0.32s cubic-bezier(.2, .9, .3, 1.2) both; }
+.toast-msg::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--brand-primary, #15803d); }
+.toast-msg.is-warn::before { background: #f59e0b; }
+.toast-msg.is-del::before { background: #dc2626; }
+.toast-msg.is-leaving { animation: toastRise 0.3s ease-in both; }
+.toast-msg.toast-undo-bar { display: flex !important; min-width: 0 !important; max-width: none !important; }
+.toast-msg.toast-undo-bar .toast-undo-text { color: #0f1a14; }
+@keyframes toastDrop { from { opacity: 0; transform: translateY(-120%); } to { opacity: 1; transform: none; } }
+@keyframes toastRise { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-120%); } }
+@media (prefers-reduced-motion: reduce) { .toast-msg, .toast-msg.is-leaving { animation: none; } }
+
+.record-payment-modal .rpm-check-line { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: #f6f8f7; border: 1px solid #e3e9e5; color: #334155; font-size: 0.8rem; font-weight: 700; }
+.record-payment-modal .rpm-check-line.is-close { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.record-payment-modal .rpm-check-line.is-bad { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.record-payment-modal .rpm-check-line[hidden], .record-payment-modal .rpm-paid-note[hidden], .record-payment-modal #rpmAddPaymentFormCard[hidden] { display: none !important; }
+.record-payment-modal #rpmSavePaymentBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+.record-payment-modal .rpm-paid-note { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; padding: 14px; border-radius: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+.record-payment-modal .rpm-paid-note strong { font-size: 0.95rem; }
+.record-payment-modal .rpm-paid-note span { font-size: 0.82rem; font-weight: 500; color: #334155; }

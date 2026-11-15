@@ -2870,6 +2870,12 @@
                 </div>
                 <p class="rpm-disc-given" id="rpmDiscountGivenNote" hidden></p>
 
+                <!-- Shown instead of the form when nothing is left to collect -->
+                <div class="rpm-paid-note" id="rpmPaidNote" hidden>
+                    <strong>✅ Fully paid</strong>
+                    <span>Nothing more to collect on this bill. To change a payment, remove it below and add it again.</span>
+                </div>
+
                 <!-- 2. Minimal Date + Amount Entry Box -->
                 <div class="rpm-form-card" id="rpmAddPaymentFormCard">
                     <div class="rpm-form-head">
@@ -2896,6 +2902,7 @@
                         <small class="rpm-disc-help">Comes off the bill total. Not counted as money received.</small>
                     </div>
                     <button type="button" class="rpm-settle-btn" id="rpmSettleBtn" hidden></button>
+                    <p class="rpm-check-line" id="rpmCheckLine" hidden></p>
                     <div class="rpm-mode-row" id="rpmModePills" role="radiogroup" aria-label="Payment mode">
                         <button type="button" class="rpm-mode-pill active" data-mode="Cash" role="radio" aria-checked="true">💵 Cash</button>
                         <button type="button" class="rpm-mode-pill" data-mode="UPI" role="radio" aria-checked="false">📱 UPI</button>
