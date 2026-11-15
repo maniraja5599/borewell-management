@@ -45,6 +45,7 @@ export class CalcMixin {
 
     calculateAndRender(options = {}) {
         this.syncDepthLimit();
+        if (!this.loadedHistoryBillId) this.state.paymentDiscount = 0;
         this.persistCurrentSession();
 
         this.lastResult = computeBillTotals(this.rates, this.state);

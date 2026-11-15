@@ -96,6 +96,10 @@ export class ShareExportMixin {
             }
         }
 
+        (res.extraItems || []).forEach((it) => {
+            otherLines.push(`• ${this.extraItemBillLabel(it)} : *${this.formatINR(it.amount)}*`);
+        });
+
         if (cfg.extras !== false) {
             if (res.boreBataCost > 0) {
                 otherLines.push(`• Bore Bata : *${this.formatINR(res.boreBataCost)}*`);
@@ -116,6 +120,9 @@ export class ShareExportMixin {
         }
         if (res.gstEnabled && cfg.gst !== false) {
             otherLines.push(`• GST (${res.gstPercentage}%) : *${this.formatINR(res.gstAmount)}*`);
+        }
+        if (res.paymentDiscount > 0) {
+            otherLines.push(`• Discount on payment : *− ${this.formatINR(res.paymentDiscount)}*`);
         }
 
         if (otherLines.length > 0) {

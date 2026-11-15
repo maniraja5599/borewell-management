@@ -93,6 +93,7 @@ export class HistoryMixin {
         // Remember any extra charges & custom notes entered/used in this bill for 1-tap reuse next time
         this.recordCurrentBillExtrasForNextTime();
         this.recordCurrentBillNoteForNextTime();
+        this.recordExtraItemsForNextTime(res.extraItems);
 
         let currentBillNo = (document.getElementById('billNoInput')?.value || '').trim() || this.getNextAutoDocNumber(res.docType);
         const setBillNo = (no) => {
@@ -694,6 +695,11 @@ export class HistoryMixin {
             custGstEl.value = (item.custGst || s.custGst || '').trim().toUpperCase();
         }
 
+        // Older bills have no items / payment discount: never keep the previous bill's.
+        this.state.extraItems = Array.isArray(s.extraItems) ? s.extraItems.map((it) => ({ ...it })) : [];
+        this.state.paymentDiscount = Math.round(Number(s.paymentDiscount) || 0);
+        this.renderExtraItemsUI();
+
         this.state.drillingType = s.drillingType || 'new';
         document.querySelectorAll('#drillingTypeToggle .mini-seg-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.type === this.state.drillingType);
@@ -852,6 +858,7 @@ export class HistoryMixin {
         this.isBillPreviewOpen = false;
         this.isBillSavedAndReadyToShare = false;
         this.state.gstEnabled = false;
+        this.state.paymentDiscount = 0;
         const gstToggle = document.getElementById('gstEnabledToggle');
         if (gstToggle) gstToggle.checked = false;
         const custGstRow = document.getElementById('custGstInlineRow');
@@ -883,6 +890,8 @@ export class HistoryMixin {
             document.getElementById('customExtraAmount').value = '';
             document.getElementById('discountAmount').value = '';
             document.getElementById('advancePaidAmount').value = '';
+            this.state.extraItems = [];
+            this.renderExtraItemsUI();
             const noteEl = document.getElementById('billCustomNoteInput');
             if (noteEl) noteEl.value = '';
             const notesDrawer = document.getElementById('billNotesDrawer');

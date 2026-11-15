@@ -54,10 +54,36 @@ export class PaymentsMixin {
         return this.getBillPendingAmount(item) > 0;
     }
 
+    /** Discount given while recording payments on this bill (not money received). */
+    getBillPaymentDiscount(item) {
+        if (!item || !item.snapshot || (item.snapshot.docType || 'QUOTATION') !== 'INVOICE') return 0;
+        return this.getBillPaymentEntries(item).reduce((sum, p) => sum + Math.max(0, Math.round(Number(p.discount) || 0)), 0);
+    }
+
+    /** "₹30,000 + ₹5,000 discount" style text for one payment entry. */
+    describePaymentEntry(p) {
+        const amt = Math.round(Number(p?.amount) || 0);
+        const disc = Math.max(0, Math.round(Number(p?.discount) || 0));
+        if (amt <= 0 && disc > 0) return `Discount ${this.formatINR(disc)}`;
+        return disc > 0 ? `${this.formatINR(amt)} + ${this.formatINR(disc)} discount` : this.formatINR(amt);
+    }
+
     syncBillPaymentSnapshot(item) {
         if (!item || !item.snapshot) return;
         const snap = item.snapshot;
         if ((snap.docType || 'QUOTATION') !== 'INVOICE') return;
+        // Payment discounts lower the bill's final total (grandTotal). The total before them is
+        // kept, so adding or removing a discounted payment always lands on the right figure.
+        const prevDisc = Math.max(0, Math.round(Number(snap.paymentDiscount) || 0));
+        const hasBase = snap.totalBeforePaymentDiscount !== undefined && snap.totalBeforePaymentDiscount !== null
+            && Number.isFinite(Number(snap.totalBeforePaymentDiscount));
+        const base = hasBase
+            ? Math.round(Number(snap.totalBeforePaymentDiscount))
+            : Math.round(Number(snap.grandTotal) || 0) + prevDisc;
+        const disc = Math.min(this.getBillPaymentDiscount(item), Math.max(0, base));
+        snap.totalBeforePaymentDiscount = base;
+        snap.paymentDiscount = disc;
+        snap.grandTotal = base - disc;
         const paid = this.getBillPaidAmount(item);
         const pending = this.getBillPendingAmount(item);
         snap.advancePaidAmount = paid;
@@ -101,8 +127,15 @@ export class PaymentsMixin {
 
         const amtInp = document.getElementById('rpmAmountInput');
         if (amtInp) amtInp.value = '';
+        const discInp = document.getElementById('rpmDiscountInput');
+        if (discInp) discInp.value = '';
+        const discWrap = document.getElementById('rpmDiscountWrap');
+        if (discWrap) discWrap.hidden = true;
+        const discToggle = document.getElementById('rpmDiscountToggleBtn');
+        if (discToggle) discToggle.hidden = false;
 
         this.renderRecordPaymentModalContent(item);
+        this.updateRecordPaymentDiscountHint();
         overlay.style.display = 'flex';
         this.refreshIcons();
         setTimeout(() => amtInp?.focus(), 80);
@@ -127,6 +160,12 @@ export class PaymentsMixin {
         const dueEl = document.getElementById('rpmBalanceDueVal');
         const dueBox = document.getElementById('rpmDueBox');
         if (totEl) totEl.textContent = this.formatINR(grand);
+        const discNote = document.getElementById('rpmDiscountGivenNote');
+        if (discNote) {
+            const d = Math.round(Number(snap.paymentDiscount) || 0);
+            discNote.hidden = d <= 0;
+            discNote.textContent = d > 0 ? `Bill ${this.formatINR(snap.totalBeforePaymentDiscount || grand + d)} − ${this.formatINR(d)} discount = ${this.formatINR(grand)}` : '';
+        }
         if (paidEl) paidEl.textContent = this.formatINR(paid);
         if (dueEl) {
             dueEl.textContent = hasDue ? this.formatINR(pending) : '₹0 (Paid)';
@@ -170,7 +209,7 @@ export class PaymentsMixin {
                     ${p.mode ? `<span class="rpm-hi-mode">${this.escapeHtml(p.mode)}</span>` : ''}
                 </div>
                 <div class="rpm-hi-right">
-                    <span class="rpm-hi-amt">${this.formatINR(p.amount)}</span>
+                    <span class="rpm-hi-amt">${Math.round(Number(p.amount) || 0) > 0 ? this.formatINR(p.amount) : 'Discount'}${Number(p.discount) > 0 ? `<small class="rpm-hi-disc">${Math.round(Number(p.amount) || 0) > 0 ? '+ ' : ''}${this.formatINR(p.discount)}${Math.round(Number(p.amount) || 0) > 0 ? ' discount' : ''}</small>` : ''}</span>
                     <button type="button" class="rpm-hi-del-btn" data-payid="${p.id}" title="Remove">✕</button>
                 </div>
             </div>
@@ -190,42 +229,50 @@ export class PaymentsMixin {
 
         const dateVal = (document.getElementById('rpmDateInput')?.value || '').trim() || this.toLocalYMD(new Date());
         const amtInput = document.getElementById('rpmAmountInput');
-        const rawAmt = Math.round(parseFloat(amtInput?.value) || 0);
-        if (rawAmt <= 0) {
+        const discInput = document.getElementById('rpmDiscountInput');
+        const rawAmt = Math.max(0, Math.round(parseFloat(amtInput?.value) || 0));
+        const rawDisc = Math.max(0, Math.round(parseFloat(discInput?.value) || 0));
+        if (rawAmt <= 0 && rawDisc <= 0) {
             this.showToast('⚠️ Enter payment amount (₹)');
             amtInput?.focus();
             return;
         }
 
         // Never record more than the bill's balance: a typo (an extra 0) used to be saved
-        // as is, e.g. ₹9,99,999 on a ₹1,25,080 bill.
+        // as is, e.g. ₹9,99,999 on a ₹1,25,080 bill. Payment + discount count together.
         const pending = Math.round(this.getBillPendingAmount(item));
         if (pending <= 0) {
             this.showToast('✅ This bill is already fully paid');
             return;
         }
-        if (rawAmt > pending) {
-            this.showToast(`⚠️ ${this.formatINR(rawAmt)} is more than the balance ${this.formatINR(pending)}`);
+        if (rawAmt + rawDisc > pending) {
+            this.showToast(rawDisc > 0
+                ? `⚠️ ${this.formatINR(rawAmt)} + ${this.formatINR(rawDisc)} discount is more than the balance ${this.formatINR(pending)}`
+                : `⚠️ ${this.formatINR(rawAmt)} is more than the balance ${this.formatINR(pending)}`);
             if (amtInput) {
-                amtInput.value = String(pending);
+                amtInput.value = String(Math.max(0, pending - rawDisc));
                 amtInput.focus();
             }
             return;
         }
 
-        const mode = document.querySelector('#rpmModePills .rpm-mode-pill.active')?.dataset.mode || 'Cash';
+        const mode = rawAmt > 0 ? (document.querySelector('#rpmModePills .rpm-mode-pill.active')?.dataset.mode || 'Cash') : 'Discount';
         const entries = this.ensureBillPaymentsArray(item);
-        entries.push({
+        const entry = {
             id: 'pay_' + Date.now() + '_' + Math.floor(Math.random() * 100),
             date: dateVal,
             amount: rawAmt,
             mode
-        });
+        };
+        if (rawDisc > 0) entry.discount = rawDisc;
+        entries.push(entry);
 
         this.syncBillPaymentSnapshot(item);
         this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
 
         if (amtInput) amtInput.value = '';
+        if (discInput) discInput.value = '';
+        this.updateRecordPaymentDiscountHint();
 
         this.renderRecordPaymentModalContent(item);
         this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
@@ -237,13 +284,39 @@ export class PaymentsMixin {
         if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
             this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
         }
-        if (this.loadedHistoryBillId === item.id) {
-            const advEl = document.getElementById('advancePaidAmount');
-            if (advEl) advEl.value = item.snapshot.advancePaidAmount > 0 ? item.snapshot.advancePaidAmount : '';
-            this.calculateAndRender();
-        }
+        this.refreshLoadedBillAfterPaymentChange(item);
 
-        this.showToast(`✅ Added ${this.formatINR(rawAmt)} ${mode} (${this.formatPaymentDateDisplay(dateVal)})`);
+        this.showToast(rawAmt > 0
+            ? `✅ Added ${this.formatINR(rawAmt)} ${mode}${rawDisc > 0 ? ` + ${this.formatINR(rawDisc)} discount` : ''} (${this.formatPaymentDateDisplay(dateVal)})`
+            : `✅ Discount ${this.formatINR(rawDisc)} given (${this.formatPaymentDateDisplay(dateVal)})`);
+    }
+
+    /** The bill open in the editor follows its payments (paid amount and payment discount). */
+    refreshLoadedBillAfterPaymentChange(item) {
+        if (!item || this.loadedHistoryBillId !== item.id) return;
+        const advEl = document.getElementById('advancePaidAmount');
+        if (advEl) advEl.value = item.snapshot.advancePaidAmount > 0 ? item.snapshot.advancePaidAmount : '';
+        this.state.paymentDiscount = Math.round(Number(item.snapshot.paymentDiscount) || 0);
+        this.calculateAndRender();
+    }
+
+    /** Under the amount: "₹5,000 still left — give it as discount" when a part payment is typed. */
+    updateRecordPaymentDiscountHint() {
+        const hint = document.getElementById('rpmSettleBtn');
+        if (!hint) return;
+        const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
+        const item = (this.history || []).find(h => h.id === billId);
+        const pending = item ? Math.round(this.getBillPendingAmount(item)) : 0;
+        const amt = Math.max(0, Math.round(parseFloat(document.getElementById('rpmAmountInput')?.value) || 0));
+        const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
+        const left = pending - amt - disc;
+        if (amt > 0 && left > 0) {
+            hint.hidden = false;
+            hint.dataset.left = String(left);
+            hint.textContent = `${this.formatINR(left)} still left — give it as discount & close the bill`;
+        } else {
+            hint.hidden = true;
+        }
     }
 
     deleteBillPaymentEntry(billId, payId) {
@@ -264,6 +337,7 @@ export class PaymentsMixin {
         this.renderRecordPaymentModalContent(item);
         this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
         this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+        this.refreshLoadedBillAfterPaymentChange(item);
 
         if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
             this.openBillDetailModal(item.id);
@@ -272,10 +346,11 @@ export class PaymentsMixin {
             this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
         }
 
-        this.showUndoToast(`🗑️ Removed payment ${this.formatINR(removed.amount)}`, () => {
+        this.showUndoToast(`🗑️ Removed ${this.describePaymentEntry(removed)}`, () => {
             entries.splice(idx, 0, removed);
             this.syncBillPaymentSnapshot(item);
             this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
+            this.refreshLoadedBillAfterPaymentChange(item);
             this.renderRecordPaymentModalContent(item);
             this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
             this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');

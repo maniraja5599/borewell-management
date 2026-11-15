@@ -40,7 +40,11 @@ describe('slab engine matches original app (golden)', () => {
 
 describe('bill totals match original app (golden)', () => {
     for (const [i, { state, rates, result }] of load('totals-golden.json').entries()) {
-        it(`case ${i}`, () => expect(computeBillTotals(rates, state)).toEqual(result));
+        // Older bills: every original field unchanged; the newer fields (other items, payment
+        // discount) are empty and the total before payment discount equals the grand total.
+        it(`case ${i}`, () => expect(computeBillTotals(rates, state)).toEqual({
+            ...result, extraItems: [], extraItemsCost: 0, paymentDiscount: 0, totalBeforePaymentDiscount: result.grandTotal
+        }));
     }
 });
 

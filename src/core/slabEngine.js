@@ -175,6 +175,35 @@ export function calculateRepairBoreSlabs(rates, oldBoreDepth, totalDepth, baseRa
     return { totalCost, slabDetails };
 }
 
+/** Units for "other item" rows next to the casing pipes. */
+export const EXTRA_ITEM_UNITS = ['ft', 'nos', 'set'];
+
+/**
+ * "Other items" the user adds next to the casing pipes (sites that use something other than
+ * pipes: MS pipe, motor fitting, cap …). Each row: name, qty + unit, rate. Amount = qty × rate;
+ * with no qty the rate is the amount. Rows without an amount are dropped from the bill.
+ */
+export function normalizeExtraItems(list) {
+    if (!Array.isArray(list)) return [];
+    const out = [];
+    for (const it of list) {
+        if (!it || typeof it !== 'object') continue;
+        const qty = Math.max(0, Number(it.qty) || 0);
+        const rate = Math.max(0, Number(it.rate) || 0);
+        const amount = Math.round(qty > 0 ? qty * rate : rate);
+        if (amount <= 0) continue;
+        out.push({
+            id: String(it.id || ''),
+            name: String(it.name || '').trim().slice(0, 60) || 'Other item',
+            qty,
+            unit: EXTRA_ITEM_UNITS.includes(it.unit) ? it.unit : 'ft',
+            rate,
+            amount
+        });
+    }
+    return out;
+}
+
 /**
  * Full bill totals from the bill being edited (`s` = session state) and the active rate profile.
  * Returns the same object the app stores as `lastResult` and renders on the receipt.
@@ -195,6 +224,12 @@ export function computeBillTotals(rates, s) {
     const customNote = (s.customNote || '').trim();
     const discountAmount = s.discountAmount;
     const advancePaidAmount = s.advancePaidAmount;
+    const extraItems = normalizeExtraItems(s.extraItems);
+    const extraItemsCost = extraItems.reduce((sum, it) => sum + it.amount, 0);
+    // Discount given while recording a payment (sum of the bill's payment discounts). It comes
+    // off after GST; grandTotal is what the customer finally owes, so every screen that reads
+    // grandTotal − payments (Bills, Customers, report, cloud) stays in step.
+    const paymentDiscount = Math.max(0, Math.round(Number(s.paymentDiscount) || 0));
 
     let slabCalc;
     if (s.drillingType === 'repair') {
@@ -214,14 +249,17 @@ export function computeBillTotals(rates, s) {
         pvc10Length > 0 ||
         collarCapCost > 0 ||
         transportSurveyCost > 0 ||
-        customExtraAmount > 0
+        customExtraAmount > 0 ||
+        extraItemsCost > 0
     );
     const boreBataCost = hasAnyBillActivity ? (rates.boreBataRate ?? 2000) : 0;
 
-    const grossSubtotal = drillingCost + pvc7Cost + pvc10Cost + boreBataCost + collarCapCost + transportSurveyCost + customExtraAmount;
+    const grossSubtotal = drillingCost + pvc7Cost + pvc10Cost + extraItemsCost + boreBataCost + collarCapCost + transportSurveyCost + customExtraAmount;
     const taxableAmount = Math.max(0, grossSubtotal - discountAmount);
     const gstAmount = gstEnabled ? Math.round((taxableAmount * rates.gstPercentage) / 100) : 0;
-    const grandTotal = taxableAmount + gstAmount;
+    const totalBeforePaymentDiscount = taxableAmount + gstAmount;
+    const appliedPaymentDiscount = Math.min(paymentDiscount, totalBeforePaymentDiscount);
+    const grandTotal = totalBeforePaymentDiscount - appliedPaymentDiscount;
     const balancePayable = Math.max(0, grandTotal - advancePaidAmount);
     const avgPerFoot = totalDepth > 0 ? (drillingCost / totalDepth) : 0;
 
@@ -246,6 +284,8 @@ export function computeBillTotals(rates, s) {
         pvc10Length,
         pvc10Rate: rates.pvc10Rate,
         pvc10Cost,
+        extraItems,
+        extraItemsCost,
         boreBataCost,
         collarCapCost,
         transportSurveyCost,
@@ -258,6 +298,8 @@ export function computeBillTotals(rates, s) {
         custGst: gstEnabled ? custGst : '',
         gstPercentage: rates.gstPercentage,
         gstAmount,
+        totalBeforePaymentDiscount,
+        paymentDiscount: appliedPaymentDiscount,
         grandTotal,
         advancePaidAmount,
         balancePayable,

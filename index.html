@@ -302,9 +302,9 @@
                         <span class="cdm-date-txt" id="controlLiveDateBadge">Today</span>
                         <button type="button" class="rig-chip" id="rigPickerBtn" aria-haspopup="dialog" hidden></button>
                     </div>
-                    <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear & Start Fresh Bill">
-                        <i data-lucide="sparkles" class="icon-xs"></i>
-                        <span>Fresh Bill</span>
+                    <button type="button" class="cdm-fresh-btn" id="freshBillQuickBtn" title="Clear this form and start a new bill">
+                        <i data-lucide="file-plus-2" class="icon-xs"></i>
+                        <span>New Bill</span>
                     </button>
                 </div>
                 <div class="rig-status-banner" id="rigStatusBanner" role="status" hidden></div>
@@ -568,7 +568,7 @@
                 <div class="ui-card prog-reveal-card simple-work-card" id="progCasingSection" style="display: none;">
                     <div class="simple-card-head">
                         <div class="sc-head-left">
-                            <span class="simple-card-title"><span class="step-n" aria-hidden="true">3</span><span class="step-t">Casing pipes</span></span>
+                            <span class="simple-card-title"><span class="step-n" aria-hidden="true">3</span><span class="step-t">Casing pipes &amp; other items</span></span>
                             <button type="button" class="casing-settings-trigger-btn" id="casingSettingsTriggerBtn" title="Customize Casing Names & Rates" aria-label="Casing Pipe Settings">
                                 <i data-lucide="settings-2" class="icon-xs"></i>
                                 <span>Settings</span>
@@ -696,6 +696,16 @@
                                 <button type="button" class="pvc-step-chip step-btn plus" data-target="pvc10Length" data-step="100">+100</button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Other items: for sites that use something other than these pipes (ExtraItemsMixin) -->
+                    <div class="extra-items" id="extraItemsBox">
+                        <div class="ei-list" id="extraItemsList"></div>
+                        <div class="ei-presets" id="extraItemsPresets" hidden></div>
+                        <button type="button" class="ei-add-btn" id="addExtraItemBtn">
+                            <i data-lucide="plus" class="icon-xs"></i>
+                            <span>Add other item</span>
+                        </button>
                     </div>
 
                     <!-- Minimal Extras / Optional Notes & GST Bar -->
@@ -858,9 +868,9 @@
 
                     <!-- Primary Action: Preview & Save Bill Button -->
                     <div class="proceed-preview-bar" id="proceedToPreviewBar">
-                        <button type="button" class="btn-fresh-cta" id="freshBillCtaBtn" title="Clear and start a fresh bill" aria-label="Fresh bill">
-                            <i data-lucide="sparkles" class="icon-xs"></i>
-                            <span>Fresh bill</span>
+                        <button type="button" class="btn-fresh-cta" id="freshBillCtaBtn" title="Clear this form and start a new bill" aria-label="Start a new bill">
+                            <i data-lucide="file-plus-2" class="icon-xs"></i>
+                            <span class="bfc-long">New bill</span><span class="bfc-short" aria-hidden="true">New</span>
                         </button>
                         <button type="button" class="btn-preview-save-cta" id="openBillPreviewBtn">
                             <div class="bps-left">
@@ -990,6 +1000,7 @@
                             <span id="rcptPvc10Label">10" Casing Pipe (15 ft × ₹700/ft)</span>
                             <strong id="rcptPvc10Amount">₹10,500</strong>
                         </div>
+                        <div id="rcptExtraItemRows"></div>
                         <div class="charge-line" id="rcptBataRow">
                             <span data-i18n="boreBataCharge">Bore Bata (Per Bore)</span>
                             <strong id="rcptBataAmount">₹2,000</strong>
@@ -1017,6 +1028,10 @@
                         <div class="charge-line gst-line" id="rcptGstRow" style="display: none;">
                             <span id="rcptGstLabel">GST (18%)</span>
                             <strong id="rcptGstAmount">₹0</strong>
+                        </div>
+                        <div class="charge-line discount-line" id="rcptPayDiscountRow" style="display: none;">
+                            <span>Discount on payment</span>
+                            <strong id="rcptPayDiscountAmount">− ₹0</strong>
                         </div>
                         <div class="charge-line grand-total-line">
                             <div>
@@ -2926,6 +2941,7 @@
                         <strong class="cdm-pt-val text-danger" id="rpmBalanceDueVal">₹0</strong>
                     </div>
                 </div>
+                <p class="rpm-disc-given" id="rpmDiscountGivenNote" hidden></p>
 
                 <!-- 2. Minimal Date + Amount Entry Box -->
                 <div class="rpm-form-card" id="rpmAddPaymentFormCard">
@@ -2943,6 +2959,16 @@
                             <input type="number" id="rpmAmountInput" placeholder="₹ 0" min="1" step="any" inputmode="numeric">
                         </div>
                     </div>
+                    <!-- Discount while settling: lowers the bill total, not counted as money received -->
+                    <button type="button" class="rpm-disc-toggle" id="rpmDiscountToggleBtn">+ Give discount</button>
+                    <div class="rpm-disc-wrap" id="rpmDiscountWrap" hidden>
+                        <div class="field-group">
+                            <label for="rpmDiscountInput">Discount (₹)</label>
+                            <input type="number" id="rpmDiscountInput" placeholder="₹ 0" min="0" step="any" inputmode="numeric">
+                        </div>
+                        <small class="rpm-disc-help">Comes off the bill total. Not counted as money received.</small>
+                    </div>
+                    <button type="button" class="rpm-settle-btn" id="rpmSettleBtn" hidden></button>
                     <div class="rpm-mode-row" id="rpmModePills" role="radiogroup" aria-label="Payment mode">
                         <button type="button" class="rpm-mode-pill active" data-mode="Cash" role="radio" aria-checked="true">💵 Cash</button>
                         <button type="button" class="rpm-mode-pill" data-mode="UPI" role="radio" aria-checked="false">📱 UPI</button>

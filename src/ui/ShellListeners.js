@@ -267,10 +267,10 @@ export class ShellListeners {
         document.getElementById('freshBillQuickBtn')?.addEventListener('click', () => {
             this.exitSavedBillMode(true);
             this.calculateAndRender();
-            this.showToast(`✨ Fresh Bill ready (#${document.getElementById('billNoInput')?.value})`);
+            this.showToast(`New bill ready (#${document.getElementById('billNoInput')?.value})`);
         });
 
-        // "Fresh bill" next to Preview does the same as the quick button in the top card.
+        // "New bill" next to Preview does the same as the quick button in the top card.
         document.getElementById('freshBillCtaBtn')?.addEventListener('click', () => {
             document.getElementById('freshBillQuickBtn')?.click();
         });

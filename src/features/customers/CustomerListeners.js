@@ -113,9 +113,39 @@ export class CustomerListeners {
             if (!item) return;
             const pending = this.getBillPendingAmount(item);
             const amtInp = document.getElementById('rpmAmountInput');
+            const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
             if (amtInp && pending > 0) {
-                amtInp.value = pending;
+                amtInp.value = Math.max(0, pending - disc);
                 amtInp.focus();
+            }
+            this.updateRecordPaymentDiscountHint();
+        });
+        // Discount while recording a payment
+        document.getElementById('rpmDiscountToggleBtn')?.addEventListener('click', (e) => {
+            e.currentTarget.hidden = true;
+            const wrap = document.getElementById('rpmDiscountWrap');
+            if (wrap) wrap.hidden = false;
+            document.getElementById('rpmDiscountInput')?.focus();
+        });
+        ['rpmAmountInput', 'rpmDiscountInput'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('input', () => this.updateRecordPaymentDiscountHint());
+        });
+        document.getElementById('rpmSettleBtn')?.addEventListener('click', (e) => {
+            const left = Math.max(0, parseInt(e.currentTarget.dataset.left, 10) || 0);
+            if (left <= 0) return;
+            const discInp = document.getElementById('rpmDiscountInput');
+            const cur = Math.max(0, Math.round(parseFloat(discInp?.value) || 0));
+            if (discInp) discInp.value = String(cur + left);
+            const wrap = document.getElementById('rpmDiscountWrap');
+            if (wrap) wrap.hidden = false;
+            const toggle = document.getElementById('rpmDiscountToggleBtn');
+            if (toggle) toggle.hidden = true;
+            this.updateRecordPaymentDiscountHint();
+        });
+        document.getElementById('rpmDiscountInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.saveNewBillPaymentRecord();
             }
         });
         document.querySelectorAll('#rpmModePills .rpm-mode-pill').forEach(pill => {

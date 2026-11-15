@@ -173,7 +173,7 @@ export class ReceiptMixin {
         if (drillBadge) drillBadge.textContent = this.formatINR(res.drillingCost);
 
         const casingBadge = document.getElementById('liveInlineCasingTotalBadge');
-        if (casingBadge) casingBadge.textContent = this.formatINR(res.pvc7Cost + res.pvc10Cost);
+        if (casingBadge) casingBadge.textContent = this.formatINR(res.pvc7Cost + res.pvc10Cost + (res.extraItemsCost || 0));
 
         // Live Active Slab Tag inside Total Drilling Depth box
         const activeSlabTag = document.getElementById('liveActiveSlabTag');
@@ -474,6 +474,12 @@ export class ReceiptMixin {
         const pvc10Row = document.getElementById('rcptPvc10Row');
         if (pvc10Row) pvc10Row.style.display = res.pvc10Length > 0 ? '' : 'none';
 
+        const itemRowsEl = document.getElementById('rcptExtraItemRows');
+        if (itemRowsEl) {
+            itemRowsEl.innerHTML = (res.extraItems || []).map((it) =>
+                `<div class="charge-line"><span>${this.escapeHtml(this.extraItemBillLabel(it))}</span><strong>${this.formatINR(it.amount)}</strong></div>`).join('');
+        }
+
         document.getElementById('rcptBataAmount').textContent = this.formatINR(res.boreBataCost);
 
         this.toggleChargeRow('rcptCollarRow', 'rcptCollarAmount', res.collarCapCost);
@@ -507,6 +513,13 @@ export class ReceiptMixin {
             gstRow.style.display = 'none';
         }
 
+        const payDiscRow = document.getElementById('rcptPayDiscountRow');
+        if (payDiscRow) {
+            payDiscRow.style.display = res.paymentDiscount > 0 ? 'flex' : 'none';
+            const pd = document.getElementById('rcptPayDiscountAmount');
+            if (pd) pd.textContent = `− ${this.formatINR(res.paymentDiscount || 0)}`;
+        }
+
         document.getElementById('rcptGrandTotal').textContent = this.formatINR(res.grandTotal);
         const rcptAvgEl = document.getElementById('rcptAvgPerFootSub');
         if (rcptAvgEl) {
@@ -516,8 +529,8 @@ export class ReceiptMixin {
 
         const advRow = document.getElementById('rcptAdvanceRow');
         const balRow = document.getElementById('rcptBalanceRow');
-        if (res.advancePaidAmount > 0) {
-            advRow.style.display = 'flex';
+        if (res.advancePaidAmount > 0 || res.paymentDiscount > 0) {
+            advRow.style.display = res.advancePaidAmount > 0 ? 'flex' : 'none';
             balRow.style.display = 'flex';
             document.getElementById('rcptAdvanceAmount').textContent = `− ${this.formatINR(res.advancePaidAmount)}`;
             document.getElementById('rcptBalanceAmount').textContent = this.formatINR(res.balancePayable);

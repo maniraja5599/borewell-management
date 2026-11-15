@@ -9,6 +9,7 @@ import { CalcMixin } from '../features/bill/CalcMixin.js';
 import { FormatMixin } from '../ui/FormatMixin.js';
 import { ReceiptMixin } from '../features/bill/ReceiptMixin.js';
 import { NotesExtrasMixin } from '../features/bill/NotesExtrasMixin.js';
+import { ExtraItemsMixin } from '../features/bill/ExtraItemsMixin.js';
 import { PhoneMixin } from '../features/customers/PhoneMixin.js';
 import { SitesMixin } from '../features/customers/SitesMixin.js';
 import { CustomerRecordMixin } from '../features/customers/CustomerRecordMixin.js';
@@ -183,6 +184,8 @@ export class BoreBillSaaSApp {
             transportSurveyCost: 0,
             customExtraLabel: '',
             customExtraAmount: 0,
+            extraItems: [],
+            paymentDiscount: 0,
             customNote: '',
             discountAmount: 0,
             advancePaidAmount: 0,
@@ -340,6 +343,7 @@ export class BoreBillSaaSApp {
         this.setupCustomerListeners();
         this.setupHistoryFilterListeners();
         this.setupBillFieldBehaviorListeners();
+        this.setupExtraItemsListeners();
         this.setupCustomerFilterListeners();
         this.setupBillDrawerAndRateListeners();
         this.setupSettingsListeners();
@@ -356,6 +360,7 @@ applyMixins(BoreBillSaaSApp, [
     FormatMixin,
     ReceiptMixin,
     NotesExtrasMixin,
+    ExtraItemsMixin,
     PhoneMixin,
     SitesMixin,
     CustomerRecordMixin,

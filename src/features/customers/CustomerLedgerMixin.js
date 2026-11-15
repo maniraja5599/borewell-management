@@ -689,7 +689,8 @@ export class CustomerLedgerMixin {
                             <span class="cbc-r-lbl">Total Pipe Installed</span>
                             <span class="cbc-r-val">${totalPipeFt.toLocaleString('en-IN')} ft • <strong class="text-brand">${this.formatINR(totalPipeCost)}</strong></span>
                         </div>
-                        ${extrasTotal > 0 ? `
+                        ${this.billCardItemRowsHtml(snap)}
+${extrasTotal > 0 ? `
                         <div class="cbc-row">
                             <span class="cbc-r-lbl">Bata &amp; Extras</span>
                             <span class="cbc-r-val"><small>${extrasParts.join(', ')}</small> • <strong>${this.formatINR(extrasTotal)}</strong></span>
@@ -707,6 +708,7 @@ export class CustomerLedgerMixin {
                             <span class="cbc-r-val">+${this.formatINR(gstAmt)}</span>
                         </div>
                         ` : ''}
+${this.billCardPayDiscountRowHtml(snap)}
                         <div class="cbc-row highlight-row">
                             <span class="cbc-r-lbl">${isInvoice ? 'Total Bore Bill' : 'Estimated Total'}</span>
                             <span class="cbc-r-val" style="font-size: var(--fs-lg);">${this.formatINR(grandTotal)}</span>
@@ -736,7 +738,7 @@ export class CustomerLedgerMixin {
                                 ? payEntries.map((p, pIdx) => `
                                     <div class="cphb-row">
                                         <span class="cphb-r-left">${pIdx + 1}. 📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
-                                        <span class="cphb-r-amt">${this.formatINR(p.amount)}</span>
+                                        <span class="cphb-r-amt">${this.escapeHtml(this.describePaymentEntry(p))}</span>
                                     </div>
                                 `).join('')
                                 : `<div style="padding:8px 0; color:#64748b; font-size: var(--fs-sm); font-weight:600;">No payment recorded yet.</div>`

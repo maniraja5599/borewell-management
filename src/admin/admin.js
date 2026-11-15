@@ -336,7 +336,7 @@ async function bizBills(id, box) {
             h('div', { class: 'kv' }, [['Date', b.day ? day(b.day) : '—'], ['Place', full.custLocation || '—'], ['Phone', full.custPhone || '—'],
                 ['Depth', `${num(full.snapshot?.totalDepth)} ft`], ['Total', inr(b.total)], ['Paid', inr(b.paid)], ['Due', inr(b.due)], ['Made by', b.made_by || '—']]
                 .map(([k, v]) => h('div', {}, [h('span', { text: k }), v]))),
-            pays.length ? h('p', { class: 'note', text: 'Payments: ' + pays.map((p) => `${inr(p.amount)}${p.date ? ` on ${day(p.date)}` : ''}${p.mode ? ` (${p.mode})` : ''}`).join(', ') }) : null,
+            pays.length ? h('p', { class: 'note', text: 'Payments: ' + pays.map((p) => `${inr(p.amount)}${Number(p.discount) > 0 ? ` + ${inr(p.discount)} discount` : ''}${p.date ? ` on ${day(p.date)}` : ''}${p.mode ? ` (${p.mode})` : ''}`).join(', ') }) : null,
             h('details', {}, [h('summary', { text: 'Full bill data (JSON)' }), h('pre', { style: 'white-space:pre-wrap;font-size:0.72rem;max-height:320px;overflow:auto', text: JSON.stringify(full, null, 2) })])
         ]));
         detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

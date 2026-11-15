@@ -251,6 +251,7 @@ export class BillFlowMixin {
         return Boolean(String(s.custName || '').trim())
             || n(s.totalDepth) || n(s.oldBoreDepth) || n(s.pvc7Length) || n(s.pvc10Length)
             || n(s.collarCapCost) || n(s.transportSurveyCost) || n(s.customExtraAmount)
+            || (Array.isArray(s.extraItems) && s.extraItems.some((it) => String(it?.name || '').trim() || n(it?.rate)))
             || n(s.discountAmount) || n(s.advancePaidAmount);
     }
 
@@ -352,6 +353,9 @@ export class BillFlowMixin {
         setVal('customExtraLabel', s.customExtraLabel || '');
         setPosVal('customExtraAmount', s.customExtraAmount);
         setVal('billCustomNoteInput', s.customNote || '');
+        if (!Array.isArray(s.extraItems)) s.extraItems = [];
+        if (!this.loadedHistoryBillId) s.paymentDiscount = 0;
+        this.renderExtraItemsUI();
         setPosVal('discountAmount', s.discountAmount);
         setPosVal('advancePaidAmount', s.advancePaidAmount);
 

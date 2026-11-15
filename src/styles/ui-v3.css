@@ -407,7 +407,7 @@ html.ui-v3 .lsa-toggle-btn {
 }
 html.ui-v3 .live-slab-accordion { border-radius: 12px !important; box-shadow: none !important; }
 
-/* ---------- Bottom actions: Fresh bill + Preview ---------- */
+/* ---------- Bottom actions: New bill + Preview ---------- */
 html.ui-v3 .proceed-preview-bar { display: flex !important; align-items: stretch !important; gap: 8px !important; }
 html.ui-v3 .btn-fresh-cta {
     display: inline-flex;
@@ -425,6 +425,8 @@ html.ui-v3 .btn-fresh-cta {
     white-space: nowrap;
     cursor: pointer;
 }
+html.ui-v3 .btn-fresh-cta svg { width: 18px; height: 18px; color: var(--v3-pri, #15803d); }
+html.ui-v3 .btn-fresh-cta .bfc-short { display: none; }
 html.ui-v3 .btn-preview-save-cta {
     flex: 1 1 auto !important;
     min-width: 0 !important;
@@ -443,8 +445,10 @@ html.ui-v3 .btn-preview-save-cta #openBillPreviewBtnText { overflow: hidden; tex
 html.ui-v3 .btn-preview-save-cta .bps-right > i,
 html.ui-v3 .btn-preview-save-cta .bps-right > svg { display: none !important; }
 @media (max-width: 479px) {
-    html.ui-v3 .btn-fresh-cta { width: 52px; padding: 0; }
-    html.ui-v3 .btn-fresh-cta span { display: none; }
+    /* Phones: icon with a short "New" under it, so the button is never a bare icon */
+    html.ui-v3 .btn-fresh-cta { width: 58px; padding: 0; flex-direction: column; gap: 3px; }
+    html.ui-v3 .btn-fresh-cta .bfc-long { display: none; }
+    html.ui-v3 .btn-fresh-cta .bfc-short { display: block; font: 700 11.5px/1 Inter, sans-serif; }
 }
 html.ui-v3 .btn-preview-save-cta,
 html.ui-v3 .btn-preview-save-cta * { letter-spacing: normal !important; }
@@ -855,3 +859,25 @@ html.ui-v3 .simple-rate-bata-bar .srbb-item.date-item input {
     text-align: left;
     padding: 0 !important;
 }
+@media (max-width: 379px) {
+    html.ui-v3 .btn-preview-save-cta #openBillPreviewBtnText { font-size: 13.5px !important; }
+    html.ui-v3 .btn-preview-save-cta { padding: 0 10px !important; }
+}
+
+/* ---------- Fit check, 360 px phones (top-to-bottom audit) ---------- */
+@media (max-width: 379px) {
+    /* Preview button: drop the eye icon so "Preview & Save Bill" fits */
+    html.ui-v3 .btn-preview-save-cta .bps-left > i,
+    html.ui-v3 .btn-preview-save-cta .bps-left > svg { display: none !important; }
+    /* Date box: icon-only label, the date + calendar icon stay inside */
+    html.ui-v3 .simple-rate-bata-bar .srbb-item.date-item label { font-size: 0 !important; }
+    html.ui-v3 .simple-rate-bata-bar .srbb-item.date-item label::before { content: '📅'; font-size: 13px; }
+    html.ui-v3 #billDateInput { min-width: 0 !important; width: 100% !important; font-size: 13.5px !important; }
+    /* Top strip: bill no + date in a smaller size so the date is not cut */
+    html.ui-v3 .live-bar-meta { font-size: 11.5px; }
+    /* −20 / +20 / +40 / +100: a little more room for the text */
+    html.ui-v3 .pvc-quick-stepper-row { gap: 4px !important; }
+    html.ui-v3 .pvc-step-chip { padding: 0 1px !important; font-size: 0.72rem !important; letter-spacing: -0.2px; }
+}
+/* Bills card footer: "Received · 2 payments" / "No payment yet" wrap instead of being cut */
+html.ui-v3 .bl-card .bl-rec-lbl { white-space: normal; overflow: visible; text-overflow: clip; }

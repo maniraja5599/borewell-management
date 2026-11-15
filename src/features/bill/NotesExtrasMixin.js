@@ -133,6 +133,7 @@ export class NotesExtrasMixin {
 
         // 1. Explicitly saved / auto-saved extras in localStorage
         (this.savedExtras || []).forEach(ex => {
+            if (ex?.type === 'item') return; // "other items" rows show their own chips (ExtraItemsMixin)
             pushExtra(ex.type || 'custom', ex.label, ex.amount, ex.id, true);
         });
 
