@@ -461,7 +461,7 @@ export function initSignInGate(app) {
                         art3d(icon),
                         el('span', { class: 'sg-pt' }, [el('strong', { text: title }), el('span', { text })])
                     ]))),
-                    pendingJoinCode() ? el('p', { class: 'sg-local sg-invite' }, [icon3('check'), el('span', { text: 'You have been invited to a DrillRig team. Sign in with Google to join.' })]) : null,
+                    pendingJoinCode() ? el('p', { class: 'sg-local sg-invite' }, [icon3('check'), el('span', { text: 'You have been invited to a DrillRig team. Sign in with Google to see the invitation and accept it.' })]) : null,
                     bills > 0 ? el('p', { class: 'sg-local' }, [icon3('check'), el('span', { text: `The ${bills} ${bills === 1 ? 'bill' : 'bills'} on this phone stay here and are backed up to your account after you sign in.` })]) : null,
                     slot,
                     msg,

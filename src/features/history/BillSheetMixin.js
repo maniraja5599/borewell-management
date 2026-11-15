@@ -1,6 +1,8 @@
 // One clean layout for a saved bill, used by the bill popup (Bills page) and by each bore in the
 // customer popup, so both always show the same lines and the same totals.
 // Numbers come from the saved snapshot + payments (PaymentsMixin), never recomputed here.
+import { currentUser } from '../../cloud/access.js';
+
 export class BillSheetMixin {
     /** Status of a saved bill: { kind: 'paid' | 'due' | 'quote', label } */
     billSheetStatus(item) {
@@ -114,6 +116,7 @@ export class BillSheetMixin {
                 <span class="bs-w-chip">${esc(this.billSheetWorkLine(snap))}</span>
                 ${site ? `<span class="bs-w-chip is-site">📍 ${esc(site)}</span>` : ''}
                 ${this.getHistoryItemDateStr(item) ? `<span class="bs-w-chip is-date">${esc(this.formatPaymentDateDisplay(this.getHistoryItemDateStr(item)))}</span>` : ''}
+                ${item.createdBy?.name && item.createdBy.id !== currentUser()?.id ? `<span class="bs-w-chip is-maker">👤 Made by ${esc(item.createdBy.name)}</span>` : ''}
             </div>
             <div class="bs-section">
                 <div class="bs-sec-head">Charges</div>

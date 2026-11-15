@@ -1,6 +1,6 @@
 // Bill book with several rigs: a rig badge on each bill and a "which rig" filter.
 // Nothing shows unless the company has more than one rig.
-import { getAccess } from '../../cloud/access.js';
+import { getAccess, currentUser } from '../../cloud/access.js';
 
 function rigs() {
     return getAccess()?.rigs || [];
@@ -27,6 +27,15 @@ export function rigBadgeHtml(bill, escapeHtml) {
     if (!multiRig()) return '';
     const rig = rigs().find((r) => r.id === billRigId(bill));
     return rig ? `<span class="party-rig-badge">🚜 ${escapeHtml(rig.name)}</span>` : '';
+}
+
+/** "👤 by Murugan" on bills someone else made (owner / partner / staff); '' for your own bills. */
+export function makerBadgeHtml(bill, escapeHtml) {
+    const by = bill?.createdBy;
+    const me = currentUser();
+    if (!by?.id || !me || by.id === me.id) return '';
+    const name = String(by.name || '').trim() || 'team member';
+    return `<span class="party-rig-badge is-maker" title="Made by ${escapeHtml(name)}">👤 by ${escapeHtml(name)}</span>`;
 }
 
 /**

@@ -242,6 +242,8 @@ await step('R14 new bill depth stops at the last slab', async () => {
     await typeInto('totalDepth', end + 150); await wait(300);
     const s = await bill();
     const field = await app(() => ({ v: document.getElementById('totalDepth').value, max: document.getElementById('totalDepth').max, ph: document.getElementById('totalDepth').placeholder }));
+    // messages show one at a time, so this one may wait for an earlier one to leave
+    for (let i = 0; i < 20 && !toasts.slice(before).some((t) => /Add a slab in Rates/.test(t)); i++) await wait(200);
     const msg = toasts.slice(before).find((t) => /Add a slab in Rates/.test(t)) || '';
     check(`R14 typing ${end + 150} ft on a ${end} ft ladder → set to ${end} ft, priced at ${end} ft, with a message`,
         end > 0 && field.v === String(end) && field.max === String(end) && s.res.totalDepth === end && /up to/.test(field.ph) && msg,

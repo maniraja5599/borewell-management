@@ -36,7 +36,7 @@ function emit() {
 const ROLES = ['owner', 'manager', 'driver'];
 
 /** Store the server's answer. Older servers (before migration 0003) send no rigs. */
-export function setAccessFromServer(row, userId) {
+export function setAccessFromServer(row, userId, userName = '') {
     const rigs = Array.isArray(row?.rigs) ? row.rigs.filter((r) => r && r.id) : [];
     const prev = access;
     let currentRigId = prev?.companyId === row.company_id ? prev?.currentRigId : null;
@@ -45,6 +45,7 @@ export function setAccessFromServer(row, userId) {
     }
     access = {
         userId,
+        userName: String(userName || '').trim().slice(0, 80),
         companyId: row.company_id,
         companyName: row.company_name || '',
         role: ROLES.includes(row.role) ? row.role : 'owner',
@@ -68,6 +69,8 @@ export function clearAccess() {
 
 export function getAccess() { return access; }
 export function getRole() { return access?.role || null; }
+/** Who is using this phone (for "made by" on new bills); null in single-user mode. */
+export function currentUser() { return access?.userId ? { id: access.userId, name: access.userName || '', role: access.role } : null; }
 /** Owner, or not using the cloud at all (single-user mode). */
 export function isOwnerOrLocal() { return !access || access.role === 'owner'; }
 /** Rigs are in use once the server has sent them (migration 0003 applied). */

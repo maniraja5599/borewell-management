@@ -1,8 +1,8 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { ratesForSnapshot } from '../../core/billRates.js';
-import { getCurrentRig } from '../../cloud/access.js';
-import { ensureRigFilterUI, matchesRigFilter, rigBadgeHtml } from '../team/rigFilter.js';
+import { getCurrentRig, currentUser } from '../../cloud/access.js';
+import { ensureRigFilterUI, matchesRigFilter, rigBadgeHtml, makerBadgeHtml } from '../team/rigFilter.js';
 
 export class HistoryMixin {
     saveCurrentBillToHistory() {
@@ -210,6 +210,9 @@ export class HistoryMixin {
         // With rigs (cloud), a new bill belongs to the rig selected on this phone.
         const rig = getCurrentRig();
         if (rig) record.rigId = rig.id;
+        // ...and shows who made it (owner, partner, manager or driver).
+        const me = currentUser();
+        if (me) record.createdBy = { id: me.id, name: me.name, role: me.role };
         this.syncBillPaymentSnapshot(record);
 
         this.history.unshift(record);
@@ -539,7 +542,7 @@ export class HistoryMixin {
                             <span class="bl-no">#${this.escapeHtml(item.billNo)}</span>${dateTxt ? `<span class="bl-dot">·</span><span>${this.escapeHtml(dateTxt)}</span>` : ''}
                         </div>
                         ${placeTxt || depthTxt ? `<div class="bl-meta bl-site">${placeTxt ? `<span class="bl-place">${this.escapeHtml(placeTxt)}</span>` : ''}${placeTxt && depthTxt ? '<span class="bl-dot">·</span>' : ''}${depthTxt ? `<span>${this.escapeHtml(depthTxt)}</span>` : ''}</div>` : ''}
-                        ${rigBadgeHtml(item, (v) => this.escapeHtml(v))}
+                        ${((b) => b ? `<div class="bl-badges">${b}</div>` : '')(rigBadgeHtml(item, (v) => this.escapeHtml(v)) + makerBadgeHtml(item, (v) => this.escapeHtml(v)))}
                     </div>
                     <div class="khata-amounts bl-amt">
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>

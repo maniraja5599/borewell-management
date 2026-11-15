@@ -178,7 +178,7 @@ async function refreshAccess() {
         throw err;
     }
 
-    setAccessFromServer(row, ctx.account.id);
+    setAccessFromServer(row, ctx.account.id, ctx.account.name || String(ctx.account.email || '').split('@')[0]);
     const rev = row.access_rev === undefined || row.access_rev === null ? null : String(row.access_rev);
     const changed = st.accessRev != null && rev != null && rev !== st.accessRev;
     st.companyId = row.company_id;
@@ -622,7 +622,30 @@ export function resetSyncBaseline() {
 
 export function getSyncInfo() {
     const st = ctx?.state || loadState();
-    return st ? { companyName: st.companyName, role: st.role, lastSyncAt: st.lastSyncAt } : null;
+    return st ? { companyName: st.companyName, role: st.role, lastSyncAt: st.lastSyncAt, companyId: st.companyId, userId: st.userId } : null;
+}
+
+/** Changes on this phone that are not in the cloud yet (0 = safe to clear the phone). */
+export function unsyncedCount(app) {
+    const st = ctx?.state || loadState();
+    if (!st) return 0;
+    try {
+        storage.verifyNow();
+        const defaults = { brand: app.defaultBrand, rates: app.defaultRates, waFormat: app.defaultWaFormat };
+        const rows = planPush(indexPhone(readLocal()), st.hashes || {}, defaults);
+        return filterPushable(rows, st.role || 'owner', st.rejected || {}, ctx?.caps || []).length;
+    } catch {
+        return 0;
+    }
+}
+
+/** Sync now and wait for it to finish; returns how many changes are still only on this phone. */
+export async function flushSync(app) {
+    const idle = async () => { for (let i = 0; ctx?.running && i < 120; i++) await new Promise((r) => setTimeout(r, 250)); };
+    await idle();
+    await syncNow();
+    await idle();
+    return unsyncedCount(app);
 }
 
 // Exposed for tests / debugging.

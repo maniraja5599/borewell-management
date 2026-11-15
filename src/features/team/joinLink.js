@@ -1,7 +1,7 @@
 // Invite links: https://drillrig.in/?join=K7Q2M9XW4P (made in Team & Rigs → Invite by mobile).
-// The code is kept on the phone until the person signs in with Google, then used once
-// (server: drillrig_join_with_code, migration 0010) before the first sync, so they open the
-// owner's company instead of getting a new empty one.
+// The code is kept on the phone until the person signs in with Google. Then invitations.js shows
+// the invitation (Accept / Reject, migration 0011) before the first sync, so an accepted invite
+// opens the owner's company instead of a new empty one.
 import { getSupabase } from '../../cloud/auth.js';
 import { setPreferredCompany } from '../../cloud/sync.js';
 import { storage } from '../../data/storage.js';
@@ -33,11 +33,11 @@ export function pendingJoinCode() {
     } catch { return null; }
 }
 
-function clearJoinCode() {
+export function clearJoinCode() {
     try { storage.remove(KEY); } catch { /* ignore */ }
 }
 
-/** Signed in: use the waiting code (if any). Never throws; the result is told with a toast. */
+/** Older servers (before 0011) only: join with the waiting code at once. Never throws. */
 export async function consumeJoinCode(app) {
     const code = pendingJoinCode();
     if (!code) return null;

@@ -81,26 +81,104 @@ export class ShellMixin {
         return 'is-ok';
     }
 
-    /** Slide the message up and away with graceful fade, then remove it. */
+    /** Slide the message up and away, then remove it. */
     dismissToast(el) {
         if (!el || el.classList.contains('is-leaving')) return;
         el.classList.add('is-leaving');
-        setTimeout(() => el.remove(), 340);
+        setTimeout(() => el.remove(), 300);
     }
 
-    // Messages float gracefully at the top of the screen and dissolve after a moment.
+    /**
+     * Messages show ONE AT A TIME in the same place at the top. When several arrive together they
+     * wait in a queue: each is shown in turn (shorter while others are waiting, with a "+2" chip),
+     * the same text twice in a row is shown once, and a tap dismisses the current one early.
+     */
     showToast(msg) {
+        const text = String(msg ?? '').trim();
+        if (!text) return;
+        this._toastQueue = this._toastQueue || [];
+        if (this._toastShowing === text || this._toastQueue.includes(text)) return; // already on screen or waiting
+        const urgent = this.toastKind(text) === 'is-warn';
+        if (urgent) this._toastQueue.unshift(text); // warnings go first
+        else this._toastQueue.push(text);
+        if (this._toastQueue.length > 4) this._toastQueue.splice(4); // never a long wait: drop the oldest-queued extras
+        if (!this._toastShowing) { this._showNextToast(); return; }
+        this._updateToastMore();
+        this._hurryToast(urgent ? 450 : 1200); // others are waiting: let the current one go sooner
+    }
+
+    /** Shorten the message on screen (to `ms` more) when others are waiting. */
+    _hurryToast(ms = 1200) {
+        const t = this._toastTiming;
+        if (!t) return;
+        if (t.warn && ms > 500) return; // an info message never cuts a warning short
+        const left = t.endAt - Date.now();
+        if (left <= ms + 100) return;
+        clearTimeout(t.timer);
+        t.timer = setTimeout(t.finish, ms);
+        t.endAt = Date.now() + ms;
+        const bar = this._toastEl?.querySelector('.toast-timer');
+        if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; this._toastEl.style.setProperty('--toast-ms', `${ms}ms`); }
+    }
+
+    _updateToastMore() {
+        const more = this._toastEl?.querySelector('.toast-more');
+        if (!more) return;
+        const n = (this._toastQueue || []).length;
+        more.textContent = n ? `+${n}` : '';
+        more.hidden = !n;
+    }
+
+    _showNextToast() {
         const container = document.getElementById('toastContainer');
-        if (!container) return;
+        const text = (this._toastQueue || []).shift();
+        if (!container || !text) { this._toastShowing = null; this._toastEl = null; return; }
+        this._toastShowing = text;
+
+        // A leading emoji (✅ ⚠️ 🗑️ ↩️ …) becomes the round icon; the rest is the message.
+        const m = text.match(/^(\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*)\s*/u);
+        const kind = this.toastKind(text);
+        const icon = kind === 'is-warn' ? '!' : kind === 'is-del' ? '✕' : '✓';
+        const body = m ? text.slice(m[0].length) : text;
+
         const el = document.createElement('div');
-        el.className = `toast-msg ${this.toastKind(msg)}`;
-        el.setAttribute('role', 'status');
-        el.textContent = msg;
+        el.className = `toast-msg ${kind}`;
+        el.setAttribute('role', kind === 'is-warn' ? 'alert' : 'status');
+        const ic = document.createElement('span');
+        ic.className = 'toast-icon';
+        ic.setAttribute('aria-hidden', 'true');
+        ic.textContent = icon;
+        const tx = document.createElement('span');
+        tx.className = 'toast-text';
+        tx.textContent = body || text;
+        const more = document.createElement('span');
+        more.className = 'toast-more';
+        more.hidden = true;
+        const bar = document.createElement('span');
+        bar.className = 'toast-timer';
+        el.append(ic, tx, more, bar);
+
+        const waiting = this._toastQueue.length;
+        const ms = kind === 'is-warn' ? (waiting ? 2400 : 3600) : (waiting ? 1700 : 2600); // warnings stay readable
+        el.style.setProperty('--toast-ms', `${ms}ms`);
+        this._toastEl = el;
         container.appendChild(el);
-        // keep at most 3 on screen
-        const all = container.querySelectorAll('.toast-msg:not(.toast-undo-bar):not(.is-leaving)');
-        if (all.length > 3) this.dismissToast(all[0]);
-        setTimeout(() => this.dismissToast(el), 2800);
+        this._updateToastMore();
+
+        let done = false;
+        const timing = { endAt: Date.now() + ms, warn: kind === 'is-warn', timer: null, finish: null };
+        const finish = () => {
+            if (done) return;
+            done = true;
+            clearTimeout(timing.timer);
+            if (this._toastTiming === timing) this._toastTiming = null;
+            this.dismissToast(el);
+            setTimeout(() => this._showNextToast(), 320);
+        };
+        timing.finish = finish;
+        timing.timer = setTimeout(finish, ms);
+        this._toastTiming = timing;
+        el.addEventListener('click', finish);
     }
 
     confirmDeleteModal({

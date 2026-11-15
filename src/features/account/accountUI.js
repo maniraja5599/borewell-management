@@ -1,8 +1,8 @@
 // The "Sign in with Google" card at the top of Settings.
 // Sign-in itself is required before the app opens (signInGate.js); this card shows the account and sync.
-import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut, getSupabase } from '../../cloud/auth.js';
-import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany } from '../../cloud/sync.js';
-import { consumeJoinCode, pendingJoinCode } from '../team/joinLink.js';
+import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut } from '../../cloud/auth.js';
+import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany, getSyncInfo } from '../../cloud/sync.js';
+import { checkInvitations, showSwitchCard } from '../team/invitations.js';
 import { maybeAskProfile } from './profilePrompt.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
 import { isEarlyAccess, earlyAccessEndLabel, earlyAccessDaysLeft } from '../../config/plans.js';
@@ -200,18 +200,16 @@ export function initAccountUI(app) {
     const companyLine = document.createElement('div');
     companyLine.className = 'acc-company';
     document.getElementById('accEmail')?.insertAdjacentElement('afterend', companyLine);
+    // "Your businesses" list (more than one company, or an invitation): full width under the account row.
+    const bizSlot = document.createElement('div');
+    bizSlot.className = 'acc-biz-slot';
+    signedIn.insertAdjacentElement('afterend', bizSlot);
     const ROLE = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
-    const switchTo = (companyId, name) => app.confirmDeleteModal({
-        title: `Open ${name}?`,
-        subtitle: 'This phone shows one company at a time',
-        itemLabel: `🏢 ${name}`,
-        message: 'The current company\'s data is removed from this phone (it stays in its cloud) and the other company is downloaded. Changes not yet synced are lost.',
-        confirmBtnLabel: 'Switch',
-        onConfirm: () => startOver(companyId)
-    });
+    const switchTo = (companyId, name) => showSwitchCard(app, companyId, name);
     const renderCompany = () => {
         const a = getAccess();
         companyLine.textContent = '';
+        bizSlot.textContent = '';
         if (!a || signedIn.hidden) return;
         const line = document.createElement('span');
         line.className = 'acc-company-name';
@@ -220,31 +218,47 @@ export function initAccountUI(app) {
         const name = ownName && ownName !== app.defaultBrand?.companyName ? ownName : a.companyName;
         line.textContent = `${ROLE[a.role] || a.role} · ${name || 'Company'}`;
         companyLine.appendChild(line);
-        for (const c of (a.companies || []).filter((x) => x.company_id !== a.companyId)) {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'acc-mini-btn';
-            b.textContent = `Switch to ${c.name}`;
-            b.addEventListener('click', () => switchTo(c.company_id, c.name));
-            companyLine.appendChild(b);
-        }
-        for (const iv of a.invites || []) {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.className = 'acc-mini-btn is-invite';
-            b.textContent = `📨 Join ${iv.company_name} as ${ROLE[iv.role] || iv.role}`;
-            b.addEventListener('click', async () => {
-                try {
-                    const sb = await getSupabase();
-                    const { data, error } = await sb.rpc('drillrig_accept_invite', { p_invite: iv.id });
-                    if (error) throw new Error(error.message);
-                    switchTo(data || iv.company_id, iv.company_name);
-                } catch (e) {
-                    toast(`⚠️ ${e.message}`);
+
+        // Someone in more than one business (e.g. owner of their own + manager in another):
+        // a clean list with the one open on this phone and a Switch button for each other one.
+        const companies = Array.isArray(a.companies) ? a.companies : [];
+        const invites = Array.isArray(a.invites) ? a.invites : [];
+        if (companies.length < 2 && !invites.length) return;
+        const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+        const box = mk('div', 'acc-biz');
+        if (companies.length > 1) box.appendChild(mk('div', 'acc-biz-title', 'Your businesses'));
+        const row = (title, role, action) => {
+            const r = mk('div', 'acc-biz-row');
+            const txt = mk('div', 'acc-biz-txt');
+            txt.append(mk('strong', null, title), mk('span', `acc-biz-role is-${role}`, ROLE[role] || role));
+            r.append(txt, action);
+            return r;
+        };
+        if (companies.length > 1) {
+            for (const c of companies) {
+                const isOpen = c.company_id === a.companyId;
+                let action;
+                if (isOpen) action = mk('span', 'acc-biz-open', '✓ Open now');
+                else {
+                    action = mk('button', 'acc-biz-btn', 'Switch');
+                    action.type = 'button';
+                    action.setAttribute('aria-label', `Switch to ${c.name}`);
+                    action.addEventListener('click', () => switchTo(c.company_id, c.name));
                 }
-            });
-            companyLine.appendChild(b);
+                box.appendChild(row(isOpen ? (name || c.name) : c.name, c.role, action));
+            }
         }
+        for (const iv of invites) {
+            const b = mk('button', 'acc-biz-btn is-invite', 'View');
+            b.type = 'button';
+            // Opens the invitation card: Accept / Reject (nothing is joined without a yes).
+            b.addEventListener('click', () => checkInvitations(app, { phoneHasCompany: true, only: { ...iv, status: 'open' } })
+                .then(() => syncNow()));
+            const r = row(`📨 Invitation: ${iv.company_name}`, iv.role, b);
+            r.classList.add('is-invite');
+            box.appendChild(r);
+        }
+        bizSlot.appendChild(box);
     };
     onAccessChange(renderCompany);
 
@@ -272,9 +286,18 @@ export function initAccountUI(app) {
                 askToTakeOverPhone(acc, other);
             } else {
                 blockedAccount = null;
-                // An invite link waiting? Join that team first, so the first sync opens it.
-                if (pendingJoinCode()) consumeJoinCode(app).finally(() => { if (currentId === acc.id) startSync(app, acc, onStatus, onBlocked); });
-                else startSync(app, acc, onStatus, onBlocked);
+                // Invitations (link opened on this phone, or sent to this Gmail) are answered first:
+                //  - a phone that already shows this person's company keeps syncing meanwhile;
+                //  - a new phone waits, so an accepted invite opens that company instead of a new empty one.
+                const info = getSyncInfo();
+                const phoneHasCompany = !!(info && info.userId === acc.id && info.companyId);
+                if (phoneHasCompany) {
+                    startSync(app, acc, onStatus, onBlocked);
+                    setTimeout(() => { if (currentId === acc.id) checkInvitations(app, { phoneHasCompany: true }).catch(() => null); }, 1200);
+                } else {
+                    checkInvitations(app, { phoneHasCompany: false }).catch(() => null)
+                        .finally(() => { if (currentId === acc.id) startSync(app, acc, onStatus, onBlocked); });
+                }
             }
         }
 
