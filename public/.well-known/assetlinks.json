@@ -1,8 +1,11 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "in.drillrig.app",
-        "sha256_cert_fingerprints": ["CB:AC:73:8D:CD:83:AF:43:97:F6:87:09:50:AE:F8:4C:71:DE:38:29:4A:E4:54:29:73:17:8D:9E:F3:26:CC:D8"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "in.drillrig.app",
+    "sha256_cert_fingerprints": [
+      "9D:49:78:B9:56:45:67:A6:FE:44:1B:94:63:42:D0:33:87:D1:81:39:C7:D3:C3:B5:1D:EE:0E:95:42:D4:34:53",
+      "CB:AC:73:8D:CD:83:AF:43:97:F6:87:09:50:AE:F8:4C:71:DE:38:29:4A:E4:54:29:73:17:8D:9E:F3:26:CC:D8"
+    ]
+  }
+}]
