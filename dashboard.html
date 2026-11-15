@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>DrillRig — Owner Executive Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="./icon.svg">
@@ -1257,6 +1258,9 @@
         } from './src/features/report/reportMath.js';
         import { columnChart, barList, inr } from './src/features/report/reportCharts.js';
         import { initStorage, storage, STORAGE_KEYS } from './src/data/storage.js';
+        import './src/styles/small-screens.css';
+        import { initFitText } from './src/ui/fitText.js';
+        initFitText();
 
         // Demo Dataset for Borewell Rig Owners
         const DEMO_BILLS = [

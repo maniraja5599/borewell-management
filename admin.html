@@ -73,12 +73,58 @@
         pre { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
         details summary { cursor: pointer; font-weight: 700; margin-top: 8px; }
         @media (max-width: 640px) { .hide-sm { display: none; } }
+        header .app-link { color: #fff; text-decoration: none; font-weight: 700; font-size: 0.8rem; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 6px 10px; white-space: nowrap; }
+        header .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ---------- Phones: no sideways scrolling anywhere ---------- */
+        @media (max-width: 640px) {
+            header { padding: 10px 12px; gap: 8px; }
+            header h1 { font-size: 0.98rem; }
+            header .who { display: none; }
+            main { padding: 12px; gap: 12px; }
+            .card { padding: 12px; border-radius: 12px; }
+            .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tabs button { flex: none; padding: 8px 14px; }
+            .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .tile { padding: 10px; }
+            .tile strong { font-size: 1.2rem; overflow-wrap: anywhere; }
+            .kv { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .kv div { min-width: 0; overflow-wrap: anywhere; }
+            input[type="search"] { min-width: 0; width: 100%; flex-basis: 100%; }
+            .bar > * { max-width: 100%; }
+            /* tables become cards: each cell shows its column name (filled in by admin.js) */
+            table, thead, tbody, tr, th, td { display: block; width: 100%; }
+            thead { display: none; }
+            tr { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
+            td { border: 0; padding: 3px 0; display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); column-gap: 12px; align-items: start; text-align: right; white-space: normal !important; overflow-wrap: anywhere; }
+            td::before { content: attr(data-label); grid-column: 1; grid-row: 1 / span 9; text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; padding-top: 2px; }
+            td > * { grid-column: 2; justify-self: end; text-align: right; }
+            td > .sub { display: block; }
+            td[data-label=""]::before { display: none; }
+            td:first-child { display: block; text-align: left; padding-bottom: 6px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+            td:first-child, td:first-child * { text-align: left !important; justify-self: start; }
+            td:first-child::before { display: none; }
+            td.num { text-align: right; }
+            .scroll { overflow-x: visible; }
+            .rig-dates { justify-content: flex-end; }
+            /* business popup: full screen */
+            dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+            .dlg-head { padding: 10px 12px; }
+            .dlg-head h3 { font-size: 0.98rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .dlg-tabbar { padding: 8px 12px 0; top: 53px; }
+            .dlg-body { padding: 12px; gap: 12px; }
+            .danger .bar > *, .section .bar > input { flex: 1 1 100%; min-width: 0 !important; }
+            .toast { bottom: 12px; max-width: calc(100vw - 24px); text-align: center; border-radius: 12px; }
+        }
+
     </style>
 </head>
 <body>
     <header>
         <h1>DrillRig Admin</h1>
         <span class="who" id="who"></span>
+        <a class="app-link" href="./index.html" title="Back to the billing app">← App</a>
         <button type="button" id="signOutBtn" hidden>Sign out</button>
     </header>
     <main id="root">

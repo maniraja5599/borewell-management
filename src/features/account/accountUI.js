@@ -2,6 +2,8 @@
 // Sign-in itself is required before the app opens (signInGate.js); this card shows the account and sync.
 import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut, getSupabase } from '../../cloud/auth.js';
 import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany } from '../../cloud/sync.js';
+import { consumeJoinCode, pendingJoinCode } from '../team/joinLink.js';
+import { maybeAskProfile } from './profilePrompt.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
 import { isEarlyAccess, earlyAccessEndLabel } from '../../config/plans.js';
 
@@ -49,6 +51,35 @@ export function initAccountUI(app) {
         syncText.textContent = lastStatus.kind === 'ok' ? `Synced ${timeAgo(lastStatus.at)}` : lastStatus.text;
     };
     setInterval(paintStatus, 30000);
+
+    // Small cloud badge on the logo (top left): always shows the sync state; tap = sync now.
+    // syncing = blue ring turning, ok = green tick, offline = grey, error / paused = red.
+    const BADGE_LABEL = { syncing: 'Syncing…', ok: 'Synced', offline: 'Offline — saved on this phone', error: 'Sync failed — will retry', blocked: 'Cloud paused' };
+    let badge = null;
+    const ensureBadge = () => {
+        if (badge || typeof document.createElement !== 'function') return badge;
+        const host = document.getElementById('openBrandTabBtn');
+        if (!host) return null;
+        badge = document.createElement('button');
+        badge.type = 'button';
+        badge.className = 'hdr-sync-badge';
+        badge.id = 'hdrSyncBadge';
+        badge.hidden = true;
+        badge.addEventListener('click', (e) => { e.stopPropagation(); syncBtn.click(); });
+        host.appendChild(badge);
+        return badge;
+    };
+    const paintBadge = (kind) => {
+        const b = ensureBadge();
+        if (!b) return;
+        b.hidden = !kind;
+        if (!kind) return;
+        b.dataset.state = kind;
+        const label = kind === 'ok' && lastStatus ? `Synced ${timeAgo(lastStatus.at)} — tap to sync now` : (BADGE_LABEL[kind] || '');
+        b.title = label;
+        b.setAttribute('aria-label', label);
+    };
+    let firstSyncShown = false;
     // Top-bar messages for sync events. Only changes are announced: a quiet minute-by-minute
     // "Synced" says nothing; new data, a backup, going offline or a failure does.
     let lastNoticeKind = null;
@@ -56,9 +87,14 @@ export function initAccountUI(app) {
         const say = (n) => app.showHeaderNotice?.(n);
         const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
         if (st.kind === 'ok') {
+            const first = !firstSyncShown;
+            firstSyncShown = true;
+            // after the first sync the company and role are known: ask once for a missing mobile / business name
+            if (first) setTimeout(() => maybeAskProfile(app), 600);
             if (st.pulled > 0) say({ icon: '☁️', text: 'Synced', badge: `${plural(st.pulled, 'update', 'updates')} in`, tone: 'ok' });
             else if (st.pushed > 0) say({ icon: '☁️', text: 'Backed up', badge: plural(st.pushed, 'change', 'changes'), tone: 'ok' });
             else if (lastNoticeKind === 'offline' || lastNoticeKind === 'error') say({ icon: '☁️', text: 'Back online', badge: 'SYNCED', tone: 'ok' });
+            else if (first || st.manual) say({ icon: '☁️', text: 'Synced', badge: 'UP TO DATE', tone: 'ok', ms: 3000 }); // app opened / tapped sync
         } else if (st.kind !== lastNoticeKind) {
             if (st.kind === 'offline') say({ icon: '📴', text: 'Offline', badge: 'SAVED ON PHONE', tone: 'warn', ms: 6000 });
             else if (st.kind === 'error') say({ icon: '⚠️', text: 'Sync failed', badge: 'WILL RETRY', tone: 'error', ms: 6000 });
@@ -66,7 +102,15 @@ export function initAccountUI(app) {
         }
         if (st.kind !== 'syncing') lastNoticeKind = st.kind;
     };
-    const onStatus = (st) => { lastStatus = st; paintStatus(); try { announce(st); } catch (_) { /* never break sync */ } };
+    let manualSync = false;
+    const onStatus = (st) => {
+        if (st.kind === 'ok' && manualSync) { st = { ...st, manual: true }; manualSync = false; }
+        if (st.kind !== 'ok' && st.kind !== 'syncing') manualSync = false;
+        lastStatus = st;
+        paintStatus();
+        paintBadge(st.kind);
+        try { announce(st); } catch (_) { /* never break sync */ }
+    };
 
     // Set when this phone still holds another account's company data: syncing is paused
     // until the user agrees to remove it (otherwise it would be uploaded into this account).
@@ -147,6 +191,7 @@ export function initAccountUI(app) {
             startSync(app, acc, onStatus, onBlocked);
             return;
         }
+        manualSync = true; // the tap gets a "Synced · up to date" even when nothing changed
         syncNow();
     });
 
@@ -208,6 +253,8 @@ export function initAccountUI(app) {
         signedIn.hidden = !acc;
         if (!acc) {
             if (currentId) { stopSync(); currentId = null; }
+            paintBadge(null);
+            firstSyncShown = false;
             blockedAccount = null;
             blockedErr = null;
             renderCompany();
@@ -224,7 +271,9 @@ export function initAccountUI(app) {
                 askToTakeOverPhone(acc, other);
             } else {
                 blockedAccount = null;
-                startSync(app, acc, onStatus, onBlocked);
+                // An invite link waiting? Join that team first, so the first sync opens it.
+                if (pendingJoinCode()) consumeJoinCode(app).finally(() => { if (currentId === acc.id) startSync(app, acc, onStatus, onBlocked); });
+                else startSync(app, acc, onStatus, onBlocked);
             }
         }
 

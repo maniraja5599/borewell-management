@@ -55,6 +55,19 @@ async function rpc(name, args = {}) {
 }
 
 function show(...nodes) { root.replaceChildren(...nodes); }
+
+// Phones show tables as cards; each cell needs its column name (data-label). Tables are built in
+// many places, so label them whenever new rows appear in the page or the business popup.
+function labelTables(scope) {
+    scope.querySelectorAll('table').forEach((t) => {
+        const heads = [...t.querySelectorAll('thead th')].map((th) => th.textContent.trim());
+        if (!heads.length) return;
+        t.querySelectorAll('tbody tr').forEach((tr) => {
+            [...tr.children].forEach((td, i) => { if (!td.hasAttribute('data-label')) td.setAttribute('data-label', heads[i] || ''); });
+        });
+    });
+}
+new MutationObserver(() => { labelTables(document.body); }).observe(document.body, { childList: true, subtree: true });
 function fail(e) { show(h('div', { class: 'card center' }, [h('strong', { text: 'Something went wrong' }), h('p', { text: e.message || String(e) })])); }
 
 /* ---------- sign-in gate ---------- */
@@ -241,7 +254,7 @@ async function openBusiness(id, keepView = false) {
 
     // Tabs: Details | Report | Bills | Customers (the last three read the business's data; each view is logged)
     const pane = h('div');
-    const VIEWS = [['details', 'Details'], ['report', 'Report'], ['bills', 'Bills'], ['customers', 'Customers']];
+    const VIEWS = [['profile', 'Profile'], ['details', 'Details'], ['report', 'Report'], ['bills', 'Bills'], ['customers', 'Customers']];
     const tabs = h('div', { class: 'tabs dlg-tabs', role: 'tablist' }, VIEWS.map(([k, label]) =>
         h('button', { type: 'button', role: 'tab', 'data-view': k, text: label, onclick: () => openView(k) })));
     function openView(k) {
@@ -250,8 +263,10 @@ async function openBusiness(id, keepView = false) {
         if (k === 'details') { pane.replaceChildren(detailsBody); return; }
         const box = h('div', { class: 'dlg-body' }, h('div', { class: 'muted', text: 'Loading…' }));
         pane.replaceChildren(box);
-        ({ report: bizReport, bills: bizBills, customers: bizCustomers })[k](id, box)
-            .catch((e) => box.replaceChildren(missing0008(e) ? need0008() : h('div', { class: 'empty', text: e.message })));
+        ({ profile: bizProfile, report: bizReport, bills: bizBills, customers: bizCustomers })[k](id, box)
+            .catch((e) => box.replaceChildren(
+                k === 'profile' && /drillrig_admin_profile/.test(e?.message || '') ? h('div', { class: 'empty', text: 'Not installed on the server yet: run supabase/drillrig/0009_admin_business_profile.sql in the Supabase SQL editor.' })
+                    : missing0008(e) ? need0008() : h('div', { class: 'empty', text: e.message })));
     }
     dlg.replaceChildren(
         h('div', { class: 'dlg-head' }, [h('h3', { text: c.name }), c.suspended_at ? chip('paused', 'Paused') : chip('free', 'Active'),
@@ -259,7 +274,42 @@ async function openBusiness(id, keepView = false) {
         h('div', { class: 'dlg-tabbar' }, tabs),
         pane
     );
-    openView(dlg.dataset.view || 'details');
+    openView(dlg.dataset.view || 'profile');
+}
+
+/* ---------- one business: what the owner entered in the app (0009) ---------- */
+async function bizProfile(id, box) {
+    const p = await rpc('drillrig_admin_profile', { p_company: id });
+    const b = p.brand || {};
+    const o = p.owner || {};
+    const val = (v) => (v === undefined || v === null || String(v).trim() === '' ? h('span', { class: 'muted', text: 'Not filled' }) : String(v));
+    const kv = (rows) => h('div', { class: 'kv' }, rows.map(([k, v]) => h('div', {}, [h('span', { text: k }), typeof v === 'object' && v?.nodeType ? v : val(v)])));
+    const phone = b.phones ? `${b.phoneCountryCode && !String(b.phones).startsWith('+') ? b.phoneCountryCode + ' ' : ''}${b.phones}` : '';
+    const logo = b.logoDataUrl ? h('img', { src: b.logoDataUrl, alt: 'Logo', style: 'width:64px;height:64px;object-fit:contain;border-radius:12px;border:1px solid #e2e8f0;background:#fff' })
+        : h('span', { class: 'muted', text: b.hasLogo ? 'Logo set (too big to show)' : 'No logo' });
+    const cards = (p.rateCards || []);
+    box.replaceChildren(
+        h('div', { class: 'section' }, [h('h4', { text: 'Google account (owner)' }), kv([
+            ['Name', o.name], ['Email', o.email], ['Signed up', day(o.signed_up)], ['Last sign-in', when(o.last_sign_in)]])]),
+        p.brand ? h('div', { class: 'section' }, [h('h4', { text: 'Company profile (from the app)' }),
+            h('div', { class: 'bar', style: 'align-items:center;gap:12px;margin-bottom:8px' }, [logo, h('div', {}, [h('strong', { text: b.companyName || '—', style: 'font-size:1.05rem' }), b.tagline ? h('div', { class: 'muted', text: b.tagline }) : null])]),
+            kv([['Phone', phone], ['Address / place', b.address], ['GSTIN', b.gstNumber], ['UPI ID', b.upiId], ['UPI name', b.upiName], ['Website', b.website],
+                ['Bill prefix', b.billPrefix], ['Next bill no.', b.billPrefix && b.nextBillSeq ? `${b.billPrefix}-${b.nextBillSeq}` : b.nextBillSeq],
+                ['Next quotation no.', b.billPrefix && b.nextQuoteSeq ? `${b.billPrefix}-Q${b.nextQuoteSeq}` : b.nextQuoteSeq],
+                ['Pipe 1 name', b.casing1Name], ['Pipe 2 name', b.casing2Name], ['Colour theme', b.theme],
+                ['Final bill footer', b.finalBillTermsNote], ['Quotation footer', b.termsNote]])])
+            : h('div', { class: 'section' }, [h('h4', { text: 'Company profile (from the app)' }), h('div', { class: 'empty', text: 'This business has not synced its company profile yet.' })]),
+        h('div', { class: 'section' }, [h('h4', { text: `Rate cards (${cards.length})` }), cards.length ? h('div', { class: 'scroll' }, h('table', {}, [
+            h('thead', {}, h('tr', {}, ['Rate', 'Drilling', '7" pipe', '10" pipe', 'Bata', 'Flush', 'Grace', 'GST', 'Slabs'].map((t) => h('th', { text: t })))),
+            h('tbody', {}, cards.map((c) => h('tr', {}, [
+                h('td', {}, [h('strong', { text: c.name || '—' }), c.isDefault ? h('span', { class: 'sub', text: 'Default' }) : null]),
+                h('td', { class: 'num', text: c.base != null ? `₹${c.base}/ft` : '—' }), h('td', { class: 'num', text: c.pvc7 != null ? `₹${c.pvc7}` : '—' }),
+                h('td', { class: 'num', text: c.pvc10 != null ? `₹${c.pvc10}` : '—' }), h('td', { class: 'num', text: c.bata != null ? inr(c.bata) : '—' }),
+                h('td', { class: 'num', text: c.flush != null ? `₹${c.flush}` : '—' }), h('td', { class: 'num', text: c.grace != null ? `${c.grace} ft` : '—' }),
+                h('td', { class: 'num', text: c.gst != null ? `${c.gst}%` : '—' }), h('td', { class: 'num', text: `${c.slabs || 0}${c.maxDepth ? ` · to ${num(c.maxDepth)} ft` : ''}` })])))
+        ])) : h('div', { class: 'empty', text: 'No rate cards synced yet.' })]),
+        h('p', { class: 'note', text: 'Read-only. This view is written to the admin log.' })
+    );
 }
 
 /* ---------- one business: report / bills / customers (0008) ---------- */
@@ -419,7 +469,7 @@ async function exportBusiness(id, name) {
 /* ---------- users ---------- */
 let userSearch = '';
 async function users() {
-    const input = h('input', { type: 'search', placeholder: 'Search email or name', value: userSearch, 'aria-label': 'Search users' });
+    const input = h('input', { type: 'search', placeholder: 'Search email, name or mobile', value: userSearch, 'aria-label': 'Search users' });
     const list = h('div', { class: 'scroll' });
     let timer;
     input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { userSearch = input.value; load(); }, 250); });
@@ -430,7 +480,8 @@ async function users() {
         list.replaceChildren(h('table', {}, [
             h('thead', {}, h('tr', {}, ['User', 'Businesses', 'Last sign-in', 'Since'].map((t, i) => h('th', { class: i > 1 ? 'hide-sm' : '', text: t })))),
             h('tbody', {}, rows.map((u) => h('tr', {}, [
-                h('td', {}, [h('strong', { text: u.email }), u.name ? h('span', { class: 'sub', text: u.name }) : null]),
+                h('td', {}, [h('strong', { text: u.email }), u.name ? h('span', { class: 'sub', text: u.name }) : null,
+                    u.phone ? h('a', { class: 'sub', href: `tel:${u.phone}`, text: `📞 ${u.phone}` }) : null]),
                 h('td', {}, (u.businesses || []).map((b) => h('button', { type: 'button', class: 'btn', style: 'margin:2px', onclick: () => openBusiness(b.company_id) },
                     [`${b.name} · ${b.role}`, b.status !== 'active' ? ` (${b.status})` : '', b.paused ? ' · paused' : '']))),
                 h('td', { class: 'hide-sm', text: when(u.last_sign_in) }),

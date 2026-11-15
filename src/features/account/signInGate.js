@@ -6,7 +6,9 @@
 import { renderGoogleButton, onAccountChange } from '../../cloud/auth.js';
 import { isEarlyAccess, earlyAccessEndLabel } from '../../config/plans.js';
 import { storage, STORAGE_KEYS } from '../../data/storage.js';
+import { versionLabel } from '../../config/version.js';
 import { buildComingSoonTicker } from '../settings/comingSoon.js';
+import { pendingJoinCode } from '../team/joinLink.js';
 
 // Automated browser tests only (they cannot sign in to Google). Not a security boundary:
 // what the gate protects is the product rule "data lives in the user's account", not secrets.
@@ -446,8 +448,8 @@ export function initSignInGate(app) {
             el('div', { class: 'sg-card' }, [
                 el('header', { class: 'sg-hero' }, [
                     el('div', { class: 'sg-brand' }, [
-                        el('span', { class: 'sg-logo-tile' }, [el('img', { class: 'sg-logo', src: 'icon.svg', alt: '' })]),
-                        el('span', { class: 'sg-brand-name', text: 'DrillRig.' }),
+                        // the full DrillRig. wordmark, light version for the dark hero, no box around it
+                        el('img', { class: 'sg-wordmark', src: 'drillrig_logo_light.webp', alt: 'DrillRig.', width: '863', height: '214' }),
                         el('span', { class: 'sg-brand-tag', text: 'Borewell billing' })
                     ]),
                     hero,
@@ -459,13 +461,15 @@ export function initSignInGate(app) {
                         art3d(icon),
                         el('span', { class: 'sg-pt' }, [el('strong', { text: title }), el('span', { text })])
                     ]))),
+                    pendingJoinCode() ? el('p', { class: 'sg-local sg-invite' }, [icon3('check'), el('span', { text: 'You have been invited to a DrillRig team. Sign in with Google to join.' })]) : null,
                     bills > 0 ? el('p', { class: 'sg-local' }, [icon3('check'), el('span', { text: `The ${bills} ${bills === 1 ? 'bill' : 'bills'} on this phone stay here and are backed up to your account after you sign in.` })]) : null,
                     slot,
                     msg,
                     el('p', { class: 'sg-offline-note' }, [icon3('wifi'), el('span', { text: 'After the first sign-in, DrillRig works without internet.' })]),
                     el('p', { class: 'sg-legal' }, ['By continuing you agree to the ',
                         el('a', { href: './terms.html', target: '_blank', rel: 'noopener', text: 'Terms' }), ' and ',
-                        el('a', { href: './privacy.html', target: '_blank', rel: 'noopener', text: 'Privacy Policy' }), '.'])
+                        el('a', { href: './privacy.html', target: '_blank', rel: 'noopener', text: 'Privacy Policy' }), '.']),
+                    el('p', { class: 'sg-version', text: `DrillRig ${versionLabel()}` })
                 ])
             ])
         ]);

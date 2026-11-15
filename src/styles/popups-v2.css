@@ -193,3 +193,39 @@
     .cb-item .cb-l1 strong { font-size: 14px; }
     .cb-item .cb-row { gap: 9px; }
 }
+
+/* ---------- Add / Edit customer popup (New bill + Customers): bigger, easier to type ---------- */
+#crmCustomerFormDrawer .cust-popup-dialog { max-width: 460px; border-radius: 20px; }
+#crmCustomerFormDrawer .cust-popup-head { padding: 16px 18px; }
+#crmCustomerFormDrawer .cph-icon { width: 42px; height: 42px; border-radius: 12px; }
+#crmCustomerFormDrawer .cph-icon svg { width: 20px; height: 20px; }
+#crmCustomerFormDrawer #crmFormTitle { font: 800 19px/1.2 var(--pp-head, 'Plus Jakarta Sans'), Inter, sans-serif; }
+#crmCustomerFormDrawer .cph-sub { font-size: 13.5px; margin-top: 2px; }
+#crmCustomerFormDrawer .icon-close-btn { width: 40px; height: 40px; }
+#crmCustomerFormDrawer .cust-popup-body { padding: 18px; gap: 16px; display: flex; flex-direction: column; }
+#crmCustomerFormDrawer .field-group { margin: 0; display: flex; flex-direction: column; gap: 7px; }
+#crmCustomerFormDrawer .field-group label { font: 700 15px/1.25 Inter, sans-serif; color: #1f2937; }
+/* 16 px text: easy to read, and iPhones do not zoom the page when the box is tapped */
+#crmCustomerFormDrawer input[type="text"],
+#crmCustomerFormDrawer input[type="tel"] { height: 52px; font-size: 16.5px !important; padding: 0 14px; border-radius: 12px; }
+#crmCustomerFormDrawer .country-phone-input-group { height: 52px; border-radius: 12px; }
+#crmCustomerFormDrawer .country-phone-input-group input[type="tel"] { height: 100%; border-radius: 0 12px 12px 0; }
+#crmCustomerFormDrawer .country-code-select { height: 100%; font-size: 16px !important; min-width: 96px; }
+#crmCustomerFormDrawer input::placeholder { font-size: 15.5px; color: #9aa4b2; }
+#crmCustomerFormDrawer .phone-val-hint, #crmCustomerFormDrawer .phone-dup-alert { font-size: 13.5px; }
+#crmCustomerFormDrawer .cust-popup-foot { padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); gap: 10px; }
+#crmCustomerFormDrawer .cust-popup-foot button { height: 48px; min-height: 48px; font-size: 15px !important; border-radius: 12px; padding: 0 16px; }
+#crmCustomerFormDrawer #saveCrmCustomerBtn { padding: 0 20px; font-weight: 800; }
+#crmCustomerFormDrawer .cpf-right { display: flex; gap: 10px; min-width: 0; }
+@media (max-width: 359px) {
+    #crmCustomerFormDrawer .cust-popup-foot { flex-wrap: nowrap; gap: 8px; padding-left: 14px; padding-right: 14px; }
+    #crmCustomerFormDrawer .cust-popup-foot button { padding: 0 10px; font-size: 14.5px !important; }
+    #crmCustomerFormDrawer .cpf-right { flex: 1 1 auto; gap: 8px; }
+    #crmCustomerFormDrawer #saveCrmCustomerBtn { flex: 1 1 auto; padding: 0 10px; white-space: nowrap; }
+    /* narrow phones: Clear is rarely needed (Cancel + open again does the same); Save gets the room */
+    #crmCustomerFormDrawer #resetCrmFormBtn, #crmCustomerFormDrawer #saveCrmCustomerBtn svg, #crmCustomerFormDrawer #saveCrmCustomerBtn .icon-xs { display: none; }
+    #crmCustomerFormDrawer .cpf-right { width: 100%; }
+    #crmCustomerFormDrawer #cancelCrmPopupBtn { flex: 0 0 auto; }
+    #crmCustomerFormDrawer #saveCrmCustomerBtn { justify-content: center; }
+    #crmCustomerFormDrawer .country-code-select { min-width: 80px; }
+}

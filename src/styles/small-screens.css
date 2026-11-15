@@ -1,0 +1,55 @@
+/* Small screens and phones with a large font / zoom setting.
+   Android applies a big system font by zooming the whole page, so a 360 px phone then behaves like a
+   240–300 px screen. Loaded last; only narrow widths are affected. Amounts are shrunk to fit by
+   src/ui/fitText.js; these rules make the room for them. */
+
+/* Amounts that fitText.js shrinks: one line, never wider than their box */
+.cdm-pt-val, .kpi-val, .rp-hero-val, .vs-val,
+.bl-card .khata-Quick-stats strong, .bl-card .khata-main-amt, .bs-trio strong,
+.cust-popup-dialog.cdm2 .cdm2-trio strong, .cust-popup-dialog.cdm2 .cdm2-bal-amt {
+    white-space: nowrap;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+@media (max-width: 359px) {
+    /* Bills card footer: "Received ₹50,000" on its own line, buttons below on the right */
+    html.ui-v3 .bl-card .bl-actions, .bl-card .bl-actions { flex-wrap: wrap !important; }
+    html.ui-v3 .bl-card .khata-Quick-stats, .bl-card .khata-Quick-stats {
+        flex: 1 1 100% !important;
+        flex-direction: row !important;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    html.ui-v3 .bl-card .khata-btn-group, .bl-card .khata-btn-group { margin-left: auto; }
+
+    /* Pills and small buttons: less padding so the words fit */
+    .seg-pill, .mini-seg-btn, .doc-pill { padding-left: 6px !important; padding-right: 6px !important; letter-spacing: -0.2px; }
+    .dia-pill { padding-left: 2px !important; padding-right: 2px !important; letter-spacing: -0.3px; min-width: 0 !important; }
+    .rpm-mode-pill { padding-left: 2px !important; padding-right: 2px !important; font-size: 11px !important; }
+    .time-pill-btn { padding-left: 8px !important; padding-right: 8px !important; }
+    .smart-slab-dd-trigger { white-space: normal !important; text-align: left; line-height: 1.25; min-width: 0; max-width: 100%; }
+    .cust-popup-dialog.cdm2 .cdm2-act { font-size: 13px !important; padding: 0 4px !important; gap: 4px !important; }
+    #tab-rates .rc2 .rcr-action-btn, .rcr-action-btn { white-space: normal !important; line-height: 1.15; padding: 0 8px !important; text-align: center; }
+
+    /* Small uppercase labels above amounts may wrap instead of being cut */
+    .cust-popup-dialog.cdm2 .cdm2-trio span, .bill-sheet .bs-trio span { letter-spacing: 0.01em; }
+    .cust-popup-dialog.cdm2 .cdm2-act svg { width: 15px; height: 15px; }
+    .cdm-pt-lbl, .vs-lbl, .rp-label, .bl-rec-lbl, .kpi-lbl, .bs-trio span { white-space: normal !important; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 299px) {
+    /* Very zoomed phones: tighter page edges */
+    .dia-pill { font-size: 11px !important; }
+    .seg-pill, .mini-seg-btn, .doc-pill { font-size: 12px !important; }
+    .cust-popup-dialog.cdm2 .cdm2-act { font-size: 12px !important; }
+    /* Icons inside short pill buttons give their room to the words */
+    .seg-pill .icon-xs, .seg-pill svg, .cust-popup-dialog.cdm2 .cdm2-act svg, .cust-popup-dialog.cdm2 .cdm2-act .icon-xs { display: none !important; }
+    /* Payment popup: Bill total / Paid / Balance as rows (label left, amount right) */
+    .cdm-pay-trio { grid-template-columns: 1fr !important; gap: 6px !important; }
+    .cdm-pay-trio .cdm-pt-item { flex-direction: row !important; justify-content: space-between; align-items: baseline; text-align: left; padding: 8px 10px !important; }
+    .cdm-pay-trio .cdm-pt-val { text-align: right; }
+}

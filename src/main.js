@@ -3,6 +3,9 @@ import './styles/app.css';
 import './styles/ui-v3.css';
 import './styles/popups-v2.css'; // bill + customer popups (after ui-v3 so its rules win)
 import './styles/rates-v2.css'; // Rates page, rate popup, rate editor // new look; only applies with FEATURES.uiV3 (html.ui-v3)
+import './styles/small-screens.css'; // narrow phones + large font/zoom (loaded last)
+import { initFitText } from './ui/fitText.js';
+import { versionLabel, APP_BUILD_DATE } from './config/version.js';
 import { BoreBillSaaSApp } from './app/App.js';
 import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
@@ -10,8 +13,11 @@ import { initSetupWizard } from './features/onboarding/setupWizard.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
+import { captureJoinCode } from './features/team/joinLink.js';
+import { initAnalytics, trackScreen } from './analytics.js';
 import { initComingSoon } from './features/settings/comingSoon.js';
 import { applyNavIcons3d } from './ui/navIcons3d.js';
+import { initSuperAdmin } from './features/account/superAdmin.js';
 import { initStockUI } from './features/stock/stockUI.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 import { FEATURES } from './config/features.js';
@@ -40,11 +46,21 @@ async function boot() {
         if (footerNum) footerNum.textContent = supportWhatsAppDisplay();
         initRigBar(window.boreBillApp);
         if (FEATURES.pipeStock) initStockUI(window.boreBillApp);
+        captureJoinCode(); // ?join=CODE from a WhatsApp invite link: used right after sign-in
+        initAnalytics(); // live site only; no personal data (see src/analytics.js)
+        {
+            const app = window.boreBillApp;
+            const orig = app.switchTab.bind(app);
+            app.switchTab = (tabId, ...rest) => { const r = orig(tabId, ...rest); try { trackScreen(tabId); } catch { /* never break the app */ } return r; };
+        }
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
         applyNavIcons3d(); // bottom bar: 3D icons
+        { const v = document.getElementById('appVersionChip'); if (v) { v.textContent = versionLabel(); if (APP_BUILD_DATE) v.title = `DrillRig ${versionLabel()} · built ${APP_BUILD_DATE}`; } }
+        initFitText(); // shrink money amounts that would not fit (narrow / zoomed phones)
+        initSuperAdmin(); // admins only (checked on the server): Super admin card in Settings
         // First-run setup opens after the splash has faded.
         setTimeout(() => { try { initSetupWizard(window.boreBillApp); } catch (e) { console.error('Setup wizard error:', e); } }, 1400);
     } catch (err) {

@@ -1,7 +1,7 @@
 # 🚜 DrillRig Flow — Borewell Management ERP & Billing SaaS Roadmap
 
 **Repository:** [https://github.com/maniraja5599/borewell-management](https://github.com/maniraja5599/borewell-management)  
-**Live PWA URL (GitHub Pages):** [https://maniraja5599.github.io/borewell-management/](https://maniraja5599.github.io/borewell-management/)
+**Live PWA URL:** [https://drillrig.in/](https://drillrig.in/) (GitHub Pages; the old maniraja5599.github.io/borewell-management/ address redirects here)
 
 ---
 

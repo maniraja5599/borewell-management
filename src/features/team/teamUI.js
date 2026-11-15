@@ -1,6 +1,7 @@
 // Settings → "Team & Rigs" (owner only, signed in, cloud migration 0003 applied).
 // Rigs: add, rename, archive, see trial/paid status, renew.
-// Staff: invite by Google email with a role and rigs; change role/rigs; remove.
+// Staff: invite by mobile number (WhatsApp link with a one-time code, migration 0010) or by
+// Google email; change role/rigs; remove.
 // Every action is an owner-only server function; this file is only the screen.
 import { getSupabase } from '../../cloud/auth.js';
 import { getAccess, getRole, hasRigs, onAccessChange, rigDaysLeft } from '../../cloud/access.js';
@@ -14,6 +15,18 @@ const ROLE_HELP = {
     manager: 'bills & payments of their rigs',
     driver: 'only their own bills'
 };
+// Plain words + an example, for the invite cards.
+const ROLE_CARD = {
+    driver: { icon: '🚚', title: 'Driver', text: 'Makes bills at the bore site. Sees only the bills he made.', eg: 'e.g. your rig driver or operator' },
+    manager: { icon: '🧑‍💼', title: 'Manager', text: 'Makes bills, takes payments and sees all bills of his rigs.', eg: 'e.g. your supervisor or office staff' },
+    owner: { icon: '👑', title: 'Owner', text: 'Everything you can do: rates, team, settings, all rigs.', eg: 'e.g. your partner or brother' }
+};
+const showPhone = (p) => {
+    const d = String(p || '').replace(/[^0-9+]/g, '');
+    const m = d.match(/^\+91(\d{5})(\d{5})$/);
+    return m ? `+91 ${m[1]} ${m[2]}` : d;
+};
+const appUrl = () => location.origin + location.pathname.replace(/[^/]*$/, '');
 
 function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -143,7 +156,7 @@ function openSheet(app) {
             } catch { /* another rig already uses it: shown as is */ }
         }
         body.textContent = '';
-        body.append(rigsSection(team), staffSection(team), inviteSection(team), activitySection());
+        body.append(guideSection(team), staffSection(team), inviteSection(team), rigsSection(team), activitySection());
     }
 
     function rigsSection(team) {
@@ -219,6 +232,28 @@ function openSheet(app) {
         return section;
     }
 
+    // What this page does, with one example (shown until the owner hides it).
+    function guideSection(team) {
+        const rig = team.rigs.find((r) => !r.archived)?.name || 'Rig 1';
+        const hiddenKey = 'drillrig_team_guide_hidden';
+        let hidden = false;
+        try { hidden = !!localStorage.getItem(hiddenKey); } catch { /* ignore */ }
+        const box = el('details', { class: 'tm-guide', open: !hidden }, [
+            el('summary', { text: '💡 How it works' }),
+            el('ol', {}, [
+                el('li', {}, ['Type your staff member\'s ', el('b', { text: 'name and mobile number' }), ', pick what they can do, and tap ', el('b', { text: 'Send invite on WhatsApp' }), '.']),
+                el('li', { text: 'WhatsApp opens with a link for them. They tap it and sign in with their Google account.' }),
+                el('li', { text: 'They join your company. Their bills come to your phone too.' })
+            ]),
+            el('div', { class: 'tm-eg' }, [
+                el('strong', { text: 'Example' }),
+                el('p', { text: `Your driver Murugan, 98427 12345 → choose Driver and ${rig} → Send. Murugan taps the link on his phone, signs in, and can make bills for ${rig} only. You see every bill he makes.` })
+            ])
+        ]);
+        box.addEventListener('toggle', () => { try { if (box.open) localStorage.removeItem(hiddenKey); else localStorage.setItem(hiddenKey, '1'); } catch { /* ignore */ } });
+        return box;
+    }
+
     function staffSection(team) {
         const rows = team.members.map((m, i) => {
             const roleId = `tmRole${i}`;
@@ -227,87 +262,167 @@ function openSheet(app) {
             const syncChecks = () => { checks.hidden = sel.value === 'owner'; };
             sel.addEventListener('change', syncChecks);
             syncChecks();
-            return el('div', { class: 'tm-row' }, [
-                el('div', { class: 'tm-person' }, [
+            const rigNames = (m.rig_ids || []).map((id) => team.rigs.find((r) => r.id === id)?.name).filter(Boolean);
+            const sub = [m.phone ? showPhone(m.phone) : '', m.email || ''].filter(Boolean).join(' · ');
+            const head = el('div', { class: 'tm-person' }, [
+                el('span', { class: 'tm-avatar', 'aria-hidden': 'true', text: (m.name || m.email || '?').trim().charAt(0).toUpperCase() }),
+                el('div', { class: 'tm-person-txt' }, [
                     el('strong', { text: `${m.name || m.email || 'Staff'}${m.is_me ? ' (you)' : ''}` }),
-                    el('span', { text: m.email || '' })
+                    sub ? el('span', { text: sub }) : null
                 ]),
-                m.is_me
-                    ? el('p', { class: 'tm-help', text: 'Owner — you can make another staff member an owner too.' })
-                    : el('div', {}, [
-                        el('label', { for: roleId, class: 'tm-label', text: 'Role' }), sel, checks,
-                        el('div', { class: 'tm-actions' }, [
-                            el('button', {
-                                type: 'button', class: 'tm-btn', text: 'Save',
-                                onclick: () => run(() => rpc('drillrig_set_member', {
-                                    p_company: company, p_user: m.user_id, p_role: sel.value,
-                                    p_rig_ids: checkedIds(checks, `tmRigs${i}`), p_active: true
-                                }), '✅ Access updated — applies on their next sync')
-                            }),
-                            el('button', {
-                                type: 'button', class: 'tm-btn danger', text: 'Remove',
-                                onclick: () => app.confirmDeleteModal({
-                                    title: 'Remove from team?',
-                                    subtitle: 'They lose access on their next sync',
-                                    itemLabel: `👷 ${m.name || m.email}`,
-                                    message: 'Their bills stay in your bill book. You can invite them again later.',
-                                    confirmBtnLabel: 'Remove',
-                                    onConfirm: () => run(() => rpc('drillrig_set_member', {
-                                        p_company: company, p_user: m.user_id, p_role: m.role, p_rig_ids: [], p_active: false
-                                    }), '✅ Removed')
-                                })
-                            })
-                        ])
-                    ])
+                el('span', { class: `tm-role-tag is-${m.role}`, text: ROLE_LABEL[m.role] || m.role })
+            ]);
+            if (m.is_me) return el('div', { class: 'tm-row tm-member' }, [head]);
+            const editor = el('div', { class: 'tm-edit', hidden: true }, [
+                el('label', { for: roleId, class: 'tm-label', text: 'What they can do' }), sel, checks,
+                el('div', { class: 'tm-actions' }, [
+                    el('button', {
+                        type: 'button', class: 'tm-btn primary', text: 'Save',
+                        onclick: () => run(() => rpc('drillrig_set_member', {
+                            p_company: company, p_user: m.user_id, p_role: sel.value,
+                            p_rig_ids: checkedIds(checks, `tmRigs${i}`), p_active: true
+                        }), '✅ Access updated — applies on their next sync')
+                    }),
+                    m.phone && el('a', { class: 'tm-btn', href: `tel:${m.phone}`, text: '📞 Call' }),
+                    el('button', {
+                        type: 'button', class: 'tm-btn danger', text: 'Remove',
+                        onclick: () => app.confirmDeleteModal({
+                            title: 'Remove from team?',
+                            subtitle: 'They lose access on their next sync',
+                            itemLabel: `👷 ${m.name || m.email}`,
+                            message: 'Their bills stay in your bill book. You can invite them again later.',
+                            confirmBtnLabel: 'Remove',
+                            onConfirm: () => run(() => rpc('drillrig_set_member', {
+                                p_company: company, p_user: m.user_id, p_role: m.role, p_rig_ids: [], p_active: false
+                            }), '✅ Removed')
+                        })
+                    })
+                ])
+            ]);
+            const meta = el('p', { class: 'tm-help tm-member-rigs', text: m.role === 'owner' ? 'All rigs' : (rigNames.length ? `Rigs: ${rigNames.join(', ')}` : 'No rig yet') });
+            const toggle = el('button', { type: 'button', class: 'tm-btn ghost tm-change', text: 'Change', onclick: () => { editor.hidden = !editor.hidden; toggle.textContent = editor.hidden ? 'Change' : 'Close'; } });
+            return el('div', { class: 'tm-row tm-member' }, [head, el('div', { class: 'tm-member-foot' }, [meta, toggle]), editor]);
+        });
+        const invites = team.invites.map((iv) => {
+            const who = iv.name || (iv.phone ? showPhone(iv.phone) : iv.email);
+            const days = iv.expires_at ? Math.ceil((Date.parse(iv.expires_at) - Date.now()) / 864e5) : null;
+            const state = iv.expired || (days !== null && days <= 0) ? 'Link expired — send a new one'
+                : iv.code ? `Waiting · link works ${days} more day${days === 1 ? '' : 's'}` : 'Waiting for them to sign in';
+            const link = iv.code ? `${appUrl()}?join=${iv.code}` : appUrl();
+            const waTo = iv.phone ? iv.phone.replace(/\D/g, '') : '';
+            const text = iv.code ? inviteText(iv.name, link) : inviteMessage(iv.email);
+            return el('div', { class: 'tm-row is-invite' }, [
+                el('div', { class: 'tm-person' }, [
+                    el('span', { class: 'tm-avatar is-wait', 'aria-hidden': 'true', text: '⏳' }),
+                    el('div', { class: 'tm-person-txt' }, [
+                        el('strong', { text: who }),
+                        el('span', { text: [iv.name && iv.phone ? showPhone(iv.phone) : '', !iv.code && iv.name ? iv.email : '', state].filter(Boolean).join(' · ') })
+                    ]),
+                    el('span', { class: `tm-role-tag is-${iv.role}`, text: ROLE_LABEL[iv.role] || iv.role })
+                ]),
+                el('div', { class: 'tm-actions' }, [
+                    !(iv.expired || (days !== null && days <= 0)) && el('a', {
+                        class: 'tm-btn wa', target: '_blank', rel: 'noopener', text: 'Resend on WhatsApp',
+                        href: `https://wa.me/${waTo}?text=${encodeURIComponent(text)}`
+                    }),
+                    el('button', {
+                        type: 'button', class: 'tm-btn ghost', text: 'Cancel',
+                        onclick: () => run(() => rpc('drillrig_revoke_invite', { p_company: company, p_invite: iv.id }), 'Invite cancelled')
+                    })
+                ])
             ]);
         });
-        const invites = team.invites.map((iv) => el('div', { class: 'tm-row is-invite' }, [
-            el('div', { class: 'tm-person' }, [
-                el('strong', { text: iv.email }),
-                el('span', { text: `Invited as ${ROLE_LABEL[iv.role] || iv.role} · waiting for sign-in` })
-            ]),
-            el('div', { class: 'tm-actions' }, [
-                el('a', {
-                    class: 'tm-btn', target: '_blank', rel: 'noopener', text: 'Send on WhatsApp',
-                    href: `https://wa.me/?text=${encodeURIComponent(inviteMessage(iv.email))}`
-                }),
-                el('button', {
-                    type: 'button', class: 'tm-btn ghost', text: 'Cancel invite',
-                    onclick: () => run(() => rpc('drillrig_revoke_invite', { p_company: company, p_invite: iv.id }), 'Invite cancelled')
-                })
-            ])
-        ]));
         return el('section', { class: 'tm-section' }, [
-            el('h3', { text: 'Staff' }),
+            el('h3', { text: `Your team (${team.members.length})` }),
             ...rows,
+            invites.length ? el('h4', { class: 'tm-sub', text: 'Invited — not joined yet' }) : null,
             ...invites
         ]);
     }
 
+    function roleCards(name, value, onChange) {
+        const wrap = el('div', { class: 'tm-roles', role: 'radiogroup', 'aria-label': 'What can they do?' });
+        ['driver', 'manager', 'owner'].forEach((r) => {
+            const c = ROLE_CARD[r];
+            const input = el('input', { type: 'radio', name, value: r, checked: r === value });
+            input.addEventListener('change', () => onChange(r));
+            wrap.appendChild(el('label', { class: 'tm-role-card' }, [
+                input,
+                el('span', { class: 'tm-role-ic', 'aria-hidden': 'true', text: c.icon }),
+                el('span', { class: 'tm-role-txt' }, [el('strong', { text: c.title }), el('span', { text: c.text }), el('small', { text: c.eg })])
+            ]));
+        });
+        return wrap;
+    }
+
     function inviteSection(team) {
+        let role = 'driver';
+        let byEmail = false;
+        const nameIn = el('input', { type: 'text', id: 'tmInviteName', placeholder: 'e.g. Murugan', maxlength: '80', autocomplete: 'off', class: 'tm-input' });
+        const phoneIn = el('input', { type: 'tel', id: 'tmInvitePhone', placeholder: '98427 12345', maxlength: '14', inputmode: 'numeric', autocomplete: 'off', class: 'tm-input' });
         const email = el('input', { type: 'email', id: 'tmInviteEmail', placeholder: 'their.name@gmail.com', autocomplete: 'off', class: 'tm-input', inputmode: 'email' });
-        const sel = roleSelect('driver', 'tmInviteRole');
-        const checks = rigChecks(team.rigs, team.rigs.filter((r) => !r.archived).length === 1 ? [team.rigs.find((r) => !r.archived).id] : [], 'tmInviteRigs');
-        sel.addEventListener('change', () => { checks.hidden = sel.value === 'owner'; });
+        const activeRigs = team.rigs.filter((r) => !r.archived);
+        const checks = rigChecks(team.rigs, activeRigs.length === 1 ? [activeRigs[0].id] : [], 'tmInviteRigs');
+        const rigBlock = el('div', { class: 'tm-rigs-block' }, [el('span', { class: 'tm-label', text: 'Which rigs?' }), checks]);
+        const cards = roleCards('tmInviteRole', role, (r) => { role = r; rigBlock.hidden = r === 'owner'; });
+        const phoneBlock = el('div', {}, [
+            el('label', { for: 'tmInviteName', class: 'tm-label', text: 'Name' }), nameIn,
+            el('label', { for: 'tmInvitePhone', class: 'tm-label', text: 'Mobile number (WhatsApp)' }), phoneIn
+        ]);
+        const emailBlock = el('div', { hidden: true }, [
+            el('label', { for: 'tmInviteEmail', class: 'tm-label', text: 'Their Google (Gmail) address' }), email,
+            el('p', { class: 'tm-help', text: 'When they sign in to DrillRig with this Gmail, they join automatically.' })
+        ]);
+        const sendBtn = el('button', { type: 'button', class: 'tm-btn primary wide wa', text: 'Send invite on WhatsApp' });
+        const switchBtn = el('button', { type: 'button', class: 'tm-linkbtn', text: 'Invite by Gmail address instead' });
+        switchBtn.addEventListener('click', () => {
+            byEmail = !byEmail;
+            phoneBlock.hidden = byEmail;
+            emailBlock.hidden = !byEmail;
+            sendBtn.textContent = byEmail ? 'Send invite' : 'Send invite on WhatsApp';
+            sendBtn.classList.toggle('wa', !byEmail);
+            switchBtn.textContent = byEmail ? 'Invite by mobile number instead' : 'Invite by Gmail address instead';
+        });
+        sendBtn.addEventListener('click', () => {
+            const rigIds = role === 'owner' ? [] : checkedIds(checks, 'tmInviteRigs');
+            if (byEmail) {
+                return run(async () => {
+                    await rpc('drillrig_invite', { p_company: company, p_email: email.value, p_role: role, p_rig_ids: rigIds });
+                }, `✅ Invite ready. Ask them to open DrillRig and sign in with ${email.value.trim()}.`);
+            }
+            const v = app.validateMobileNumber ? app.validateMobileNumber(phoneIn.value) : { valid: /^\d{10}$/.test(phoneIn.value.replace(/\D/g, '')), fullPhone: phoneIn.value };
+            if (!v.valid) { say('⚠️ Enter a valid 10-digit mobile number'); phoneIn.focus(); return undefined; }
+            if (role !== 'owner' && !rigIds.length) { say('⚠️ Choose at least one rig'); return undefined; }
+            // Open WhatsApp in the tap itself (pop-up blockers), then fill it once the link is ready.
+            const win = window.open('about:blank', '_blank');
+            return run(async () => {
+                let res;
+                try {
+                    res = await rpc('drillrig_invite_link', { p_company: company, p_phone: v.fullPhone || phoneIn.value, p_name: nameIn.value, p_role: role, p_rig_ids: rigIds });
+                } catch (err) {
+                    win?.close();
+                    if (/function .* does not exist|schema cache/i.test(err.message)) throw new Error('Invite by mobile needs a server update (0010). Use "Invite by Gmail" for now.');
+                    throw err;
+                }
+                const url = `https://wa.me/${String(res.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(inviteText(nameIn.value, `${appUrl()}?join=${res.code}`))}`;
+                if (win) win.location.href = url; else window.location.href = url;
+            }, `✅ Invite sent to ${nameIn.value.trim() || showPhone(v.fullPhone)} — the link works for 7 days`);
+        });
         return el('section', { class: 'tm-section' }, [
-            el('h3', { text: 'Invite staff' }),
-            el('p', { class: 'tm-help', text: 'Enter the Google (Gmail) address they will sign in with. When they open DrillRig and sign in, they join your team automatically.' }),
-            el('label', { for: 'tmInviteEmail', class: 'tm-label', text: 'Google email' }), email,
-            el('label', { for: 'tmInviteRole', class: 'tm-label', text: 'Role' }), sel,
-            el('span', { class: 'tm-label', text: 'Rigs they work on' }), checks,
-            el('button', {
-                type: 'button', class: 'tm-btn primary wide', text: 'Send invite',
-                onclick: () => run(async () => {
-                    await rpc('drillrig_invite', {
-                        p_company: company, p_email: email.value, p_role: sel.value,
-                        p_rig_ids: sel.value === 'owner' ? [] : checkedIds(checks, 'tmInviteRigs')
-                    });
-                }, `✅ Invite ready. Ask them to open DrillRig and sign in with ${email.value.trim()}.`)
-            })
+            el('h3', { text: 'Invite someone' }),
+            phoneBlock, emailBlock,
+            el('span', { class: 'tm-label', text: 'What can they do?' }), cards,
+            rigBlock,
+            sendBtn, switchBtn
         ]);
     }
 
     load();
+}
+
+function inviteText(name, link) {
+    const hi = String(name || '').trim() ? `Hi ${String(name).trim()}, ` : '';
+    return `${hi}you are invited to my DrillRig team (borewell billing app).\n\n1. Tap this link: ${link}\n2. Sign in with your Google account.\n\nThe link works once, for 7 days.`;
 }
 
 function inviteMessage(email) {

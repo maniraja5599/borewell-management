@@ -32,3 +32,33 @@ describe('new rate: checks before saving', () => {
         expect(w).toMatch(/not a usual GST/);
     });
 });
+
+describe('step rate: my own steps', () => {
+    it('parses typed steps in any separator', async () => {
+        const { parseSteps } = await import('../src/features/rates/RateWizardMixin.js');
+        expect(parseSteps('5, 10, 15 20/30;50')).toEqual([5, 10, 15, 20, 30, 50]);
+        expect(parseSteps('abc')).toEqual([]);
+        expect(parseSteps('')).toEqual([]);
+    });
+    it('repeats the last step for deeper slabs', async () => {
+        const { expandSteps } = await import('../src/features/rates/RateWizardMixin.js');
+        expect(expandSteps([5, 10], 4)).toEqual([5, 10, 10, 10]);
+        expect(expandSteps([], 3)).toEqual([0, 0, 0]);
+    });
+    it('builds rates from the base and the steps', async () => {
+        const { buildWizardSlabs, stepsOf, checkWizardCard } = await import('../src/features/rates/RateWizardMixin.js');
+        const slabs = buildWizardSlabs(90, 'custom', 10, [5, 10, 15, 20, 30, 50]);
+        expect(slabs.slice(0, 7).map((s) => s.rate)).toEqual([90, 95, 105, 120, 140, 170, 220]);
+        expect(slabs[7].rate).toBe(270); // last step (50) repeats
+        expect(stepsOf(slabs).slice(0, 6)).toEqual([5, 10, 15, 20, 30, 50]);
+        expect(slabs[0].start).toBe(1);
+        const { errors } = checkWizardCard({ name: 'X', base: 90, slabs, pvc7: 400, pvc10: 700, grace: 5, gst: 18 });
+        expect(errors).toEqual([]);
+    });
+    it('switching from standard keeps the same numbers', async () => {
+        const { buildWizardSlabs, stepsOf } = await import('../src/features/rates/RateWizardMixin.js');
+        const std = buildWizardSlabs(100, 'standard');
+        const own = buildWizardSlabs(100, 'custom', 10, stepsOf(std));
+        expect(own.map((s) => s.rate)).toEqual(std.map((s) => s.rate));
+    });
+});

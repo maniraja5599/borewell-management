@@ -32,7 +32,7 @@
         <strong>In short:</strong> you sign in with Google to use DrillRig. Your bills and customer details are saved on
         your phone and in your business's cloud account, so they are backed up and your other phones can use them.
         The DrillRig team can see this data to run and support the service; every time we open it, it is recorded.
-        We do not sell your data, show ads, or use tracking or analytics.
+        We do not sell your data or show ads. We count visits with Google Analytics (screens used, no personal details).
     </div>
 
     <h2>1. What DrillRig stores</h2>
@@ -41,6 +41,10 @@
             rates, customers (name, mobile number, village/site), bills, quotations, payments and notes.</li>
         <li><strong>Your Google account:</strong> your name, email address and profile picture, which Google shares with us
             when you choose "Continue with Google". Signing in is required to use the app.</li>
+        <li><strong>Your mobile number:</strong> asked once after you sign in, so the DrillRig team can support you and the
+            owner of your business can see who is in the team. It is not shown to your customers unless you add it to your bills.</li>
+        <li><strong>Team invites:</strong> when an owner invites someone by mobile number, we keep that number, the name typed
+            and a one-time invite code until the invite is used, cancelled or expires (7 days).</li>
     </ul>
     <p>We do not ask for, and do not store, your Google password, contacts, location, or any other Google data.</p>
 
@@ -52,10 +56,11 @@
             people in your company account can read it in the app. It is sent over encrypted (HTTPS) connections.</li>
         <li><strong>What the DrillRig team can see:</strong> to run the service, give support, handle subscriptions and
             find problems, the DrillRig team can see everything stored in your business's cloud account: account details
-            (name, email, business name, staff and their roles, rigs, subscription dates), totals (bills, feet drilled,
+            (name, email, business name, staff and their roles, rigs, subscription dates), your company profile
+            (phone, address, GSTIN, UPI ID, bill numbering, footer notes) and rate cards, totals (bills, feet drilled,
             amounts billed, received and due), and your bills and customers (names, mobile numbers, villages, amounts and
             payments). This access is limited to the DrillRig team, is read-only, and every time we open a business's
-            report, bills or customers it is recorded in our admin log. We never share it with anyone else or contact
+            profile, report, bills or customers it is recorded in our admin log. We never share it with anyone else or contact
             your customers.</li>
     </ul>
 
@@ -71,6 +76,10 @@
         <li><strong>GitHub Pages</strong> — hosts the app's web files.</li>
         <li><strong>Public code libraries</strong> (unpkg.com, cdnjs.cloudflare.com, Google Fonts) — load icons, fonts and the
             PDF/image export tools. Like any website, these servers can see your IP address when the files are downloaded.</li>
+        <li><strong>Google Analytics</strong> — counts visits and which screens are used (for example "Bills", "Rates"),
+            the type of phone and the city-level area. It never receives names, phone numbers, bills or customer details,
+            and advertising features are switched off.
+            (<a href="https://policies.google.com/technologies/partner-sites" rel="noopener">How Google uses this data</a>)</li>
         <li><strong>WhatsApp</strong> — when you tap "Share on WhatsApp", the app opens WhatsApp with the message ready.
             DrillRig never sends messages by itself.</li>
     </ul>
