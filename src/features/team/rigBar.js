@@ -5,6 +5,7 @@ import {
     rigDaysLeft, getRole, getAccess
 } from '../../cloud/access.js';
 import { renewLink, isEarlyAccess } from '../../config/plans.js';
+import { icon, paintIcons } from '../../ui/icon.js';
 
 function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -29,33 +30,48 @@ function statusLine(rig) {
 function openPicker(app) {
     const rigs = visibleRigs();
     const current = getCurrentRig();
-    const close = () => overlay.remove();
-    const list = el('div', { class: 'rig-sheet-list', role: 'radiogroup', 'aria-label': 'Choose rig' },
-        rigs.map((r) => el('button', {
-            type: 'button',
-            class: `rig-option${r.id === current?.id ? ' on' : ''}${r.active ? '' : ' off'}`,
-            role: 'radio',
-            'aria-checked': String(r.id === current?.id),
-            onclick: () => {
-                setCurrentRig(r.id);
-                if (!app.loadedHistoryBillId) app.syncAutoBillNumber?.(true);
-                close();
-                app.showToast?.(`🚜 New bills now go to ${r.name}`);
-            }
-        }, [
-            el('strong', { text: r.name }),
-            el('span', { text: `${r.is_default ? (app.brand?.billPrefix || r.bill_prefix) : r.bill_prefix} · ${statusLine(r)}` })
-        ]))
+    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const list = el('div', { class: 'tt-card tt-picks', role: 'radiogroup', 'aria-label': 'Choose rig' },
+        rigs.map((r) => {
+            const on = r.id === current?.id;
+            return el('button', {
+                type: 'button',
+                class: `tt-pick${on ? ' is-on' : ''}${r.active ? '' : ' is-off'}`,
+                role: 'radio',
+                'aria-checked': String(on),
+                onclick: () => {
+                    setCurrentRig(r.id);
+                    if (!app.loadedHistoryBillId) app.syncAutoBillNumber?.(true);
+                    close();
+                    app.showToast?.(`New bills now go to ${r.name}`);
+                }
+            }, [
+                el('span', { class: 'tt-tile' }, [icon('truck')]),
+                el('span', { class: 'tt-row-main' }, [
+                    el('strong', { text: r.name }),
+                    el('small', { text: `Bills ${r.is_default ? (app.brand?.billPrefix || r.bill_prefix) : r.bill_prefix} · ${statusLine(r)}` })
+                ]),
+                el('span', { class: 'tt-pick-mark', 'aria-hidden': 'true' }, [icon('check')])
+            ]);
+        })
     );
-    const overlay = el('div', { class: 'rig-sheet-overlay', onclick: (e) => { if (e.target === overlay) close(); } }, [
-        el('div', { class: 'rig-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Choose rig' }, [
-            el('h3', { text: 'Which rig is this bill for?' }),
-            list,
-            el('button', { type: 'button', class: 'rig-sheet-close', text: 'Close', onclick: close })
+    const overlay = el('div', { class: 'tm-overlay tt-overlay', onclick: (e) => { if (e.target === overlay) close(); } }, [
+        el('div', { class: 'tt-sheet is-small', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'rigPickTitle' }, [
+            el('div', { class: 'tt-head' }, [
+                el('div', { class: 'tt-head-txt' }, [
+                    el('h2', { id: 'rigPickTitle', text: 'Which rig is this bill for?' }),
+                    el('p', { text: 'Each rig has its own bill numbers' })
+                ]),
+                el('button', { type: 'button', class: 'tt-icon-btn is-close', 'aria-label': 'Close', onclick: close }, [icon('x')])
+            ]),
+            el('div', { class: 'tt-body' }, [list])
         ])
     ]);
+    document.addEventListener('keydown', onKey);
     document.body.appendChild(overlay);
-    overlay.querySelector('.rig-option.on, .rig-option')?.focus();
+    paintIcons();
+    overlay.querySelector('.tt-pick.is-on, .tt-pick')?.focus({ focusVisible: false });
 }
 
 export function initRigBar(app) {
@@ -68,7 +84,11 @@ export function initRigBar(app) {
         const rigs = visibleRigs();
         const rig = getCurrentRig();
         btn.hidden = !rig || (rigs.length < 2 && rig.active);
-        if (rig) btn.textContent = `🚜 ${rig.name} ▾`;
+        if (rig) {
+            btn.replaceChildren(icon('truck'), el('span', { text: rig.name }), icon('chevron-down', 'icon-xs rig-chip-caret'));
+            btn.setAttribute('aria-label', `Rig: ${rig.name}. Change rig`);
+            paintIcons();
+        }
 
         banner.textContent = '';
         banner.className = 'rig-status-banner';

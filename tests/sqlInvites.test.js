@@ -39,7 +39,7 @@ beforeAll(async () => {
     `);
     for (const f of ['0001_drillrig_sync.sql', '0002_soft_delete_and_size_limit.sql', '0003_rigs_roles_subscription.sql', '0004_activity_log.sql',
         '0005_pipe_stock.sql', '0006_pull_with_server_time.sql', '0007_admin_console.sql', '0008_admin_business_data.sql',
-        '0009_admin_business_profile.sql', '0010_phone_and_invite_links.sql', '0011_invite_accept_reject.sql']) {
+        '0009_admin_business_profile.sql', '0010_phone_and_invite_links.sql', '0011_invite_accept_reject.sql', '0012_phone_lookup.sql']) {
         await db.exec(sql(f));
     }
     await as(OWNER);
@@ -125,5 +125,24 @@ describe('0011 invitations need a yes', () => {
         const t = await team(company);
         expect(t.members[0]).toMatchObject({ user_id: OWNER, is_creator: true });
         expect(t.members.find((m) => m.user_id === PARTNER).role).toBe('manager');
+    });
+
+    it('0012: typing a mobile number shows who it is (owner only, name never email)', async () => {
+        await as(DRIVER);
+        await one(`select public.drillrig_set_my_phone('98765 43210')`);
+        await as(OTHER_OWNER);
+        await one(`select public.drillrig_set_my_phone('9123456789')`);
+        await as(OWNER);
+        const look = (p) => one(`select public.drillrig_phone_lookup($1, $2) as r`, [company, p]).then((x) => x.r);
+        expect(await look('9876543210')).toMatchObject({ found: true, name: 'Murugan', member_role: 'driver' });
+        const other = await look('+91 91234 56789');
+        expect(other).toMatchObject({ found: true, name: 'Kumar', invited: false });
+        expect(JSON.stringify(other)).not.toMatch(/@/);
+        expect(await look('9000000001')).toMatchObject({ found: false, invited: false });
+        expect(await look('12')).toMatchObject({ found: false });
+        await inviteLink(company, '9000000001', 'driver', [rig1]);
+        expect(await look('9000000001')).toMatchObject({ found: false, invited: true });
+        await as(DRIVER); // not an owner of this company
+        expect(await errorOf(() => look('9123456789'))).toBeTruthy();
     });
 });

@@ -2,6 +2,7 @@
 import './styles/app.css';
 import './styles/ui-v3.css';
 import './styles/popups-v2.css'; // bill + customer popups (after ui-v3 so its rules win)
+import './styles/team-v2.css'; // Team & Rigs, invitation cards, Your businesses
 import './styles/rates-v2.css'; // Rates page, rate popup, rate editor // new look; only applies with FEATURES.uiV3 (html.ui-v3)
 import './styles/small-screens.css'; // narrow phones + large font/zoom (loaded last)
 import { initFitText } from './ui/fitText.js';

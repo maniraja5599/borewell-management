@@ -6,6 +6,7 @@ import { checkInvitations, showSwitchCard } from '../team/invitations.js';
 import { maybeAskProfile } from './profilePrompt.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
 import { isEarlyAccess, earlyAccessEndLabel, earlyAccessDaysLeft } from '../../config/plans.js';
+import { icon, paintIcons } from '../../ui/icon.js';
 
 export function initAccountUI(app) {
     // Free Early Access note (dates and discount come from config/plans.js).
@@ -226,39 +227,39 @@ export function initAccountUI(app) {
         if (companies.length < 2 && !invites.length) return;
         const mk = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
         const box = mk('div', 'acc-biz');
-        if (companies.length > 1) box.appendChild(mk('div', 'acc-biz-title', 'Your businesses'));
-        const row = (title, role, action) => {
-            const r = mk('div', 'acc-biz-row');
+        box.appendChild(mk('div', 'acc-biz-title', companies.length > 1 ? 'Your businesses' : 'Invitations'));
+        const row = (lead, title, subText, action, cls = '') => {
+            const r = mk('div', `acc-biz-row${cls ? ` ${cls}` : ''}`);
             const txt = mk('div', 'acc-biz-txt');
-            txt.append(mk('strong', null, title), mk('span', `acc-biz-role is-${role}`, ROLE[role] || role));
-            r.append(txt, action);
+            txt.append(mk('strong', null, title), mk('small', null, subText));
+            r.append(lead, txt, action);
             return r;
+        };
+        const smallBtn = (label, kind, onClick) => {
+            const b = mk('button', `tt-btn is-sm${kind ? ` is-${kind}` : ''}`, label);
+            b.type = 'button';
+            b.addEventListener('click', onClick);
+            return b;
         };
         if (companies.length > 1) {
             for (const c of companies) {
                 const isOpen = c.company_id === a.companyId;
-                let action;
-                if (isOpen) action = mk('span', 'acc-biz-open', '✓ Open now');
-                else {
-                    action = mk('button', 'acc-biz-btn', 'Switch');
-                    action.type = 'button';
-                    action.setAttribute('aria-label', `Switch to ${c.name}`);
-                    action.addEventListener('click', () => switchTo(c.company_id, c.name));
-                }
-                box.appendChild(row(isOpen ? (name || c.name) : c.name, c.role, action));
+                const title = isOpen ? (name || c.name) : c.name;
+                const lead = mk('span', `tt-avatar${isOpen ? ' is-open' : ''}`, String(title || '?').trim().charAt(0).toUpperCase());
+                const action = isOpen ? mk('span', 'tt-pill is-ok', 'Open') : smallBtn('Switch', '', () => switchTo(c.company_id, c.name));
+                if (!isOpen) action.setAttribute('aria-label', `Switch to ${c.name}`);
+                box.appendChild(row(lead, title, `${ROLE[c.role] || c.role}${isOpen ? ' · on this phone' : ''}`, action, isOpen ? 'is-open' : ''));
             }
         }
         for (const iv of invites) {
-            const b = mk('button', 'acc-biz-btn is-invite', 'View');
-            b.type = 'button';
             // Opens the invitation card: Accept / Reject (nothing is joined without a yes).
-            b.addEventListener('click', () => checkInvitations(app, { phoneHasCompany: true, only: { ...iv, status: 'open' } })
-                .then(() => syncNow()));
-            const r = row(`📨 Invitation: ${iv.company_name}`, iv.role, b);
-            r.classList.add('is-invite');
-            box.appendChild(r);
+            const b = smallBtn('View', 'pri', () => checkInvitations(app, { phoneHasCompany: true, only: { ...iv, status: 'open' } }).then(() => syncNow()));
+            const lead = mk('span', 'tt-avatar is-warn');
+            lead.appendChild(icon('mail'));
+            box.appendChild(row(lead, iv.company_name, `Invitation · ${ROLE[iv.role] || iv.role}`, b, 'is-invite'));
         }
         bizSlot.appendChild(box);
+        paintIcons();
     };
     onAccessChange(renderCompany);
 

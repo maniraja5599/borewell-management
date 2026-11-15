@@ -12,11 +12,12 @@
 import { getSupabase } from '../../cloud/auth.js';
 import { setPreferredCompany, clearPhoneData, flushSync, getSyncInfo } from '../../cloud/sync.js';
 import { pendingJoinCode, clearJoinCode, consumeJoinCode } from './joinLink.js';
+import { icon, paintIcons } from '../../ui/icon.js';
 
 export const ROLE_INFO = {
-    driver: { icon: '🚚', title: 'Driver', text: 'Makes bills at the bore site for their rig. Sees only the bills they made. Cannot change rates or delete bills.' },
-    manager: { icon: '🧑‍💼', title: 'Manager', text: 'Makes bills, takes payments and sees every bill of their rigs. Cannot change rates or the team.' },
-    owner: { icon: '👑', title: 'Owner / Partner', text: 'Full access: all rigs, all bills, rates, team and settings.' }
+    driver: { icon: 'hard-hat', title: 'Driver', text: 'Makes bills at the bore site for their rig. Sees only the bills they made. Cannot change rates or delete bills.' },
+    manager: { icon: 'clipboard-list', title: 'Manager', text: 'Makes bills, takes payments and sees every bill of their rigs. Cannot change rates or the team.' },
+    owner: { icon: 'crown', title: 'Owner / Partner', text: 'Full access: all rigs, all bills, rates, team and settings.' }
 };
 
 function el(tag, attrs = {}, children = []) {
@@ -120,7 +121,7 @@ export function showSwitchCard(app, companyId, name) {
     const openBtn = el('button', { type: 'button', class: 'sw-btn primary', text: `Open ${name}` });
     const cancelBtn = el('button', { type: 'button', class: 'sw-btn ghost', text: 'Cancel' });
     const card = el('div', { class: 'sw-card iv-card', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'swcTitle' }, [
-        el('p', { class: 'iv-kicker', text: '🔁 Switch business' }),
+        el('p', { class: 'iv-kicker' }, [icon('repeat'), el('span', { text: 'Switch business' })]),
         el('h2', { id: 'swcTitle', class: 'sw-title', text: name }),
         el('p', { class: 'sw-sub', text: 'This phone shows one business at a time.' }),
         el('ol', { class: 'iv-steps' }, [
@@ -147,8 +148,9 @@ export function showSwitchCard(app, companyId, name) {
         }
     });
     document.body.appendChild(overlay);
+    paintIcons();
     requestAnimationFrame(() => overlay.classList.add('show'));
-    setTimeout(() => openBtn.focus(), 300);
+    setTimeout(() => openBtn.focus({ focusVisible: false }), 300);
 }
 
 function showCard(app, iv, phoneHasCompany) {
@@ -163,11 +165,11 @@ function showCard(app, iv, phoneHasCompany) {
         const laterBtn = el('button', { type: 'button', class: 'sw-link', text: 'Decide later' });
 
         const step1 = el('div', { class: 'iv-step' }, [
-            el('p', { class: 'iv-kicker', text: '📨 Team invitation' }),
+            el('p', { class: 'iv-kicker' }, [icon('mail-open'), el('span', { text: 'Team invitation' })]),
             el('h2', { id: 'ivTitle', class: 'sw-title', text: iv.company_name || 'A DrillRig company' }),
             el('p', { class: 'sw-sub', text: `${iv.invited_by || 'The owner'} invited you to join as ${info.title}.` }),
             el('div', { class: 'iv-role' }, [
-                el('span', { class: 'iv-role-ic', 'aria-hidden': 'true', text: info.icon }),
+                el('span', { class: `tt-tile is-${iv.role}` }, [icon(info.icon)]),
                 el('div', {}, [el('strong', { text: info.title }), el('span', { text: info.text })])
             ]),
             iv.role !== 'owner' ? el('p', { class: 'iv-rigs' }, [el('b', { text: 'Rig: ' }), rigs.length ? rigs.join(', ') : 'chosen by the owner later']) : null,
@@ -205,7 +207,7 @@ function showCard(app, iv, phoneHasCompany) {
             }
             if (!phoneHasCompany) {
                 setPreferredCompany(companyId);
-                app?.showToast?.(`✅ You joined ${iv.company_name} as ${info.title}`);
+                app?.showToast?.(`You joined ${iv.company_name} as ${info.title}`);
                 close({ open: true, companyId, name: iv.company_name });
                 return;
             }
@@ -214,7 +216,7 @@ function showCard(app, iv, phoneHasCompany) {
             const stayBtn = el('button', { type: 'button', class: 'sw-link', text: myCompany ? `Stay in ${myCompany} for now` : 'Not now' });
             const err2 = el('p', { class: 'sw-error', role: 'alert' });
             card.replaceChildren(el('div', { class: 'iv-step' }, [
-                el('p', { class: 'iv-kicker is-ok', text: '✅ You joined' }),
+                el('p', { class: 'iv-kicker is-ok' }, [icon('circle-check'), el('span', { text: 'You joined' })]),
                 el('h2', { id: 'ivTitle', class: 'sw-title', text: iv.company_name }),
                 el('p', { class: 'sw-sub', text: 'This phone shows one company at a time. Your bills here are uploaded first, then the new company opens.' }),
                 el('p', { class: 'iv-note', text: 'Switch back any time: Settings → your account → Switch.' }),
@@ -222,6 +224,7 @@ function showCard(app, iv, phoneHasCompany) {
                 el('div', { class: 'sw-actions' }, [openBtn]),
                 el('div', { class: 'sw-links' }, [stayBtn])
             ]));
+            paintIcons();
             openBtn.addEventListener('click', async () => {
                 err2.textContent = '';
                 openBtn.disabled = true;
@@ -248,7 +251,8 @@ function showCard(app, iv, phoneHasCompany) {
         laterBtn.addEventListener('click', () => close('later'));
 
         document.body.appendChild(overlay);
+        paintIcons();
         requestAnimationFrame(() => overlay.classList.add('show'));
-        setTimeout(() => acceptBtn.focus(), 300);
+        setTimeout(() => acceptBtn.focus({ focusVisible: false }), 300);
     });
 }
