@@ -13493,6 +13493,10 @@ textarea:focus-visible {
     flex-direction: column;
     gap: 8px;
 }
+.pwa-ios-instructions[hidden],
+.pwa-ios-instructions:empty {
+    display: none !important;
+}
 
 .pwa-ios-step {
     display: flex;
@@ -15282,27 +15286,54 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
 .pwa-benefits-list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 10px;
     margin: 12px 0 16px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 14px;
     text-align: left;
 }
 .pwa-benefit-point {
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    color: #334155;
-    font-weight: 600;
+    align-items: center;
+    gap: 12px;
 }
-.pwa-benefit-point .pbp-dot {
-    font-size: 14px;
-    line-height: 1.2;
+.pwa-benefit-point .pbp-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+}
+.pwa-benefit-point .pbp-icon-wrap i,
+.pwa-benefit-point .pbp-icon-wrap svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2px;
+}
+.pwa-benefit-point .pbp-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.pwa-benefit-point .pbp-content strong {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+}
+.pwa-benefit-point .pbp-content span {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    color: #64748b;
+    font-weight: 500;
 }
 
 .record-payment-modal .rpm-check-line { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: #f6f8f7; border: 1px solid #e3e9e5; color: #334155; font-size: 0.8rem; font-weight: 700; }

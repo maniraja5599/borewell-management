@@ -1254,7 +1254,7 @@
     <script type="module">
         import {
             rangeFor, inRange, billDay, isInvoice, summarize, change, trend, paymentModes, topDues, depthBands,
-            bucketLabel, bucketTitle, parseYmd
+            bucketLabel, bucketTitle, parseYmd, collectedPctLabel
         } from './src/features/report/reportMath.js';
         import { columnChart, barList, inr } from './src/features/report/reportCharts.js';
         import { initStorage, storage, STORAGE_KEYS } from './src/data/storage.js';
@@ -1536,7 +1536,7 @@
             const paidPct = s.billed ? (s.collected / s.billed) * 100 : 0;
             document.getElementById('kpiCollected').textContent = inr(s.collected);
             document.getElementById('kpiPendingDue').textContent = inr(s.due);
-            document.getElementById('kpiCollectionRate').textContent = s.billed ? `${s.collectedPct}%` : '—';
+            document.getElementById('kpiCollectionRate').textContent = collectedPctLabel(s);
             document.getElementById('progCashBar').style.width = paidPct + '%';
             document.getElementById('progDueBar').style.width = (s.billed ? 100 - paidPct : 0) + '%';
             document.getElementById('collectMeter').setAttribute('aria-label', `Collected ${inr(s.collected)}, pending ${inr(s.due)}`);

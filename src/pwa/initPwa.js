@@ -153,16 +153,25 @@ export function initPWAAndZoomLock() {
             if (title) title.textContent = 'Add DrillRig to Home Screen';
             if (desc) desc.textContent = 'Opens full screen like an App, works 100% offline at the rig without network. Takes just 3 quick taps:';
             if (confirmBtnText) confirmBtnText.textContent = 'Got it';
-            if (benefitsList) benefitsList.hidden = true;
+            if (benefitsList) {
+                benefitsList.hidden = true;
+                benefitsList.style.display = 'none';
+            }
         } else {
             // Android / Desktop / Chrome: Instant 1-tap install
             modalOverlay.classList.remove('is-ios');
-            if (iosInstructions) iosInstructions.hidden = true;
+            if (iosInstructions) {
+                iosInstructions.hidden = true;
+                iosInstructions.style.display = 'none';
+            }
             if (badge) badge.textContent = '⚡ 1-TAP INSTALL · 100% OFFLINE';
             if (title) title.textContent = 'Install DrillRig App';
             if (desc) desc.textContent = 'Install on your mobile phone for lightning-fast 1-tap access. Works 100% offline at remote borewell rig sites with zero delay!';
             if (confirmBtnText) confirmBtnText.textContent = '⚡ Install App Now';
-            if (benefitsList) benefitsList.hidden = false;
+            if (benefitsList) {
+                benefitsList.hidden = false;
+                benefitsList.style.display = 'flex';
+            }
         }
 
         modalOverlay.style.display = 'flex';

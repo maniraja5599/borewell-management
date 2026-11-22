@@ -97,6 +97,14 @@ export function summarize(bills) {
     return s;
 }
 
+/** "Collected %" label: never "0%" when something was received, never "100%" while a rupee is still due. */
+export function collectedPctLabel(s) {
+    if (!s?.billed) return '—';
+    if (s.collected > 0 && s.collectedPct === 0) return '<1%';
+    if (s.collected < s.billed && s.collectedPct === 100) return '>99%';
+    return `${s.collectedPct}%`;
+}
+
 /** % change, or null when there is nothing to compare with. */
 export function change(now, before) {
     if (!before) return null;

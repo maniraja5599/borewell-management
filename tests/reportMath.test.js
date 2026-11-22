@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-    rangeFor, summarize, change, bucketSize, trend, paymentModes, topDues, depthBands, billDay, dueOf
+    rangeFor, summarize, change, bucketSize, trend, paymentModes, topDues, depthBands, billDay, dueOf, collectedPctLabel
 } from '../src/features/report/reportMath.js';
 
 const bill = (o) => ({
@@ -110,5 +110,16 @@ describe('lists', () => {
     it('bill day falls back to the local date of createdAt; due never goes below 0', () => {
         expect(billDay({ createdAt: new Date(2026, 10, 14, 23, 30).toISOString() })).toBe('2026-11-14');
         expect(dueOf(bill({ total: 100, payments: [pay('2026-11-01', 150)] }))).toBe(0);
+    });
+});
+
+describe('collectedPctLabel', () => {
+    it('never shows 0% when money came in, or 100% while something is due', () => {
+        expect(collectedPctLabel({ billed: 0, collected: 0, collectedPct: 0 })).toBe('—');
+        expect(collectedPctLabel({ billed: 1013760, collected: 0, collectedPct: 0 })).toBe('0%');
+        expect(collectedPctLabel({ billed: 1013760, collected: 5000, collectedPct: 0 })).toBe('<1%');
+        expect(collectedPctLabel({ billed: 117720, collected: 54220, collectedPct: 46 })).toBe('46%');
+        expect(collectedPctLabel({ billed: 100000, collected: 99800, collectedPct: 100 })).toBe('>99%');
+        expect(collectedPctLabel({ billed: 100000, collected: 100000, collectedPct: 100 })).toBe('100%');
     });
 });

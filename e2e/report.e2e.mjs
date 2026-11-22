@@ -4,7 +4,7 @@
 //   npm run e2e:report                                   (in another)
 import { startHarness, wait, BASE } from './harness.mjs';
 import { buildDemo } from './demoData.mjs';
-import { rangeFor, inRange, billDay, isInvoice, summarize, topDues, paymentModes, depthBands, trend } from '../src/features/report/reportMath.js';
+import { rangeFor, inRange, billDay, isInvoice, summarize, topDues, paymentModes, depthBands, trend, collectedPctLabel } from '../src/features/report/reportMath.js';
 
 const { p, OUT, check, app, clickId, step, freshCompany, finish } = await startHarness('report');
 const inr = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
@@ -57,7 +57,7 @@ await wait(700);
 await step('P1 this month', async () => {
     const e = expectFor('this_month');
     const s = await screen();
-    check('P1 opens on This month: billed / collected / pending / % match the bills', s.billed === inr(e.s.billed) && s.collected === inr(e.s.collected) && s.due === inr(e.s.due) && s.pct === `${e.s.collectedPct}%`,
+    check('P1 opens on This month: billed / collected / pending / % match the bills', s.billed === inr(e.s.billed) && s.collected === inr(e.s.collected) && s.due === inr(e.s.due) && s.pct === collectedPctLabel(e.s),
         { screen: [s.billed, s.collected, s.due, s.pct], expect: [inr(e.s.billed), inr(e.s.collected), inr(e.s.due), e.s.collectedPct] });
     const pct = e.prev?.billed ? Math.round(((e.s.billed - e.prev.billed) / e.prev.billed) * 100) : null;
     check('P1a comparison with the same days last month', pct === null ? /compare/.test(s.delta) : s.delta.includes(`${Math.abs(pct)}%`) && s.delta.includes(inr(e.prev.billed)), { delta: s.delta, pct });

@@ -14,7 +14,8 @@ export default defineConfig({
     },
     build: {
         outDir: 'dist',
-        sourcemap: true,
+        // No public source maps: they would publish the full readable source on drillrig.in
+        sourcemap: false,
         rollupOptions: {
             input: {
                 main: resolve(import.meta.dirname, 'index.html'),
