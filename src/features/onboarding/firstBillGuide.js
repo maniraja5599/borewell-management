@@ -131,7 +131,10 @@ export function initFirstBillGuide(app) {
             el('span', { class: 'fbg-tip-n', 'aria-hidden': 'true', text: String(step.n) }),
             el('span', { text: step.text })
         ]);
-        target.insertAdjacentElement('beforebegin', coachTip);
+        // Above the whole row (the customer search shares its row with "Add Customer": a tip inside it
+        // squeezed the search box).
+        const anchor = target.closest('.wiz-search-add-row, .drilling-depth-row') || target;
+        anchor.insertAdjacentElement('beforebegin', coachTip);
         const nextLine = card?.querySelector('.fbg-step.is-next small');
         if (nextLine && steps().find((x) => !x.done)?.id === 'bill') nextLine.textContent = `Next: ${step.text.charAt(0).toLowerCase()}${step.text.slice(1)}`;
     };

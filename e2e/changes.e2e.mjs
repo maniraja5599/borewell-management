@@ -16,8 +16,9 @@ await wait(400);
 
 await step('C6a coach starts at the customer (tip above the customer box)', async () => {
     const t = await tip();
-    const where = await app(() => document.querySelector('.fbg-tip')?.nextElementSibling?.className || '');
-    check('C6a coach starts at the customer (tip above the customer box)', /^1:.*customer/i.test(t) && /wiz-search-input-wrap/.test(where) && /fbg-coach/.test(where), { t, where });
+    const where = await app(() => ({ next: document.querySelector('.fbg-tip')?.nextElementSibling?.className || '', box: Math.round(document.querySelector('.wiz-search-input-wrap')?.getBoundingClientRect().width || 0), coached: document.querySelector('.fbg-coach')?.className || '' }));
+    // The tip sits above the whole search row, and the search box keeps its width.
+    check('C6a coach starts at the customer (tip above the customer row, search box not squeezed)', /^1:.*customer/i.test(t) && /wiz-search-add-row/.test(where.next) && /wiz-search-input-wrap/.test(where.coached) && where.box > 120, { t, where });
 });
 
 await step('C2a the top bar before the bill is ready says what is missing', async () => {

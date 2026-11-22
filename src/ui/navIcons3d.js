@@ -68,6 +68,7 @@ ${[0, 1, 2].map((r) => [0, 1, 2].map((c) => `<rect x="${17 + c * 10}" y="${28 + 
 let seq = 0;
 export function applyNavIcons3d() {
     document.querySelectorAll('.bottom-nav .b-nav-item[data-tab]').forEach((btn) => {
+        if (btn.classList.contains('b-nav-fab') || btn.dataset.tab === 'tab-brand') return; // plain icons in the new bar
         const draw = ICONS[btn.dataset.tab];
         const slot = btn.querySelector('.b-nav-icon');
         if (!draw || !slot) return;

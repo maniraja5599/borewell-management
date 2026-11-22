@@ -71,8 +71,12 @@ export function initTestLogin(app) {
         paintIcons();
     }
 
-    // The chip: who is signed in; tap to switch.
+    // The chip: who is signed in; tap to switch. Only when someone asked for test mode (?test=1)
+    // or already picked a test account — never in automated tests that just skip sign-in.
     const acc = testAccount();
+    let asked = false;
+    try { asked = new URLSearchParams(location.search).get('test') === '1'; } catch { /* ignore */ }
+    if (!acc && !asked) return;
     // A dummy account has no Google session: hide the "Continue with Google" card meanwhile.
     document.documentElement.classList.toggle('test-login', !!acc);
     const chip = el('button', { type: 'button', class: 'tl-chip', id: 'testLoginChip', title: 'Test sign-in (local only)', 'aria-label': `Test sign-in: ${acc ? acc.email : 'no account'}. Tap to switch.` }, [
@@ -84,7 +88,7 @@ export function initTestLogin(app) {
 
     // First visit in test mode: offer the accounts once.
     try {
-        if (!acc && !localStorage.getItem(`${KEY}_asked`) && !getAccess()) {
+        if (asked && !acc && !localStorage.getItem(`${KEY}_asked`) && !getAccess()) {
             localStorage.setItem(`${KEY}_asked`, '1');
             setTimeout(() => picker({ first: true }), 600);
         }

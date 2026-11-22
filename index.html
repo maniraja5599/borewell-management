@@ -1678,17 +1678,20 @@
             </div>
         </section>
 
+        <!-- RIG WORK: attendance, expenses & cash, work log, pipes, bits & hammers, workers (settings/rigWork.js) -->
+        <section class="tab-panel" id="tab-rigwork" aria-label="Rig work"></section>
+
         <!-- ====================================================================
-             TAB 5: SETTINGS HUB (COMPANY PROFILE, CASING, THEMES & DATA VAULT)
+             TAB 5: MENU (was Settings): quick tiles, company profile, casing, themes, data vault
              ==================================================================== -->
         <section class="tab-panel" id="tab-brand">
             <!-- Settings Hub Premium Top Card -->
             <div class="settings-hub-head" id="settingsHubHead">
                 <div class="shh-title-row">
                     <div class="shh-title-left">
-                        <span class="shh-icon"><i data-lucide="sliders"></i></span>
+                        <span class="shh-icon"><i data-lucide="menu"></i></span>
                         <div>
-                            <h2 class="shh-title">Settings</h2>
+                            <h2 class="shh-title">Menu</h2>
                         </div>
                     </div>
                     <span class="app-ver-chip" id="appVersionChip" title="DrillRig app version"></span>
@@ -1764,7 +1767,7 @@
 
             <!-- Shown while a section is open -->
             <div class="settings-back-bar" id="settingsBackBar" hidden>
-                <button type="button" class="settings-back-btn" id="settingsBackBtn" aria-label="Back to Settings"><span aria-hidden="true">‹</span> Settings</button>
+                <button type="button" class="settings-back-btn" id="settingsBackBtn" aria-label="Back to Menu"><span aria-hidden="true">‹</span> Menu</button>
                 <strong class="settings-back-title" id="settingsBackTitle"></strong>
             </div>
 
@@ -3006,28 +3009,30 @@
     </div>
 
     <!-- ==================== BOTTOM NAVIGATION BAR (LUCIDE ICONS) ==================== -->
-    <nav class="bottom-nav">
-        <button type="button" class="b-nav-item active" data-tab="tab-bill">
-            <span class="b-nav-icon"><i data-lucide="file-plus-2"></i></span>
-            <span class="b-nav-label" data-i18n="navCalculator">New Bill</span>
+    <!-- Most-used only (owner, 22 Nov 2026): Bills · Customers · + New Bill (centre) · Rig work · Menu.
+         Rates lives in Menu now (Menu stays highlighted on the Rates page). -->
+    <nav class="bottom-nav nav-v2" aria-label="Main">
+        <button type="button" class="b-nav-item" data-tab="tab-history">
+            <span class="b-nav-icon"><i data-lucide="receipt"></i></span>
+            <span class="b-nav-label" data-i18n="navHistory">Bills</span>
+            <span class="b-nav-badge" id="navHistoryCount">0</span>
         </button>
         <button type="button" class="b-nav-item" data-tab="tab-customers">
             <span class="b-nav-icon"><i data-lucide="users"></i></span>
             <span class="b-nav-label" data-i18n="navCustomers">Customers</span>
             <span class="b-nav-badge" id="navCustomerCount">0</span>
         </button>
-        <button type="button" class="b-nav-item" data-tab="tab-history">
-            <span class="b-nav-icon"><i data-lucide="receipt"></i></span>
-            <span class="b-nav-label" data-i18n="navHistory">Bills</span>
-            <span class="b-nav-badge" id="navHistoryCount">0</span>
+        <button type="button" class="b-nav-item b-nav-fab active" data-tab="tab-bill" aria-label="New Bill">
+            <span class="b-nav-icon"><i data-lucide="plus"></i></span>
+            <span class="b-nav-label" data-i18n="navCalculator">New Bill</span>
         </button>
-        <button type="button" class="b-nav-item" data-tab="tab-rates">
-            <span class="b-nav-icon"><i data-lucide="calculator"></i></span>
-            <span class="b-nav-label" data-i18n="navRates">Rates</span>
+        <button type="button" class="b-nav-item" data-tab="tab-rigwork">
+            <span class="b-nav-icon"><i data-lucide="hard-hat"></i></span>
+            <span class="b-nav-label">Rig work</span>
         </button>
         <button type="button" class="b-nav-item" data-tab="tab-brand">
-            <span class="b-nav-icon"><i data-lucide="sliders"></i></span>
-            <span class="b-nav-label" data-i18n="navSettings">Settings</span>
+            <span class="b-nav-icon"><i data-lucide="menu"></i></span>
+            <span class="b-nav-label">Menu</span>
         </button>
     </nav>
 

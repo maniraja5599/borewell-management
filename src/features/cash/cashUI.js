@@ -46,7 +46,7 @@ export function myCashLine(app) {
     return b.lines.length ? `Cash in hand ${inr(b.balance)}${b.pendingCount ? ` · ${inr(b.pending)} waiting` : ''}` : 'Expenses, diesel, cash in hand';
 }
 
-export function openCash(app) {
+export function openCash(app, { start = null } = {}) {
     if (!can('expenses')) { app?.showToast?.('You do not have access to expenses. Ask the owner.'); return; }
     const rigs = visibleRigs();
     // Places: the rigs this person has; owner / office also "Office" (no rig). No cloud: one place.
@@ -54,7 +54,7 @@ export function openCash(app) {
         ? [...rigs.map((r) => ({ key: r.id, label: r.name })), ...(isReceiver() ? [{ key: OFFICE, label: 'Office' }] : [])]
         : [{ key: LOCAL, label: '' }];
     let place = places.some((p) => p.key === getCurrentRig()?.id) ? getCurrentRig().id : places[0].key;
-    let adding = null; // 'expense' | 'diesel' | 'in' | 'handover' | 'collect'
+    let adding = ['expense', 'diesel', 'in', 'handover'].includes(start) ? start : null; // 'expense' | 'diesel' | 'in' | 'handover' | 'collect'
     let period = 'this';
     let shown = 40;
 

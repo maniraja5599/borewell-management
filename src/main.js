@@ -13,6 +13,7 @@ import { initAccountUI } from './features/account/accountUI.js';
 import { initSetupWizard } from './features/onboarding/setupWizard.js';
 import { initFirstBillGuide } from './features/onboarding/firstBillGuide.js';
 import { initRigWork } from './features/settings/rigWork.js';
+import { initMenuTiles } from './features/settings/menuTiles.js';
 import { initWorkCard } from './features/work/workCard.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
@@ -74,7 +75,8 @@ async function boot() {
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTestLogin(window.boreBillApp); // local testing only (?test=1 on localhost / Wi-Fi address)
         initTeamUI(window.boreBillApp);
-        initRigWork(window.boreBillApp); // Settings: Workers, Bits & Hammers (after Team & Rigs)
+        initRigWork(window.boreBillApp); // Rig work tab (bottom bar)
+        initMenuTiles(window.boreBillApp); // Menu: Rates, Team & rigs, Company profile, Backup tiles
         initWorkCard(window.boreBillApp); // Bill screen: work details (operator, compressor, bits, hammers)
         initFirstBillGuide(window.boreBillApp); // New Bill: "Make your first bill" checklist until the first bill
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)

@@ -1,64 +1,148 @@
-// Settings → "Rig work": the business beyond billing. Each row opens its sheet; rows show only for
-// people who may use them (cloud/access.js can()). More rows come with later phases
-// (vehicles, profit & loss).
-import { can, onAccessChange } from '../../cloud/access.js';
+// "Rig work" tab (bottom bar): the business beyond billing, in one place.
+//   Today: people at work, cash in hand, hand-overs waiting; quick buttons (Attendance, + Expense, + Diesel)
+//   One line of warnings (bills without work details, bits / hammers to check, low pipe)
+//   Tiles with a live line: Attendance & wages, Expenses & cash, Work log, Casing pipes, Bits & Hammers, Workers
+//   Rig report (dashboard.html, "Rig work" section)
+// Each tile shows only for people who may use it (cloud/access.js can()). The tiles keep the
+// #rigWorkCard / .rw-row names the older Settings rows had.
+import { can, onAccessChange, getCurrentRig } from '../../cloud/access.js';
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { el } from '../../ui/sheet.js';
 import { openWorkers, readWorkers } from '../workers/workersUI.js';
 import { openTools, readTools } from '../tools/toolsUI.js';
-import { openCash, myCashLine } from '../cash/cashUI.js';
-import { openAttendance, attendanceLine } from '../workers/attendanceUI.js';
+import { openCash, myCashLine, readCash, me } from '../cash/cashUI.js';
+import { openAttendance, attendanceLine, readAttendance } from '../workers/attendanceUI.js';
 import { openPipeStock, pipeStockLine } from '../stock/stockUI.js';
+import { openWorkLog, workLogPending } from '../rigwork/workLog.js';
 import { FEATURES } from '../../config/features.js';
+import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
+import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
+import { todayYmd } from '../workers/workersMath.js';
+import { cachedToolUsage, toolWarning } from '../work/workMath.js';
+import { toolLimits } from '../tools/toolsMath.js';
 
 export function initRigWork(app) {
-    const anchor = document.getElementById('teamCard') || document.getElementById('accountCard');
-    if (!anchor) return;
-    const card = el('div', { class: 'rw-card', id: 'rigWorkCard', hidden: true });
-    anchor.insertAdjacentElement('afterend', card);
+    const panel = document.getElementById('tab-rigwork');
+    if (!panel) return;
 
-    const row = (ic, cls, title, sub, onclick) => el('button', { type: 'button', class: 'team-card tt-entry rw-row', onclick }, [
+    const tile = (ic, cls, title, sub, onclick, warn = false) => el('button', { type: 'button', class: `rw-row rw-tile${warn ? ' is-warn' : ''}`, onclick }, [
         el('span', { class: `tt-tile ${cls}` }, [icon(ic)]),
-        el('span', { class: 'tt-entry-txt' }, [el('strong', { text: title }), el('small', { text: sub })]),
-        el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])
+        el('span', { class: 'rw-tile-txt' }, [el('strong', { text: title }), el('small', { text: sub })])
     ]);
 
+    function today() {
+        const t = todayYmd();
+        const workers = can('workers') ? readWorkers().filter(isActive) : [];
+        const day = workers.length ? daySummary(workers, readAttendance(), t) : null;
+        const book = can('expenses') ? cashBook(readCash(), app.history || [], me().id) : null;
+        if (!day && !book) return null;
+        const pct = day && workers.length ? Math.round(((day.present + day.half) / workers.length) * 100) : 0;
+        return el('section', { class: 'rw-today', 'aria-label': 'Today' }, [
+            el('div', { class: 'rw-today-stats' }, [
+                day ? el('div', {}, [
+                    el('small', { text: 'At work today' }),
+                    el('strong', {}, [`${day.present + day.half}`, el('span', { text: ` / ${workers.length}` })]),
+                    el('span', { class: 'rw-bar', 'aria-hidden': 'true' }, [el('span', { style: `width:${pct}%` })])
+                ]) : null,
+                book ? el('div', {}, [
+                    el('small', { text: 'Cash in hand' }),
+                    el('strong', { text: inr(book.balance) }),
+                    el('span', { class: 'rw-today-note', text: book.pendingCount ? `${inr(book.pending)} waiting ✓` : 'All handed over' })
+                ]) : null
+            ]),
+            el('div', { class: 'rw-quick' }, [
+                can('workers') ? el('button', { type: 'button', class: 'rw-q is-pri', text: 'Attendance', onclick: () => openAttendance(app) }) : null,
+                can('expenses') ? el('button', { type: 'button', class: 'rw-q', text: '+ Expense', onclick: () => openCash(app, { start: 'expense' }) }) : null,
+                can('expenses') ? el('button', { type: 'button', class: 'rw-q', text: '+ Diesel', onclick: () => openCash(app, { start: 'diesel' }) }) : null
+            ])
+        ]);
+    }
+
+    function warnings() {
+        const parts = [];
+        const pending = can('bills') ? workLogPending(app) : 0;
+        if (pending) parts.push(`${pending} bill${pending === 1 ? ' needs' : 's need'} work details`);
+        if (can('stock')) {
+            const usage = cachedToolUsage(app.history, app._bigListVersion || 0);
+            const limits = toolLimits(app.brand);
+            const rig = getCurrentRig()?.id;
+            const n = readTools().filter((t) => t && (t.status || 'active') === 'active' && (!rig || !t.rigId || t.rigId === rig || t.rigId === 'local') && toolWarning(t, usage, limits)).length;
+            if (n) parts.push(`${n} bit / hammer to check`);
+            if (FEATURES.pipeStock && /⚠/.test(pipeStockLine(app))) parts.push('pipe stock low');
+        }
+        if (!parts.length) return null;
+        return el('button', { type: 'button', class: 'rw-warn', onclick: () => (pending ? openWorkLog(app) : null) }, [
+            icon('triangle-alert'), el('span', { text: parts.join(' · ') }), el('span', { class: 'rw-chev', 'aria-hidden': 'true', text: '›' })
+        ]);
+    }
+
     const render = () => {
-        // Office staff without "bills": the New Bill screen is hidden for them, so do not leave them on it.
-        if (!can('bills') && document.getElementById('tab-bill')?.classList.contains('active')) {
-            try { app.switchTab(can('reports') ? 'tab-history' : 'tab-brand', false, false); } catch { /* ignore */ }
-        }
-        const rows = [];
+        const rig = getCurrentRig();
+        const tiles = [];
         if (can('workers')) {
-            const n = readWorkers().filter((w) => w && w.status !== 'left').length;
-            rows.push(row('hard-hat', 'is-workers', 'Workers', n ? `${n} active · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
-            rows.push(row('calendar-check', 'is-att', 'Attendance & wages', attendanceLine(), () => openAttendance(app)));
+            const wages = readWorkers().filter(isActive).reduce((s, w) => s + payNow(w, readAttendance(), readCash()).toPay, 0);
+            tiles.push(tile('calendar-check', 'is-att', 'Attendance & wages', `${attendanceLine()}${wages ? ` · ${inr(wages)} to pay` : ''}`, () => openAttendance(app)));
         }
+        if (can('expenses')) tiles.push(tile('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
+        if (can('bills')) {
+            const pending = workLogPending(app);
+            tiles.push(tile('clipboard-list', 'is-tools', 'Work log', pending ? `${pending} to fill` : 'Operator, compressor, bits per bore', () => openWorkLog(app), pending > 0));
+        }
+        if (can('stock') && FEATURES.pipeStock) tiles.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
         if (can('stock')) {
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
-            if (FEATURES.pipeStock) rows.push(row('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app)));
-            rows.push(row('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
+            tiles.push(tile('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
         }
-        if (can('expenses')) rows.push(row('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
-        card.hidden = !rows.length;
-        card.replaceChildren(...(rows.length ? [el('div', { class: 'rw-label', text: 'Rig work' }), ...rows] : []));
+        if (can('workers')) {
+            const n = readWorkers().filter(isActive).length;
+            tiles.push(tile('hard-hat', 'is-workers', 'Workers', n ? `${n} active · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
+        }
+        const month = spendSummary(can('expenses') ? readCash() : [], { start: `${todayYmd().slice(0, 7)}-01` }).total;
+        panel.replaceChildren(...[
+            el('div', { class: 'rw-head' }, [
+                el('div', {}, [
+                    el('h2', { class: 'rw-title', text: 'Rig work' }),
+                    el('span', { class: 'rw-sub', text: `${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}${rig?.name ? ` · ${rig.name}` : ''}` })
+                ])
+            ]),
+            today(),
+            warnings(),
+            tiles.length ? el('div', { class: 'rw-grid', id: 'rigWorkCard' }, tiles)
+                : el('p', { class: 'tt-empty', text: 'Nothing here for your role. Ask the owner for access to workers, stock or expenses.' }),
+            can('reports') ? el('a', { class: 'rw-report', href: 'dashboard.html#workReport' }, [
+                el('span', { class: 'tt-tile is-report' }, [icon('chart-line')]),
+                el('span', { class: 'rw-tile-txt' }, [el('strong', { text: 'Rig report' }), el('small', { text: month ? `Spent ${inr(month)} this month · operators, compressor, bit wear` : 'Operators, compressor hours, bit wear' })]),
+                el('span', { class: 'rw-chev', 'aria-hidden': 'true', text: '›' })
+            ]) : null
+        ].filter(Boolean));
         paintIcons();
     };
+
     onAccessChange(render);
-    window.addEventListener('drillrig:workers-changed', render);
-    window.addEventListener('drillrig:tools-changed', render);
-    window.addEventListener('drillrig:cash-changed', render);
-    window.addEventListener('drillrig:attendance-changed', render);
-    window.addEventListener('drillrig:stock-changed', render);
-    // Saved from the sheets on this phone.
+    for (const ev of ['workers', 'tools', 'cash', 'attendance', 'stock']) window.addEventListener(`drillrig:${ev}-changed`, render);
     const origSave = app.saveToStorage?.bind(app);
     if (origSave) {
         app.saveToStorage = (key, data, changed) => {
             const ok = origSave(key, data, changed);
-            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history || key === STORAGE_KEYS.attendance || key === STORAGE_KEYS.stock || key === STORAGE_KEYS.brand) { try { render(); } catch { /* ignore */ } }
+            if ([STORAGE_KEYS.workers, STORAGE_KEYS.tools, STORAGE_KEYS.cash, STORAGE_KEYS.history, STORAGE_KEYS.attendance, STORAGE_KEYS.stock, STORAGE_KEYS.brand].includes(key)) {
+                try { render(); } catch { /* ignore */ }
+            }
             return ok;
         };
     }
+    // Drawn fresh each time the tab is opened.
+    const origSwitch = app.switchTab.bind(app);
+    app.switchTab = (tabId, ...rest) => {
+        const r = origSwitch(tabId, ...rest);
+        if (tabId === 'tab-rigwork') { try { render(); } catch (e) { console.warn('[rigwork]', e); } }
+        return r;
+    };
+    // Keep the old guard: office staff without "bills" never stay on New Bill.
+    onAccessChange(() => {
+        if (!can('bills') && document.getElementById('tab-bill')?.classList.contains('active')) {
+            try { app.switchTab(can('reports') ? 'tab-history' : 'tab-rigwork', false, false); } catch { /* ignore */ }
+        }
+    });
     render();
 }

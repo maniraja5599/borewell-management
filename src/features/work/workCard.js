@@ -143,6 +143,9 @@ export function initWorkCard(app) {
         paintIcons();
     }
 
+    // The Work log (Rig work tab) opens a bill, then its page.
+    app.openWorkDetails = () => { sync(); if (!card.hidden) openPage(); };
+
     function openPage() {
         if (page) return;
         if (key !== currentKey()) loadFor(currentKey());

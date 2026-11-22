@@ -121,3 +121,66 @@
 .tl-chip span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tl-row { cursor: pointer; }
 .test-login #accountCard { display: none !important; }
+
+/* ===== New bottom bar (22 Nov 2026): Bills · Customers · + New Bill · Rig work · Menu ===== */
+.bottom-nav.nav-v2 { overflow: visible; }
+.nav-v2 .b-nav-item { position: relative; }
+.nav-v2 .b-nav-item.active:not(.b-nav-fab) .b-nav-icon { background: #dcfce7; border-radius: 999px; }
+.nav-v2 .b-nav-item.active:not(.b-nav-fab) .b-nav-label { color: #14532d; font-weight: 800; }
+.nav-v2 .b-nav-item:not(.b-nav-fab) .b-nav-icon { min-width: 52px; height: 30px; display: inline-flex; align-items: center; justify-content: center; transition: background .15s ease; }
+.nav-v2 .b-nav-fab .b-nav-icon { width: 56px; height: 56px; margin-top: -26px; border-radius: 18px; background: #15803d; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; border: 4px solid var(--bg-body, #f1f5f2); box-shadow: 0 8px 18px rgba(21, 128, 61, .35); }
+.nav-v2 .b-nav-fab .b-nav-icon svg { width: 26px; height: 26px; stroke-width: 2.6; }
+.nav-v2 .b-nav-fab .b-nav-label { color: #15803d; font-weight: 800; }
+.nav-v2 .b-nav-fab.active .b-nav-icon { background: #14532d; }
+
+/* ===== Rig work tab (settings/rigWork.js) ===== */
+#tab-rigwork { padding: 14px 12px 24px; }
+#tab-rigwork.active { display: flex; flex-direction: column; gap: 12px; }
+.rw-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.rw-title { margin: 0; font: 800 24px/1.2 var(--pp-head, 'Plus Jakarta Sans', Inter, sans-serif); color: #0f172a; }
+.rw-sub { font: 500 13px/1.3 Inter, sans-serif; color: #475569; }
+.rw-today { border-radius: 22px; background: #052e16; color: #ffffff; padding: 16px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 10px 24px rgba(5, 46, 22, .22); }
+.rw-today-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; }
+.rw-today-stats > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.rw-today-stats small { font: 700 12px/1.2 Inter, sans-serif; color: #bbf7d0; }
+.rw-today-stats strong { font: 800 26px/1 var(--pp-head, 'Plus Jakarta Sans', Inter, sans-serif); font-variant-numeric: tabular-nums; }
+.rw-today-stats strong span { font-size: 16px; color: #bbf7d0; }
+.rw-today-note { font: 600 12px/1.2 Inter, sans-serif; color: #fde68a; }
+.rw-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .15); overflow: hidden; }
+.rw-bar span { display: block; height: 100%; background: #4ade80; border-radius: inherit; }
+.rw-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column; gap: 8px; }
+#tab-rigwork .rw-quick .rw-q { display: flex !important; align-items: center !important; justify-content: center !important; height: 44px; line-height: 1.15 !important; padding: 0 6px !important; margin: 0 !important; white-space: nowrap; font-size: 13px; }
+@media (max-width: 340px) { #tab-rigwork .rw-quick .rw-q { font-size: 12px; } }
+.rw-q { display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; text-align: center; min-height: 44px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .08); color: #ffffff; font: 700 13px/1 Inter, sans-serif; cursor: pointer; }
+.rw-q.is-pri { background: #facc15; border-color: #facc15; color: #052e16; font-weight: 800; }
+.rw-warn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 14px; background: #fffbeb; border: 1px solid #fde68a; color: #78350f; font: 700 13px/1.35 Inter, sans-serif; text-align: left; cursor: pointer; }
+.rw-warn svg { width: 18px; height: 18px; color: #b45309; flex: none; }
+.rw-warn span:nth-child(2) { flex: 1; }
+.rw-chev { font-size: 18px; color: #94a3b8; }
+.rw-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rw-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; min-height: 112px; border-radius: 18px; border: 0; background: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 12px rgba(15, 23, 42, .04); text-align: left; cursor: pointer; color: #0f172a; }
+.rw-tile.is-warn { box-shadow: inset 0 0 0 1px #fde68a, 0 1px 2px rgba(15, 23, 42, .06); }
+.rw-tile-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rw-tile-txt strong { font: 800 14px/1.25 Inter, sans-serif; }
+.rw-tile-txt small { font: 500 12px/1.35 Inter, sans-serif; color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rw-tile.is-warn .rw-tile-txt small { color: #b45309; font-weight: 700; }
+.rw-report { display: flex; align-items: center; gap: 12px; padding: 14px; min-height: 64px; border-radius: 18px; background: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, .06); text-decoration: none; color: #0f172a; }
+.rw-report .rw-tile-txt { flex: 1; }
+.tt-tile.is-report { background: #052e16; color: #facc15; }
+@media (min-width: 720px) { .rw-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } #tab-rigwork { max-width: 900px; margin: 0 auto; } }
+
+/* ===== Menu tiles (settings/menuTiles.js) ===== */
+.menu-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.menu-tiles[hidden] { display: none; }
+.menu-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; min-height: 104px; border-radius: 18px; border: 0; background: #ffffff; box-shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 4px 12px rgba(15, 23, 42, .04); text-align: left; cursor: pointer; color: #0f172a; }
+.menu-tile-ic { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; }
+.menu-tile-ic svg { width: 22px; height: 22px; }
+.menu-tile-ic.is-green { background: #dcfce7; color: #15803d; }
+.menu-tile-ic.is-blue { background: #e0f2fe; color: #0369a1; }
+.menu-tile-ic.is-purple { background: #ede9fe; color: #6d28d9; }
+.menu-tile-ic.is-amber { background: #fef3c7; color: #b45309; }
+.menu-tile-tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.menu-tile-tx strong { font: 800 15px/1.25 Inter, sans-serif; }
+.menu-tile-tx small { font: 500 12px/1.35 Inter, sans-serif; color: #475569; }
+/* The new bar marks the active tab with a soft pill; the old top line is not needed */
+.nav-v2 .b-nav-item.active::before { display: none !important; }

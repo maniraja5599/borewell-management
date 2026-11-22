@@ -35,8 +35,10 @@ export class ShellMixin {
         document.querySelectorAll('.tab-panel').forEach(p => {
             p.classList.toggle('active', p.id === tabId);
         });
+        // Rates opens from the Menu, so Menu stays highlighted there.
+        const navTab = tabId === 'tab-rates' ? 'tab-brand' : tabId;
         document.querySelectorAll('.b-nav-item').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabId);
+            btn.classList.toggle('active', btn.dataset.tab === navTab);
         });
         const liveBar = document.getElementById('stickyLiveBar');
         if (liveBar) {
