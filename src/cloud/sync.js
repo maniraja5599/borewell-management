@@ -183,7 +183,10 @@ async function refreshAccess() {
         try { setPerms(await rpc('drillrig_my_perms', { p_company: row.company_id })); } catch { /* keep last known */ }
     }
     const rev = row.access_rev === undefined || row.access_rev === null ? null : String(row.access_rev);
-    const changed = st.accessRev != null && rev != null && rev !== st.accessRev;
+    // Access changed: a new access number, or a new role (a phone that never stored the number
+    // missed the driver → manager change of 0014 and kept seeing only its own bills).
+    const changed = (st.accessRev != null && rev != null && rev !== st.accessRev)
+        || (!!st.role && !!row.role && st.role !== row.role);
     st.companyId = row.company_id;
     st.companyName = row.company_name;
     st.role = row.role;
@@ -382,10 +385,19 @@ async function pushRows(rows) {
     return refused;
 }
 
+// Raise to make every staff phone download what it may see once more (after a server change
+// that widened what staff can see). 2 = 2026-11-22: drivers became managers (0014).
+const VISIBILITY_MARK = 2;
+
 async function syncOnce() {
     const { app } = ctx;
     const st = ctx.state;
-    const accessChanged = await refreshAccess();
+    let accessChanged = await refreshAccess();
+    if (st.visibilityMark !== VISIBILITY_MARK) {
+        if ((st.role || 'owner') !== 'owner' && st.firstSyncDone) accessChanged = true; // owners already see everything
+        st.visibilityMark = VISIBILITY_MARK;
+        saveState(st);
+    }
     const role = st.role || 'owner';
     ensureCustomerIds(app);
     // Saved hashes must include any bill edited in place since the last save check.

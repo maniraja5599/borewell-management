@@ -87,6 +87,8 @@ export function initAccountUI(app) {
     // "Synced" says nothing; new data, a backup, going offline or a failure does.
     let lastNoticeKind = null;
     const announce = (st) => {
+        if (st.quiet) { lastNoticeKind = st.kind; return; }
+        if (st.kind === 'ok') window.__drillrigSetupBusy = false; // first sync done: other popups may show again
         const say = (n) => app.showHeaderNotice?.(n);
         const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
         if (st.kind === 'ok') {
@@ -140,8 +142,9 @@ export function initAccountUI(app) {
             }
         });
     };
+    // Waiting for the person to answer "Different account on this phone": no "Sync failed" banner.
     const showBlocked = () => {
-        onStatus({ kind: 'error', text: 'Not syncing — tap to fix', at: Date.now() });
+        onStatus({ kind: 'error', text: 'Not syncing — tap to fix', at: Date.now(), quiet: true });
     };
 
     // The server paused syncing for a reason only the user can resolve (see sync.js).
@@ -206,13 +209,15 @@ export function initAccountUI(app) {
     const bizSlot = document.createElement('div');
     bizSlot.className = 'acc-biz-slot';
     signedIn.insertAdjacentElement('afterend', bizSlot);
-    const ROLE = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
+    const ROLE = { owner: 'Owner', manager: 'Manager', office: 'Office staff', driver: 'Manager' };
     const switchTo = (companyId, name) => showSwitchCard(app, companyId, name);
     const renderCompany = () => {
         const a = getAccess();
         companyLine.textContent = '';
         bizSlot.textContent = '';
         if (!a || signedIn.hidden) return;
+        // The phone still holds another account's company (waiting for "Different account"): show nothing.
+        if (currentId && a.userId && a.userId !== currentId) return;
         const line = document.createElement('span');
         line.className = 'acc-company-name';
         // The owner's own Settings name is the freshest (the cloud name may lag until the next sync).
@@ -280,6 +285,9 @@ export function initAccountUI(app) {
         }
         if (currentId !== acc.id) {
             currentId = acc.id;
+            // Sign-in setup (other account on the phone, "Who are you?", invitations, first sync):
+            // the install popup waits until it is done (pwa/initPwa.js).
+            window.__drillrigSetupBusy = true;
             const other = checkPhoneOwner(app, acc);
             if (other) {
                 stopSync();

@@ -120,6 +120,7 @@ export function initPWAAndZoomLock() {
                 return style.display !== 'none' && style.visibility !== 'hidden' && !node.hidden;
             };
             return (
+                !!window.__drillrigSetupBusy ||
                 isVisible('.signin-gate') ||
                 isVisible('#profilePromptOverlay.show') ||
                 isVisible('.sw-overlay.show') ||

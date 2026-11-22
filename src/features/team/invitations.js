@@ -174,7 +174,7 @@ function showCard(app, iv, phoneHasCompany) {
                 el('span', { class: `tt-tile is-${iv.role}` }, [icon(info.icon)]),
                 el('div', {}, [el('strong', { text: info.title }), el('span', { text: info.text })])
             ]),
-            iv.role !== 'owner' ? el('p', { class: 'iv-rigs' }, [el('b', { text: 'Rig: ' }), rigs.length ? rigs.join(', ') : 'chosen by the owner later']) : null,
+            iv.role !== 'owner' && iv.role !== 'office' ? el('p', { class: 'iv-rigs' }, [el('b', { text: 'Rig: ' }), rigs.length ? rigs.join(', ') : 'chosen by the owner later']) : null,
             myCompany ? el('p', { class: 'iv-note', text: `Your own company "${myCompany}" stays safe in the cloud. You can switch between the two in Settings.` }) : null,
             error,
             el('div', { class: 'sw-actions' }, [rejectBtn, acceptBtn]),
