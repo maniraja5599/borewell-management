@@ -10,6 +10,7 @@ import {
     TOOL_KINDS, TOOL_SIZES, NEW_BIT_MM, STATUS, toolLimits, makeTool, finishTool, sellTool, reuseTool,
     toolName, toolLine, toolSummary, knownBrands, shortDate
 } from './toolsMath.js';
+import { toolUsage, lastMm, toolWarning } from '../work/workMath.js';
 
 export const readTools = () => storage.getList(STORAGE_KEYS.tools) || [];
 
@@ -153,17 +154,36 @@ export function openTools(app) {
         ]);
     }
 
+    let usage = {};
+    let limits = toolLimits(app.brand);
+
+    /** Feet drilled, bores, latest mm (from the work details on bills). */
+    function usageLine(t) {
+        const u = usage[t.id];
+        if (!u) return t.tool === 'bit' ? 'Not used on a bill yet' : 'Not used on a bill yet';
+        const parts = [`${u.feet.toLocaleString('en-IN')} ft`, `${u.bores} bore${u.bores === 1 ? '' : 's'}`];
+        if (t.tool === 'bit') { const mm = lastMm(t, usage); if (mm !== null) parts.push(`now ${mm} mm`); }
+        return parts.join(' · ');
+    }
+
     function row(t) {
         const st = t.status || 'active';
+        const u = usage[t.id];
+        const named = { ...t, firstUsedOn: u?.firstUsedOn || t.firstUsedOn };
+        const warn = st === 'active' ? toolWarning(t, usage, limits) : null;
         const extra = st === 'finished' ? `Finished ${shortDate(t.finishedOn)}${t.finishReason ? ` · ${t.finishReason}` : ''}`
             : st === 'sold' ? `Sold ${shortDate(t.soldOn)} for ${inr(t.soldAmount)}${t.buyer ? ` · ${t.buyer}` : ''}` : '';
         return item({
             avatar: el('span', { class: `tt-avatar is-tool is-${t.tool}`, 'aria-hidden': 'true' }, [icon(t.tool === 'bit' ? 'drill' : 'hammer')]),
-            title: toolName(t),
-            subText: [toolLine(t), extra].filter(Boolean).join(' · '),
-            pill: pill(st === 'active' ? (t.tool === 'bit' ? 'Bit' : 'Hammer') : STATUS[st], st === 'active' ? 'is-ok' : st === 'sold' ? 'is-muted' : 'is-warn'),
+            title: toolName(named),
+            subText: [usageLine(t), toolLine(t), extra].filter(Boolean).join(' · '),
+            pill: warn ? pill('Check', 'is-warn') : pill(st === 'active' ? (t.tool === 'bit' ? 'Bit' : 'Hammer') : STATUS[st], st === 'active' ? 'is-ok' : st === 'sold' ? 'is-muted' : 'is-warn'),
             bodyKids: () => [
-                st === 'active' ? el('p', { class: 'tt-hint', text: 'Feet drilled and mm wear will show here once bores are logged with this tool (work details on the bill, coming next).' }) : null,
+                warn ? el('p', { class: 'wk-warn' }, [icon('triangle-alert'), el('span', { text: t.tool === 'bit' ? `Worn to ${warn}. Time to change it?` : `${warn}. Check or service it.` })]) : null,
+                t.tool === 'bit' && u?.mm?.length ? el('div', { class: 'tt-block' }, [
+                    el('span', { class: 'tt-mini', text: 'Size before each bore' }),
+                    el('ol', { class: 'tl-mm' }, u.mm.slice(-12).reverse().map((m) => el('li', {}, [el('span', { text: `${shortDate(m.day)} · #${m.billNo || ''}` }), el('strong', { text: `${m.mm} mm` })])))
+                ]) : null,
                 st === 'active' ? purchaseForm(t) : null,
                 st === 'active' ? finishForm(t) : null,
                 st === 'finished' ? sellForm(t) : null,
@@ -189,6 +209,8 @@ export function openTools(app) {
     }
 
     function render() {
+        usage = toolUsage(app.history);
+        limits = toolLimits(app.brand);
         const forRig = readTools().filter((t) => (rigId === LOCAL_RIG ? true : t.rigId === rigId));
         const s = toolSummary(forRig);
         const rigLabel = rigs.find((r) => r.id === rigId)?.name;
