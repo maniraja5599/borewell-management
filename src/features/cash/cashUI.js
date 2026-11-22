@@ -11,7 +11,7 @@ import { todayYmd } from '../workers/workersMath.js';
 import { shortDate } from '../tools/toolsMath.js';
 import {
     PAID_BY, FROM, TO, LOCAL_HOLDER, categories, addCategory, renameCategory, removeCategory, makeEntry, markReceived,
-    undoReceived, cashBook, holders, pendingHandovers, spendSummary, bunkNames, entryTitle, entryLine, inr
+    undoReceived, adoptLocalEntries, cashBook, holders, pendingHandovers, spendSummary, bunkNames, entryTitle, entryLine, inr
 } from './cashMath.js';
 
 export const readCash = () => storage.getList(STORAGE_KEYS.cash) || [];
@@ -25,7 +25,7 @@ export const me = () => currentUser() || LOCAL_HOLDER;
 const isReceiver = () => isOwnerOrLocal() || getRole() === 'office';
 const OFFICE = 'office';
 const LOCAL = 'local';
-const ICONS = { expense: 'receipt', diesel: 'fuel', in: 'arrow-down-left', handover: 'arrow-up-right' };
+const ICONS = { expense: 'receipt', diesel: 'fuel', in: 'arrow-down-left', handover: 'arrow-up-right', advance: 'hand-coins', wage: 'indian-rupee' };
 const PERIODS = [{ key: 'this', label: 'This month' }, { key: 'last', label: 'Last month' }, { key: 'all', label: 'All' }];
 
 function periodRange(key, today = todayYmd()) {
@@ -71,7 +71,8 @@ export function openCash(app) {
         return saveCash(app, next);
     }
     // Server rule (0016): managers change only their own entries; office staff (with "expenses") any.
-    const mayEdit = (e) => isOwnerOrLocal() || getRole() === 'office' || (!e.receivedAt && e.holderId === me().id);
+    // A manager's hand-over is fixed once saved (the owner / office may tick it at any moment).
+    const mayEdit = (e) => isReceiver() || (!e.receivedAt && e.type !== 'handover' && e.holderId === me().id);
 
     // ------------------------------------------------------------------ forms
     function entryForm(type, existing, onDone) {
@@ -113,7 +114,7 @@ export function openCash(app) {
             const bunkLabel = bunkField.querySelector('label');
             const showSource = () => { bunkLabel.textContent = source === 'vehicle' ? 'Which vehicle' : 'Bunk name'; showTotal(); };
             kids.push(seg(`caSrc${uid}`, [{ key: 'bunk', label: 'From a bunk' }, { key: 'vehicle', label: 'From a vehicle' }], source, (k) => { source = k; showSource(); }));
-            kids.push(el('div', { class: 'tt-fields is-half' }, [field(litres.id, 'Litres', litres), field(rate.id, 'Rate per litre (₹)', rate)]));
+            kids.push(el('div', { class: 'tt-fields is-half' }, [field(litres.id, 'Litres', litres), field(rate.id, '₹ per litre', rate)]));
             kids.push(total);
             kids.push(bunkField, el('datalist', { id: listId }, bunkNames(readCash()).map((b) => el('option', { value: b }))));
             kids.push(field(date.id, 'Date', date));
@@ -254,7 +255,11 @@ export function openCash(app) {
             subText: [shortDate(e.date), !mine ? e.holderName : '', entryLine(e)].filter(Boolean).join(' · '),
             pill: pill(amt, e.type === 'in' ? 'is-ok' : e.type === 'handover' && !e.receivedAt ? 'is-warn' : 'is-muted'),
             bodyKids: () => [
-                mayEdit(e) && !e.receivedAt ? entryForm(e.type, e, null) : el('p', { class: 'ca-note', text: e.receivedAt ? 'Received — only the owner can change it.' : 'Only the person who added it (or the owner) can change it.' }),
+                e.type === 'advance' || e.type === 'wage' ? el('p', { class: 'ca-note', text: 'Given from Attendance & wages. The owner can delete it here if it was a mistake.' })
+                    : mayEdit(e) && !e.receivedAt ? entryForm(e.type, e, null) : el('p', { class: 'ca-note', text: e.receivedAt
+                    ? (isReceiver() ? 'Received. Tap "Not received" to change it.' : 'Received — only the owner or office can change it.')
+                    : e.type === 'handover' && e.holderId === me().id ? 'A hand-over cannot be changed once saved. Ask the owner if it is wrong.'
+                        : 'Only the person who added it (or the owner) can change it.' }),
                 el('div', { class: 'tt-acts' }, [
                     e.type === 'handover' && isReceiver() ? btn(e.receivedAt ? 'Not received' : 'Received ✓', {
                         kind: e.receivedAt ? '' : 'pri', ic: e.receivedAt ? 'rotate-ccw' : null,
@@ -337,6 +342,10 @@ export function openCash(app) {
         paintIcons();
     }
 
+    // The owner's entries made before this phone knew who is signed in become theirs. Not for staff:
+    // "Me" entries on a staff phone may be from whoever used the phone before.
+    const adopted = getRole() === 'owner' ? adoptLocalEntries(readCash(), me()) : null;
+    if (adopted) saveCash(app, adopted);
     window.addEventListener('drillrig:cash-changed', onChange);
     render();
 }

@@ -67,6 +67,20 @@ describe('planPull', () => {
         expect(planPush(indexLocal(editedHere), { ...hashes, ...plan.synced })[0].data.name).toBe('Mine');
     });
 
+    it('a hand-over ticked "Received" on another phone wins over this phone\'s unsent edit', () => {
+        const ho = { id: 'h1', type: 'handover', amount: 5000, holderId: 'u-m', date: '2026-11-22' };
+        const synced = { cash: [ho], history: [], settings: {} };
+        const hashes = syncedHashes(synced);
+        const editedHere = { cash: [{ ...ho, note: 'given at site' }], history: [], settings: {} };
+        const received = { ...ho, receivedAt: '2026-11-22T10:00:00Z', receivedByName: 'Mani' };
+        const plan = planPull([{ kind: 'cash', id: 'h1', data: received, deleted: false, rev: 9 }], indexLocal(editedHere), hashes);
+        expect(plan.keepLocal).toBe(0);
+        expect(plan.apply[0].data.receivedAt).toBe('2026-11-22T10:00:00Z');
+        // Any other cash edit still keeps the phone's copy, as for every other kind.
+        const plan2 = planPull([{ kind: 'cash', id: 'h1', data: { ...ho, amount: 4000 }, deleted: false, rev: 10 }], indexLocal(editedHere), hashes);
+        expect(plan2.keepLocal).toBe(1);
+    });
+
     it('on first sync the company settings win over a new phone\'s defaults', () => {
         const newPhone = { customers: [], history: [], settings: { brand: { companyName: 'Your Borewell Company' } } };
         const rows = [{ kind: 'setting', id: 'brand', data: { companyName: 'SRI ANJANEYA' }, deleted: false, rev: 1 }];

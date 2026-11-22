@@ -1,6 +1,6 @@
 // Settings → "Rig work": the business beyond billing. Each row opens its sheet; rows show only for
 // people who may use them (cloud/access.js can()). More rows come with later phases
-// (attendance, vehicles, profit & loss).
+// (vehicles, profit & loss).
 import { can, onAccessChange } from '../../cloud/access.js';
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { icon, paintIcons } from '../../ui/icon.js';
@@ -8,6 +8,7 @@ import { el } from '../../ui/sheet.js';
 import { openWorkers, readWorkers } from '../workers/workersUI.js';
 import { openTools, readTools } from '../tools/toolsUI.js';
 import { openCash, myCashLine } from '../cash/cashUI.js';
+import { openAttendance, attendanceLine } from '../workers/attendanceUI.js';
 
 export function initRigWork(app) {
     const anchor = document.getElementById('teamCard') || document.getElementById('accountCard');
@@ -29,7 +30,8 @@ export function initRigWork(app) {
         const rows = [];
         if (can('workers')) {
             const n = readWorkers().filter((w) => w && w.status !== 'left').length;
-            rows.push(row('hard-hat', 'is-workers', 'Workers', n ? `${n} working · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
+            rows.push(row('hard-hat', 'is-workers', 'Workers', n ? `${n} active · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
+            rows.push(row('calendar-check', 'is-att', 'Attendance & wages', attendanceLine(), () => openAttendance(app)));
         }
         if (can('stock')) {
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
@@ -44,12 +46,13 @@ export function initRigWork(app) {
     window.addEventListener('drillrig:workers-changed', render);
     window.addEventListener('drillrig:tools-changed', render);
     window.addEventListener('drillrig:cash-changed', render);
+    window.addEventListener('drillrig:attendance-changed', render);
     // Saved from the sheets on this phone.
     const origSave = app.saveToStorage?.bind(app);
     if (origSave) {
         app.saveToStorage = (key, data, changed) => {
             const ok = origSave(key, data, changed);
-            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history) { try { render(); } catch { /* ignore */ } }
+            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history || key === STORAGE_KEYS.attendance) { try { render(); } catch { /* ignore */ } }
             return ok;
         };
     }

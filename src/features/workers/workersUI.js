@@ -1,11 +1,12 @@
 // Workers sheet: the payroll list (operators, drivers, helpers, labour, office). Nobody here signs in.
 // Owner: everything. Office staff: with the "workers" tick. Manager: workers of their rigs.
-// Only the owner deletes (others mark a worker as "Left"). Logic: workersMath.js.
+// Only the owner deletes (others make a worker inactive). Logic: workersMath.js.
 import { STORAGE_KEYS, storage } from '../../data/storage.js';
 import { can, isOwnerOrLocal, getRole, visibleRigs, rigById } from '../../cloud/access.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { el, btn, field, input, seg, openSheet, item, label, pill, avatar } from '../../ui/sheet.js';
 import { WORKER_TYPES, typeOf, makeWorker, setLeft, duplicateCodeFixes, workerLabel, wageOn, todayYmd } from './workersMath.js';
+import { PAY_CYCLES, payCycleOf } from './attendanceMath.js';
 
 export const readWorkers = () => storage.getList(STORAGE_KEYS.workers) || [];
 
@@ -44,6 +45,7 @@ export function openWorkers(app) {
     function form(existing, onDone) {
         const uid = existing ? existing.id.slice(-6) : 'new';
         let type = existing?.type || 'operator';
+        let payCycle = payCycleOf(existing);
         const name = input(`wkName${uid}`, { type: 'text', maxlength: '80', placeholder: 'e.g. Kumar', value: existing?.name || '' });
         const phone = input(`wkPhone${uid}`, { type: 'tel', inputmode: 'numeric', maxlength: '14', placeholder: 'Optional', value: showPhone(existing?.phone) });
         const wage = input(`wkWage${uid}`, { type: 'number', inputmode: 'numeric', min: '0', step: '10', placeholder: 'e.g. 800', value: existing ? (wageOn(existing) || '') : '' });
@@ -63,7 +65,7 @@ export function openWorkers(app) {
                 const list = readWorkers();
                 const res = makeWorker({
                     name: name.value, type, phone: phone.value, rigId: rigId || null,
-                    perDay: wage.value, wageFrom: wageFrom.value, joinedOn: joined?.value, note: note.value
+                    perDay: wage.value, wageFrom: wageFrom.value, joinedOn: joined?.value, note: note.value, payCycle
                 }, { existing, workers: list });
                 if (res.error) { err.hidden = false; err.textContent = res.error; return; }
                 const next = existing ? list.map((w) => (w.id === existing.id ? res.worker : w)) : [res.worker, ...list];
@@ -84,6 +86,8 @@ export function openWorkers(app) {
                 field(`wkWage${uid}`, 'Daily wage (₹)', wage),
                 field(`wkFrom${uid}`, existing ? 'New wage from' : 'Wage from', wageFrom)
             ]),
+            el('span', { class: 'tt-mini', text: 'Wages paid' }),
+            seg(`wkCycle${uid}`, PAY_CYCLES, payCycle, (v) => { payCycle = v; }),
             joined ? field(`wkJoin${uid}`, 'Joined on', joined) : null,
             field(`wkNote${uid}`, 'Note', note),
             err,
@@ -104,16 +108,16 @@ export function openWorkers(app) {
             avatar: avatar(w.name, left ? 'is-muted' : ''),
             title: workerLabel(w),
             subText: sub,
-            pill: left ? pill('Left', 'is-muted') : pill(w.code ? w.code.slice(0, 2) : t.prefix, `is-${w.type}`),
+            pill: left ? pill('Inactive', 'is-muted') : pill(w.code ? w.code.slice(0, 2) : t.prefix, `is-${w.type}`),
             bodyKids: () => [
                 form(w),
                 el('div', { class: 'tt-acts' }, [
                     w.phone ? el('a', { class: 'tt-btn', href: `tel:+91${w.phone}` }, [icon('phone'), el('span', { text: 'Call' })]) : null,
-                    btn(left ? 'Rejoined' : 'Mark as left', {
+                    btn(left ? 'Make active' : 'Make inactive', {
                         ic: left ? 'user-check' : 'user-x',
                         onclick: () => {
                             saveWorkers(app, readWorkers().map((x) => (x.id === w.id ? setLeft(x, !left) : x)));
-                            sheet.say(left ? `${w.name} is back.` : `${w.name} marked as left. Their record stays for wages.`, true);
+                            sheet.say(left ? `${w.name} is active again.` : `${w.name} is inactive: not on the attendance list. Their record and wages stay.`, true);
                             render();
                         }
                     }),
@@ -121,7 +125,7 @@ export function openWorkers(app) {
                         kind: 'danger', ic: 'trash-2',
                         onclick: () => app.confirmDeleteModal({
                             title: 'Delete this worker?',
-                            subtitle: 'Use "Mark as left" to keep their record',
+                            subtitle: 'Use "Make inactive" to keep their record',
                             itemLabel: workerLabel(w),
                             message: 'Their attendance and wage history will also be gone. This cannot be undone.',
                             confirmBtnLabel: 'Delete',
@@ -141,7 +145,7 @@ export function openWorkers(app) {
         const shown = all.filter(match);
         const active = shown.filter((w) => w.status !== 'left');
         const left = shown.filter((w) => w.status === 'left');
-        sheet.setSub(`${all.filter((w) => w.status !== 'left').length} working · operators, drivers, helpers`);
+        sheet.setSub(`${all.filter((w) => w.status !== 'left').length} active · operators, drivers, helpers`);
 
         const search = input('wkSearch', { type: 'search', placeholder: 'Search name, ID or mobile', value: query });
         search.addEventListener('input', () => { query = search.value; const pos = search.selectionStart; render(); const s = document.getElementById('wkSearch'); s?.focus(); s?.setSelectionRange(pos, pos); });
@@ -157,7 +161,7 @@ export function openWorkers(app) {
             ...groups.flatMap(([t, list]) => [label(`${t.label}s`, list.length), el('div', { class: 'tt-card' }, [el('div', { class: 'tt-list' }, list.map(row))])]),
             !active.length ? el('p', { class: 'tt-empty', text: all.length ? 'Nobody matches.' : 'No workers yet. Add your operators, drivers and helpers.' }) : null,
             left.length ? el('details', { class: 'tt-fold tt-card' }, [
-                el('summary', {}, [el('span', { class: 'tt-tile is-grey' }, [icon('user-x')]), el('span', { class: 'tt-fold-title', text: `Left (${left.length})` }), el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])]),
+                el('summary', {}, [el('span', { class: 'tt-tile is-grey' }, [icon('user-x')]), el('span', { class: 'tt-fold-title', text: `Inactive (${left.length})` }), el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])]),
                 el('div', { class: 'tt-fold-body' }, [el('div', { class: 'tt-list' }, left.map(row))])
             ]) : null
         ].filter(Boolean));

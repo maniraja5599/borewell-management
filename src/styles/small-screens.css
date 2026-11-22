@@ -53,3 +53,40 @@
     .cdm-pay-trio .cdm-pt-item { flex-direction: row !important; justify-content: space-between; align-items: baseline; text-align: left; padding: 8px 10px !important; }
     .cdm-pay-trio .cdm-pt-val { text-align: right; }
 }
+
+/* ===== Readability floor (2026-11-22 audit, e2e/audit.e2e.mjs): no text under 11 px, no tap target
+   under 32 px. Kept here because this file loads last on the app and on the report page. ===== */
+.b-nav-label { font-size: 11px !important; }
+.b-nav-badge { font-size: 11px !important; min-width: 18px; }
+.live-doc-tag { font-size: 11px !important; }
+#tab-rates .rc2-figs span, #tab-rates .rc2-figs em { font-size: 11px !important; }
+.coming-soon .cs-badge { font-size: 11px !important; }
+.fbg-hide { min-height: 32px; min-width: 44px; }
+.search-inline-filter-btn { min-height: 32px; }
+.btn-chip-primary { min-height: 32px; }
+.search-input-box, .wiz-search-input-wrap { cursor: text; }
+/* Report page (dashboard.html) */
+.brand-sub { font-size: 11px !important; }
+.sample-toggle-chip span { font-size: 11px !important; }
+.bores-mobile-list small, .bores-mobile-list b { font-size: 11px !important; }
+.wa-btn-pill { min-height: 36px; }
+/* Bill + payment pop-ups */
+#closeBillDetailModalBtn, #closeRecordPaymentModalBtn { min-width: 36px; min-height: 36px; }
+#billDetailModalOverlay summary { min-height: 32px; display: flex; align-items: center; }
+#bdmInlineRecordPayBtn { min-height: 36px; }
+.rpm-full-fill-chip { min-height: 32px; }
+.rpm-mode-pill { min-height: 36px; }
+.rpm-hi-mode { font-size: 11px !important; }
+.rpm-hi-del-btn { min-width: 32px; min-height: 32px; }
+/* Report page lists */
+.rc-table-wrap summary { min-height: 32px; display: flex; align-items: center; }
+.rc-row-act { min-height: 32px; }
+.wr-pill, .status-pill { font-size: 11px !important; }
+.bi-act-btn { min-width: 34px; min-height: 34px; }
+#boresTableBody a { display: inline-flex; align-items: center; min-height: 32px; }
+/* Payment pop-up: on narrow phones the date box was too narrow ("22-11-202"); give it the row */
+@media (max-width: 360px) {
+    #recordPaymentModalOverlay .rpm-grid-2 { grid-template-columns: 1fr !important; }
+}
+/* Payment pop-up on short screens: the totals strip kept shrinking and cut its amounts; the body scrolls instead */
+#recordPaymentModalOverlay .rpm-body > * { flex-shrink: 0; }

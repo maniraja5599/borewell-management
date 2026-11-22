@@ -84,6 +84,7 @@ export function makeWorker(input, { existing = null, workers = [], now = new Dat
             code,
             phone,
             rigId: input?.rigId || null,
+            payCycle: ['daily', 'weekly', 'monthly', 'any'].includes(input?.payCycle) ? input.payCycle : (base.payCycle || 'daily'),
             note: String(input?.note || '').trim().slice(0, 200),
             wages,
             updatedAt: at

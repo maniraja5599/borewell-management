@@ -15,9 +15,10 @@ export const SETTING_IDS = ['brand', 'rates', 'rateProfiles', 'savedExtras', 'sa
  *   worker — payroll list (operators, helpers, drivers, labour); never sign in (migration 0014)
  *   tool   — bits and hammers bought for a rig (migration 0014)
  *   cash   — expenses, diesel, cash in, hand-overs (migration 0016)
+ *   attendance — one worker, one day (migration 0017)
  * A new list kind is added here, in STORAGE_KEYS / BIG_LISTS, and on the server.
  */
-export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash' });
+export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash', attendance: 'attendance' });
 export const LIST_NAMES = Object.freeze(Object.values(LIST_KINDS));
 
 /** Fast 53-bit string hash (cyrb53). Plenty for change detection. */
@@ -151,6 +152,10 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
         }
         // Staff phones cannot upload settings, so the owner's settings always win there.
         if (cloudWinsSettings && row.kind === 'setting') changedHere = false;
+        // A hand-over the owner / office ticked "Received" wins over a manager's unsent edit: the
+        // server refuses any manager change after that (0016), so keeping the phone's copy would
+        // leave it showing "waiting" for ever.
+        if (changedHere && row.kind === 'cash' && !row.deleted && row.data?.receivedAt && !index.get(key)?.data?.receivedAt) changedHere = false;
         if (changedHere && !firstSync) {
             keepLocal++;
             // Both sides changed since the last sync: the phone's copy wins (it is uploaded next),

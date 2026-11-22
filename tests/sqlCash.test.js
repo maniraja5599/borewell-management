@@ -4,6 +4,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
+import { indexLocal, planPush, planPull, applyToLocal, LIST_KINDS } from '../src/cloud/syncPlan.js';
+import { cleanPulledRows, filterPushable } from '../src/cloud/sync.js';
+import { makeEntry, markReceived, cashBook } from '../src/features/cash/cashMath.js';
 
 const sql = (f) => readFileSync(new URL(`../supabase/drillrig/${f}`, import.meta.url), 'utf8');
 const OWNER = '00000000-0000-4000-8000-0000000000d1';
@@ -134,5 +137,54 @@ describe('0016 cash entries', () => {
         await as(MANAGER);
         const r = await push([{ kind: 'tool', id: 't1', data: { id: 't1', rigId: rig1, tool: 'bit', code: 'KB-1' } }, { kind: 'cash', id: 'bad', data: 'x' }]);
         expect(reasons(r)).toEqual(['bad:invalid']);
+    });
+});
+
+// Two phones through the real sync steps (plan → filter → server push → server pull → clean →
+// plan → apply), as sync.js does them. This is what caught cash rows dropped on download (v2.8.0).
+describe('cash entries travel between phones', () => {
+    const emptyPhone = () => ({ ...Object.fromEntries(Object.values(LIST_KINDS).map((n) => [n, []])), settings: {} });
+    const phone = (role) => ({ role, local: emptyPhone(), hashes: {}, rev: 0 });
+    async function sync(ph, uid) {
+        await as(uid);
+        const rows = (await db.query(`select * from public.drillrig_pull($1, $2, 1000)`, [company, ph.rev])).rows;
+        ph.rev = Math.max(ph.rev, ...rows.map((r) => Number(r.rev)));
+        const pulled = cleanPulledRows(rows.map((r) => ({ ...r, rev: Number(r.rev) })));
+        const plan = planPull(pulled, indexLocal(ph.local), ph.hashes);
+        ph.local = applyToLocal(ph.local, plan.apply).local;
+        Object.assign(ph.hashes, plan.synced);
+        const out = filterPushable(planPush(indexLocal(ph.local), ph.hashes), ph.role, {}, ['stock', 'workers', 'tools', 'cash']);
+        const res = out.length ? await push(out.map((r) => ({ kind: r.kind, id: r.id, data: r.data, deleted: r.deleted }))) : { rejected: [] };
+        const refused = new Set(res.rejected.map((x) => `${x.kind}:${x.id}`));
+        for (const r of out) if (!refused.has(r.key)) ph.hashes[r.key] = r.hash ?? null;
+        return res.rejected;
+    }
+
+    it('manager expense and hand-over reach the owner; "Received" reaches the manager, even over an unsent edit', async () => {
+        const mPhone = phone('manager');
+        const oPhone = phone('owner');
+        await sync(mPhone, MANAGER);
+        await sync(oPhone, OWNER);
+        const me = { id: MANAGER, name: 'Ravi' };
+        const food = makeEntry({ type: 'expense', category: 'food', amount: 400, rigId: rig1 }, { me }).entry;
+        const ho = makeEntry({ type: 'handover', amount: 2000, to: 'owner', rigId: rig1 }, { me }).entry;
+        mPhone.local.cash.push(food, ho);
+        expect(await sync(mPhone, MANAGER)).toEqual([]);
+
+        await sync(oPhone, OWNER);
+        const seen = oPhone.local.cash.filter((e) => e.holderId === MANAGER).map((e) => e.id);
+        expect(seen).toEqual(expect.arrayContaining([food.id, ho.id]));
+
+        // Owner ticks Received while the manager (offline) adds a note to the same hand-over.
+        oPhone.local.cash = oPhone.local.cash.map((e) => (e.id === ho.id ? markReceived(e, { id: OWNER, name: 'Mani' }) : e));
+        expect(await sync(oPhone, OWNER)).toEqual([]);
+        mPhone.local.cash = mPhone.local.cash.map((e) => (e.id === ho.id ? { ...e, note: 'given at site' } : e));
+        await sync(mPhone, MANAGER);
+        const mine = mPhone.local.cash.find((e) => e.id === ho.id);
+        expect(mine.receivedAt).toBeTruthy();
+        // The manager's own cash: the hand-over now counts, on both phones.
+        const before = cashBook(mPhone.local.cash, [], MANAGER);
+        expect(before.handedOver).toBeGreaterThanOrEqual(2000);
+        expect(cashBook(oPhone.local.cash, [], MANAGER).balance).toBe(before.balance);
     });
 });

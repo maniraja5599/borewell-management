@@ -98,3 +98,11 @@ if (document.readyState === 'loading') {
 } else {
     boot();
 }
+
+// Search boxes look 44 px tall but the input inside is a thin strip: a tap anywhere in the box
+// focuses the search (audit 2026-11-22).
+document.addEventListener('click', (e) => {
+    const box = e.target?.closest?.('.search-input-box, .wiz-search-input-wrap');
+    if (!box || e.target.closest('button, a, input, select')) return;
+    box.querySelector('input')?.focus();
+});

@@ -15,6 +15,7 @@ export const STORAGE_KEYS = Object.freeze({
     workers: 'borebill_workers',            // payroll list: operators, helpers, drivers, labour (no sign-in)
     tools: 'borebill_tools',                // bits and hammers per rig (purchase, finished, sold)
     cash: 'borebill_cash',                  // expenses, diesel, cash in, hand-overs (cash in hand)
+    attendance: 'borebill_attendance',      // one record per worker per day (present / half / absent / holiday)
     rateProfiles: 'borebill_rate_profiles',
     rates: 'borebill_rates',
     brand: 'borebill_brand',                // company profile, bill counters, terms
@@ -37,7 +38,8 @@ const BIG = {
     [STORAGE_KEYS.stock]: 'stock',
     [STORAGE_KEYS.workers]: 'workers',
     [STORAGE_KEYS.tools]: 'tools',
-    [STORAGE_KEYS.cash]: 'cash'
+    [STORAGE_KEYS.cash]: 'cash',
+    [STORAGE_KEYS.attendance]: 'attendance'
 };
 export const isBigKey = (key) => Object.prototype.hasOwnProperty.call(BIG, key);
 

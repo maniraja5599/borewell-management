@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
     categories, addCategory, renameCategory, removeCategory, makeEntry, markReceived, undoReceived, cashEffect,
-    collections, cashBook, holders, pendingHandovers, spendSummary, bunkNames, entryTitle, entryLine, DEFAULT_CATEGORIES
+    collections, cashBook, holders, adoptLocalEntries, pendingHandovers, spendSummary, bunkNames, entryTitle, entryLine, DEFAULT_CATEGORIES
 } from '../src/features/cash/cashMath.js';
 
 const NOW = new Date('2026-11-22T10:00:00');
@@ -140,5 +140,19 @@ describe('cash in hand', () => {
         expect(entryLine(list[0])).toBe('₹90.00/L · IOC Mohanur');
         expect(entryTitle(mk({ type: 'in', amount: 5, from: 'other', fromName: 'Kumar' }))).toBe('Cash received from Kumar');
         expect(entryTitle(mk({ type: 'handover', amount: 5, to: 'office', toName: 'Priya' }))).toBe('Handed to office (Priya)');
+    });
+});
+
+describe('signed in after making entries', () => {
+    it('entries of "Me" become the signed-in owner’s; nothing to do otherwise', () => {
+        const local = makeEntry({ type: 'expense', category: 'food', amount: 100, rigId: 'r1' }, { now: NOW }).entry;
+        expect(local.holderId).toBe('me');
+        const other = mk({ type: 'expense', category: 'food', amount: 50 });
+        const next = adoptLocalEntries([local, other], MGR, NOW);
+        expect(next.map((e) => e.holderId)).toEqual(['u-m', 'u-m']);
+        expect(next[0].holderName).toBe('Ravi');
+        expect(next[1]).toBe(other);
+        expect(adoptLocalEntries([other], MGR, NOW)).toBeNull();
+        expect(adoptLocalEntries([local], { id: 'me', name: 'Me' }, NOW)).toBeNull();
     });
 });

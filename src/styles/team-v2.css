@@ -293,6 +293,7 @@
 .tt-tile.is-workers { background: #fef3c7; color: #b45309; }
 .tt-tile.is-tools { background: #e0e7ff; color: #4338ca; }
 .tt-tile.is-cash { background: #dcfce7; color: #15803d; }
+.tt-tile.is-att { background: #e0f2fe; color: #0369a1; }
 .tt-seg.is-wrap { display: flex; flex-wrap: wrap; }
 .tt-seg.is-wrap label { flex: 1 1 calc(33.33% - 3px); min-width: 72px; padding: 0 8px; }
 .tt-seg.is-wrap label span { white-space: nowrap; }
@@ -307,7 +308,7 @@
 .tt-pill.is-operator { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
 .tt-pill.is-helper, .tt-pill.is-labour { background: #fffbeb; color: #92400e; border-color: #fde68a; }
 .tt-pill.is-office, .tt-pill.is-other { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
-.tt-fields.is-half { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.tt-fields.is-half { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; }
 .tt-field[hidden], .tt-hint[hidden], .tt-block[hidden] { display: none !important; }
 
 /* ===== Work details card on the bill screen (features/work/workCard.js) ===== */
@@ -381,3 +382,26 @@
 .tt-avatar.ca-av.is-handover { background: #ede9fe; color: #6d28d9; }
 .ca-cats { display: flex; flex-direction: column; gap: 6px; }
 .ca-cat { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+
+/* ===== Attendance & wages (features/workers/attendanceUI.js) ===== */
+.at-date { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
+.at-date .tt-input { text-align: center; font-weight: 700; }
+.at-step { min-height: 44px; padding: 0; justify-content: center; }
+.at-sum { display: flex; flex-direction: column; gap: 6px; }
+.at-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.at-acts .tt-btn { width: 100%; justify-content: center; min-height: 44px; }
+.at-list { display: flex; flex-direction: column; }
+.at-row { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--pp-line, #e2e8f0); }
+.at-row:last-child { border-bottom: 0; }
+.at-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.at-name { display: flex; flex-direction: column; min-width: 0; }
+.at-name strong { font: 700 14px/1.3 Inter, sans-serif; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.at-name small { font: 500 12px/1.3 Inter, sans-serif; color: #64748b; }
+.at-row .tt-seg.is-wrap label { flex: 1 1 calc(25% - 3px); min-width: 0; padding: 0 4px; }
+.at-row .tt-seg input[value="present"]:checked + span { color: #15803d; }
+.at-row .tt-seg input[value="absent"]:checked + span { color: #b91c1c; }
+.at-row .tt-seg input[value="holiday"]:checked + span { color: #0369a1; }
+.at-bal { margin: 4px 0; font: 800 15px/1.3 Inter, sans-serif; color: #b45309; }
+.at-bal.is-neg { color: #6d28d9; }
+.at-bal.is-ok { color: #15803d; }
+.at-lines { margin-top: 6px; }

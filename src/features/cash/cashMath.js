@@ -18,7 +18,9 @@ export const CASH_TYPES = [
     { key: 'expense', label: 'Expense' },
     { key: 'diesel', label: 'Diesel' },
     { key: 'in', label: 'Cash received' },
-    { key: 'handover', label: 'Handed over' }
+    { key: 'handover', label: 'Handed over' },
+    { key: 'advance', label: 'Advance to a worker' },   // from Attendance (0017)
+    { key: 'wage', label: 'Wages paid' }                 // from Attendance (0017)
 ];
 export const PAID_BY = [
     { key: 'cash', label: 'Cash' },
@@ -55,7 +57,7 @@ const numIn = (v) => {
     return Number.isFinite(n) ? n : NaN;
 };
 const r2 = (n) => Math.round(n * 100) / 100;
-export const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
+export const inr = (n) => { const v = Math.round(Number(n) || 0); return `${v < 0 ? '−' : ''}₹${Math.abs(v).toLocaleString('en-IN')}`; };
 
 // ---------------------------------------------------------------------------- categories
 
@@ -129,6 +131,7 @@ export function makeEntry(input, { existing = null, me = LOCAL_HOLDER, cats = DE
         out.paidBy = out.amount > 0 && PAID_BY.some((p) => p.key === input?.paidBy) ? input.paidBy : (out.amount > 0 ? 'cash' : null);
     } else {
         const amount = numIn(input?.amount);
+        if ((type === 'advance' || type === 'wage') && !text(input?.workerId, 120)) return { error: 'Choose the worker.' };
         if (amount === null || Number.isNaN(amount) || amount <= 0) return { error: 'Enter the amount in rupees.' };
         if (amount > MAX_AMOUNT) return { error: 'That amount looks too big. Check it.' };
         out.amount = Math.round(amount);
@@ -138,6 +141,10 @@ export function makeEntry(input, { existing = null, me = LOCAL_HOLDER, cats = DE
             if (!cat) return { error: 'Choose what it was for.' };
             out.category = cat.key;
             out.categoryLabel = cat.label;
+            out.paidBy = PAID_BY.some((p) => p.key === input?.paidBy) ? input.paidBy : 'cash';
+        } else if (type === 'advance' || type === 'wage') {
+            out.workerId = text(input.workerId, 120);
+            out.workerName = text(input?.workerName, 80);
             out.paidBy = PAID_BY.some((p) => p.key === input?.paidBy) ? input.paidBy : 'cash';
         } else if (type === 'in') {
             out.from = FROM.some((f) => f.key === input?.from) ? input.from : 'owner';
@@ -158,8 +165,23 @@ export function makeEntry(input, { existing = null, me = LOCAL_HOLDER, cats = DE
         createdAt: at
     };
     // Old fields of another type do not stay behind when the type changes.
-    for (const k of ['category', 'categoryLabel', 'paidBy', 'litres', 'rate', 'source', 'bunk', 'from', 'fromName', 'to', 'toName']) delete base[k];
+    for (const k of ['category', 'categoryLabel', 'paidBy', 'litres', 'rate', 'source', 'bunk', 'from', 'fromName', 'to', 'toName', 'workerId', 'workerName']) delete base[k];
     return { entry: { ...base, ...out, rigId: input?.rigId || null, updatedAt: at } };
+}
+
+/**
+ * Entries saved before this phone knew who is signed in (holder 'me') become the signed-in
+ * person's. Returns the changed list, or null when nothing changed.
+ */
+export function adoptLocalEntries(entries, me, now = new Date()) {
+    if (!me?.id || me.id === LOCAL_HOLDER.id) return null;
+    let changed = false;
+    const next = (entries || []).map((e) => {
+        if (!e || e.holderId !== LOCAL_HOLDER.id) return e;
+        changed = true;
+        return { ...e, holderId: me.id, holderName: text(me.name, 80), updatedAt: now.toISOString() };
+    });
+    return changed ? next : null;
 }
 
 /** The owner / office ticks a hand-over "Received ✓". */
@@ -177,7 +199,9 @@ export function cashEffect(e) {
     switch (e?.type) {
         case 'in': return amt;
         case 'expense':
-        case 'diesel': return e.paidBy === 'cash' ? -amt : 0;
+        case 'diesel':
+        case 'advance':
+        case 'wage': return e.paidBy === 'cash' ? -amt : 0;
         case 'handover': return e.receivedAt ? -amt : 0;
         default: return 0;
     }
@@ -248,7 +272,7 @@ export function pendingHandovers(entries, { to = null } = {}) {
  * or everything (null). { total, count, byCategory: [{ key, label, amount, count }], diesel: { litres, amount, rate, count } }
  */
 export function spendSummary(entries, { rigId = null, start = '', end = '9999-12-31' } = {}) {
-    const list = (entries || []).filter((e) => e && !e.deleted && (e.type === 'expense' || e.type === 'diesel')
+    const list = (entries || []).filter((e) => e && !e.deleted && ['expense', 'diesel', 'advance', 'wage'].includes(e.type)
         && e.date >= start && e.date <= end
         && (rigId === null || (rigId === 'office' ? !e.rigId : e.rigId === rigId)));
     const cats = new Map();
@@ -264,10 +288,11 @@ export function spendSummary(entries, { rigId = null, start = '', end = '9999-12
             if (amt > 0) diesel.pricedLitres += Number(e.litres) || 0;
             continue;
         }
-        const c = cats.get(e.category) || { key: e.category, label: e.categoryLabel || e.category, amount: 0, count: 0 };
+        const key = e.type === 'expense' ? e.category : 'wages';
+        const c = cats.get(key) || { key, label: e.type === 'expense' ? (e.categoryLabel || e.category) : 'Wages & advances', amount: 0, count: 0 };
         c.amount += amt;
         c.count += 1;
-        cats.set(e.category, c);
+        cats.set(key, c);
     }
     diesel.litres = r2(diesel.litres);
     diesel.rate = diesel.pricedLitres ? r2(diesel.amount / diesel.pricedLitres) : null;
@@ -298,6 +323,8 @@ export function entryTitle(e) {
         case 'diesel': return `Diesel · ${Number(e.litres || 0).toLocaleString('en-IN')} L`;
         case 'in': return `Cash received from ${e.from === 'other' ? (e.fromName || 'someone') : e.from === 'office' ? (e.fromName ? `office (${e.fromName})` : 'office') : 'owner'}`;
         case 'handover': return `Handed to ${e.to === 'office' ? 'office' : 'owner'}${e.toName ? ` (${e.toName})` : ''}`;
+        case 'advance': return `Advance to ${e.workerName || 'a worker'}`;
+        case 'wage': return `Wages paid to ${e.workerName || 'a worker'}`;
         default: return e?.categoryLabel || 'Expense';
     }
 }
@@ -307,7 +334,7 @@ export function entryLine(e) {
         if (e.rate) parts.push(`₹${Number(e.rate).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/L`);
         parts.push(e.source === 'vehicle' ? `from a vehicle${e.bunk ? ` (${e.bunk})` : ''}` : (e.bunk || 'bunk'));
     }
-    if ((e.type === 'expense' || e.type === 'diesel') && e.paidBy && e.paidBy !== 'cash') parts.push(`paid by ${e.paidBy === 'upi' ? 'UPI' : 'bank'}`);
+    if (['expense', 'diesel', 'advance', 'wage'].includes(e.type) && e.paidBy && e.paidBy !== 'cash') parts.push(`paid by ${e.paidBy === 'upi' ? 'UPI' : 'bank'}`);
     if (e.type === 'handover') parts.push(e.receivedAt ? `received${e.receivedByName ? ` by ${e.receivedByName}` : ''} ✓` : 'waiting for Received ✓');
     if (e.note) parts.push(e.note);
     return parts.join(' · ');

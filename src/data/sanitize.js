@@ -80,8 +80,12 @@ export function sanitizeList(list, idPrefix = 'item') {
 }
 
 /** Clean one downloaded sync record's data. Returns null to drop the record. */
+export const LIST_RECORD_KINDS = Object.freeze(['customer', 'bill', 'stock', 'worker', 'tool', 'cash', 'attendance']);
+
 export function sanitizeRecordData(kind, data) {
-    if (kind === 'customer' || kind === 'bill' || kind === 'stock' || kind === 'worker' || kind === 'tool') return sanitizeEntry(data);
+    // Every list kind (cloud/syncPlan.js LIST_KINDS). A kind missing here is dropped on download
+    // (tests/syncKinds.test.js checks they match).
+    if (LIST_RECORD_KINDS.includes(kind)) return sanitizeEntry(data);
     if (kind === 'setting') {
         if (data === null || typeof data !== 'object') return null;
         return neutralize(data);
