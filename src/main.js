@@ -11,6 +11,7 @@ import { BoreBillSaaSApp } from './app/App.js';
 import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
 import { initSetupWizard } from './features/onboarding/setupWizard.js';
+import { initFirstBillGuide } from './features/onboarding/firstBillGuide.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
@@ -67,6 +68,7 @@ async function boot() {
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
+        initFirstBillGuide(window.boreBillApp); // New Bill: "Make your first bill" checklist until the first bill
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
         applyNavIcons3d(); // bottom bar: 3D icons
         { const v = document.getElementById('appVersionChip'); if (v) { v.textContent = versionLabel(); if (APP_BUILD_DATE) v.title = `DrillRig ${versionLabel()} · built ${APP_BUILD_DATE}`; } }

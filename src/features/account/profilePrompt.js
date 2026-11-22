@@ -26,27 +26,34 @@ function el(tag, attrs = {}, children = []) {
 
 let open = false;
 
-export async function maybeAskProfile(app) {
+/**
+ * opts.force: opened from the "Make your first bill" checklist, so ask even if it was
+ * finished before (the business name can still be the placeholder).
+ */
+export async function maybeAskProfile(app, opts = {}) {
     if (open || typeof document === 'undefined') return;
     const acc = await getCurrentAccount().catch(() => null);
     if (!acc?.id) return;
-    try { if (storage.getRaw(doneKey(acc.id))) return; } catch { /* ignore */ }
+    const needName = (getRole() || 'owner') === 'owner' && isPlaceholderCompany(app?.brand?.companyName);
+    try { if (storage.getRaw(doneKey(acc.id)) && !(opts.force && needName)) return; } catch { /* ignore */ }
 
+    // Offline or an older server: still ask for the business name (kept on the phone,
+    // synced later); the mobile number is asked another time.
     let profile = null;
     try {
         const sb = await getSupabase();
         const { data, error } = await sb.rpc('drillrig_my_profile');
-        if (error) return; // server not updated yet (0010) or offline: ask another time
-        profile = data || {};
-    } catch { return; }
+        if (!error) profile = data || {};
+    } catch { /* offline */ }
+    if (!profile && !needName) return;
 
-    const needName = getRole() === 'owner' && isPlaceholderCompany(app?.brand?.companyName);
-    const needPhone = !profile.phone;
+    const needPhone = !!profile && !profile.phone;
     if (!needPhone && !needName) {
         try { storage.setRaw(doneKey(acc.id), '1'); } catch { /* ignore */ }
         return;
     }
-    show(app, acc, { needName, needPhone, phone: profile.phone });
+    show(app, acc, { needName, needPhone });
+    return true;
 }
 
 function show(app, acc, { needName, needPhone }) {
@@ -80,7 +87,8 @@ function show(app, acc, { needName, needPhone }) {
             el('small', { class: 'sw-hint', text: 'Printed on your bills.' })]) : null,
         error,
         el('div', { class: 'sw-actions' }, [saveBtn]),
-        el('div', { class: 'sw-links' }, [laterBtn])
+        // No "Later" while the business name is missing: most people who skipped it never made a bill.
+        needName ? null : el('div', { class: 'sw-links' }, [laterBtn])
     ]);
     const overlay = el('div', { class: 'sw-overlay', id: 'profilePromptOverlay' }, [card]);
     const close = () => { open = false; overlay.classList.remove('show'); setTimeout(() => overlay.remove(), 250); };
@@ -100,10 +108,16 @@ function show(app, acc, { needName, needPhone }) {
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving…';
         try {
+            let phoneSaved = !needPhone;
             if (needPhone) {
-                const sb = await getSupabase();
-                const { error: e } = await sb.rpc('drillrig_set_my_phone', { p_phone: digits });
-                if (e) throw new Error(e.message);
+                try {
+                    const sb = await getSupabase();
+                    const { error: e } = await sb.rpc('drillrig_set_my_phone', { p_phone: digits });
+                    if (e) throw new Error(e.message);
+                    phoneSaved = true;
+                } catch (e) {
+                    if (!needName) throw e; // nothing else to save: show the error
+                }
             }
             if (needName) {
                 const set = (id, val) => { const x = document.getElementById(id); if (x) x.value = val; };
@@ -117,7 +131,8 @@ function show(app, acc, { needName, needPhone }) {
                 app.syncAutoBillNumber?.(true);
                 app.fitHeaderTitles?.();
             }
-            try { storage.setRaw(doneKey(acc.id), '1'); } catch { /* ignore */ }
+            // Mobile not saved (offline): the name is kept, the number is asked next time.
+            if (phoneSaved) { try { storage.setRaw(doneKey(acc.id), '1'); } catch { /* ignore */ } }
             close();
             app?.showToast?.('✅ Business profile set up! Ready to bill.');
         } catch (err) {

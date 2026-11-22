@@ -4,6 +4,7 @@ import { getCurrentAccount, onAccountChange, renderGoogleButton, signOut } from 
 import { startSync, stopSync, syncNow, checkPhoneOwner, clearPhoneData, setPreferredCompany, getSyncInfo } from '../../cloud/sync.js';
 import { checkInvitations, showSwitchCard } from '../team/invitations.js';
 import { maybeAskProfile } from './profilePrompt.js';
+import { askWhoYouAre } from './whoAreYou.js';
 import { getAccess, onAccessChange } from '../../cloud/access.js';
 import { isEarlyAccess, earlyAccessEndLabel, earlyAccessDaysLeft } from '../../config/plans.js';
 import { icon, paintIcons } from '../../ui/icon.js';
@@ -296,8 +297,12 @@ export function initAccountUI(app) {
                     startSync(app, acc, onStatus, onBlocked);
                     setTimeout(() => { if (currentId === acc.id) checkInvitations(app, { phoneHasCompany: true }).catch(() => null); }, 1200);
                 } else {
+                    // No invitation accepted: "Who are you?" (owner / staff) before a business is
+                    // created for them; staff wait on that screen for their owner's invitation.
                     checkInvitations(app, { phoneHasCompany: false }).catch(() => null)
-                        .finally(() => { if (currentId === acc.id) startSync(app, acc, onStatus, onBlocked); });
+                        .then((res) => (res?.open ? 'joined' : askWhoYouAre(app, acc)))
+                        .catch(() => 'skip')
+                        .then((who) => { if (who !== 'signed-out' && currentId === acc.id) startSync(app, acc, onStatus, onBlocked); });
                 }
             }
         }

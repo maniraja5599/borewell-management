@@ -188,7 +188,10 @@ function openSheet(app) {
         const noRigInvites = team.invites.filter((iv) => iv.role !== 'owner' && !(iv.rig_ids || []).some((id) => activeIds.has(id)));
         const people = team.members.length;
         sub.textContent = `${active.length} rig${active.length === 1 ? '' : 's'} · ${people} ${people === 1 ? 'person' : 'people'}`;
+        // No staff and nobody invited yet: the 3 steps open at the top; later they sit under "More".
+        const firstTime = !staff.length && !team.invites.some((iv) => iv.role !== 'owner');
         body.replaceChildren(...[
+            firstTime ? howToSteps(true) : null,
             label(active.length === 1 ? 'Your rig' : 'Your rigs', active.length > 1 ? String(active.length) : null),
             ...active.map((r) => rigCard(r)),
             addRigCard(),
@@ -200,7 +203,7 @@ function openSheet(app) {
                 el('div', { class: 'tt-list' }, [...noRig.map((m) => personItem(m)), ...noRigInvites.map((iv) => inviteItem(iv))])
             ]) : null,
             label('More'),
-            el('div', { class: 'tt-card tt-folds' }, [rolesHelp(), archived.length ? archivedFold(archived) : null, activityFold()])
+            el('div', { class: 'tt-card tt-folds' }, [firstTime ? null : howToSteps(false), rolesHelp(), archived.length ? archivedFold(archived) : null, activityFold()])
         ].filter(Boolean));
         paintIcons();
     }
@@ -561,6 +564,26 @@ function openSheet(app) {
         ]);
         if (onOpen) d.addEventListener('toggle', () => { if (d.open) onOpen(); });
         return d;
+    }
+
+    /** "How to add your staff": 3 steps (open card the first time, a fold after that). */
+    function howToSteps(open) {
+        const steps = [
+            ['user-plus', 'Add them here', 'On their rig below, tap "Add person to this rig". Type their mobile number and name, choose Driver or Manager.'],
+            ['message-circle', 'Send the invite on WhatsApp', 'DrillRig opens WhatsApp with a ready message and link. Tap Send.'],
+            ['circle-check', 'They tap Accept', 'They open the link, sign in with their Google account and tap Accept. Their bills then come under your rig, on your phone too.']
+        ];
+        const list = el('ol', { class: 'tt-how' }, steps.map(([ic, t, d], i) => el('li', {}, [
+            el('span', { class: 'tt-how-n', 'aria-hidden': 'true', text: String(i + 1) }),
+            el('div', {}, [el('strong', {}, [icon(ic), ' ', t]), el('span', { text: d })])
+        ])));
+        const tip = el('p', { class: 'tt-hint', text: 'Staff who installed DrillRig before you invited them: ask them to choose "I work on a rig" after sign-in, then send the invite. They must not create their own business.' });
+        if (!open) return fold('list-checks', 'How to add your staff', [list, tip]);
+        return el('div', { class: 'tt-card tt-how-card' }, [
+            el('div', { class: 'tt-how-head' }, [el('span', { class: 'tt-tile is-manager' }, [icon('users')]),
+                el('div', {}, [el('strong', { text: 'Add your drivers & managers' }), el('small', { text: '3 steps · about 1 minute per person' })])]),
+            list, tip
+        ]);
     }
 
     function rolesHelp() {
