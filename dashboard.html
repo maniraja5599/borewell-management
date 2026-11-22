@@ -1012,6 +1012,37 @@
             .time-pill-btn { width: 100%; padding: 0 6px; }
             .sample-toggle-chip { margin-left: auto; }
         }
+
+        /* ==================== RIG WORK (work details on bills; never on a customer's bill) ==================== */
+        .wr-wrap { display: flex; flex-direction: column; gap: 12px; }
+        .wr-wrap[hidden], .rp-card[hidden] { display: none; }
+        .wr-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 6px 2px 0; }
+        .wr-title h2 { font-size: 1.02rem; font-weight: 800; color: var(--text-main); display: inline-flex; align-items: center; gap: 6px; }
+        .rp-grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 760px) { .rp-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .rp-grid-2.is-one { grid-template-columns: 1fr; } /* not :has(): older Android Chrome */
+        .rp-tile.is-warn strong { color: var(--warning); }
+        .wr-list { display: flex; flex-direction: column; }
+        .wr-tool { border-bottom: 1px solid var(--border-subtle); }
+        .wr-tool:last-child { border-bottom: 0; }
+        .wr-tool summary { list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 5px; padding: 10px 0; min-height: 44px; }
+        .wr-tool summary::-webkit-details-marker { display: none; }
+        .wr-tool-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+        .wr-tool-name { font-size: 0.84rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wr-tool-line { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; line-height: 1.4; }
+        .wr-pill { flex-shrink: 0; font-size: 0.66rem; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--text-muted); }
+        .wr-pill.is-warn { background: var(--warning-soft); color: var(--warning); }
+        .wr-pill.is-sold { background: var(--success-soft); color: var(--good-text); }
+        .wr-life { height: 6px; background: #f1f5f9; border-radius: 999px; overflow: hidden; }
+        .wr-life > div { height: 100%; border-radius: 999px; background: var(--series-1); }
+        .wr-life.is-warn > div { background: var(--warning); }
+        .wr-body { padding: 0 0 12px; display: flex; flex-direction: column; gap: 6px; font-size: 0.74rem; color: var(--text-muted); }
+        .wr-warn { color: var(--warning); font-weight: 700; }
+        .wr-mm { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2px 16px; }
+        .wr-mm li { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px dashed var(--grid); padding: 3px 0; }
+        .wr-mm span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wr-mm strong { color: var(--text-main); font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .wr-done { display: flex; flex-direction: column; gap: 5px; padding: 10px 0; }
     </style>
 </head>
 <body>
@@ -1159,6 +1190,66 @@
             </section>
         </div>
 
+        <!-- 7. RIG WORK: from the work details on each bill (operator, compressor, bits & hammers) -->
+        <section class="wr-wrap" id="workReport" hidden>
+            <div class="wr-title">
+                <h2><i data-lucide="wrench" style="width: 16px; height: 16px; color: var(--brand-emerald-dark);"></i><span>Rig work</span></h2>
+                <span class="rp-card-sub" id="wrSub"></span>
+            </div>
+            <section class="rp-tiles">
+                <div class="rp-tile">
+                    <span class="rp-label">Compressor hours</span>
+                    <strong id="wrHours">—</strong>
+                    <small id="wrHoursSub">—</small>
+                </div>
+                <div class="rp-tile">
+                    <span class="rp-label">Feet per hour</span>
+                    <strong id="wrPerHour">—</strong>
+                    <small id="wrPerHourSub">—</small>
+                </div>
+                <div class="rp-tile">
+                    <span class="rp-label">Work details</span>
+                    <strong id="wrFilled">0</strong>
+                    <small id="wrFilledSub">—</small>
+                </div>
+                <div class="rp-tile" id="wrToolsTile">
+                    <span class="rp-label">Bits &amp; hammers</span>
+                    <strong id="wrToolsCount">0</strong>
+                    <small id="wrToolsSub">—</small>
+                </div>
+            </section>
+            <div class="rp-grid-2">
+                <section class="rp-card">
+                    <div class="rp-card-head">
+                        <h2>By operator</h2>
+                        <span class="rp-card-sub" id="wrOpsSub">Feet drilled in this period</span>
+                    </div>
+                    <div id="wrOperators"></div>
+                </section>
+                <section class="rp-card" id="wrRigsCard" hidden>
+                    <div class="rp-card-head">
+                        <h2>By rig</h2>
+                        <span class="rp-card-sub">Feet drilled in this period</span>
+                    </div>
+                    <div id="wrRigs"></div>
+                </section>
+            </div>
+            <section class="rp-card">
+                <div class="rp-card-head">
+                    <h2>Bits &amp; hammers in use</h2>
+                    <span class="rp-card-sub">Tap one for its size bore by bore</span>
+                </div>
+                <div id="wrTools" class="wr-list"></div>
+            </section>
+            <section class="rp-card" id="wrDoneCard">
+                <div class="rp-card-head">
+                    <h2>Finished &amp; sold</h2>
+                    <span class="rp-card-sub" id="wrDoneSub"></span>
+                </div>
+                <div id="wrDone" class="wr-list"></div>
+            </section>
+        </section>
+
         <!-- 5. 1-TAP WHATSAPP DAILY REPORT BAR -->
         <div class="wa-action-bar">
             <div class="wa-bar-text">
@@ -1258,6 +1349,9 @@
         } from './src/features/report/reportMath.js';
         import { columnChart, barList, inr } from './src/features/report/reportCharts.js';
         import { initStorage, storage, STORAGE_KEYS } from './src/data/storage.js';
+        import { workReport, toolReportLine, doneLine, workWhatsAppLines } from './src/features/report/workReport.js';
+        import { toolUsage } from './src/features/work/workMath.js';
+        import { toolLimits, shortDate } from './src/features/tools/toolsMath.js';
         import './src/styles/small-screens.css';
         import { initFitText } from './src/ui/fitText.js';
         initFitText();
@@ -1266,6 +1360,7 @@
         const DEMO_BILLS = [
             {
                 id: 'demo_101',
+                work: { operatorId: 'dw1', compStart: 1213.5, compEnd: 1222.5, obFeet: 80, obHammerId: 'dh9', hammerId: 'dh1', bits: [{ toolId: 'db2', mm: 164, atFt: null }], waterIn: 2 },
                 billNo: 'INV-101',
                 billDate: localDateStr(),
                 custName: 'Selvam (Farmer)',
@@ -1285,6 +1380,7 @@
             },
             {
                 id: 'demo_102',
+                work: { operatorId: 'dw2', compStart: 1207, compEnd: 1213.5, obFeet: 60, obHammerId: 'dh9', hammerId: 'dh1', bits: [{ toolId: 'db2', mm: 164.5, atFt: null }], waterIn: 1.5 },
                 billNo: 'INV-102',
                 billDate: localDateStr(),
                 custName: 'Kandasamy (Landowner)',
@@ -1304,6 +1400,7 @@
             },
             {
                 id: 'demo_103',
+                work: { operatorId: 'dw1', operator2Id: 'dw2', compStart: 1195, compEnd: 1207, obFeet: 120, obHammerId: 'dh9', hammerId: 'dh1', bits: [{ toolId: 'db1', mm: 157.5, atFt: null }, { toolId: 'db2', mm: 165, atFt: 450 }] },
                 billNo: 'INV-103',
                 billDate: localDateStr(new Date(Date.now() - 86400000)),
                 custName: 'Murugesan (Factory)',
@@ -1323,6 +1420,7 @@
             },
             {
                 id: 'demo_104',
+                work: { operatorId: 'dw2', compStart: 1191, compEnd: 1195, hammerId: 'dh1', bits: [{ toolId: 'db1', mm: 158.5, atFt: null }] },
                 billNo: 'INV-104',
                 billDate: localDateStr(new Date(Date.now() - 86400000 * 2)),
                 custName: 'Palanivel (Farm Bore)',
@@ -1343,6 +1441,7 @@
             },
             {
                 id: 'demo_105',
+                work: { operatorId: 'dw1', compStart: 1180, compEnd: 1191, obFeet: 80, obHammerId: 'dh9', hammerId: 'dh1', bits: [{ toolId: 'db1', mm: 159, atFt: null }], waterIn: 3 },
                 billNo: 'INV-105',
                 billDate: localDateStr(new Date(Date.now() - 86400000 * 4)),
                 custName: 'Chinnathambi (Commercial)',
@@ -1360,6 +1459,19 @@
                     boreBataCost: 2000
                 }
             }
+        ];
+
+        // Demo operators and bits & hammers for the "Rig work" section.
+        const DEMO_WORKERS = [
+            { id: 'dw1', name: 'Kumar', code: 'OP-001', type: 'operator' },
+            { id: 'dw2', name: 'Selvaraj', code: 'OP-002', type: 'operator' }
+        ];
+        const DEMO_TOOLS = [
+            { id: 'db1', tool: 'bit', size: '6.5', code: 'KB-1023', brand: 'Kingdream', newMm: 165, price: 18500, status: 'active', purchasedOn: '2026-09-02' },
+            { id: 'db2', tool: 'bit', size: '6.5', code: 'KB-1031', brand: 'Kingdream', newMm: 165, price: 18500, status: 'active', purchasedOn: '2026-10-20' },
+            { id: 'dh1', tool: 'hammer', size: '6.5', brand: 'Mission', price: 95000, status: 'active', purchasedOn: '2026-08-10' },
+            { id: 'dh9', tool: 'hammer', size: '9', brand: 'Numa', price: 140000, status: 'active', purchasedOn: '2026-06-01' },
+            { id: 'db0', tool: 'bit', size: '6.5', code: 'KB-0990', brand: 'Kingdream', newMm: 165, price: 17500, status: 'sold', finishedOn: '2026-09-01', soldOn: '2026-09-15', soldAmount: 1800 }
         ];
 
         // Customer text goes into innerHTML below, so it must be escaped.
@@ -1519,6 +1631,7 @@
             renderTrend();
             renderLists(invoices, inPeriod, r);
             renderBores(inPeriod);
+            renderWork(inPeriod);
             lucide.createIcons();
         }
 
@@ -1762,6 +1875,136 @@
             }
         }
 
+        // ==================== RIG WORK ====================
+        // From the work details on each final bill + the bits & hammers list. Only people who may see
+        // bills open this page; tools and operators reach only phones allowed to see them (server rule).
+        let currentWork = null;
+        let usageCache = { src: null, len: -1, value: {} };
+        const fmt = (v) => Number(v || 0).toLocaleString('en-IN');
+        function readList(key) {
+            try { return storage.getList(key) || []; } catch (e) { return []; }
+        }
+        function brandLimits() {
+            try { return toolLimits(JSON.parse(localStorage.getItem('borebill_brand') || '{}')); } catch (e) { return toolLimits({}); }
+        }
+        // A tool's life spans all bills: worked out once per bill book, not on every filter tap.
+        function lifeUsage(all) {
+            if (usageCache.src !== all || usageCache.len !== all.length) usageCache = { src: all, len: all.length, value: toolUsage(all) };
+            return usageCache.value;
+        }
+        const rigName = (id) => dashRigs.find(r => r.id === id)?.name || 'Rig';
+
+        function renderWork(inPeriod) {
+            const host = document.getElementById('workReport');
+            if (!host) return;
+            const all = getDataSource();
+            const tools = (useSampleData ? DEMO_TOOLS : readList(STORAGE_KEYS.tools))
+                .filter(t => t && (useSampleData || activeRigId === 'all' || t.rigId === activeRigId));
+            const workers = useSampleData ? DEMO_WORKERS : readList(STORAGE_KEYS.workers);
+            const limits = brandLimits();
+            const r = workReport({ invoices: inPeriod, allBills: all, tools, workers, limits, rigOf: billRigId, usage: lifeUsage(all) });
+            currentWork = r;
+            const t = r.total;
+            // Nothing to show until the rig starts using work details or adds bits & hammers.
+            host.hidden = !(t.withWork || tools.length || all.some(b => b && b.work));
+            if (host.hidden) return;
+
+            document.getElementById('wrSub').textContent = `${activeRigName() || (dashRigs.length > 1 && !useSampleData ? 'All rigs' : 'Your rig')} · never on a customer's bill`;
+            document.getElementById('wrHours').textContent = t.hours ? `${fmt(t.hours)} h` : '—';
+            document.getElementById('wrHoursSub').textContent = t.timed ? `Avg ${fmt(Math.round((t.hours / t.timed) * 10) / 10)} h per bore` : 'No readings in this period';
+            document.getElementById('wrPerHour').textContent = t.perHour ? `${fmt(t.perHour)} ft/h` : '—';
+            document.getElementById('wrPerHourSub').textContent = t.perHour ? `Feet ÷ hour meter (${plural(t.timed, 'bore', 'bores')})` : 'Needs start and closing readings';
+            document.getElementById('wrFilled').textContent = `${fmt(t.withWork)} of ${fmt(t.bores)}`;
+            document.getElementById('wrFilledSub').textContent = t.missing ? `${plural(t.missing, 'bill', 'bills')} without work details`
+                : t.bores ? (t.water ? `All filled · water on ${plural(t.water, 'bore', 'bores')}` : 'All bills filled') : 'No bills in this period';
+            const act = r.tools.active;
+            const bits = act.filter(x => x.tool === 'bit').length;
+            document.getElementById('wrToolsCount').textContent = fmt(act.length);
+            document.getElementById('wrToolsSub').textContent = r.tools.warnings
+                ? `${fmt(r.tools.warnings)} to check`
+                : `${plural(bits, 'bit', 'bits')} · ${plural(act.length - bits, 'hammer', 'hammers')} in use`;
+            document.getElementById('wrToolsTile').classList.toggle('is-warn', r.tools.warnings > 0);
+
+            document.getElementById('wrOpsSub').textContent = t.shared
+                ? `Feet drilled · ${plural(t.shared, 'bore', 'bores')} with two operators count for both`
+                : 'Feet drilled in this period';
+            barList(document.getElementById('wrOperators'), r.operators.map(o => ({
+                label: o.name + (o.left ? ' (left)' : ''),
+                sub: [plural(o.bores, 'bore', 'bores'), o.hours ? `${fmt(o.hours)} h` : '', o.perHour ? `${fmt(o.perHour)} ft per hour` : ''].filter(Boolean).join(' · '),
+                value: o.feet,
+                valueText: `${fmt(o.feet)} ft`
+            })), { color: 'var(--series-1)', emptyText: 'No operator chosen on the bills in this period.' });
+
+            const rigsCard = document.getElementById('wrRigsCard');
+            rigsCard.hidden = useSampleData || activeRigId !== 'all' || dashRigs.length < 2;
+            rigsCard.parentElement.classList.toggle('is-one', rigsCard.hidden);
+            if (!rigsCard.hidden) {
+                barList(document.getElementById('wrRigs'), r.rigs.map(x => ({
+                    label: rigName(x.rigId),
+                    sub: [plural(x.bores, 'bore', 'bores'), x.hours ? `${fmt(x.hours)} h` : '', x.perHour ? `${fmt(x.perHour)} ft per hour` : ''].filter(Boolean).join(' · '),
+                    value: x.feet,
+                    valueText: `${fmt(x.feet)} ft`
+                })), { color: 'var(--series-1)', emptyText: 'No bores in this period yet.' });
+            }
+
+            document.getElementById('wrTools').innerHTML = act.length
+                ? act.map(x => toolHtml(x, limits)).join('')
+                : '<div class="rc-empty">No bits or hammers in use. Add them in Settings → Bits &amp; Hammers.</div>';
+
+            const done = [...r.tools.sold, ...r.tools.finished]
+                .sort((a, b) => String(b.soldOn || b.finishedOn).localeCompare(String(a.soldOn || a.finishedOn)));
+            const doneCard = document.getElementById('wrDoneCard');
+            doneCard.hidden = !done.length;
+            document.getElementById('wrDoneSub').textContent = r.tools.sold.length ? `Scrap sold for ${inr(r.scrapTotal)}` : 'Worn-out bits, cracked hammers';
+            document.getElementById('wrDone').innerHTML = done.slice(0, 40).map(x => `
+                <div class="wr-tool wr-done">
+                    <div class="wr-tool-top">
+                        <span class="wr-tool-name">${esc(x.name)}</span>
+                        <span class="wr-pill ${x.status === 'sold' ? 'is-sold' : ''}">${x.status === 'sold' ? 'Sold' : 'Finished'}</span>
+                    </div>
+                    <span class="wr-tool-line">${esc(doneLine(x))}${x.finishReason ? ' · ' + esc(x.finishReason) : ''}</span>
+                </div>`).join('');
+        }
+
+        /** One bit / hammer: life bar, warning, and (bits) the size measured before each bore. */
+        function toolHtml(x, limits) {
+            let pct = null;
+            let life = '';
+            if (x.tool === 'hammer') {
+                const max = limits.hammerWarnFt[x.size] || limits.hammerWarnFt['6.5'];
+                pct = x.feet / max;
+                life = `${fmt(x.feet)} of ${fmt(max)} ft before a check`;
+            } else if (x.newMm !== null && x.nowMm !== null && x.newMm > limits.bitWarnMm) {
+                pct = (x.newMm - x.nowMm) / (x.newMm - limits.bitWarnMm);
+                life = `${x.nowMm} mm now · change below ${limits.bitWarnMm} mm`;
+            }
+            const kind = x.tool === 'bit' ? 'Bit' : (x.size === '9' ? '9″ OB hammer' : 'Hammer');
+            const bar = pct === null ? ''
+                : `<div class="wr-life ${x.warning ? 'is-warn' : ''}" role="img" aria-label="${esc(life)}"><div style="width: ${Math.max(2, Math.min(100, pct * 100))}%;"></div></div>`;
+            const mm = x.tool === 'bit' && x.mm.length
+                ? `<span>Size before each bore (latest first)</span><ol class="wr-mm">${x.mm.slice(-24).reverse().map(m => `<li><span>${esc(shortDate(m.day))} · #${esc(m.billNo || '')}</span><strong>${esc(m.mm)} mm</strong></li>`).join('')}</ol>`
+                : '';
+            const bought = [x.brand && x.tool === 'bit' ? esc(x.brand) : '', x.price ? `Bought for ${inr(x.price)}` : '', x.purchasedOn ? esc(shortDate(x.purchasedOn)) : '']
+                .filter(Boolean).join(' · ');
+            return `
+                <details class="wr-tool">
+                    <summary>
+                        <div class="wr-tool-top">
+                            <span class="wr-tool-name">${esc(x.name)}</span>
+                            <span class="wr-pill ${x.warning ? 'is-warn' : ''}">${x.warning ? 'Check' : kind}</span>
+                        </div>
+                        <span class="wr-tool-line">${esc(toolReportLine(x))}</span>
+                        ${bar}
+                    </summary>
+                    <div class="wr-body">
+                        ${x.warning ? `<span class="wr-warn">⚠ ${esc(x.warning)}. ${x.tool === 'bit' ? 'Time to change it?' : 'Check or service it.'}</span>` : ''}
+                        ${life ? `<span>${esc(life)}</span>` : ''}
+                        ${bought ? `<span>${bought}</span>` : ''}
+                        ${mm}
+                    </div>
+                </details>`;
+        }
+
         // WhatsApp Daily Summary Generator
         function generateWhatsAppSummaryText() {
             const todayStr = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1851,6 +2094,12 @@
 `;
             }
 
+            const work = workWhatsAppLines(currentWork);
+            if (work.length) {
+                report += `────────────────────────────
+`;
+                report += work.join('\n') + '\n';
+            }
             report += `────────────────────────────
 `;
             report += `⚡ _Generated by DrillRig_`;
