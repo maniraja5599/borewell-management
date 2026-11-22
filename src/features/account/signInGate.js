@@ -373,7 +373,19 @@ function icon3(name) {
     return span;
 }
 
+/**
+ * Local testing on a phone over Wi-Fi (http://192.168.x.x:4173/?test=1): Google sign-in only works
+ * on drillrig.in and localhost, so ?test=1 skips the sign-in screen — but ONLY on this computer's
+ * own or home-network addresses, never on drillrig.in.
+ */
+export function isLocalTestHost(hostname) {
+    return /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(String(hostname || ''));
+}
+
 export function initSignInGate(app) {
+    try {
+        if (isLocalTestHost(location.hostname) && new URLSearchParams(location.search).get('test') === '1') localStorage.setItem(SIGNIN_GATE_SKIP_KEY, '1');
+    } catch { /* ignore */ }
     try { if (localStorage.getItem(SIGNIN_GATE_SKIP_KEY) === '1') return; } catch { /* ignore */ }
 
     let gate = null;

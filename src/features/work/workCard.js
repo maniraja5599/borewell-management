@@ -1,11 +1,14 @@
-// "Work details" card on the bill screen (Final Bills only), just above Preview & Save.
-// Operator, compressor hour meter, 9″ OB section hammer, 6.5″ hammer and bits (mm before use,
-// bit changes), water. Saved on the bill as bill.work — never on the customer's bill.
-// Logic: workMath.js. The owner can make it required (brand.workLogRequired).
+// "Work details" of a Final Bill: operator, compressor hour meter, 9″ OB section hammer, 6.5″
+// hammer and bits (mm before use, bit changes), water. Saved on the bill as bill.work — never on
+// the customer's bill. Logic: workMath.js. The owner can make it required (brand.workLogRequired).
+//
+// On the bill screen it is ONE summary row just above Preview & Save ("Kumar · 9.5 h · bit
+// KB-1023 164 mm"); tapping it opens the form on its own page (a full sheet), so the bill screen
+// stays simple. The page reads the workers and bits & hammers fresh every time it draws.
 import { STORAGE_KEYS, storage } from '../../data/storage.js';
 import { can, isOwnerOrLocal, getCurrentRig, hasRigs } from '../../cloud/access.js';
 import { icon, paintIcons } from '../../ui/icon.js';
-import { el } from '../../ui/sheet.js';
+import { el, openSheet, btn } from '../../ui/sheet.js';
 import { readWorkers } from '../workers/workersUI.js';
 import { workerLabel, typeOf } from '../workers/workersMath.js';
 import { readTools, openTools } from '../tools/toolsUI.js';
@@ -21,8 +24,9 @@ const writeDraft = (d) => { try { storage.setRaw(DRAFT_KEY, JSON.stringify(d)); 
 export function initWorkCard(app) {
     const bar = document.getElementById('proceedToPreviewBar');
     if (!bar || !app) return;
-    const card = el('section', { class: 'ui-card wk-card', id: 'workCard', hidden: true, 'aria-label': 'Work details' });
+    const card = el('section', { class: 'ui-card wk-card wk-row-card', id: 'workCard', hidden: true, 'aria-label': 'Work details' });
     bar.parentNode.insertBefore(card, bar);
+    let page = null;     // the open Work details page (sheet), or null
 
     let key = null;      // which bill the card is showing: a saved bill's id, or 'new'
     let draft = null;    // what the card holds (raw)
@@ -101,7 +105,59 @@ export function initWorkCard(app) {
         paintIcons();
     }
 
+    /** Draw the summary row, and the page when it is open. */
     function render() {
+        renderCard();
+        if (page) renderForm();
+    }
+
+    function summary() {
+        const parts = [];
+        const w = readWorkers();
+        const tl = readTools();
+        const op = w.find((x) => x.id === draft?.operatorId);
+        if (op) parts.push(op.name);
+        const a = Number(draft?.compStart); const b = Number(draft?.compEnd);
+        if (draft?.compEnd !== '' && draft?.compEnd !== undefined && draft?.compStart !== '' && b >= a) parts.push(`${Math.round((b - a) * 10) / 10} h`);
+        const bit = (draft?.bits || []).find((x) => x?.toolId);
+        const bt = bit && tl.find((x) => x.id === bit.toolId);
+        if (bt) parts.push(`bit ${toolName(bt)}${bit.mm ? ` ${bit.mm} mm` : ''}`);
+        if ((draft?.bits || []).filter((x) => x?.toolId).length > 1) parts.push(`+${draft.bits.filter((x) => x?.toolId).length - 1} bit`);
+        if (draft?.waterIn) parts.push(`water ${draft.waterIn}″`);
+        return parts;
+    }
+
+    function renderCard() {
+        const parts = draft ? summary() : [];
+        const required = !!app.brand?.workLogRequired;
+        const done = !!cleanWork(draft || {}) && !checkWork(cleanWork(draft || {}), { required, totalDepth: Number(app.state?.totalDepth) || 0 });
+        card.replaceChildren(el('button', { type: 'button', class: 'wk-open', 'aria-label': 'Open work details', onclick: () => openPage() }, [
+            el('span', { class: 'tt-tile is-tools' }, [icon('hard-hat')]),
+            el('span', { class: 'wk-open-txt' }, [
+                el('strong', { text: 'Work details' }),
+                el('small', { text: parts.length ? parts.join(' · ') : 'Operator, compressor, bits — not filled' })
+            ]),
+            el('span', { class: `tt-pill ${done ? 'is-ok' : required ? 'is-warn' : 'is-muted'}`, text: done ? 'Done' : required ? 'Required' : (readOnly() ? 'View' : 'Add') }),
+            el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])
+        ]));
+        paintIcons();
+    }
+
+    function openPage() {
+        if (page) return;
+        if (key !== currentKey()) loadFor(currentKey());
+        const bill = savedBill();
+        page = openSheet({
+            title: 'Work details',
+            sub: `${bill ? `#${bill.billNo} · ` : ''}${app.state?.custName || 'This bill'} · not printed on the customer's bill`,
+            ic: 'hard-hat',
+            onClose: () => { page = null; renderCard(); }
+        });
+        renderForm();
+    }
+
+    function renderForm() {
+        if (!page) return;
         warnSlots = [];
         usage = cachedToolUsage(app.history, app._bigListVersion || 0);
         const workers = readWorkers().filter((w) => w && w.status !== 'left' && onRig(w));
@@ -205,12 +261,8 @@ export function initWorkCard(app) {
         if (!ops.length) missing.push(el('button', { type: 'button', class: 'wk-link', text: 'Add workers', onclick: () => openWorkers(app) }));
         if (!bits.length || !hammers.length) missing.push(el('button', { type: 'button', class: 'wk-link', text: 'Add bits & hammers', onclick: () => openTools(app) }));
 
-        card.replaceChildren(...[
-            el('div', { class: 'wk-head' }, [
-                el('span', { class: 'tt-tile is-tools' }, [icon('hard-hat')]),
-                el('div', { class: 'wk-head-txt' }, [el('strong', { text: 'Work details' }), el('small', { text: 'For your records only. Not printed on the customer’s bill.' })]),
-                req
-            ]),
+        page.body.replaceChildren(...[
+            req ? el('div', { class: 'wk-head' }, [el('small', { class: 'wk-hint', text: 'Owner: make work details required on every Final Bill?' }), req]) : null,
             missing.length ? el('p', { class: 'wk-tip' }, [icon('info'), el('span', { text: 'Add your workers and bits & hammers once, then just pick them here.' }), ...missing]) : null,
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Operator' }), row('Operator', op1), op2Wrap, addOp2]),
             el('div', { class: 'wk-sec' }, [
@@ -228,7 +280,8 @@ export function initWorkCard(app) {
                 row('Hammer', hm), hmWarn, hm2Wrap, addHm2,
                 ...bitRows, addBit
             ]),
-            el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water & note' }), el('div', { class: 'wk-two' }, [row('Water (inches)', water), row('Note', note)])])
+            el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water & note' }), el('div', { class: 'wk-two' }, [row('Water (inches)', water), row('Note', note)])]),
+            btn(ro ? 'Close' : 'Done', { kind: 'pri', ic: 'check', cls: 'tt-wide wk-done', onclick: () => page?.close() })
         ].filter(Boolean));
         refreshWarnings();
         paintIcons();
@@ -242,7 +295,8 @@ export function initWorkCard(app) {
         // Redraw for another bill, or when the 7″ casing feet / new-bore-or-re-bore / view-or-edit changed.
         const shape = `${Math.max(0, Number(app.state?.pvc7Length) || 0)}|${app.state?.drillingType}|${readOnly()}`;
         if (k !== key) { loadFor(k); lastShape = shape; render(); return; }
-        if (shape !== lastShape) { lastShape = shape; render(); }
+        if (shape !== lastShape) { lastShape = shape; render(); return; }
+        renderCard();
     }
     let lastShape = '';
 
@@ -254,6 +308,13 @@ export function initWorkCard(app) {
         return out;
     };
     for (const ev of ['drillrig:workers-changed', 'drillrig:tools-changed']) window.addEventListener(ev, () => { if (!card.hidden) render(); });
+    // Workers or bits added on this phone (e.g. from "Add workers" on the page): show them at once.
+    const origStore = app.saveToStorage.bind(app);
+    app.saveToStorage = (k, data, changed) => {
+        const ok = origStore(k, data, changed);
+        if ((k === STORAGE_KEYS.workers || k === STORAGE_KEYS.tools) && !card.hidden) { try { render(); } catch { /* ignore */ } }
+        return ok;
+    };
 
     // Saving the bill: check (when required) and keep the work details on the bill.
     const origSave = app.saveCurrentBillToHistory.bind(app);
@@ -265,7 +326,7 @@ export function initWorkCard(app) {
         const problem = checkWork(work, { required: !!app.brand?.workLogRequired, totalDepth: Number(app.state?.totalDepth) || 0 });
         if (problem) {
             app.showToast?.(`⚠️ ${problem}`);
-            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            openPage();
             return undefined;
         }
         const before = (app.history || []).length;

@@ -6,9 +6,15 @@ const SAVED_BILL_MAX_DEPTH = 2500;
 
 export class CalcMixin {
     // New bills: only as deep as the rate card's slabs go. Saved bills keep the old limit.
+    // A bill can never be deeper than the rate card's last slab (the owner's rule): no price exists
+    // past it. A saved bill being edited keeps its own depth even if the slabs were shortened later.
     getBillDepthLimit() {
-        if (this.loadedHistoryBillId) return SAVED_BILL_MAX_DEPTH;
-        return slabLadderEnd(this.rates) || SAVED_BILL_MAX_DEPTH;
+        const ladder = slabLadderEnd(this.rates) || 0;
+        if (this.loadedHistoryBillId) {
+            const saved = (this.history || []).find((h) => h.id === this.loadedHistoryBillId);
+            return Math.max(ladder, Number(saved?.snapshot?.totalDepth) || 0) || SAVED_BILL_MAX_DEPTH;
+        }
+        return ladder || SAVED_BILL_MAX_DEPTH;
     }
 
     // Keeps the depth field's max / hint in step with the rate card, and pulls a depth that is
@@ -18,13 +24,14 @@ export class CalcMixin {
         if (!el) return;
         const limit = this.getBillDepthLimit();
         if (el.max !== String(limit)) el.max = String(limit);
-        const hint = this.loadedHistoryBillId ? 'Enter Drilling Depth (e.g. 500)' : `Drilling depth (up to ${limit} ft)`;
+        const hint = `Drilling depth (up to ${limit} ft)`;
         if (el.placeholder !== hint) el.placeholder = hint;
         const v = parseInt(el.value, 10) || 0;
         if (v > limit && document.activeElement !== el) {
             el.value = String(limit);
-            this.showToast?.(`⚠️ Slab rates go up to ${limit} ft — depth set to ${limit} ft. Add a slab in Rates to bill deeper.`);
+            this.showDepthLimitMsg?.(v, limit);
         }
+        if (v < limit) this.hideDepthLimitMsg?.();
     }
 
     normalizeSlabArray(rawSlabs, fallbackBaseRate = 90) {

@@ -23,9 +23,11 @@ import { initComingSoon } from './features/settings/comingSoon.js';
 import { applyNavIcons3d } from './ui/navIcons3d.js';
 import { initSuperAdmin } from './features/account/superAdmin.js';
 import { initStockUI } from './features/stock/stockUI.js';
+import { initPreviewTag } from './features/bill/previewTag.js';
 import { initStorage, setStorageErrorHandler, storage, storageMode } from './data/storage.js';
 import { FEATURES } from './config/features.js';
 import { initSignInGate } from './features/account/signInGate.js';
+import { initTestLogin } from './features/account/testLogin.js';
 import { billFooterEnquiryLink, supportWhatsAppDisplay } from './config/plans.js';
 
 if (FEATURES.uiV3) document.documentElement.classList.add('ui-v3');
@@ -50,6 +52,7 @@ async function boot() {
         if (footerNum) footerNum.textContent = supportWhatsAppDisplay();
         initRigBar(window.boreBillApp);
         if (FEATURES.pipeStock) initStockUI(window.boreBillApp);
+        initPreviewTag(window.boreBillApp); // tap the top bar = bill preview
         captureJoinCode(); // ?join=CODE from a WhatsApp invite link: used right after sign-in
         initAnalytics(); // live site only; no personal data (see src/analytics.js)
         {
@@ -69,6 +72,7 @@ async function boot() {
         } catch { /* ignore */ }
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
+        initTestLogin(window.boreBillApp); // local testing only (?test=1 on localhost / Wi-Fi address)
         initTeamUI(window.boreBillApp);
         initRigWork(window.boreBillApp); // Settings: Workers, Bits & Hammers (after Team & Rigs)
         initWorkCard(window.boreBillApp); // Bill screen: work details (operator, compressor, bits, hammers)

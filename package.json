@@ -1,7 +1,7 @@
 {
   "name": "drillrig-borewell-billing",
   "private": true,
-  "version": "2.10.0",
+  "version": "2.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,14 +11,15 @@
     "test:watch": "vitest",
     "e2e:billing": "node e2e/billing.e2e.mjs",
     "e2e:rates": "node e2e/rates.e2e.mjs",
-    "e2e": "node e2e/billing.e2e.mjs && node e2e/rates.e2e.mjs && node e2e/report.e2e.mjs && node e2e/signin.e2e.mjs && node e2e/cash.e2e.mjs && node e2e/attendance.e2e.mjs && node e2e/pipes.e2e.mjs && node e2e/audit.e2e.mjs",
+    "e2e": "node e2e/billing.e2e.mjs && node e2e/rates.e2e.mjs && node e2e/report.e2e.mjs && node e2e/signin.e2e.mjs && node e2e/cash.e2e.mjs && node e2e/attendance.e2e.mjs && node e2e/pipes.e2e.mjs && node e2e/changes.e2e.mjs && node e2e/audit.e2e.mjs",
     "e2e:signin": "node e2e/signin.e2e.mjs",
     "e2e:report": "node e2e/report.e2e.mjs",
     "e2e:scale": "node e2e/scale.e2e.mjs",
     "e2e:cash": "node e2e/cash.e2e.mjs",
     "e2e:attendance": "node e2e/attendance.e2e.mjs",
     "e2e:audit": "node e2e/audit.e2e.mjs",
-    "e2e:pipes": "node e2e/pipes.e2e.mjs"
+    "e2e:pipes": "node e2e/pipes.e2e.mjs",
+    "e2e:changes": "node e2e/changes.e2e.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.13",

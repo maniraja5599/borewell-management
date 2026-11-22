@@ -170,14 +170,42 @@ export class BillFieldBehaviorListeners {
         // used to price a ₹1 crore bill without a word.
         const depthEl = document.getElementById('totalDepth');
         const oldDepthEl = document.getElementById('oldBoreDepth');
+        // The depth can never pass the last slab: stopped while typing, with a message that stays
+        // under the box and a way to the Rates page (owner's rule, 22 Nov 2026).
+        const depthMsg = document.createElement('div');
+        depthMsg.className = 'depth-limit-msg';
+        depthMsg.id = 'depthLimitMsg';
+        depthMsg.setAttribute('role', 'alert');
+        depthMsg.hidden = true;
+        depthEl?.closest('.drilling-depth-row')?.insertAdjacentElement('afterend', depthMsg);
+        this.showDepthLimitMsg = (typed, max) => {
+            depthMsg.replaceChildren();
+            const text = document.createElement('span');
+            text.textContent = `${typed.toLocaleString('en-IN')} ft is past your slab rates (they go up to ${max.toLocaleString('en-IN')} ft). To bill deeper, add a slab in Rates.`;
+            const go = document.createElement('button');
+            go.type = 'button';
+            go.className = 'depth-limit-btn';
+            go.textContent = 'Go to Rates';
+            go.addEventListener('click', () => { this.switchTab('tab-rates'); });
+            depthMsg.append(text, go);
+            depthMsg.hidden = false;
+        };
+        this.hideDepthLimitMsg = () => { depthMsg.hidden = true; };
+        depthEl?.addEventListener('input', () => {
+            const maxDepth = this.getBillDepthLimit?.() || 2500;
+            const typed = parseInt(depthEl.value, 10) || 0;
+            if (typed > maxDepth) {
+                depthEl.value = String(maxDepth);
+                this.showDepthLimitMsg(typed, maxDepth);
+                this.calculateAndRender();
+            } else if (typed < maxDepth) depthMsg.hidden = true;
+        });
         const checkDepths = () => {
             const maxDepth = this.getBillDepthLimit?.() || parseInt(depthEl?.max, 10) || 2500;
             const depth = parseInt(depthEl?.value, 10) || 0;
             if (depth > maxDepth) {
                 depthEl.value = String(maxDepth);
-                this.showToast(this.loadedHistoryBillId
-                    ? `⚠️ ${depth} ft is too deep — set to the ${maxDepth} ft maximum. Please check the depth.`
-                    : `⚠️ ${depth} ft is past your last slab (${maxDepth} ft) — set to ${maxDepth} ft. Add a slab in Rates to bill deeper.`);
+                this.showDepthLimitMsg(depth, maxDepth);
                 this.calculateAndRender();
             }
             const oldDepth = parseInt(oldDepthEl?.value, 10) || 0;

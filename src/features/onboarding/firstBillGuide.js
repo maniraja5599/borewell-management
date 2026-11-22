@@ -3,6 +3,9 @@
 // saved, the New Bill screen shows the few steps that get there, each one tappable:
 //   business name -> check your rates -> add a customer -> save the first bill.
 // It goes away for good after the first bill (or "Hide").
+// While it shows, the bill form itself guides too: the next thing to fill pulses, with a numbered
+// tip above it (① customer → ② village / site → ③ depth → ④ Preview → ⑤ Save) — billCoachStep()
+// decides which. (Preview only appears once customer, site and depth are all there.)
 import { storage } from '../../data/storage.js';
 import { getRole } from '../../cloud/access.js';
 import { isPlaceholderCompany, maybeAskProfile } from '../account/profilePrompt.js';
@@ -29,6 +32,22 @@ export function guideSteps({ companyName, role, ratesSeen, customers, bills }) {
 export function shouldShowGuide({ hidden, bills }) {
     return !hidden && bills === 0;
 }
+
+/** The next thing to do on the bill form (pure: used by the coach and the tests). */
+export function billCoachStep({ custName, custLocation, totalDepth, previewOpen }) {
+    if (!String(custName || '').trim()) return { n: 1, id: 'customer', text: 'Pick or add the customer' };
+    if (!String(custLocation || '').trim()) return { n: 2, id: 'site', text: 'Type the village / site of this bore' };
+    if (!(Number(totalDepth) > 0)) return { n: 3, id: 'depth', text: 'Enter the drilling depth (and pipe feet)' };
+    if (!previewOpen) return { n: 4, id: 'preview', text: 'Tap Preview to check the bill' };
+    return { n: 5, id: 'save', text: 'Tap Save, then send it on WhatsApp' };
+}
+const COACH_TARGET = {
+    customer: () => document.querySelector('#wizStepPanel1 .wiz-search-input-wrap') || document.getElementById('quickCustSearchInput'),
+    site: () => document.getElementById('serviceSiteInputWrap') || document.getElementById('custLocation'),
+    depth: () => document.querySelector('.drilling-depth-row') || document.getElementById('totalDepth'),
+    preview: () => document.getElementById('openBillPreviewBtn'),
+    save: () => document.getElementById('saveBillHistoryBtn')
+};
 
 function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -73,13 +92,54 @@ export function initFirstBillGuide(app) {
         } else if (id === 'customer') {
             document.getElementById('headerAddCustPopupBtn')?.click();
         } else if (id === 'bill') {
-            document.getElementById('quickCustSearchInput')?.focus();
-            app.showToast?.('Pick a customer below, then enter the depth');
+            const step = billCoachStep(coachState());
+            const target = COACH_TARGET[step.id]?.();
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (step.id === 'customer') document.getElementById('quickCustSearchInput')?.focus();
+            if (step.id === 'site') setTimeout(() => document.getElementById('custLocation')?.focus(), 350);
+            if (step.id === 'depth') setTimeout(() => document.getElementById('totalDepth')?.focus(), 350);
         }
     };
 
+    // ---- the coach on the bill form
+    const coachState = () => ({
+        custName: app.state?.custName || document.getElementById('custName')?.value,
+        custLocation: app.state?.custLocation || document.getElementById('custLocation')?.value,
+        totalDepth: app.state?.totalDepth,
+        previewOpen: !!app.isBillPreviewOpen
+    });
+    let coachTip = null;
+    let coachOn = null;
+    const clearCoach = () => {
+        coachTip?.remove();
+        coachTip = null;
+        coachOn?.classList.remove('fbg-coach');
+        coachOn = null;
+    };
+    const coach = () => {
+        const s = state();
+        const onBill = document.getElementById('tab-bill')?.classList.contains('active');
+        if (!card || !onBill || !shouldShowGuide({ hidden: get(HIDE_KEY), bills: s.bills })) { clearCoach(); return; }
+        const step = billCoachStep(coachState());
+        const target = COACH_TARGET[step.id]?.();
+        if (!target || target.offsetParent === null) { clearCoach(); return; }
+        if (coachOn === target && coachTip?.dataset.step === String(step.n)) return;
+        clearCoach();
+        coachOn = target;
+        target.classList.add('fbg-coach');
+        coachTip = el('div', { class: 'fbg-tip', role: 'status', 'data-step': String(step.n) }, [
+            el('span', { class: 'fbg-tip-n', 'aria-hidden': 'true', text: String(step.n) }),
+            el('span', { text: step.text })
+        ]);
+        target.insertAdjacentElement('beforebegin', coachTip);
+        const nextLine = card?.querySelector('.fbg-step.is-next small');
+        if (nextLine && steps().find((x) => !x.done)?.id === 'bill') nextLine.textContent = `Next: ${step.text.charAt(0).toLowerCase()}${step.text.slice(1)}`;
+    };
+    const steps = () => guideSteps(state());
+
     const remove = () => {
         if (timer) { clearInterval(timer); timer = null; }
+        clearCoach();
         card?.remove();
         card = null;
     };
@@ -126,6 +186,8 @@ export function initFirstBillGuide(app) {
         ]);
         if (card) card.replaceWith(fresh); else panel.prepend(fresh);
         card = fresh;
+        if (coachTip) coachTip.dataset.step = ''; // card redrawn: write the "Next:" line again
+        coach();
         // Customers and bills can also arrive from the cloud or a popup: re-check while shown.
         if (!timer) timer = setInterval(render, 4000);
     };
@@ -144,6 +206,15 @@ export function initFirstBillGuide(app) {
     wrap('switchTab', ([tabId]) => { if (tabId === 'tab-rates') set(RATES_SEEN_KEY); });
     wrap('saveCurrentBillToHistory', () => {});
     wrap('upsertCustomerRecord', () => {});
+    // The form changes with every key: move the coach along (cheap; no redraw of the card).
+    const origCalc = app.calculateAndRender;
+    if (typeof origCalc === 'function') {
+        app.calculateAndRender = function coached(...args) {
+            const out = origCalc.apply(this, args);
+            try { coach(); } catch { /* ignore */ }
+            return out;
+        };
+    }
     document.querySelectorAll('.b-nav-item[data-tab="tab-rates"]').forEach((b) => b.addEventListener('click', () => set(RATES_SEEN_KEY)));
     document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 

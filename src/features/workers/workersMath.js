@@ -1,3 +1,5 @@
+import { indianMobile, MOBILE_HELP } from '../../core/phone.js';
+
 // Workers = the payroll list: operators, drivers, helpers, labour, office staff. They never sign in;
 // the owner, office staff (with "workers") or a manager (their rigs) keep the list. Each worker gets
 // a short ID so two people with the same name are told apart ("Kumar · OP-003").
@@ -31,11 +33,7 @@ export function nextCode(workers, type) {
 /** "Kumar · OP-003" */
 export const workerLabel = (w) => [String(w?.name || '').trim() || 'Worker', w?.code].filter(Boolean).join(' · ');
 
-const cleanPhone = (v) => {
-    const d = String(v || '').replace(/\D/g, '');
-    const ten = d.length === 12 && d.startsWith('91') ? d.slice(2) : d;
-    return ten.length === 10 ? ten : '';
-};
+const cleanPhone = (v) => indianMobile(v);
 
 /** The daily wage on a date: the latest wage entry that starts on or before it. */
 export function wageOn(worker, ymd = todayYmd()) {
@@ -53,7 +51,7 @@ export function makeWorker(input, { existing = null, workers = [], now = new Dat
     const type = TYPE[input?.type] ? input.type : 'operator';
     const phoneRaw = String(input?.phone || '').trim();
     const phone = cleanPhone(phoneRaw);
-    if (phoneRaw && !phone) return { error: 'Enter a 10-digit mobile number, or leave it empty.' };
+    if (phoneRaw && !phone) return { error: `${MOBILE_HELP} Or leave it empty.` };
     const wage = input?.perDay === '' || input?.perDay === undefined || input?.perDay === null ? null : Number(input.perDay);
     if (wage !== null && (!Number.isFinite(wage) || wage < 0 || wage > 100000)) return { error: 'Enter the daily wage in rupees.' };
     const wageFrom = /^\d{4}-\d{2}-\d{2}$/.test(input?.wageFrom || '') ? input.wageFrom : todayYmd(now);

@@ -242,21 +242,21 @@ await step('R14 new bill depth stops at the last slab', async () => {
     await typeInto('totalDepth', end + 150); await wait(300);
     const s = await bill();
     const field = await app(() => ({ v: document.getElementById('totalDepth').value, max: document.getElementById('totalDepth').max, ph: document.getElementById('totalDepth').placeholder }));
-    // messages show one at a time, so this one may wait for an earlier one to leave
-    for (let i = 0; i < 20 && !toasts.slice(before).some((t) => /Add a slab in Rates/.test(t)); i++) await wait(200);
-    const msg = toasts.slice(before).find((t) => /Add a slab in Rates/.test(t)) || '';
-    check(`R14 typing ${end + 150} ft on a ${end} ft ladder → set to ${end} ft, priced at ${end} ft, with a message`,
+    // The message stays under the depth box (owner's change, 22 Nov 2026), with a way to Rates.
+    const msg = await app(() => { const m = document.getElementById('depthLimitMsg'); return m && !m.hidden && /add a slab in Rates/.test(m.innerText) && m.querySelector('.depth-limit-btn') ? m.innerText : ''; });
+    check(`R14 typing ${end + 150} ft on a ${end} ft ladder → set to ${end} ft, priced at ${end} ft, with a message under the box`,
         end > 0 && field.v === String(end) && field.max === String(end) && s.res.totalDepth === end && /up to/.test(field.ph) && msg,
         { end, field, priced: s.res.totalDepth, msg, seen: toasts.slice(before) });
     await typeInto('totalDepth', end); await wait(200);
     check('R14 depth exactly at the last slab is allowed', (await bill()).res.totalDepth === end);
 });
 
-await step('R15 saved bill keeps the old limit', async () => {
+await step('R15 saved bill: limit is the last slab (or its own depth if deeper)', async () => {
     const id = await app(() => window.boreBillApp.history.find((h) => h.billNo === 'SM-101').id);
     await app((id) => window.boreBillApp.loadBillFromHistory(id, false, true), id); await wait(700);
-    const max = await app(() => document.getElementById('totalDepth').max);
-    check('R15 reopening a saved bill keeps the 2500 ft limit and its depth (450 ft)', max === '2500' && (await bill()).res.totalDepth === 450, { max });
+    const r = await app(() => ({ max: document.getElementById('totalDepth').max, limit: window.boreBillApp.getBillDepthLimit() }));
+    const end = await app(() => { let e = 0; (window.boreBillApp.rates.slabRates || []).forEach((x) => { e += parseInt(x.span, 10) || 0; }); return e; });
+    check('R15 reopening a saved bill: limit = last slab (or its own depth if deeper), depth kept (450 ft)', r.max === String(Math.max(end, 450)) && r.limit === Math.max(end, 450) && (await bill()).res.totalDepth === 450, { ...r, end });
     await freshBill();
 });
 

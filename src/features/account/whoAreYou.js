@@ -8,6 +8,7 @@
 //                         No business is created for them, so staff never end up "owners".
 //
 // Without 0013 (older server) or offline, nothing is asked and the app works as before.
+import { indianMobile, MOBILE_HELP } from '../../core/phone.js';
 import { getSupabase, signOut } from '../../cloud/auth.js';
 import { storage } from '../../data/storage.js';
 import { checkInvitations } from '../team/invitations.js';
@@ -131,8 +132,8 @@ export function showWhoScreen(app, acc) {
             })();
 
             sendBtn.addEventListener('click', async () => {
-                const digits = phone.value.replace(/\D/g, '').slice(-10);
-                if (digits.length !== 10) { phone.setAttribute('aria-invalid', 'true'); phone.focus(); app?.showToast?.('Enter your 10-digit mobile number'); return; }
+                const digits = indianMobile(phone.value);
+                if (!digits) { phone.setAttribute('aria-invalid', 'true'); phone.focus(); app?.showToast?.(MOBILE_HELP); return; }
                 phone.removeAttribute('aria-invalid');
                 try { // saved, so "Add person" on the owner's phone shows who this number is
                     const sb = await getSupabase();
