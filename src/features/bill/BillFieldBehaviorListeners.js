@@ -363,6 +363,7 @@ export class BillFieldBehaviorListeners {
             if (document.getElementById('billBoreBataInput')) {
                 document.getElementById('billBoreBataInput').value = this.rates.boreBataRate ?? 2000;
             }
+            if (this.state) { this.state.pvc7Mode = 'pipe'; this.state.pvc7DrillRate = 0; }
             if (document.getElementById('pvc7RateInput')) {
                 document.getElementById('pvc7RateInput').value = this.rates.pvc7Rate || 400;
             }

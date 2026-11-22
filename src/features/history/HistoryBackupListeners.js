@@ -49,7 +49,7 @@ export class HistoryBackupListeners {
         // JSON Backup & Restore
         document.getElementById('exportDataJsonBtn')?.addEventListener('click', () => {
             const payload = {
-                version: '2.3',
+                version: '2.4',
                 exportedAt: new Date().toISOString(),
                 brand: this.brand,
                 rates: this.rates,
@@ -59,7 +59,12 @@ export class HistoryBackupListeners {
                 savedExtras: this.savedExtras,
                 savedNotes: this.savedNotes,
                 waFormat: this.waFormat,
-                stock: (() => { try { return JSON.parse(storage.getRaw(STORAGE_KEYS.stock) || '[]'); } catch (_) { return []; } })()
+                stock: (() => { try { return JSON.parse(storage.getRaw(STORAGE_KEYS.stock) || '[]'); } catch (_) { return []; } })(),
+                // Rig work (2.4): workers, bits & hammers, expenses & cash, attendance.
+                workers: storage.getList(STORAGE_KEYS.workers) || [],
+                tools: storage.getList(STORAGE_KEYS.tools) || [],
+                cash: storage.getList(STORAGE_KEYS.cash) || [],
+                attendance: storage.getList(STORAGE_KEYS.attendance) || []
             };
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);

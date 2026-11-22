@@ -685,6 +685,9 @@ export class HistoryMixin {
             custName: item.custName || s?.custName || "",
             custPhone: item.custPhone || s?.custPhone || "",
             custLocation: item.custLocation || s?.custLocation || "",
+            // Only drilling-only bills carry pvc7Mode; every other bill is "with pipe".
+            pvc7Mode: s?.pvc7Mode === 'drill' ? 'drill' : 'pipe',
+            pvc7DrillRate: s?.pvc7Mode === 'drill' ? (Number(s.pvc7Rate) || 0) : 0,
             loadedHistoryBillId: item.id,
             isSavedBillReadOnly: Boolean(viewOnly)
         };
@@ -873,6 +876,10 @@ export class HistoryMixin {
         if (resetInputs) {
             // Always default to Final Bill ('INVOICE') when starting a fresh bill
             this.state.docType = 'INVOICE';
+            this.state.pvc7Mode = 'pipe';
+            this.state.pvc7DrillRate = 0;
+            const p7r = document.getElementById('pvc7RateInput');
+            if (p7r) p7r.value = this.rates.pvc7Rate || 400;
             document.querySelectorAll('#docTypePills .doc-pill').forEach(pill => {
                 pill.classList.toggle('active', pill.dataset.doc === 'INVOICE');
             });

@@ -1,122 +1,67 @@
-// Casing pipe stock screen (Bills tab card + "Pipe stock" sheet) and the low-stock warning
-// after a final bill is saved. Maths: stockMath.js. Owner and managers only (drivers see only
-// their own bills, so their phone cannot know the real balance); single-user phones = owner.
+// Casing pipe stock (Settings → Rig work → "Casing pipes"), per rig:
+//   stock of 7″ and 10″ in feet and pipes, low-stock warning, Purchase (pipe count × cost per pipe),
+//   Opening stock, Adjustment (feet, minus for cut / damaged pieces), entries, bills that used pipe;
+//   owner: pipe length, alert levels, cost per pipe, the drilling-only 7″ rate and its name.
+// After a final bill is saved, a toast warns when that rig's casing is low. Also sets up the
+// "With pipe / Drilling only" choice on the bill (casingMode.js). Maths: stockMath.js.
+// Who: owner everything; managers their rigs; office staff with "stock". Only the owner deletes.
 import { STORAGE_KEYS, storage } from '../../data/storage.js';
-import { isOwnerOrLocal, visibleRigs, getCurrentRig, onAccessChange, can } from '../../cloud/access.js';
+import { isOwnerOrLocal, visibleRigs, getCurrentRig, can } from '../../cloud/access.js';
 import { billRigId, multiRig } from '../team/rigFilter.js';
-import { stockSummary, lowStock, makeStockEntry, STOCK_TYPES } from './stockMath.js';
+import { icon, paintIcons } from '../../ui/icon.js';
+import { el, btn, field, input, seg, openSheet, item, label, pill } from '../../ui/sheet.js';
+import { todayYmd } from '../workers/workersMath.js';
+import { shortDate } from '../tools/toolsMath.js';
+import { stockSummary, lowStock, makeStockEntry, stockSettings, stockUsage, feetAndPipes, STOCK_TYPES } from './stockMath.js';
+import { initCasingMode } from './casingMode.js';
 
-const DEFAULT_LOW = { casing1: 200, casing2: 100 };
-
-function el(tag, attrs = {}, children = []) {
-    const node = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) {
-        if (v === undefined || v === null || v === false) continue;
-        if (k === 'text') node.textContent = v;
-        else if (k === 'class') node.className = v;
-        else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
-        else node.setAttribute(k, v === true ? '' : v);
-    }
-    for (const c of [].concat(children)) if (c) node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-    return node;
-}
-
-function readEntries() {
-    try {
-        const v = JSON.parse(storage.getRaw(STORAGE_KEYS.stock) || '[]');
-        return Array.isArray(v) ? v : [];
-    } catch {
-        return [];
-    }
-}
-
-const canUseStock = () => can('stock');
+export const readStock = () => storage.getList(STORAGE_KEYS.stock) || [];
+const saveStock = (app, list) => (app?.saveToStorage ? app.saveToStorage(STORAGE_KEYS.stock, list) : (storage.setList(STORAGE_KEYS.stock, list), true));
+const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
+const names = (app) => ({ casing1: app.getCasing1ShortName?.() || '7"', casing2: app.getCasing2ShortName?.() || '10"' });
 
 /** Rigs to show: none (single-user / one rig → company-wide), or each visible rig. */
 function rigsToShow() {
     if (!multiRig()) return [{ id: null, name: '' }];
     return visibleRigs().map((r) => ({ id: r.id, name: r.name }));
 }
+const summaryFor = (app, rigId) => stockSummary({ entries: readStock(), bills: app.history || [], rigId, rigOf: billRigId });
 
-function thresholds(app) {
-    return {
-        casing1: Number(app.brand?.lowStockCasing1Ft ?? DEFAULT_LOW.casing1) || 0,
-        casing2: Number(app.brand?.lowStockCasing2Ft ?? DEFAULT_LOW.casing2) || 0
-    };
+/** Settings row text. */
+export function pipeStockLine(app) {
+    const n = names(app);
+    const st = stockSettings(app.brand);
+    const parts = [];
+    let low = 0;
+    for (const r of rigsToShow()) {
+        const s = summaryFor(app, r.id);
+        if (!s.tracking) continue;
+        low += lowStock(s, st.low).length;
+        if (parts.length < 1) parts.push(`${n.casing1} ${s.casing1.balance.toLocaleString('en-IN')} ft · ${n.casing2} ${s.casing2.balance.toLocaleString('en-IN')} ft${rigsToShow().length > 1 ? ` (${r.name})` : ''}`);
+    }
+    if (!parts.length) return 'Stock of 7″ and 10″ pipes, purchases';
+    return `${low ? `⚠ ${low} low · ` : ''}${parts[0]}`;
 }
-
-function summaryFor(app, rigId) {
-    return stockSummary({ entries: readEntries(), bills: app.history || [], rigId, rigOf: billRigId });
-}
-
-const ft = (n) => `${Number(n).toLocaleString('en-IN')} ft`;
 
 export function initStockUI(app) {
-    const panel = document.getElementById('tab-history');
-    if (!panel) return;
-    const card = el('div', { class: 'ui-card stock-card', id: 'stockCard' });
-    panel.insertBefore(card, panel.firstChild);
-
-    const render = () => {
-        card.textContent = '';
-        if (!canUseStock()) { card.hidden = true; return; }
-        card.hidden = false;
-        const names = [app.getCasing1ShortName?.() || '7"', app.getCasing2ShortName?.() || '10"'];
-        const limits = thresholds(app);
-        const rows = rigsToShow().map((rig) => {
-            const s = summaryFor(app, rig.id);
-            const warn = lowStock(s, limits);
-            const cell = (key, i) => {
-                const w = warn.find((x) => x.key === key);
-                return el('span', { class: `stk-bal${w ? (w.negative ? ' is-neg' : ' is-low') : ''}` },
-                    [el('small', { text: names[i] }), el('strong', { text: s.tracking ? ft(s[key].balance) : '—' })]);
-            };
-            return el('div', { class: 'stk-line' }, [
-                rig.name ? el('span', { class: 'stk-rig', text: `🚜 ${rig.name}` }) : null,
-                cell('casing1', 0), cell('casing2', 1)
-            ]);
-        });
-        const anyTracking = rigsToShow().some((r) => summaryFor(app, r.id).tracking);
-        card.append(
-            el('div', { class: 'stk-head' }, [
-                el('div', {}, [
-                    el('strong', { class: 'stk-title', text: '📦 Pipe stock' }),
-                    el('span', { class: 'stk-sub', text: anyTracking ? 'Goes down automatically when a final bill is saved' : 'Add your opening stock to start tracking casing pipes' })
-                ]),
-                el('button', { type: 'button', class: 'stk-open-btn', text: anyTracking ? 'Manage' : 'Start', onclick: () => openSheet(app, render) })
-            ]),
-            ...(anyTracking ? rows : [])
-        );
-    };
-
-    onAccessChange(render);
-    window.addEventListener('drillrig:stock-changed', render);
-    // Bills change stock: re-draw whenever the bill book is saved.
-    const origSave = app.saveToStorage.bind(app);
-    app.saveToStorage = (key, data, changed) => {
-        const ok = origSave(key, data, changed);
-        if (key === STORAGE_KEYS.history || key === STORAGE_KEYS.stock || key === STORAGE_KEYS.brand) {
-            try { render(); } catch { /* ignore */ }
-        }
-        return ok;
-    };
-
+    initCasingMode(app);
     // After a final bill is saved: warn when that rig's casing stock is low or negative.
-    const origSaveBill = app.saveCurrentBillToHistory.bind(app);
+    const origSaveBill = app.saveCurrentBillToHistory?.bind(app);
+    if (!origSaveBill) return;
     app.saveCurrentBillToHistory = async (...args) => {
         const before = (app.history || []).length;
         const result = await origSaveBill(...args);
         try {
             const isNew = (app.history || []).length > before;
             const saved = isNew ? app.history?.[0] : (app.history || []).find((h) => h.id === app.loadedHistoryBillId);
-            if (canUseStock() && saved && saved.snapshot?.docType === 'INVOICE'
-                && (Number(saved.snapshot?.pvc7Length) > 0 || Number(saved.snapshot?.pvc10Length) > 0)) {
+            const snap = saved?.snapshot;
+            const used = { casing1: snap?.pvc7Mode !== 'drill' && Number(snap?.pvc7Length) > 0, casing2: Number(snap?.pvc10Length) > 0 };
+            if (can('stock') && snap?.docType === 'INVOICE' && (used.casing1 || used.casing2)) {
                 const rigId = multiRig() ? billRigId(saved) : null;
-                const used = { casing1: Number(saved.snapshot?.pvc7Length) > 0, casing2: Number(saved.snapshot?.pvc10Length) > 0 };
-                const warn = lowStock(summaryFor(app, rigId), thresholds(app)).filter((w) => used[w.key]); // only casings this bill used
+                const warn = lowStock(summaryFor(app, rigId), stockSettings(app.brand).low).filter((w) => used[w.key]);
                 if (warn.length) {
-                    const names = { casing1: app.getCasing1ShortName?.() || '7"', casing2: app.getCasing2ShortName?.() || '10"' };
-                    const text = warn.map((w) => `${names[w.key]} ${w.negative ? `short by ${ft(-w.balance)}` : `only ${ft(w.balance)} left`}`).join(', ');
+                    const n = names(app);
+                    const text = warn.map((w) => `${n[w.key]} ${w.negative ? `short by ${-w.balance} ft` : `only ${w.balance} ft left`}`).join(', ');
                     setTimeout(() => app.showToast?.(`📦 Pipe stock: ${text}`), 1200);
                 }
             }
@@ -125,146 +70,184 @@ export function initStockUI(app) {
         }
         return result;
     };
-
-    render();
 }
 
-function openSheet(app, onChange) {
-    const names = [app.getCasing1ShortName?.() || '7"', app.getCasing2ShortName?.() || '10"'];
+export function openPipeStock(app) {
+    if (!can('stock')) { app?.showToast?.('You do not have access to pipe stock. Ask the owner.'); return; }
     const rigs = rigsToShow();
-    let rigId = multiRig() ? (getCurrentRig()?.id || rigs[0]?.id) : null;
-    const owner = isOwnerOrLocal();
+    let rigId = rigs.some((r) => r.id === getCurrentRig()?.id) ? getCurrentRig().id : rigs[0].id;
+    let adding = null; // 'purchase' | 'opening' | 'adjust'
+    const onChange = () => render();
+    const sheet = openSheet({ title: 'Casing pipes', sub: '', ic: 'cylinder', onClose: () => window.removeEventListener('drillrig:stock-changed', onChange) });
 
-    const body = el('div', { class: 'tm-body' });
-    const msg = el('p', { class: 'tm-msg', role: 'alert' });
-    const close = () => { overlay.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
-    const overlay = el('div', { class: 'tm-overlay' }, [
-        el('div', { class: 'tm-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'stkTitle' }, [
-            el('div', { class: 'tm-head' }, [
-                el('h2', { id: 'stkTitle', text: '📦 Pipe stock' }),
-                el('button', { type: 'button', class: 'tm-close', 'aria-label': 'Close', text: '✕', onclick: close })
-            ]),
-            msg, body
-        ])
-    ]);
-    document.addEventListener('keydown', onKey);
-    document.body.appendChild(overlay);
-    const say = (text, ok = false) => { msg.textContent = text || ''; msg.className = `tm-msg${ok ? ' ok' : ''}`; };
-
-    const save = (list) => {
-        app.saveToStorage(STORAGE_KEYS.stock, list);
-        onChange();
-        draw();
-    };
-
-    function draw() {
-        body.textContent = '';
-        const s = summaryFor(app, rigId);
-        const today = app.toLocalYMD ? app.toLocalYMD(new Date()) : new Date().toISOString().slice(0, 10);
-
-        if (rigs.length > 1) {
-            const sel = el('select', { class: 'tm-select', id: 'stkRig', 'aria-label': 'Rig' },
-                rigs.map((r) => el('option', { value: r.id, selected: r.id === rigId, text: r.name })));
-            sel.addEventListener('change', () => { rigId = sel.value; say(''); draw(); });
-            body.append(el('label', { for: 'stkRig', class: 'tm-label', text: 'Rig' }), sel);
+    function entryForm(type) {
+        const st = stockSettings(app.brand);
+        const n = names(app);
+        const uid = type;
+        const date = input(`psDate${uid}`, { type: 'date', value: todayYmd(), max: todayYmd() });
+        const note = input(`psNote${uid}`, { type: 'text', maxlength: '200', placeholder: type === 'adjust' ? 'Reason (cut, damaged, returned)' : 'Supplier, bill no. (optional)' });
+        const err = el('p', { class: 'tt-msg', role: 'alert', hidden: true });
+        const kids = [];
+        let a1;
+        let a2;
+        let cost1;
+        let cost2;
+        const total = el('strong', { class: 'ca-total' });
+        if (type === 'adjust') {
+            a1 = input(`psA1${uid}`, { type: 'number', inputmode: 'decimal', step: '1', placeholder: 'e.g. -8' });
+            a2 = input(`psA2${uid}`, { type: 'number', inputmode: 'decimal', step: '1', placeholder: '0' });
+            kids.push(el('p', { class: 'ca-note', text: 'In feet. A minus number takes pipe out (cut, damaged, returned).' }));
+            kids.push(el('div', { class: 'tt-fields is-half' }, [field(a1.id, `${n.casing1} feet`, a1), field(a2.id, `${n.casing2} feet`, a2)]));
+        } else {
+            a1 = input(`psA1${uid}`, { type: 'number', inputmode: 'numeric', min: '0', step: '1', placeholder: '0' });
+            a2 = input(`psA2${uid}`, { type: 'number', inputmode: 'numeric', min: '0', step: '1', placeholder: '0' });
+            kids.push(el('div', { class: 'tt-fields is-half' }, [field(a1.id, `${n.casing1} pipes`, a1), field(a2.id, `${n.casing2} pipes`, a2)]));
+            if (type === 'purchase') {
+                cost1 = input(`psC1${uid}`, { type: 'number', inputmode: 'numeric', min: '0', step: '1', placeholder: 'e.g. 2400', value: st.cost.casing1 || '' });
+                cost2 = input(`psC2${uid}`, { type: 'number', inputmode: 'numeric', min: '0', step: '1', placeholder: 'e.g. 6500', value: st.cost.casing2 || '' });
+                kids.push(el('div', { class: 'tt-fields is-half' }, [field(cost1.id, `${n.casing1} ₹ per pipe`, cost1), field(cost2.id, `${n.casing2} ₹ per pipe`, cost2)]));
+            }
+            kids.push(total);
         }
-
-        // Balance
-        const bal = (key, i) => el('div', { class: 'stk-big' }, [
-            el('small', { text: names[i] }),
-            el('strong', { class: s[key].balance < 0 ? 'is-neg' : '', text: s.tracking ? ft(s[key].balance) : '—' }),
-            s.tracking ? el('span', { text: `In ${ft(s[key].in)} · Used ${ft(s[key].used)}` }) : null
-        ]);
-        body.append(el('section', { class: 'tm-section' }, [
-            el('div', { class: 'stk-big-row' }, [bal('casing1', 0), bal('casing2', 1)]),
-            el('p', { class: 'tm-help', text: s.tracking
-                ? `Counting final bills from ${s.since} (${s.billsCounted} bill${s.billsCounted === 1 ? '' : 's'} with pipes). Quotations do not use stock.`
-                : 'Start with an "Opening stock" entry: the pipes you have today. Final bills from that date on are taken off automatically.' })
-        ]));
-
-        // Add entry
-        const type = el('select', { class: 'tm-select', id: 'stkType' },
-            Object.entries(STOCK_TYPES).map(([k, v]) => el('option', { value: k, selected: k === (s.tracking ? 'purchase' : 'opening'), text: v })));
-        const date = el('input', { type: 'date', class: 'tm-input', id: 'stkDate', value: today, max: today });
-        const c1 = el('input', { type: 'number', inputmode: 'decimal', class: 'tm-input', id: 'stkC1', placeholder: '0' });
-        const c2 = el('input', { type: 'number', inputmode: 'decimal', class: 'tm-input', id: 'stkC2', placeholder: '0' });
-        const note = el('input', { type: 'text', class: 'tm-input', id: 'stkNote', maxlength: '200', placeholder: 'Supplier / reason (optional)' });
-        body.append(el('section', { class: 'tm-section' }, [
-            el('h3', { text: 'Add stock' }),
-            el('div', { class: 'stk-form' }, [
-                el('div', {}, [el('label', { for: 'stkType', class: 'tm-label', text: 'Type' }), type]),
-                el('div', {}, [el('label', { for: 'stkDate', class: 'tm-label', text: 'Date' }), date]),
-                el('div', {}, [el('label', { for: 'stkC1', class: 'tm-label', text: `${names[0]} feet` }), c1]),
-                el('div', {}, [el('label', { for: 'stkC2', class: 'tm-label', text: `${names[1]} feet` }), c2])
-            ]),
-            el('label', { for: 'stkNote', class: 'tm-label', text: 'Note' }), note,
-            el('p', { class: 'tm-help', text: 'Adjustment: use a minus number to remove damaged or returned pipes.' }),
-            el('button', {
-                type: 'button', class: 'tm-btn primary wide', text: 'Add to stock',
+        const show = () => {
+            if (type === 'adjust') return;
+            const p1 = Math.max(0, Math.floor(Number(a1.value) || 0));
+            const p2 = Math.max(0, Math.floor(Number(a2.value) || 0));
+            const feet = `${(p1 * st.pipeFt).toLocaleString('en-IN')} ft + ${(p2 * st.pipeFt).toLocaleString('en-IN')} ft`;
+            total.textContent = type === 'purchase' ? `${feet} · total ${inr(p1 * (Number(cost1.value) || 0) + p2 * (Number(cost2.value) || 0))}` : feet;
+        };
+        [a1, a2, cost1, cost2].filter(Boolean).forEach((x) => x.addEventListener('input', show));
+        show();
+        kids.push(el('div', { class: 'tt-fields is-half' }, [field(date.id, 'Date', date), field(note.id, 'Note', note)]), err);
+        return el('div', { class: 'tt-form' }, [...kids, el('div', { class: 'tt-acts is-two' }, [
+            btn('Cancel', { onclick: () => { adding = null; render(); } }),
+            btn(type === 'purchase' ? 'Add purchase' : type === 'opening' ? 'Save opening stock' : 'Save adjustment', {
+                kind: 'pri', ic: 'check',
                 onclick: () => {
-                    const { entry, error } = makeStockEntry({ type: type.value, date: date.value, casing1Ft: c1.value, casing2Ft: c2.value, note: note.value, rigId });
-                    if (error) { say(`⚠️ ${error}`); return; }
-                    save([entry, ...readEntries()]);
-                    say(`✅ ${STOCK_TYPES[entry.type]} added`, true);
+                    const res = makeStockEntry(type === 'adjust'
+                        ? { type, date: date.value, casing1Ft: a1.value, casing2Ft: a2.value, note: note.value, rigId }
+                        : { type, date: date.value, casing1Pipes: a1.value || 0, casing2Pipes: a2.value || 0, cost1: cost1?.value, cost2: cost2?.value, pipeFt: st.pipeFt, note: note.value, rigId });
+                    if (res.error) { err.hidden = false; err.textContent = res.error; return; }
+                    if (!saveStock(app, [res.entry, ...readStock()])) return;
+                    adding = null;
+                    sheet.say(`${STOCK_TYPES[type]} saved${res.entry.amount ? ` · ${inr(res.entry.amount)}` : ''}.`, true);
+                    render();
                 }
             })
-        ]));
+        ])]);
+    }
 
-        // Low-stock levels (owner: they are company settings)
-        if (owner) {
-            const l = thresholds(app);
-            const l1 = el('input', { type: 'number', inputmode: 'numeric', class: 'tm-input', id: 'stkL1', value: String(l.casing1) });
-            const l2 = el('input', { type: 'number', inputmode: 'numeric', class: 'tm-input', id: 'stkL2', value: String(l.casing2) });
-            body.append(el('section', { class: 'tm-section' }, [
-                el('h3', { text: 'Low-stock alert' }),
-                el('div', { class: 'stk-form' }, [
-                    el('div', {}, [el('label', { for: 'stkL1', class: 'tm-label', text: `${names[0]} at or below` }), l1]),
-                    el('div', {}, [el('label', { for: 'stkL2', class: 'tm-label', text: `${names[1]} at or below` }), l2])
-                ]),
-                el('button', {
-                    type: 'button', class: 'tm-btn', text: 'Save alert levels',
+    function entryRow(e) {
+        const n = names(app);
+        const part = (key, ftKey, pipesKey, costKey) => {
+            const f = Number(e[ftKey]) || 0;
+            if (!f) return '';
+            const p = Number(e[pipesKey]) || 0;
+            return `${n[key]} ${f > 0 && e.type === 'adjust' ? '+' : ''}${f.toLocaleString('en-IN')} ft${p ? ` (${p} pipe${p === 1 ? '' : 's'}${e[costKey] ? ` × ${inr(e[costKey])}` : ''})` : ''}`;
+        };
+        return item({
+            avatar: el('span', { class: `tt-avatar is-tool ca-av is-${e.type === 'adjust' ? 'handover' : e.type === 'purchase' ? 'in' : 'diesel'}`, 'aria-hidden': 'true' }, [icon(e.type === 'adjust' ? 'pencil' : e.type === 'purchase' ? 'shopping-cart' : 'package')]),
+            title: `${STOCK_TYPES[e.type] || e.type} · ${shortDate(e.date)}`,
+            subText: [part('casing1', 'casing1Ft', 'casing1Pipes', 'cost1'), part('casing2', 'casing2Ft', 'casing2Pipes', 'cost2'), e.note].filter(Boolean).join(' · '),
+            pill: e.amount ? pill(inr(e.amount), 'is-muted') : null,
+            bodyKids: isOwnerOrLocal() ? () => [el('div', { class: 'tt-acts' }, [btn('Delete', {
+                kind: 'danger', ic: 'trash-2',
+                onclick: () => app.confirmDeleteModal({
+                    title: 'Delete this stock entry?',
+                    subtitle: 'Only if it was added by mistake',
+                    itemLabel: `${STOCK_TYPES[e.type] || e.type} · ${shortDate(e.date)}`,
+                    message: 'The stock changes at once. To record damaged pipes, add an Adjustment instead.',
+                    confirmBtnLabel: 'Delete',
+                    onConfirm: () => { saveStock(app, readStock().filter((x) => x.id !== e.id)); render(); }
+                })
+            })])] : null
+        });
+    }
+
+    function settingsFold() {
+        const st = stockSettings(app.brand);
+        const n = names(app);
+        const pipeFt = input('psPipeFt', { type: 'number', inputmode: 'numeric', min: '1', step: '1', value: String(st.pipeFt) });
+        const l1 = input('psL1', { type: 'number', inputmode: 'numeric', min: '0', step: '5', value: String(st.low.casing1) });
+        const l2 = input('psL2', { type: 'number', inputmode: 'numeric', min: '0', step: '5', value: String(st.low.casing2) });
+        const c1 = input('psCost1', { type: 'number', inputmode: 'numeric', min: '0', step: '1', value: st.cost.casing1 || '' , placeholder: 'e.g. 2400' });
+        const c2 = input('psCost2', { type: 'number', inputmode: 'numeric', min: '0', step: '1', value: st.cost.casing2 || '', placeholder: 'e.g. 6500' });
+        const dr = input('psDrillRate', { type: 'number', inputmode: 'numeric', min: '1', step: '10', value: String(st.drillRate) });
+        const dn = input('psDrillName', { type: 'text', maxlength: '40', value: st.drillName });
+        return el('details', { class: 'tt-fold tt-card' }, [
+            el('summary', {}, [el('span', { class: 'tt-tile is-grey' }, [icon('settings-2')]), el('span', { class: 'tt-fold-title', text: 'Pipe settings' }), el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])]),
+            el('div', { class: 'tt-fold-body' }, [
+                field('psPipeFt', 'One pipe is (feet)', pipeFt),
+                el('div', { class: 'tt-fields is-half' }, [field('psL1', `Warn when ${n.casing1} is below (ft)`, l1), field('psL2', `Warn when ${n.casing2} is below (ft)`, l2)]),
+                el('div', { class: 'tt-fields is-half' }, [field('psCost1', `${n.casing1} ₹ per pipe`, c1), field('psCost2', `${n.casing2} ₹ per pipe`, c2)]),
+                el('span', { class: 'tt-mini', text: `${n.casing1} casing without pipe (drilling only)` }),
+                el('div', { class: 'tt-fields is-half' }, [field('psDrillRate', '₹ per ft', dr), field('psDrillName', 'Name on the bill', dn)]),
+                el('small', { class: 'tt-hint', text: 'For a dry bore where the pipe is pulled out: choose "Drilling only" on the bill.' }),
+                btn('Save settings', {
+                    kind: 'pri', ic: 'check',
                     onclick: () => {
-                        const a = Math.max(0, Math.round(Number(l1.value) || 0));
-                        const b = Math.max(0, Math.round(Number(l2.value) || 0));
-                        app.brand.lowStockCasing1Ft = a;
-                        app.brand.lowStockCasing2Ft = b;
+                        const pos = (v, d) => (Number(v) > 0 ? Math.round(Number(v)) : d);
+                        const zero = (v) => Math.max(0, Math.round(Number(v) || 0));
+                        Object.assign(app.brand, {
+                            pipeLengthFt: pos(pipeFt.value, 20),
+                            lowStockCasing1Ft: zero(l1.value), lowStockCasing2Ft: zero(l2.value),
+                            pipeCost1: zero(c1.value), pipeCost2: zero(c2.value),
+                            casing7DrillRate: pos(dr.value, 200), casing7DrillName: String(dn.value || '').trim().slice(0, 40) || 'Re-cutting charge'
+                        });
                         app.saveToStorage(STORAGE_KEYS.brand, app.brand);
-                        onChange();
-                        say('✅ Alert levels saved', true);
+                        sheet.say('Pipe settings saved.', true);
+                        render();
                     }
                 })
-            ]));
-        }
-
-        // Entries
-        const rows = s.entries.map((e) => el('div', { class: 'tm-row' }, [
-            el('div', { class: 'tm-person' }, [
-                el('strong', { text: `${STOCK_TYPES[e.type] || e.type} · ${e.date}` }),
-                el('span', { text: [
-                    Number(e.casing1Ft) ? `${names[0]}: ${Number(e.casing1Ft) > 0 ? '+' : ''}${ft(e.casing1Ft)}` : '',
-                    Number(e.casing2Ft) ? `${names[1]}: ${Number(e.casing2Ft) > 0 ? '+' : ''}${ft(e.casing2Ft)}` : '',
-                    e.note || ''
-                ].filter(Boolean).join(' · ') })
-            ]),
-            owner && el('div', { class: 'tm-actions' }, [
-                el('button', {
-                    type: 'button', class: 'tm-btn danger', text: 'Delete',
-                    onclick: () => app.confirmDeleteModal({
-                        title: 'Delete stock entry?',
-                        subtitle: 'The balance changes at once',
-                        itemLabel: `📦 ${STOCK_TYPES[e.type] || e.type} · ${e.date}`,
-                        message: 'Use this for an entry made by mistake. To record damaged pipes, add an Adjustment instead.',
-                        confirmBtnLabel: 'Delete',
-                        onConfirm: () => { save(readEntries().filter((x) => x.id !== e.id)); say('Entry deleted', true); }
-                    })
-                })
             ])
-        ]));
-        body.append(el('section', { class: 'tm-section' }, [
-            el('h3', { text: 'Stock entries' }),
-            ...(rows.length ? rows : [el('p', { class: 'tm-help', text: 'No entries yet.' })])
-        ]));
+        ]);
     }
-    draw();
+
+    function render() {
+        const n = names(app);
+        const st = stockSettings(app.brand);
+        const s = summaryFor(app, rigId);
+        const warn = lowStock(s, st.low);
+        const rigName = rigs.find((r) => r.id === rigId)?.name;
+        sheet.setSub(`${rigName ? `${rigName} · ` : ''}${s.tracking ? `${n.casing1} ${s.casing1.balance} ft · ${n.casing2} ${s.casing2.balance} ft` : 'Not started yet'}`);
+        const box = (key) => {
+            const w = warn.find((x) => x.key === key);
+            return el('div', { class: `ps-box${w ? (w.negative ? ' is-neg' : ' is-low') : ''}` }, [
+                el('small', { text: n[key] }),
+                el('strong', { text: s.tracking ? `${s[key].balance.toLocaleString('en-IN')} ft` : '—' }),
+                el('span', { text: s.tracking ? feetAndPipes(s[key].balance, st.pipeFt).replace(/^[^(]*\(|\)$/g, '') : 'not tracked' }),
+                s.tracking ? el('em', { text: `In ${s[key].in.toLocaleString('en-IN')} · used ${s[key].used.toLocaleString('en-IN')} ft` }) : null
+            ]);
+        };
+        const usage = s.tracking ? stockUsage({ bills: app.history || [], since: s.since, rigId, rigOf: billRigId, limit: 15 }) : [];
+        const acts = (key, text, ic) => btn(text, { kind: adding === key ? 'pri' : 'soft', ic, onclick: () => { adding = adding === key ? null : key; render(); } });
+        sheet.body.replaceChildren(...[
+            rigs.length > 1 ? seg('psRig', rigs.map((r) => ({ key: r.id, label: r.name })), rigId, (v) => { rigId = v; adding = null; render(); }) : null,
+            el('div', { class: 'tt-card ps-stock' }, [
+                el('div', { class: 'ps-boxes' }, [box('casing1'), box('casing2')]),
+                ...warn.map((w) => el('p', { class: 'wk-warn' }, [icon('triangle-alert'), el('span', { text: w.negative ? `${n[w.key]}: bills used ${-w.balance} ft more than you have. Add the purchase or opening stock.` : `${n[w.key]} is low: ${w.balance} ft left (alert below ${w.limit} ft).` })])),
+                el('p', { class: 'ca-note', text: s.tracking
+                    ? `Goes down by itself when a final bill with pipe is saved (from ${shortDate(s.since)}). "Drilling only" bills and quotations do not use pipe.`
+                    : 'Start with your opening stock: the pipes on the rig today. Final bills from that day on take pipe out by themselves.' })
+            ]),
+            el('div', { class: 'ca-acts' }, [
+                acts('purchase', 'Purchase', 'shopping-cart'),
+                acts(s.tracking ? 'adjust' : 'opening', s.tracking ? 'Adjustment' : 'Opening stock', s.tracking ? 'pencil' : 'package'),
+                s.tracking ? acts('opening', 'Opening stock', 'package') : null
+            ]),
+            adding ? el('div', { class: 'tt-card' }, [el('div', { class: 'tt-form-head' }, [el('strong', { text: STOCK_TYPES[adding] })]), entryForm(adding)]) : null,
+            s.entries.length ? label('Stock entries', s.entries.length) : null,
+            s.entries.length ? el('div', { class: 'tt-card' }, [el('div', { class: 'tt-list' }, s.entries.slice(0, 40).map(entryRow))]) : null,
+            usage.length ? label('Used on bills', usage.length) : null,
+            usage.length ? el('div', { class: 'tt-card' }, [el('ol', { class: 'tl-mm' }, usage.map((u) => el('li', {}, [
+                el('span', { text: `${shortDate(u.day)} · #${u.billNo} ${u.custName}`.trim() }),
+                el('strong', { text: [u.casing1 ? `${n.casing1} ${u.casing1} ft` : '', u.casing2 ? `${n.casing2} ${u.casing2} ft` : ''].filter(Boolean).join(' · ') })
+            ])))]) : null,
+            isOwnerOrLocal() ? settingsFold() : null
+        ].filter(Boolean));
+        paintIcons();
+    }
+
+    window.addEventListener('drillrig:stock-changed', onChange);
+    render();
 }

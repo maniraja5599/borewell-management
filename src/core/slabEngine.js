@@ -239,7 +239,11 @@ export function computeBillTotals(rates, s) {
     }
 
     const drillingCost = slabCalc.totalCost;
-    const pvc7Cost = pvc7Length * rates.pvc7Rate;
+    // 7″ casing: with pipe (rates.pvc7Rate) or "drilling only" — casing hole drilled, no pipe from
+    // stock (e.g. pulled out of a dry bore) — at the bill's own drilling-only rate.
+    const pvc7Mode = s.pvc7Mode === 'drill' ? 'drill' : 'pipe';
+    const pvc7Rate = pvc7Mode === 'drill' ? (Number(s.pvc7DrillRate) > 0 ? Number(s.pvc7DrillRate) : 200) : rates.pvc7Rate;
+    const pvc7Cost = pvc7Length * pvc7Rate;
     const pvc10Cost = pvc10Length * rates.pvc10Rate;
     // Show ₹0 initially before any depth, pipe, or extra charge is entered; auto-apply Bore Bata as soon as billing starts
     const hasAnyBillActivity = (
@@ -279,7 +283,9 @@ export function computeBillTotals(rates, s) {
         oldBoreCost,
         baseDrillingRate,
         pvc7Length,
-        pvc7Rate: rates.pvc7Rate,
+        pvc7Rate,
+        // Only on drilling-only bills: every other bill stays exactly as before.
+        ...(pvc7Mode === 'drill' ? { pvc7Mode, pvc7DrillName: String(s.pvc7DrillName || '').slice(0, 40) } : {}),
         pvc7Cost,
         pvc10Length,
         pvc10Rate: rates.pvc10Rate,

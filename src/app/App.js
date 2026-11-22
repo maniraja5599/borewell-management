@@ -180,6 +180,8 @@ export class BoreBillSaaSApp {
             totalDepth: 0,
             baseDrillingRate: defaultProfile.rates.baseDrillingRate || 90,
             pvc7Length: 0,
+            pvc7Mode: 'pipe',        // 'drill' = 7″ casing drilled, no pipe from stock (Phase 7)
+            pvc7DrillRate: 0,        // that bill's drilling-only rate (0 = the company's)
             pvc10Length: 0,
             gstEnabled: false,
             collarCapCost: 0,

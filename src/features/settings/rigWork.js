@@ -9,6 +9,8 @@ import { openWorkers, readWorkers } from '../workers/workersUI.js';
 import { openTools, readTools } from '../tools/toolsUI.js';
 import { openCash, myCashLine } from '../cash/cashUI.js';
 import { openAttendance, attendanceLine } from '../workers/attendanceUI.js';
+import { openPipeStock, pipeStockLine } from '../stock/stockUI.js';
+import { FEATURES } from '../../config/features.js';
 
 export function initRigWork(app) {
     const anchor = document.getElementById('teamCard') || document.getElementById('accountCard');
@@ -35,6 +37,7 @@ export function initRigWork(app) {
         }
         if (can('stock')) {
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
+            if (FEATURES.pipeStock) rows.push(row('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app)));
             rows.push(row('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
         }
         if (can('expenses')) rows.push(row('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
@@ -47,12 +50,13 @@ export function initRigWork(app) {
     window.addEventListener('drillrig:tools-changed', render);
     window.addEventListener('drillrig:cash-changed', render);
     window.addEventListener('drillrig:attendance-changed', render);
+    window.addEventListener('drillrig:stock-changed', render);
     // Saved from the sheets on this phone.
     const origSave = app.saveToStorage?.bind(app);
     if (origSave) {
         app.saveToStorage = (key, data, changed) => {
             const ok = origSave(key, data, changed);
-            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history || key === STORAGE_KEYS.attendance) { try { render(); } catch { /* ignore */ } }
+            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history || key === STORAGE_KEYS.attendance || key === STORAGE_KEYS.stock || key === STORAGE_KEYS.brand) { try { render(); } catch { /* ignore */ } }
             return ok;
         };
     }

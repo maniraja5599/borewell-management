@@ -51,6 +51,10 @@ await app((demo) => {
         { id: 'h1', tool: 'hammer', size: '6.5', brand: 'Mission', price: 95000, status: 'active', purchasedOn: '2026-09-01', rigId: 'local' },
         { id: 'h9', tool: 'hammer', size: '9', brand: 'Numa', price: 140000, status: 'finished', finishedOn: '2026-11-01', purchasedOn: '2026-06-01', rigId: 'local' }
     ]);
+    a.saveToStorage('borebill_stock', [
+        { id: 'st1', type: 'opening', date: '2026-09-01', casing1Ft: 400, casing2Ft: 60, casing1Pipes: 20, casing2Pipes: 3, pipeFt: 20 },
+        { id: 'st2', type: 'purchase', date: '2026-11-10', casing1Ft: 200, casing2Ft: 0, casing1Pipes: 10, casing2Pipes: 0, pipeFt: 20, cost1: 2400, cost2: 0, amount: 24000, note: 'Sri Balaji Pipes, Namakkal bill 4471' }
+    ]);
     a.saveToStorage('borebill_cash', [
         { id: 'c1', type: 'in', amount: 20000, from: 'owner', date: t, holderId: 'me', holderName: '', rigId: null, createdAt: today.toISOString() },
         { id: 'c2', type: 'diesel', litres: 120.5, rate: 92.45, amount: 11140, source: 'bunk', bunk: 'Indian Oil Mohanur Road Junction', paidBy: 'cash', date: t, holderId: 'me', rigId: null, createdAt: today.toISOString() },
@@ -165,6 +169,15 @@ for (const [w, h] of VIEWS) {
     // Rig work sheets
     await openRow('Workers'); await expandRows(1); await record('Workers', view);
     await openRow('Bits & Hammers'); await expandRows(1); await record('Bits & Hammers', view);
+    await openRow('Casing pipes'); await record('Casing pipes', view);
+    for (const b of ['Purchase', 'Adjustment']) {
+        await app((b) => [...document.querySelectorAll('.ca-acts button')].find((x) => x.textContent.trim() === b)?.click(), b);
+        await wait(200);
+        await record(`Casing pipes - ${b} form`, view);
+    }
+    await app(() => document.querySelector('.tt-sheet details.tt-fold')?.setAttribute('open', ''));
+    await expandRows(1);
+    await record('Casing pipes - entries + settings', view);
     await openRow('Expenses & cash'); await record('Expenses & cash', view);
     for (const b of ['Expense', 'Diesel', 'Cash received', 'Hand over']) {
         await app((b) => [...document.querySelectorAll('.ca-acts button')].find((x) => x.textContent.trim() === b)?.click(), b);
@@ -206,7 +219,7 @@ for (const [t, id] of [['tab-bill', 'quickCustSearchInput'], ['tab-customers', '
 // ------------------------------------------------------------------ every harmless button in the sheets
 await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
 const skip = /delete|remove|clear|sign out|close/i;
-for (const sheet of ['Workers', 'Bits & Hammers', 'Expenses & cash', 'Attendance & wages']) {
+for (const sheet of ['Workers', 'Bits & Hammers', 'Casing pipes', 'Expenses & cash', 'Attendance & wages']) {
     await openRow(sheet);
     await expandRows(3);
     const n = await app(() => document.querySelectorAll('.tt-sheet button').length);

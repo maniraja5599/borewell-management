@@ -44,6 +44,17 @@ export class BackupMixin {
                         this.saveToStorage(STORAGE_KEYS.stock, sanitizeList(parsed.stock, 'stk'), []);
                         try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch (_) { /* ignore */ }
                     }
+                    // Rig work lists (backups from v2.9.1 on); older backups leave them as they are.
+                    for (const [key, list, prefix, evt] of [
+                        [STORAGE_KEYS.workers, parsed.workers, 'wkr', 'workers'],
+                        [STORAGE_KEYS.tools, parsed.tools, 'tool', 'tools'],
+                        [STORAGE_KEYS.cash, parsed.cash, 'cash', 'cash'],
+                        [STORAGE_KEYS.attendance, parsed.attendance, 'att', 'attendance']
+                    ]) {
+                        if (!Array.isArray(list)) continue;
+                        this.saveToStorage(key, sanitizeList(list, prefix), []);
+                        try { window.dispatchEvent(new CustomEvent(`drillrig:${evt}-changed`)); } catch (_) { /* ignore */ }
+                    }
                     if (Array.isArray(parsed.savedNotes)) {
                         this.savedNotes = parsed.savedNotes.filter((x) => x !== null && x !== undefined);
                         this.saveToStorage(STORAGE_KEYS.savedNotes, this.savedNotes);

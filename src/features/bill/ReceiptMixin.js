@@ -463,7 +463,7 @@ export class ReceiptMixin {
             }
         }
 
-        document.getElementById('rcptPvc7Label').textContent = `${c1Name} (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
+        document.getElementById('rcptPvc7Label').textContent = `${this.casing7LineName ? this.casing7LineName(res, c1Name) : c1Name} (${res.pvc7Length || 0} ft × ₹${res.pvc7Rate}/ft)`;
         document.getElementById('rcptPvc7Amount').textContent = this.formatINR(res.pvc7Cost);
 
         document.getElementById('rcptPvc10Label').textContent = `${c2Name} (${res.pvc10Length || 0} ft × ₹${res.pvc10Rate}/ft)`;

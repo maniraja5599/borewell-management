@@ -82,7 +82,7 @@ export class ShareExportMixin {
             let totalPipeCost = 0;
             let pipeCount = 0;
             if (res.pvc7Length > 0) {
-                otherLines.push(`• ${c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
+                otherLines.push(`• ${this.casing7LineName ? this.casing7LineName(res, c1Name) : c1Name} (${res.pvc7Length} ft × ₹${res.pvc7Rate}/ft) : *${this.formatINR(res.pvc7Cost)}*`);
                 totalPipeCost += (res.pvc7Cost || 0);
                 pipeCount++;
             }

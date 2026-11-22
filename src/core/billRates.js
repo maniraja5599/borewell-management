@@ -27,7 +27,7 @@ export function ratesForSavedBill(snap, currentRates) {
     }
 
     const r = ratesForSnapshot(currentRates);
-    if (s.pvc7Rate > 0) r.pvc7Rate = s.pvc7Rate;
+    if (s.pvc7Rate > 0 && s.pvc7Mode !== 'drill') r.pvc7Rate = s.pvc7Rate;
     if (s.pvc10Rate > 0) r.pvc10Rate = s.pvc10Rate;
     if (s.oldBoreRate > 0) r.oldBoreRate = s.oldBoreRate;
     if (typeof s.gstPercentage === 'number') r.gstPercentage = s.gstPercentage;

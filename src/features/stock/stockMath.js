@@ -1,7 +1,29 @@
 // Casing pipe stock, worked out — never stored.
 // Stock = (opening + purchases + adjustments) − pipe feet on FINAL bills of that rig,
 // counting only bills dated on/after the rig's first stock entry (so bills from before the
-// owner started tracking stock never make it negative). Quotations never count.
+// owner started tracking stock never make it negative). Quotations never count, and neither
+// does 7″ casing billed as "drilling only" (snapshot.pvc7Mode 'drill': no pipe left in the bore).
+//
+// Pipes are bought by COUNT (one pipe = 20 ft, owner can change it) at a cost per pipe; stock is
+// kept and shown in feet (and whole pipes). Adjustments are in feet (cut or damaged pieces).
+// Low-stock alerts default to 7″ below 100 ft, 10″ below 25 ft (owner can change them).
+
+export const PIPE_FT = 20;
+export const DEFAULT_LOW = Object.freeze({ casing1: 100, casing2: 25 });
+/** Pipe length, alerts, costs and the drilling-only rate saved in the company profile (brand). */
+export function stockSettings(brand) {
+    const pos = (v, d) => (Number.isFinite(Number(v)) && Number(v) > 0 ? Number(v) : d);
+    const zeroOk = (v, d) => (v === undefined || v === null || v === '' || !Number.isFinite(Number(v)) || Number(v) < 0 ? d : Number(v));
+    return {
+        pipeFt: pos(brand?.pipeLengthFt, PIPE_FT),
+        low: { casing1: zeroOk(brand?.lowStockCasing1Ft, DEFAULT_LOW.casing1), casing2: zeroOk(brand?.lowStockCasing2Ft, DEFAULT_LOW.casing2) },
+        cost: { casing1: zeroOk(brand?.pipeCost1, 0), casing2: zeroOk(brand?.pipeCost2, 0) },
+        drillRate: pos(brand?.casing7DrillRate, 200),
+        drillName: String(brand?.casing7DrillName || '').trim().slice(0, 40) || 'Re-cutting charge'
+    };
+}
+/** 7″ pipe on this bill came out of stock? (not "drilling only") */
+export const usesPipe7 = (snap) => (snap?.pvc7Mode || 'pipe') !== 'drill';
 
 export const STOCK_TYPES = {
     opening: 'Opening stock',
@@ -45,7 +67,7 @@ export function stockSummary({ entries = [], bills = [], rigId = null, rigOf = (
         if (!b || (b.snapshot?.docType || 'QUOTATION') !== 'INVOICE' || !onRig(b)) continue;
         const day = billDay(b);
         if (!day || day < since) continue;
-        const p1 = Math.max(0, num(b.snapshot?.pvc7Length));
+        const p1 = usesPipe7(b.snapshot) ? Math.max(0, num(b.snapshot?.pvc7Length)) : 0;
         const p2 = Math.max(0, num(b.snapshot?.pvc10Length));
         if (p1 || p2) billsCounted++;
         c1used += p1;
@@ -76,12 +98,25 @@ export function lowStock(summary, thresholds = {}) {
     return out;
 }
 
-/** A new stock entry from form values. Returns { entry } or { error }. */
-export function makeStockEntry({ type, date, casing1Ft, casing2Ft, note, rigId }, now = new Date()) {
+/**
+ * A new stock entry from form values. Returns { entry } or { error }.
+ * Opening / purchase: give pipe counts (casing1Pipes, casing2Pipes) and the cost per pipe;
+ * feet = pipes × pipeFt. Adjustment (or an old caller): feet directly, minus to remove.
+ */
+export function makeStockEntry({ type, date, casing1Ft, casing2Ft, casing1Pipes, casing2Pipes, cost1, cost2, pipeFt = PIPE_FT, note, rigId }, now = new Date()) {
     if (!STOCK_TYPES[type]) return { error: 'Choose opening stock, purchase or adjustment.' };
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || ''))) return { error: 'Choose a date.' };
-    const c1 = Number(casing1Ft || 0);
-    const c2 = Number(casing2Ft || 0);
+    const byPipes = type !== 'adjust' && (casing1Pipes !== undefined || casing2Pipes !== undefined);
+    let pipes1 = 0;
+    let pipes2 = 0;
+    if (byPipes) {
+        pipes1 = Number(casing1Pipes || 0);
+        pipes2 = Number(casing2Pipes || 0);
+        if (!Number.isInteger(pipes1) || !Number.isInteger(pipes2) || pipes1 < 0 || pipes2 < 0) return { error: 'Enter how many pipes (whole numbers).' };
+        if (pipes1 > 5000 || pipes2 > 5000) return { error: 'That is more than 5,000 pipes — please check.' };
+    }
+    const c1 = byPipes ? pipes1 * pipeFt : Number(casing1Ft || 0);
+    const c2 = byPipes ? pipes2 * pipeFt : Number(casing2Ft || 0);
     if (!Number.isFinite(c1) || !Number.isFinite(c2)) return { error: 'Feet must be numbers.' };
     if (type !== 'adjust' && (c1 < 0 || c2 < 0)) return { error: 'Feet cannot be negative (use Adjustment to reduce stock).' };
     if (!c1 && !c2) return { error: 'Enter feet for at least one casing size.' };
@@ -95,6 +130,40 @@ export function makeStockEntry({ type, date, casing1Ft, casing2Ft, note, rigId }
         note: String(note || '').trim().slice(0, 200),
         createdAt: now.toISOString()
     };
+    if (byPipes) {
+        const price = (v) => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.round(n) : 0; };
+        Object.assign(entry, { casing1Pipes: pipes1, casing2Pipes: pipes2, pipeFt });
+        if (type === 'purchase') {
+            const p1 = pipes1 ? price(cost1) : 0;
+            const p2 = pipes2 ? price(cost2) : 0;
+            Object.assign(entry, { cost1: p1, cost2: p2, amount: pipes1 * p1 + pipes2 * p2 });
+        }
+    }
     if (rigId) entry.rigId = rigId;
     return { entry };
+}
+
+/** Final bills that took pipe from this rig's stock, newest first: [{ id, billNo, custName, day, casing1, casing2 }]. */
+export function stockUsage({ bills = [], since = '', rigId = null, rigOf = (x) => x?.rigId || null, limit = 30 } = {}) {
+    const out = [];
+    for (const b of Array.isArray(bills) ? bills : []) {
+        if (!b || (b.snapshot?.docType || 'QUOTATION') !== 'INVOICE' || (rigId && rigOf(b) !== rigId)) continue;
+        const day = billDay(b);
+        if (!day || (since && day < since)) continue;
+        const c1 = usesPipe7(b.snapshot) ? Math.max(0, num(b.snapshot?.pvc7Length)) : 0;
+        const c2 = Math.max(0, num(b.snapshot?.pvc10Length));
+        if (c1 || c2) out.push({ id: b.id, billNo: b.billNo || '', custName: b.custName || '', day, casing1: c1, casing2: c2 });
+    }
+    return out.sort((a, b) => b.day.localeCompare(a.day)).slice(0, limit);
+}
+
+/** "340 ft (17 pipes)" — whole pipes plus any loose feet. */
+export function feetAndPipes(ft, pipeFt = PIPE_FT) {
+    const f = Math.round(Number(ft) * 10) / 10 || 0;
+    const sign = f < 0 ? '−' : '';
+    const abs = Math.abs(f);
+    const whole = Math.floor(abs / pipeFt);
+    const rest = Math.round((abs - whole * pipeFt) * 10) / 10;
+    const pipes = whole ? `${whole} pipe${whole === 1 ? '' : 's'}${rest ? ` + ${rest} ft` : ''}` : (rest ? `${rest} ft` : '0 pipes');
+    return `${sign}${abs.toLocaleString('en-IN')} ft (${sign}${pipes})`;
 }

@@ -345,7 +345,7 @@ export class BillFlowMixin {
         setVal('baseDrillingRate', s.baseDrillingRate || this.rates.baseDrillingRate || 90);
         setVal('oldBoreRateInput', s.oldBoreRate || this.rates.oldBoreRate || 40);
         setVal('billBoreBataInput', this.rates.boreBataRate ?? 2000);
-        setVal('pvc7RateInput', this.rates.pvc7Rate || 400);
+        setVal('pvc7RateInput', s.pvc7Mode === 'drill' ? (s.pvc7DrillRate || this.casing7DrillRate?.() || 200) : (this.rates.pvc7Rate || 400));
         setVal('pvc10RateInput', this.rates.pvc10Rate || 700);
 
         setPosVal('collarCapCost', s.collarCapCost);
@@ -390,7 +390,9 @@ export class BillFlowMixin {
             this.rates.oldBoreRate = Math.max(1, parseFloat(oldBoreRateInput.value) || this.rates.oldBoreRate || 40);
         }
         if (pvc7RateInput && pvc7RateInput.value !== '') {
-            this.rates.pvc7Rate = Math.max(1, parseFloat(pvc7RateInput.value) || this.rates.pvc7Rate || 400);
+            // "Drilling only": the box holds this bill's drilling-only rate, never the pipe rate.
+            if (this.state?.pvc7Mode === 'drill') this.state.pvc7DrillRate = Math.max(1, parseFloat(pvc7RateInput.value) || this.state.pvc7DrillRate || 200);
+            else this.rates.pvc7Rate = Math.max(1, parseFloat(pvc7RateInput.value) || this.rates.pvc7Rate || 400);
         }
         if (pvc10RateInput && pvc10RateInput.value !== '') {
             this.rates.pvc10Rate = Math.max(1, parseFloat(pvc10RateInput.value) || this.rates.pvc10Rate || 700);

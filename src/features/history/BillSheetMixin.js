@@ -40,7 +40,7 @@ export class BillSheetMixin {
         const pipe = (len, rate, cost, name) => {
             if (Number(len) > 0) lines.push({ label: name, detail: `${len} ft × ₹${rate}/ft`, amount: n(cost || len * rate) });
         };
-        pipe(snap.pvc7Length, snap.pvc7Rate || this.rates?.pvc7Rate || 400, snap.pvc7Cost, this.getCasing1Name?.() || '7" casing pipe');
+        pipe(snap.pvc7Length, snap.pvc7Rate || this.rates?.pvc7Rate || 400, snap.pvc7Cost, this.casing7LineName ? this.casing7LineName(snap, this.getCasing1Name?.() || '7" casing pipe') : (this.getCasing1Name?.() || '7" casing pipe'));
         pipe(snap.pvc10Length, snap.pvc10Rate || this.rates?.pvc10Rate || 700, snap.pvc10Cost, this.getCasing2Name?.() || '10" casing pipe');
         (snap.extraItems || []).forEach((it) => {
             const qty = Number(it.qty) || 0;
