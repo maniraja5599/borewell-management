@@ -195,6 +195,12 @@ async function refreshAccess() {
     if (st.rejected && (row.rigs || []).some((r) => r.active)) {
         for (const [k, v] of Object.entries(st.rejected)) if (v?.reason === 'subscription') delete st.rejected[k];
     }
+    // Refused for storage (0015): try again after 6 hours (the limit may have been raised meanwhile).
+    if (st.rejected) {
+        for (const [k, v] of Object.entries(st.rejected)) {
+            if ((v?.reason === 'quota' || v?.reason === 'too_large') && Date.now() - (v.at || 0) > 6 * 3600000) delete st.rejected[k];
+        }
+    }
     saveState(st);
     return changed;
 }
@@ -272,16 +278,23 @@ export function filterPushable(rows, role, rejected = {}, caps = []) {
 
 const REJECT_TEXT = {
     subscription: (n) => `⚠️ ${n} new bill${n === 1 ? '' : 's'} not uploaded — this rig's subscription has ended. ${n === 1 ? 'It is' : 'They are'} saved on this phone and will upload after renewal.`,
+    quota: (n) => `⚠️ Cloud storage full for your business: ${n} change${n === 1 ? ' is' : 's are'} saved on this phone only. Contact DrillRig support on WhatsApp.`,
+    too_large: (n) => `⚠️ ${n} item${n === 1 ? ' is' : 's are'} too big to back up (very long notes or a large picture). ${n === 1 ? 'It stays' : 'They stay'} on this phone.`,
     other: (n) => `⚠️ ${n} change${n === 1 ? ' was' : 's were'} not uploaded — not allowed for your role.`
 };
 
 function notifyRejected(app, rejected) {
     if (!rejected.length) return;
     console.warn('[sync] refused by server:', rejected);
-    const subs = rejected.filter((r) => r.reason === 'subscription').length;
-    const other = rejected.length - subs;
+    const count = (reason) => rejected.filter((r) => r.reason === reason).length;
+    const subs = count('subscription');
+    const quota = count('quota');
+    const big = count('too_large');
+    const other = rejected.length - subs - quota - big;
     try {
-        if (subs) app.showToast?.(REJECT_TEXT.subscription(subs));
+        if (quota) app.showToast?.(REJECT_TEXT.quota(quota));
+        else if (big) app.showToast?.(REJECT_TEXT.too_large(big));
+        else if (subs) app.showToast?.(REJECT_TEXT.subscription(subs));
         else if (other) app.showToast?.(REJECT_TEXT.other(other));
     } catch { /* ignore */ }
 }
@@ -372,7 +385,7 @@ async function pushRows(rows) {
         const byKey = new Map(rejected.map((x) => [recordKey(x.kind, x.id), x.reason]));
         for (const r of batch) {
             if (byKey.has(r.key)) {
-                st.rejected[r.key] = { hash: r.hash ?? 'deleted', reason: byKey.get(r.key) };
+                st.rejected[r.key] = { hash: r.hash ?? 'deleted', reason: byKey.get(r.key), at: Date.now() };
                 refused.push({ key: r.key, reason: byKey.get(r.key) });
                 continue;
             }

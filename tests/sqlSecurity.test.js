@@ -37,7 +37,7 @@ beforeAll(async () => {
     for (const f of ['0001_drillrig_sync.sql', '0002_soft_delete_and_size_limit.sql', '0003_rigs_roles_subscription.sql', '0004_activity_log.sql',
         '0005_pipe_stock.sql', '0006_pull_with_server_time.sql', '0007_admin_console.sql', '0008_admin_business_data.sql',
         '0009_admin_business_profile.sql', '0010_phone_and_invite_links.sql', '0011_invite_accept_reject.sql', '0012_phone_lookup.sql',
-        '0013_has_company.sql', '0014_office_workers_tools.sql']) await db.exec(sql(f));
+        '0013_has_company.sql', '0014_office_workers_tools.sql', '0015_storage_limits.sql']) await db.exec(sql(f));
     await as(OWNER);
     const me = await one(`select * from public.drillrig_my_company(p_name => 'Co', p_prefix => 'SM', p_company => null)`);
     co = me.company_id; rig1 = me.rigs[0].id;
@@ -132,6 +132,38 @@ describe('staff stay inside their role', () => {
             { kind: 'bill', id: '', data: {} }
         ]);
         expect(r.rejected.map((x) => x.reason)).toEqual(['too_large', 'invalid', 'invalid']);
+        // random text does not compress: a bill over 64 KB is refused, a logo of 300 KB in settings is fine
+        const rnd = (n) => Array.from({ length: n }, () => Math.random().toString(36).slice(2, 12)).join('');
+        const r2 = await push([{ kind: 'bill', id: 'b70k', data: { id: 'b70k', note: rnd(9000) } }, { kind: 'setting', id: 'brand', data: { companyName: 'Co', logoDataUrl: rnd(30000) } }]);
+        expect(r2.rejected.map((x) => `${x.id}:${x.reason}`)).toEqual(['b70k:too_large']);
         expect(await fails(`select public.drillrig_push($1, $2::jsonb)`, [co, JSON.stringify(Array.from({ length: 501 }, (_, i) => ({ kind: 'customer', id: `c${i}`, data: { id: `c${i}` } })))])).toBe(true);
     });
 });
+
+describe('storage quota per company (0015)', () => {
+    const rnd = (n) => Array.from({ length: n }, () => Math.random().toString(36).slice(2, 12)).join('');
+    it('a company over its limit gets "quota"; deletes still work; the admin can raise it', async () => {
+        await as(STRANGER);
+        const own = (await one(`select * from public.drillrig_my_company(p_name => null, p_prefix => null, p_company => null)`)).company_id;
+        await db.query(`update drillrig.company set storage_limit_mb = 1 where id = $1`, [own]);
+        const rows = Array.from({ length: 30 }, (_, i) => ({ kind: 'customer', id: `q${i}`, data: { id: `q${i}`, note: rnd(5000) } })); // ~50 KB each
+        const r = await one(`select public.drillrig_push($1, $2::jsonb) as r`, [own, JSON.stringify(rows)]).then((x) => x.r);
+        const refused = r.rejected.filter((x) => x.reason === 'quota').length;
+        expect(refused).toBeGreaterThan(5);
+        expect(refused).toBeLessThan(30);
+        const del = await one(`select public.drillrig_push($1, '[{"kind":"customer","id":"q0","data":{},"deleted":true}]'::jsonb) as r`, [own]).then((x) => x.r);
+        expect(del.rejected).toEqual([]);
+        expect(await fails(`select public.drillrig_admin_set_storage($1, 100)`, [own])).toBe(true); // not an admin
+    });
+
+    it('the activity log keeps the latest 20,000 entries per company', async () => {
+        await as(OWNER);
+        await db.query(`insert into drillrig.activity (company_id, kind, record_id, action, actor, summary)
+                        select $1, 'customer', 'x' || g, 'update', $2, '{}'::jsonb from generate_series(1, 20100) g`, [co, OWNER]);
+        await push([{ kind: 'customer', id: 'c-last', data: { id: 'c-last', name: 'Last' } }]);
+        const n = (await one(`select count(*)::int as n from drillrig.activity where company_id = $1`, [co])).n;
+        expect(n).toBeLessThanOrEqual(20001);
+        expect(n).toBeGreaterThanOrEqual(20000);
+    });
+});
+
