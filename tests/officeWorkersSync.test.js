@@ -112,3 +112,28 @@ describe('sync safety: a phone whose list suddenly became empty', () => {
         expect(holdMassDeletes([...deletes, up], new Map([['customer:c1', { kind: 'customer' }]]), hashes).rows).toEqual([up]);
     });
 });
+
+import { planPull, mergeBillPayments, hashData as hashOf, recordKey } from '../src/cloud/syncPlan.js';
+
+describe('a bill paid on two phones at once keeps both payments', () => {
+    const base = { id: 'b1', billNo: 'AB-108', snapshot: { docType: 'INVOICE', grandTotal: 1000 }, payments: [{ id: 'p0', amount: 100, date: '2026-11-20' }] };
+    const mine = { ...base, payments: [...base.payments, { id: 'pPhone', amount: 200, date: '2026-11-22' }] };
+    const theirs = { ...base, payments: [...base.payments, { id: 'pOwner', amount: 50, date: '2026-11-21' }] };
+
+    it('merges by payment id, in date order', () => {
+        expect(mergeBillPayments(mine, theirs).payments.map((p) => p.id)).toEqual(['p0', 'pOwner', 'pPhone']);
+        expect(mergeBillPayments(mine, mine)).toBeNull();
+    });
+
+    it('planPull applies the merged bill and leaves it to be uploaded', () => {
+        const key = recordKey('bill', 'b1');
+        const index = new Map([[key, { kind: 'bill', id: 'b1', data: mine, hash: hashOf(mine) }]]);
+        const hashes = { [key]: hashOf(base) };
+        const plan = planPull([{ kind: 'bill', id: 'b1', data: theirs, deleted: false, rev: 9 }], index, hashes);
+        expect(plan.conflicts).toEqual([key]);
+        expect(plan.apply).toHaveLength(1);
+        expect(plan.apply[0].merged).toBe(true);
+        expect(plan.apply[0].data.payments.map((p) => p.amount)).toEqual([100, 50, 200]);
+        expect(plan.synced[key]).toBeUndefined(); // still different from the cloud: uploaded next
+    });
+});

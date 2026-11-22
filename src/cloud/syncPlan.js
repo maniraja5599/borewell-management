@@ -155,12 +155,31 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
             // Both sides changed since the last sync: the phone's copy wins (it is uploaded next),
             // so tell the user instead of silently dropping the other phone's edit.
             if (remoteHash !== knownHash && row.kind !== 'setting') conflicts.push(key);
+            // A bill paid on two phones at once (owner + manager): money must never be lost, so the
+            // other phone's payments are added to this phone's copy (which is then uploaded).
+            const mine = index.get(key)?.data;
+            const merged = row.kind === 'bill' && !row.deleted && mine ? mergeBillPayments(mine, row.data) : null;
+            if (merged) apply.push({ kind: row.kind, id: row.id, data: merged, deleted: false, key, hash: hashData(merged), merged: true });
             continue;
         }
         apply.push({ kind: row.kind, id: row.id, data: row.data, deleted: !!row.deleted, key, hash: remoteHash });
         synced[key] = remoteHash;
     }
     return { apply, keepLocal, synced, conflicts };
+}
+
+/**
+ * This phone's bill plus any payments only the other copy has (matched by payment id).
+ * Returns a new bill, or null when there is nothing to add.
+ */
+export function mergeBillPayments(mine, theirs) {
+    const keyOf = (p) => (p && p.id !== undefined && p.id !== null ? `id:${p.id}` : `v:${stableStringify(p)}`);
+    const have = new Set((Array.isArray(mine?.payments) ? mine.payments : []).map(keyOf));
+    const extra = (Array.isArray(theirs?.payments) ? theirs.payments : []).filter((p) => p && !have.has(keyOf(p)));
+    if (!extra.length) return null;
+    const payments = [...(mine.payments || []), ...extra]
+        .sort((a, b) => String(a?.date || '').localeCompare(String(b?.date || '')));
+    return { ...mine, payments };
 }
 
 /**

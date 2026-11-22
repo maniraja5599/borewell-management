@@ -431,6 +431,11 @@ async function syncOnce() {
     const plan = planPull(rows, before, st.hashes, { firstSync, defaults, cloudWinsSettings: role !== 'owner' });
     if (plan.conflicts?.length) notifyConflicts(app, plan.conflicts, before);
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
+    // Bills whose payments were merged from another phone: bring their totals / due up to date.
+    for (const r of plan.apply.filter((x) => x.merged)) {
+        const bill = (local.history || []).find((h) => String(h?.id) === r.id);
+        try { if (bill) app.syncBillPaymentSnapshot?.(bill); } catch (e) { console.warn('[sync] merge totals', e); }
+    }
     writeLocal(app, local, changed);
     for (const [key, hash] of Object.entries(plan.synced)) {
         if (hash === null) delete st.hashes[key];
