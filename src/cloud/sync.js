@@ -429,7 +429,15 @@ async function syncOnce() {
     }
     const before = indexPhone(readLocal());
     const plan = planPull(rows, before, st.hashes, { firstSync, defaults, cloudWinsSettings: role !== 'owner' });
-    if (plan.conflicts?.length) notifyConflicts(app, plan.conflicts, before);
+    if (plan.conflicts?.length) {
+        const merged = new Set(plan.apply.filter((x) => x.merged).map((x) => x.key));
+        const plain = plan.conflicts.filter((k) => !merged.has(k));
+        if (plain.length) notifyConflicts(app, plain, before);
+        if (merged.size) {
+            const names = [...merged].slice(0, 3).map((k) => `#${before.get(k)?.data?.billNo || k.slice(5)}`).join(', ');
+            try { app.showToast?.(`💰 ${names} was also paid on another phone — both payments are kept. Please check the bill.`); } catch { /* ignore */ }
+        }
+    }
     const { local, changed } = applyToLocal(readLocal(), plan.apply);
     // Bills whose payments were merged from another phone: bring their totals / due up to date.
     for (const r of plan.apply.filter((x) => x.merged)) {
