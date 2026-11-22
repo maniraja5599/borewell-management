@@ -155,3 +155,19 @@ export function toolWarning(tool, usage, limits) {
     if (feet >= max) return `${feet.toLocaleString('en-IN')} ft — past ${max.toLocaleString('en-IN')} ft`;
     return null;
 }
+
+/**
+ * toolUsage for the app's bill book, worked out again only when the bills changed
+ * (50,000 bills take ~0.2 s on a PC, more on a phone). `version` = app._bigListVersion,
+ * which goes up on every save of a big list.
+ */
+const usageCache = new WeakMap();
+export function cachedToolUsage(bills, version = 0) {
+    if (!Array.isArray(bills)) return {};
+    const hit = usageCache.get(bills);
+    if (hit && hit.len === bills.length && hit.version === version && hit.first === bills[0]) return hit.value;
+    const value = toolUsage(bills);
+    usageCache.set(bills, { len: bills.length, version, first: bills[0], value });
+    return value;
+}
+

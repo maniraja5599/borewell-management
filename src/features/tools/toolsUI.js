@@ -10,7 +10,7 @@ import {
     TOOL_KINDS, TOOL_SIZES, NEW_BIT_MM, STATUS, toolLimits, makeTool, finishTool, sellTool, reuseTool,
     toolName, toolLine, toolSummary, knownBrands, shortDate
 } from './toolsMath.js';
-import { toolUsage, lastMm, toolWarning } from '../work/workMath.js';
+import { cachedToolUsage, lastMm, toolWarning } from '../work/workMath.js';
 
 export const readTools = () => storage.getList(STORAGE_KEYS.tools) || [];
 
@@ -209,7 +209,7 @@ export function openTools(app) {
     }
 
     function render() {
-        usage = toolUsage(app.history);
+        usage = cachedToolUsage(app.history, app._bigListVersion || 0);
         limits = toolLimits(app.brand);
         const forRig = readTools().filter((t) => (rigId === LOCAL_RIG ? true : t.rigId === rigId));
         const s = toolSummary(forRig);

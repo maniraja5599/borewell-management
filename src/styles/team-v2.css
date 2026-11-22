@@ -346,3 +346,8 @@
 .tl-mm { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .tl-mm li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 8px; background: #f8fafc; font: 500 12.5px/1.3 Inter, sans-serif; color: #475569; }
 .tl-mm li strong { color: #0f172a; }
+/* Older phones without :has(): show the tick from the checkbox itself */
+.tt-perm input:checked ~ .tt-perm-box { background: var(--pp-pri); border-color: var(--pp-pri); color: #fff; }
+.tt-perm input:checked ~ .tt-perm-txt strong { color: var(--pp-pri-d, #065f46); }
+.tt-chip input:checked ~ svg { display: inline-block; }
+.tt-chip input:checked ~ span { font-weight: 800; text-decoration: underline; text-decoration-color: var(--pp-pri); text-underline-offset: 3px; }

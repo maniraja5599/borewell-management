@@ -11,7 +11,7 @@ import { workerLabel, typeOf } from '../workers/workersMath.js';
 import { readTools, openTools } from '../tools/toolsUI.js';
 import { openWorkers } from '../workers/workersUI.js';
 import { toolName, toolLimits } from '../tools/toolsMath.js';
-import { cleanWork, checkWork, toolUsage, lastMm, lastClosing, toolWarning, halfMm } from './workMath.js';
+import { cleanWork, checkWork, cachedToolUsage, lastMm, lastClosing, toolWarning, halfMm } from './workMath.js';
 
 const DRAFT_KEY = 'drillrig_work_draft';
 
@@ -103,7 +103,7 @@ export function initWorkCard(app) {
 
     function render() {
         warnSlots = [];
-        usage = toolUsage(app.history);
+        usage = cachedToolUsage(app.history, app._bigListVersion || 0);
         const workers = readWorkers().filter((w) => w && w.status !== 'left' && onRig(w));
         const tools = readTools().filter((t) => t && (t.status || 'active') === 'active' && onRig(t));
         const bits = tools.filter((t) => t.tool === 'bit');
