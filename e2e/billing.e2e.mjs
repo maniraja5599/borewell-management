@@ -262,7 +262,7 @@ await step('12b coming soon', async () => {
             sideScroll: document.documentElement.scrollWidth > innerWidth
         };
     });
-    check('12b Settings shows 4 "Coming soon" tiles with 3D icons; each opens WhatsApp', c.shown && c.names.join('|') === 'Expenses|Staff|Stock|Profit & Loss'
+    check('12b Settings shows 4 "Coming soon" tiles with 3D icons; each opens WhatsApp', c.shown && c.names.join('|') === 'Vehicles|Staff|Stock|Profit & Loss'
         && c.links && c.art && c.badges === 4 && !c.sideScroll, c);
 });
 

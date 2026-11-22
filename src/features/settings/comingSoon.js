@@ -4,7 +4,7 @@
 import { comingSoonVoteLink } from '../../config/plans.js';
 
 export const COMING_SOON = [
-    { key: 'expenses', title: 'Expenses', sub: 'Diesel, food, repairs', ask: 'expense tracking' },
+    { key: 'vehicles', title: 'Vehicles', sub: 'Insurance & service', ask: 'vehicle insurance, tax and service reminders' },
     { key: 'staff', title: 'Staff', sub: 'Attendance & wages', ask: 'staff management' },
     { key: 'stock', title: 'Stock', sub: 'Pipes, bits, diesel', ask: 'stock management' },
     { key: 'pnl', title: 'Profit & Loss', sub: 'Profit on every bore', ask: 'the profit & loss report' }
@@ -12,19 +12,20 @@ export const COMING_SOON = [
 
 // 64×64 SVG icons drawn with gradients, a darker "side" and a soft floor shadow so they look 3D.
 const ART = {
-    expenses: (id) => `<defs>
-<linearGradient id="${id}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient>
-<linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
-<linearGradient id="${id}n" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#86efac"/><stop offset="1" stop-color="#16a34a"/></linearGradient>
+    vehicles: (id) => `<defs>
+<linearGradient id="${id}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#d97706"/></linearGradient>
+<linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#c2410c"/></linearGradient>
+<linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bae6fd"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>
 </defs>
-<ellipse cx="32" cy="58" rx="22" ry="3.2" fill="#0f1a14" opacity=".14"/>
-<g transform="rotate(-12 29 20)"><rect x="15" y="9" width="30" height="18" rx="2.5" fill="#15803d"/><rect x="14" y="8" width="30" height="18" rx="2.5" fill="url(#${id}n)"/><circle cx="29" cy="17" r="4.2" fill="none" stroke="#fff" stroke-width="1.8" opacity=".8"/></g>
-<rect x="9" y="22" width="46" height="32" rx="7" fill="#92400e"/>
-<rect x="9" y="20" width="46" height="32" rx="7" fill="url(#${id}a)"/>
-<rect x="13" y="23.5" width="22" height="2.2" rx="1.1" fill="#fff" opacity=".4"/>
-<rect x="35" y="31" width="22" height="14" rx="4.5" fill="#78350f"/>
-<rect x="34" y="29.5" width="22" height="14" rx="4.5" fill="url(#${id}b)"/>
-<circle cx="41.5" cy="36.5" r="2.8" fill="#fff" opacity=".95"/>`,
+<ellipse cx="32" cy="57" rx="25" ry="3.2" fill="#0f1a14" opacity=".14"/>
+<rect x="5" y="20" width="32" height="26" rx="3" fill="#9a3412"/>
+<rect x="5" y="18" width="32" height="26" rx="3" fill="url(#${id}b)"/>
+<rect x="8" y="21" width="20" height="2.2" rx="1.1" fill="#fff" opacity=".35"/>
+<path d="M37 26h11l9 10v10H37z" fill="#b45309"/>
+<path d="M37 24h11l9 10v10H37z" fill="url(#${id}c)"/>
+<path d="M41 27h6l6 7H41z" fill="url(#${id}w)"/>
+<circle cx="16" cy="47" r="6.5" fill="#1f2937"/><circle cx="16" cy="47" r="2.6" fill="#cbd5e1"/>
+<circle cx="47" cy="47" r="6.5" fill="#1f2937"/><circle cx="47" cy="47" r="2.6" fill="#cbd5e1"/>`,
     staff: (id) => `<defs>
 <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#ca8a04"/></linearGradient>
 <linearGradient id="${id}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient>

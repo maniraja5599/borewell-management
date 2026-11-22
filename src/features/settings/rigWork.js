@@ -1,12 +1,13 @@
 // Settings → "Rig work": the business beyond billing. Each row opens its sheet; rows show only for
 // people who may use them (cloud/access.js can()). More rows come with later phases
-// (attendance, expenses & cash, vehicles, profit & loss).
+// (attendance, vehicles, profit & loss).
 import { can, onAccessChange } from '../../cloud/access.js';
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { el } from '../../ui/sheet.js';
 import { openWorkers, readWorkers } from '../workers/workersUI.js';
 import { openTools, readTools } from '../tools/toolsUI.js';
+import { openCash, myCashLine } from '../cash/cashUI.js';
 
 export function initRigWork(app) {
     const anchor = document.getElementById('teamCard') || document.getElementById('accountCard');
@@ -34,6 +35,7 @@ export function initRigWork(app) {
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
             rows.push(row('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
         }
+        if (can('expenses')) rows.push(row('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
         card.hidden = !rows.length;
         card.replaceChildren(...(rows.length ? [el('div', { class: 'rw-label', text: 'Rig work' }), ...rows] : []));
         paintIcons();
@@ -41,12 +43,13 @@ export function initRigWork(app) {
     onAccessChange(render);
     window.addEventListener('drillrig:workers-changed', render);
     window.addEventListener('drillrig:tools-changed', render);
+    window.addEventListener('drillrig:cash-changed', render);
     // Saved from the sheets on this phone.
     const origSave = app.saveToStorage?.bind(app);
     if (origSave) {
         app.saveToStorage = (key, data, changed) => {
             const ok = origSave(key, data, changed);
-            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools) { try { render(); } catch { /* ignore */ } }
+            if (key === STORAGE_KEYS.workers || key === STORAGE_KEYS.tools || key === STORAGE_KEYS.cash || key === STORAGE_KEYS.history) { try { render(); } catch { /* ignore */ } }
             return ok;
         };
     }

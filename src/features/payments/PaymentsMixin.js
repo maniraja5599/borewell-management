@@ -1,6 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
-import { can } from '../../cloud/access.js';
+import { can, currentUser } from '../../cloud/access.js';
 
 export class PaymentsMixin {
     ensureBillPaymentsArray(item) {
@@ -274,6 +274,9 @@ export class PaymentsMixin {
             mode
         };
         if (rawDisc > 0) entry.discount = rawDisc;
+        // Who took it: cash a manager collects counts in their cash in hand (Expenses & cash).
+        const me = currentUser();
+        if (me) entry.by = { id: me.id, name: me.name || '' };
         entries.push(entry);
 
         this.syncBillPaymentSnapshot(item);

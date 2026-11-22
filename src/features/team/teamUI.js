@@ -20,7 +20,7 @@ const PERM_INFO = [
     ['reports', 'See bills & reports', 'Bill book, dashboard'],
     ['workers', 'Workers & attendance', 'Operators, helpers, drivers'],
     ['stock', 'Stock & purchases', 'Bits, hammers, casing pipes'],
-    ['expenses', 'Expenses & cash', 'Coming soon'],
+    ['expenses', 'Expenses & cash', 'Expenses, diesel, cash; tick hand-overs received'],
     ['team', 'Add managers', 'Invite managers and change their rigs'],
     ['pnl', 'Profit & loss', 'Coming soon']
 ];

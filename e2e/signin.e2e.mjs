@@ -48,7 +48,7 @@ await step('S1 new phone', async () => {
         x: getComputedStyle(document.querySelector('#signInGate .sg-slides')).transform }));
     check('S1 tapping the 3rd dot shows the WhatsApp slide', slid.cur === 2 && slid.x !== 'none', slid);
     check('S1 "Coming soon" strip under the title: 4 chips with 3D icons, each opens WhatsApp; Google button still on the first screen',
-        g && g.soon.map((t) => t.name).join('|') === 'Expenses|Staff|Stock|Profit & Loss' && g.soon.every((t) => t.wa && t.art) && g.soonLoop === 4 && g.buttonOnScreen,
+        g && g.soon.map((t) => t.name).join('|') === 'Vehicles|Staff|Stock|Profit & Loss' && g.soon.every((t) => t.wa && t.art) && g.soonLoop === 4 && g.buttonOnScreen,
         g && { soon: g.soon, loop: g.soonLoop, onScreen: g.buttonOnScreen });
     await p.screenshot({ path: `${OUT}/s1_gate.png` });
 });

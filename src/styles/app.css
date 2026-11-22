@@ -14665,7 +14665,7 @@ html.role-driver .stock-card { display: none !important; }
     -webkit-tap-highlight-color: transparent;
 }
 :is(#tab-brand, .signin-gate) .coming-soon .cs-tile:active { transform: scale(0.97); }
-:is(#tab-brand, .signin-gate) .coming-soon .cs-expenses { background: linear-gradient(160deg, #fff7ed 0%, #ffffff 70%); border-color: #fde4c8; }
+:is(#tab-brand, .signin-gate) .coming-soon .cs-vehicles { background: linear-gradient(160deg, #fff7ed 0%, #ffffff 70%); border-color: #fde4c8; }
 :is(#tab-brand, .signin-gate) .coming-soon .cs-staff { background: linear-gradient(160deg, #eff6ff 0%, #ffffff 70%); border-color: #d6e6fb; }
 :is(#tab-brand, .signin-gate) .coming-soon .cs-stock { background: linear-gradient(160deg, #eef2ff 0%, #ffffff 70%); border-color: #dde3fb; }
 :is(#tab-brand, .signin-gate) .coming-soon .cs-pnl { background: linear-gradient(160deg, #ecfdf3 0%, #ffffff 70%); border-color: #cdeedb; }

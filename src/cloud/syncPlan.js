@@ -14,9 +14,10 @@ export const SETTING_IDS = ['brand', 'rates', 'rateProfiles', 'savedExtras', 'sa
  * Record kinds kept as a list on the phone: kind → list name.
  *   worker — payroll list (operators, helpers, drivers, labour); never sign in (migration 0014)
  *   tool   — bits and hammers bought for a rig (migration 0014)
+ *   cash   — expenses, diesel, cash in, hand-overs (migration 0016)
  * A new list kind is added here, in STORAGE_KEYS / BIG_LISTS, and on the server.
  */
-export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools' });
+export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash' });
 export const LIST_NAMES = Object.freeze(Object.values(LIST_KINDS));
 
 /** Fast 53-bit string hash (cyrb53). Plenty for change detection. */

@@ -24,8 +24,8 @@
 // rate card share one copy in memory. The bills themselves look exactly the same to the app.
 import { hashData } from '../cloud/syncPlan.js';
 
-export const BIG_LISTS = ['history', 'customers', 'stock', 'workers', 'tools'];
-export const IDB_VERSION = 2;
+export const BIG_LISTS = ['history', 'customers', 'stock', 'workers', 'tools', 'cash'];
+export const IDB_VERSION = 3;
 const CHUNK = 400;          // records per transaction
 const URGENT_MAX = 50;      // a save touching up to this many records goes to the front
 
@@ -327,7 +327,7 @@ export function idbBackend(dbName = 'drillrig-data') {
         async open() {
             if (typeof indexedDB === 'undefined') return false;
             db = await new Promise((res, rej) => {
-                // Version 2 (2026-11-22) adds the 'workers' and 'tools' stores. Raise it whenever a
+                // Version 2 (2026-11-22) adds the 'workers' and 'tools' stores, 3 the 'cash' store. Raise it whenever a
                 // list is added to BIG_LISTS: an existing database only gets new stores on upgrade.
                 const r = indexedDB.open(dbName, IDB_VERSION);
                 r.onupgradeneeded = () => {
