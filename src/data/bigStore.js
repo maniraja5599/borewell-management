@@ -24,7 +24,8 @@
 // rate card share one copy in memory. The bills themselves look exactly the same to the app.
 import { hashData } from '../cloud/syncPlan.js';
 
-export const BIG_LISTS = ['history', 'customers', 'stock'];
+export const BIG_LISTS = ['history', 'customers', 'stock', 'workers', 'tools'];
+export const IDB_VERSION = 2;
 const CHUNK = 400;          // records per transaction
 const URGENT_MAX = 50;      // a save touching up to this many records goes to the front
 
@@ -326,19 +327,24 @@ export function idbBackend(dbName = 'drillrig-data') {
         async open() {
             if (typeof indexedDB === 'undefined') return false;
             db = await new Promise((res, rej) => {
-                const r = indexedDB.open(dbName, 1);
+                // Version 2 (2026-11-22) adds the 'workers' and 'tools' stores. Raise it whenever a
+                // list is added to BIG_LISTS: an existing database only gets new stores on upgrade.
+                const r = indexedDB.open(dbName, IDB_VERSION);
                 r.onupgradeneeded = () => {
                     for (const n of BIG_LISTS) if (!r.result.objectStoreNames.contains(n)) r.result.createObjectStore(n);
                     if (!r.result.objectStoreNames.contains('meta')) r.result.createObjectStore('meta');
                 };
                 r.onsuccess = () => res(r.result);
                 r.onerror = () => rej(r.error);
-                r.onblocked = () => rej(new Error('IndexedDB blocked'));
+                // Another tab still has the old version open: it closes on 'versionchange' and the
+                // upgrade then goes on. Never give up here (that would fall back to an empty localStorage).
+                r.onblocked = () => console.warn('[storage] waiting for another DrillRig tab to close the old database');
             });
             db.onversionchange = () => { try { db.close(); } catch { /* ignore */ } };
             return true;
         },
         async load(name) {
+            if (!db.objectStoreNames.contains(name)) return { order: null, entries: [] };
             const tx = db.transaction([name, 'meta'], 'readonly');
             const [keys, values, order] = await Promise.all([
                 req(tx.objectStore(name).getAllKeys()), req(tx.objectStore(name).getAll()), req(tx.objectStore('meta').get(`order:${name}`))

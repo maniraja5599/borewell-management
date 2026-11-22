@@ -7,8 +7,8 @@
 import { STORAGE_KEYS, storage } from '../data/storage.js';
 import { getSupabase } from './auth.js';
 import { isSafeId, sanitizeRecordData } from '../data/sanitize.js';
-import { setAccessFromServer, clearAccess, getCurrentRig, canCreateBill, rigPrefix } from './access.js';
-import { SETTING_IDS, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting, hashData, safePullRev } from './syncPlan.js';
+import { setAccessFromServer, setPerms, clearAccess, getCurrentRig, canCreateBill, rigPrefix } from './access.js';
+import { SETTING_IDS, LIST_KINDS, LIST_NAMES, holdMassDeletes, indexLocal, planPull, planPush, applyToLocal, recordKey, dropDefaultCloudSettings, isDefaultSetting, hashData, safePullRev } from './syncPlan.js';
 
 const STATE_KEY = 'drillrig_sync_v1';
 const PUSH_BATCH = 200;
@@ -19,7 +19,7 @@ const PERIODIC_MS = 60000;
 const CLAIM_TIMEOUT_MS = 4000;
 
 const SYNCED_KEYS = new Set([
-    STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.stock,
+    ...LIST_NAMES.map((name) => STORAGE_KEYS[name]),
     ...SETTING_IDS.map((id) => STORAGE_KEYS[id])
 ]);
 
@@ -49,15 +49,12 @@ function readLocal() {
         if (v !== undefined) settings[id] = v;
     }
     // The big lists are the live in-memory lists (no copy): applyToLocal never edits records in place.
-    return {
-        customers: storage.getList(STORAGE_KEYS.customers),
-        history: storage.getList(STORAGE_KEYS.history),
-        stock: storage.getList(STORAGE_KEYS.stock),
-        settings
-    };
+    const local = { settings };
+    for (const name of LIST_NAMES) local[name] = storage.getList(STORAGE_KEYS[name]);
+    return local;
 }
 
-const LIST_KEY = { customer: STORAGE_KEYS.customers, bill: STORAGE_KEYS.history, stock: STORAGE_KEYS.stock };
+const LIST_KEY = Object.fromEntries(Object.entries(LIST_KINDS).map(([kind, name]) => [kind, STORAGE_KEYS[name]]));
 /** Record hashes: the big lists reuse the hash saved with each record instead of re-hashing 50,000 bills. */
 const hashFor = (kind, data) => (LIST_KEY[kind] ? storage.hashOf(LIST_KEY[kind], data, hashData) : hashData(data));
 const indexPhone = (local) => indexLocal(local, hashFor);
@@ -89,9 +86,11 @@ function writeLocal(app, local, changed) {
         storage.setList(STORAGE_KEYS.history, local.history);
         app.history = local.history;
     }
-    if (changed.has('stock')) {
-        storage.setList(STORAGE_KEYS.stock, local.stock);
-        try { window.dispatchEvent(new CustomEvent('drillrig:stock-changed')); } catch { /* ignore */ }
+    // Lists with their own screens: save and tell those screens (drillrig:<list>-changed).
+    for (const name of ['stock', 'workers', 'tools']) {
+        if (!changed.has(name)) continue;
+        storage.setList(STORAGE_KEYS[name], local[name]);
+        try { window.dispatchEvent(new CustomEvent(`drillrig:${name}-changed`)); } catch { /* ignore */ }
     }
     const merge = (id, defaults, isArray) => {
         if (!changed.has(id)) return;
@@ -179,6 +178,10 @@ async function refreshAccess() {
     }
 
     setAccessFromServer(row, ctx.account.id, ctx.account.name || String(ctx.account.email || '').split('@')[0]);
+    // Office staff: what the owner ticked (0014). Kept as it was when offline or on an older server.
+    if (row.role === 'office') {
+        try { setPerms(await rpc('drillrig_my_perms', { p_company: row.company_id })); } catch { /* keep last known */ }
+    }
     const rev = row.access_rev === undefined || row.access_rev === null ? null : String(row.access_rev);
     const changed = st.accessRev != null && rev != null && rev !== st.accessRev;
     st.companyId = row.company_id;
@@ -216,27 +219,48 @@ export function setPreferredCompany(id) {
     try { if (id) storage.setRaw(PREF_KEY, id); else storage.remove(PREF_KEY); } catch { /* ignore */ }
 }
 
-/** Role or rigs changed: drop the bills on this phone and download what is visible now. */
+/**
+ * Role, rigs or permissions changed: drop the per-rig lists on this phone (bills, pipe stock,
+ * workers, bits & hammers) and download what is visible now.
+ */
+const RIG_KINDS = ['bill', 'stock', 'worker', 'tool'];
 function reloadVisibleBills(app) {
     const st = ctx.state;
-    const none = [];
-    storage.setList(STORAGE_KEYS.history, none);
-    app.history = none;
-    for (const key of Object.keys(st.hashes)) if (key.startsWith('bill:')) delete st.hashes[key];
-    if (st.rejected) for (const key of Object.keys(st.rejected)) if (key.startsWith('bill:')) delete st.rejected[key];
+    for (const kind of RIG_KINDS) storage.setList(STORAGE_KEYS[LIST_KINDS[kind]], []);
+    app.history = storage.getList(STORAGE_KEYS.history);
+    const isRigKey = (key) => RIG_KINDS.some((k) => key.startsWith(`${k}:`));
+    for (const key of Object.keys(st.hashes)) if (isRigKey(key)) delete st.hashes[key];
+    if (st.rejected) for (const key of Object.keys(st.rejected)) if (isRigKey(key)) delete st.rejected[key];
+    for (const name of ['stock', 'workers', 'tools']) {
+        try { window.dispatchEvent(new CustomEvent(`drillrig:${name}-changed`)); } catch { /* ignore */ }
+    }
     st.lastRev = 0;
     saveState(st);
     try { app.renderHistoryList?.(''); app.showToast?.('🔄 Your access changed — reloading bills'); } catch { /* ignore */ }
 }
 
+// "Clear all" in the bill book: the owner really wants every bill gone, also from the cloud.
+const WIPE_KEY = 'drillrig_allow_wipe';
+/** Called by "Clear all" (kind 'bill'). The permission lasts 15 minutes. */
+export function allowWipe(kind) {
+    try { storage.setRaw(WIPE_KEY, JSON.stringify({ kind, at: Date.now() })); } catch { /* ignore */ }
+}
+function allowedWipes() {
+    try {
+        const v = JSON.parse(storage.getRaw(WIPE_KEY) || 'null');
+        return v && Date.now() - v.at < 15 * 60000 ? [v.kind] : [];
+    } catch { return []; }
+}
+
 /**
  * Only rows this person may upload; and not ones the server already refused unchanged.
- * Stock entries wait on the phone until the server supports them (migration 0005);
- * drivers never upload stock.
+ * Stock, workers and tools wait on the phone until the server supports them (0005 / 0014);
+ * drivers (retired role) never upload them.
  */
+const KIND_CAP = { stock: 'stock', worker: 'workers', tool: 'tools' };
 export function filterPushable(rows, role, rejected = {}, caps = []) {
     return rows.filter((r) => {
-        if (r.kind === 'stock' && (!caps.includes('stock') || role === 'driver')) return false;
+        if (KIND_CAP[r.kind] && (!caps.includes(KIND_CAP[r.kind]) || role === 'driver')) return false;
         if (role && role !== 'owner' && (r.kind === 'setting' || r.deleted)) return false;
         const mark = rejected[r.key];
         return !(mark && mark.hash === (r.hash ?? 'deleted'));
@@ -305,7 +329,7 @@ async function pullAll(since) {
 export function cleanPulledRows(rows) {
     const out = [];
     for (const r of rows || []) {
-        if (!r || !isSafeId(String(r.id ?? '')) || !['customer', 'bill', 'setting', 'stock'].includes(r.kind)) continue;
+        if (!r || !isSafeId(String(r.id ?? '')) || !(r.kind === 'setting' || LIST_KINDS[r.kind])) continue;
         if (r.deleted) { out.push(r); continue; }
         const data = sanitizeRecordData(r.kind, r.data);
         if (data === null) continue;
@@ -404,7 +428,13 @@ async function syncOnce() {
     st.lastRev = Math.max(st.lastRev || 0, nextRev);
     saveState(st);
 
-    const toPush = filterPushable(planPush(indexPhone(readLocal()), st.hashes, defaults), role, st.rejected || {}, await serverCaps());
+    const pushIndex = indexPhone(readLocal());
+    const guard = holdMassDeletes(planPush(pushIndex, st.hashes, defaults), pushIndex, st.hashes, { allowWipe: allowedWipes() });
+    if (guard.held.length) {
+        console.warn('[sync] held back deleting every record of:', guard.held);
+        try { app.showToast?.('⚠️ This phone shows no bills, but the cloud has them. Nothing was deleted. Close and reopen DrillRig; if it stays empty, contact support.'); } catch { /* ignore */ }
+    }
+    const toPush = filterPushable(guard.rows, role, st.rejected || {}, await serverCaps());
     const refused = await pushRows(toPush);
     notifyRejected(app, refused);
 
@@ -595,7 +625,7 @@ export function checkPhoneOwner(app, account) {
 export function clearPhoneData() {
     stopSync();
     const keys = [
-        STORAGE_KEYS.customers, STORAGE_KEYS.history, STORAGE_KEYS.stock, STORAGE_KEYS.lastSession,
+        ...LIST_NAMES.map((name) => STORAGE_KEYS[name]), STORAGE_KEYS.lastSession,
         ...SETTING_IDS.map((id) => STORAGE_KEYS[id]), STATE_KEY
     ];
     for (const k of keys) {

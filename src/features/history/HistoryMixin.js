@@ -1,11 +1,12 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { ratesForSnapshot } from '../../core/billRates.js';
-import { getCurrentRig, currentUser } from '../../cloud/access.js';
+import { getCurrentRig, currentUser, can } from '../../cloud/access.js';
 import { ensureRigFilterUI, matchesRigFilter, rigBadgeHtml, makerBadgeHtml } from '../team/rigFilter.js';
 
 export class HistoryMixin {
     saveCurrentBillToHistory() {
+        if (!can('bills')) { this.showToast?.('🔒 Ask the owner for "Make bills & take payments" to make or edit bills.'); return; }
         // 1. If viewing a Saved Bill in Read-Only Final View mode, clicking Edit unlocks Edit Mode!
         if (this.loadedHistoryBillId && this.isSavedBillReadOnly) {
             this.isSavedBillReadOnly = false;

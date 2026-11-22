@@ -12,6 +12,7 @@ import { initPWAAndZoomLock } from './pwa/initPwa.js';
 import { initAccountUI } from './features/account/accountUI.js';
 import { initSetupWizard } from './features/onboarding/setupWizard.js';
 import { initFirstBillGuide } from './features/onboarding/firstBillGuide.js';
+import { initRigWork } from './features/settings/rigWork.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
@@ -68,6 +69,7 @@ async function boot() {
         initAccountUI(window.boreBillApp);
         initSignInGate(window.boreBillApp); // sign-in is required before using the app
         initTeamUI(window.boreBillApp);
+        initRigWork(window.boreBillApp); // Settings: Workers, Bits & Hammers (after Team & Rigs)
         initFirstBillGuide(window.boreBillApp); // New Bill: "Make your first bill" checklist until the first bill
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
         applyNavIcons3d(); // bottom bar: 3D icons

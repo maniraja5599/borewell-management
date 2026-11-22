@@ -15,8 +15,10 @@ import { pendingJoinCode, clearJoinCode, consumeJoinCode } from './joinLink.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 
 export const ROLE_INFO = {
-    driver: { icon: 'hard-hat', title: 'Driver', text: 'Makes bills at the bore site for their rig. Sees only the bills they made. Cannot change rates or delete bills.' },
-    manager: { icon: 'clipboard-list', title: 'Manager', text: 'Makes bills, takes payments and sees every bill of their rigs. Cannot change rates or the team.' },
+    manager: { icon: 'clipboard-list', title: 'Manager', text: 'Runs their rig: makes bills, takes payments, workers and stock of their rigs. Cannot change rates or the team.' },
+    office: { icon: 'building-2', title: 'Office staff', text: 'Works from the office on every rig, but only on what the owner ticks (bills, reports, workers, stock).' },
+    // Retired role (migration 0014 made drivers managers); kept so an old invitation still shows.
+    driver: { icon: 'clipboard-list', title: 'Manager', text: 'Runs their rig: makes bills, takes payments, workers and stock of their rigs. Cannot change rates or the team.' },
     owner: { icon: 'crown', title: 'Owner / Partner', text: 'Full access: all rigs, all bills, rates, team and settings.' }
 };
 
@@ -155,7 +157,7 @@ export function showSwitchCard(app, companyId, name) {
 
 function showCard(app, iv, phoneHasCompany) {
     return new Promise((resolve) => {
-        const info = ROLE_INFO[iv.role] || ROLE_INFO.driver;
+        const info = ROLE_INFO[iv.role] || ROLE_INFO.manager;
         const rigs = Array.isArray(iv.rig_names) ? iv.rig_names : [];
         const mine = getSyncInfo();
         const myCompany = phoneHasCompany && mine?.companyName ? mine.companyName : '';

@@ -6,14 +6,25 @@
 // (tap a person to change role / rigs / remove), one button style, line icons.
 // Every action is an owner-only server function; this file is only the screen.
 import { getSupabase } from '../../cloud/auth.js';
-import { getAccess, getRole, hasRigs, onAccessChange, rigDaysLeft } from '../../cloud/access.js';
+import { getAccess, getRole, hasRigs, onAccessChange, rigDaysLeft, can } from '../../cloud/access.js';
 import { syncNow } from '../../cloud/sync.js';
 import { renewLink, PLANS, isEarlyAccess, earlyAccessDaysLeft } from '../../config/plans.js';
 import { fetchActivity, renderActivityList } from '../../cloud/activity.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { ROLE_INFO } from './invitations.js';
 
-const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', driver: 'Driver' };
+const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', office: 'Office staff', driver: 'Manager' };
+/** What the owner can tick for office staff (server: drillrig.clean_perms, migration 0014). */
+const PERM_INFO = [
+    ['bills', 'Make bills & take payments', 'All rigs'],
+    ['reports', 'See bills & reports', 'Bill book, dashboard'],
+    ['workers', 'Workers & attendance', 'Operators, helpers, drivers'],
+    ['stock', 'Stock & purchases', 'Bits, hammers, casing pipes'],
+    ['expenses', 'Expenses & cash', 'Coming soon'],
+    ['team', 'Add managers', 'Invite managers and change their rigs'],
+    ['pnl', 'Profit & loss', 'Coming soon']
+];
+const DEFAULT_OFFICE_PERMS = { reports: true, workers: true, stock: true };
 const showPhone = (p) => {
     const d = String(p || '').replace(/[^0-9+]/g, '');
     const m = d.match(/^\+91(\d{5})(\d{5})$/);
@@ -65,6 +76,17 @@ function rigStatus(rig) {
 
 const checkedIds = (root, name) => [...root.querySelectorAll(`input[name="${name}"]:checked`)].map((i) => i.value);
 
+/** Permission tick boxes for office staff. */
+function permChecks(selected, name) {
+    return el('div', { class: 'tt-perms', role: 'group', 'aria-label': 'What can they do?' }, PERM_INFO.map(([k, t, d]) =>
+        el('label', { class: 'tt-perm' }, [
+            el('input', { type: 'checkbox', name, value: k, checked: !!selected?.[k] }),
+            el('span', { class: 'tt-perm-box', 'aria-hidden': 'true' }, [icon('check')]),
+            el('span', { class: 'tt-perm-txt' }, [el('strong', { text: t }), el('small', { text: d })])
+        ])));
+}
+const permsOf = (root, name) => Object.fromEntries(checkedIds(root, name).map((k) => [k, true]));
+
 /** Rig chips (tick the rigs this person works on). */
 function rigChips(rigs, selected, name) {
     return el('div', { class: 'tt-chips', role: 'group', 'aria-label': 'Rigs' }, rigs.filter((r) => !r.archived).map((r) =>
@@ -100,7 +122,7 @@ export function initTeamUI(app) {
 
     const renderCard = () => {
         const a = getAccess();
-        const show = !!a && getRole() === 'owner' && hasRigs() && !document.getElementById('accSignedIn')?.hidden;
+        const show = !!a && can('team') && hasRigs() && !document.getElementById('accSignedIn')?.hidden;
         card.hidden = !show;
         if (!show) return;
         const rigs = a.rigs.filter((r) => !r.archived);
@@ -109,7 +131,7 @@ export function initTeamUI(app) {
             el('span', { class: 'tt-tile' }, [icon('users')]),
             el('span', { class: 'tt-entry-txt' }, [
                 el('strong', { text: 'Team & Rigs' }),
-                el('small', { text: `${rigs.map((r) => r.name).join(', ') || 'Rig 1'}${ended ? ` · ${ended} need renewal` : ' · add drivers & managers'}` })
+                el('small', { text: `${rigs.map((r) => r.name).join(', ') || 'Rig 1'}${ended ? ` · ${ended} need renewal` : ' · add managers & office staff'}` })
             ]),
             el('span', { class: 'tt-chev', 'aria-hidden': 'true' }, [icon('chevron-right')])
         );
@@ -183,9 +205,11 @@ function openSheet(app) {
         const active = team.rigs.filter((r) => !r.archived);
         const archived = team.rigs.filter((r) => r.archived);
         const activeIds = new Set(active.map((r) => r.id));
+        const isOwner = (team.my_role || 'owner') === 'owner';
+        const onRig = (role) => role !== 'owner' && role !== 'office';
         const staff = team.members.filter((m) => m.role !== 'owner');
-        const noRig = staff.filter((m) => !(m.rig_ids || []).some((id) => activeIds.has(id)));
-        const noRigInvites = team.invites.filter((iv) => iv.role !== 'owner' && !(iv.rig_ids || []).some((id) => activeIds.has(id)));
+        const noRig = staff.filter((m) => onRig(m.role) && !(m.rig_ids || []).some((id) => activeIds.has(id)));
+        const noRigInvites = team.invites.filter((iv) => onRig(iv.role) && !(iv.rig_ids || []).some((id) => activeIds.has(id)));
         const people = team.members.length;
         sub.textContent = `${active.length} rig${active.length === 1 ? '' : 's'} · ${people} ${people === 1 ? 'person' : 'people'}`;
         // No staff and nobody invited yet: the 3 steps open at the top; later they sit under "More".
@@ -194,16 +218,18 @@ function openSheet(app) {
             firstTime ? howToSteps(true) : null,
             label(active.length === 1 ? 'Your rig' : 'Your rigs', active.length > 1 ? String(active.length) : null),
             ...active.map((r) => rigCard(r)),
-            addRigCard(),
-            label('Owners & partners'),
-            ownersCard(),
+            isOwner ? addRigCard() : null,
+            isOwner ? label('Office staff') : null,
+            isOwner ? officeCard() : null,
+            isOwner ? label('Owners & partners') : null,
+            isOwner ? ownersCard() : null,
             noRig.length || noRigInvites.length ? label('Not on a rig yet') : null,
             noRig.length || noRigInvites.length ? el('div', { class: 'tt-card' }, [
                 el('p', { class: 'tt-note' }, [icon('info'), el('span', { text: 'They cannot make bills until you give them a rig. Tap a name.' })]),
                 el('div', { class: 'tt-list' }, [...noRig.map((m) => personItem(m)), ...noRigInvites.map((iv) => inviteItem(iv))])
             ]) : null,
             label('More'),
-            el('div', { class: 'tt-card tt-folds' }, [firstTime ? null : howToSteps(false), rolesHelp(), archived.length ? archivedFold(archived) : null, activityFold()])
+            el('div', { class: 'tt-card tt-folds' }, [firstTime ? null : howToSteps(false), rolesHelp(), isOwner && archived.length ? archivedFold(archived) : null, activityFold()])
         ].filter(Boolean));
         paintIcons();
     }
@@ -241,16 +267,17 @@ function openSheet(app) {
     // ----- one rig: name, status, people, invitations, add person -----
     function rigCard(r) {
         const st = rigStatus(r);
-        const people = team.members.filter((m) => m.role !== 'owner' && (m.rig_ids || []).includes(r.id));
-        const invites = team.invites.filter((iv) => iv.role !== 'owner' && (iv.rig_ids || []).includes(r.id));
-        const firstRig = r.is_default && /^rig\s*1$/i.test(String(r.name).trim());
+        const people = team.members.filter((m) => m.role !== 'owner' && m.role !== 'office' && (m.rig_ids || []).includes(r.id));
+        const invites = team.invites.filter((iv) => iv.role !== 'owner' && iv.role !== 'office' && (iv.rig_ids || []).includes(r.id));
+        const isOwner = (team.my_role || 'owner') === 'owner';
+        const firstRig = isOwner && r.is_default && /^rig\s*1$/i.test(String(r.name).trim());
         const editor = rigEditor(r);
         const addPanel = el('div', { class: 'tt-add-panel', hidden: true });
         const foot = el('div', { class: 'tt-card-foot' });
         const addBtn = btn('Add person to this rig', {
             kind: 'soft', ic: 'user-plus', cls: 'tt-wide',
             onclick: () => {
-                addPanel.replaceChildren(addPersonForm({ rig: r, roles: ['driver', 'manager'], onCancel: () => { addPanel.hidden = true; foot.hidden = false; } }));
+                addPanel.replaceChildren(addPersonForm({ rig: r, roles: ['manager'], onCancel: () => { addPanel.hidden = true; foot.hidden = false; } }));
                 addPanel.hidden = false;
                 foot.hidden = true;
                 paintIcons();
@@ -269,7 +296,7 @@ function openSheet(app) {
                     el('strong', { text: r.name }),
                     el('small', { text: `Bills ${r.bill_prefix}-1, ${r.bill_prefix}-2 …` })
                 ]),
-                editBtn
+                isOwner ? editBtn : null
             ]),
             el('div', { class: 'tt-rig-meta' }, [pillOf(st.text, `is-${st.cls}`)]),
             firstRig ? el('p', { class: 'tt-note is-tip' }, [icon('lightbulb'), el('span', { text: 'We made this rig when you signed up. Tap the pencil to change the name to your lorry number.' })]) : null,
@@ -277,7 +304,7 @@ function openSheet(app) {
             el('div', { class: 'tt-list' }, [
                 ...people.map((m) => personItem(m)),
                 ...invites.map((iv) => inviteItem(iv)),
-                people.length || invites.length ? null : el('p', { class: 'tt-empty', text: 'No driver or manager yet. Only you bill on this rig.' })
+                people.length || invites.length ? null : el('p', { class: 'tt-empty', text: 'No manager yet. Only you bill on this rig.' })
             ]),
             foot,
             addPanel
@@ -339,6 +366,31 @@ function openSheet(app) {
         return el('div', {}, [open, form]);
     }
 
+    // ----- office staff: every rig, only what the owner ticks -----
+    function officeCard() {
+        const people = team.members.filter((m) => m.role === 'office');
+        const invites = team.invites.filter((iv) => iv.role === 'office');
+        const panel = el('div', { class: 'tt-add-panel', hidden: true });
+        const foot = el('div', { class: 'tt-card-foot' }, [btn('Add office staff', {
+            ic: 'user-plus', cls: 'tt-wide',
+            onclick: () => {
+                panel.replaceChildren(addPersonForm({ rig: null, roles: ['office'], onCancel: () => { panel.hidden = true; foot.hidden = false; } }));
+                panel.hidden = false;
+                foot.hidden = true;
+                paintIcons();
+                panel.querySelector('input')?.focus();
+            }
+        })]);
+        return el('div', { class: 'tt-card' }, [
+            el('p', { class: 'tt-hint is-top', text: ROLE_INFO.office.text }),
+            el('div', { class: 'tt-list' }, [
+                ...people.map((m) => personItem(m)), ...invites.map((iv) => inviteItem(iv)),
+                people.length || invites.length ? null : el('p', { class: 'tt-empty', text: 'No office staff yet.' })
+            ]),
+            foot, panel
+        ]);
+    }
+
     // ----- owners / partners -----
     function ownersCard() {
         const owners = team.members.filter((m) => m.role === 'owner');
@@ -371,28 +423,36 @@ function openSheet(app) {
         if (m.is_me || m.is_creator) return item({ avatar: avatarOf(m.name || m.email), title: name, subText, pill });
 
         const i = m.user_id;
-        let role = m.role;
+        const isOwner = (team.my_role || 'owner') === 'owner';
+        let role = m.role === 'driver' ? 'manager' : m.role;
         const help = el('p', { class: 'tt-hint', text: ROLE_INFO[role]?.text || '' });
         const chips = rigChips(team.rigs, m.rig_ids || [], `ttRigs${i}`);
         const rigsBlock = el('div', { class: 'tt-block' }, [el('span', { class: 'tt-mini', text: 'Works on' }), chips]);
-        const seg = el('div', { class: 'tt-seg', role: 'radiogroup', 'aria-label': 'Role' }, ['driver', 'manager', 'owner'].map((r) => {
+        const perms = permChecks(m.perms || {}, `ttPerms${i}`);
+        const permsBlock = el('div', { class: 'tt-block' }, [el('span', { class: 'tt-mini', text: 'What can they do?' }), perms]);
+        const showFor = (r) => { rigsBlock.hidden = r !== 'manager'; permsBlock.hidden = r !== 'office'; };
+        // Office staff (with "team") change managers' rigs only; the owner chooses roles.
+        const seg = isOwner ? el('div', { class: 'tt-seg', role: 'radiogroup', 'aria-label': 'Role' }, ['manager', 'office', 'owner'].map((r) => {
             const input = el('input', { type: 'radio', name: `ttRole${i}`, value: r, checked: r === role });
-            input.addEventListener('change', () => { role = r; help.textContent = ROLE_INFO[r]?.text || ''; rigsBlock.hidden = r === 'owner'; });
+            input.addEventListener('change', () => { role = r; help.textContent = ROLE_INFO[r]?.text || ''; showFor(r); });
             return el('label', {}, [input, el('span', { text: ROLE_LABEL[r] })]);
-        }));
-        rigsBlock.hidden = role === 'owner';
+        })) : null;
+        showFor(role);
         return item({
             avatar: avatarOf(m.name || m.email), title: name, subText, pill,
             bodyKids: [
                 el('div', { class: 'tt-block' }, [el('span', { class: 'tt-mini', text: 'Role' }), seg, help]),
                 rigsBlock,
+                permsBlock,
                 el('div', { class: 'tt-acts' }, [
                     btn('Save', {
                         kind: 'pri', ic: 'check',
                         onclick: () => {
-                            const rigIds = checkedIds(chips, `ttRigs${i}`);
-                            if (role !== 'owner' && !rigIds.length) { say('Choose at least one rig'); return; }
-                            run(() => rpc('drillrig_set_member', { p_company: company, p_user: m.user_id, p_role: role, p_rig_ids: rigIds, p_active: true }),
+                            const rigIds = role === 'manager' ? checkedIds(chips, `ttRigs${i}`) : [];
+                            if (role === 'manager' && !rigIds.length) { say('Choose at least one rig'); return; }
+                            const args = { p_company: company, p_user: m.user_id, p_role: role, p_rig_ids: rigIds, p_active: true };
+                            if (role === 'office') args.p_perms = permsOf(perms, `ttPerms${i}`);
+                            run(() => rpc('drillrig_set_member', args),
                                 `${m.name || 'Updated'}: saved. Their phone changes on its next sync.`);
                         }
                     }),
@@ -458,6 +518,8 @@ function openSheet(app) {
         const email = el('input', { type: 'email', id: `ttEmail${uid}`, placeholder: 'their.name@gmail.com', autocomplete: 'off', class: 'tt-input', inputmode: 'email' });
         const found = el('div', { class: 'tt-found', hidden: true, 'aria-live': 'polite' });
         const sendBtn = btn('Send on WhatsApp', { kind: 'pri', ic: 'send' });
+        const perms = roles.includes('office') ? permChecks(DEFAULT_OFFICE_PERMS, `ttNewPerms${uid}`) : null;
+        const extra = () => (role === 'office' && perms ? { p_perms: permsOf(perms, `ttNewPerms${uid}`) } : {});
         const setSendLabel = () => { sendBtn.querySelector('span').textContent = byEmail ? 'Send invite' : 'Send on WhatsApp'; };
 
         // Who is this number? (owner-only lookup, migration 0012; quietly skipped on an older server)
@@ -516,11 +578,11 @@ function openSheet(app) {
             switchBtn.textContent = byEmail ? 'Invite by mobile number instead' : 'Invite by Gmail address instead';
         });
         sendBtn.addEventListener('click', () => {
-            const rigIds = role === 'owner' || !rig ? [] : [rig.id];
+            const rigIds = role !== 'manager' || !rig ? [] : [rig.id];
             const where = rig ? ` on ${rig.name}` : '';
             if (byEmail) {
                 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim())) { say('Enter their Gmail address'); email.focus(); return undefined; }
-                return run(() => rpc('drillrig_invite', { p_company: company, p_email: email.value, p_role: role, p_rig_ids: rigIds }),
+                return run(() => rpc('drillrig_invite', { p_company: company, p_email: email.value, p_role: role, p_rig_ids: rigIds, ...extra() }),
                     `Invitation ready${where}. Ask them to open DrillRig, sign in with ${email.value.trim()} and tap Accept.`);
             }
             const v = app.validateMobileNumber ? app.validateMobileNumber(phoneIn.value) : { valid: /^\d{10}$/.test(phoneIn.value.replace(/\D/g, '')), fullPhone: phoneIn.value };
@@ -531,7 +593,7 @@ function openSheet(app) {
             return run(async () => {
                 let res;
                 try {
-                    res = await rpc('drillrig_invite_link', { p_company: company, p_phone: v.fullPhone || phoneIn.value, p_name: nameIn.value, p_role: role, p_rig_ids: rigIds });
+                    res = await rpc('drillrig_invite_link', { p_company: company, p_phone: v.fullPhone || phoneIn.value, p_name: nameIn.value, p_role: role, p_rig_ids: rigIds, ...extra() });
                 } catch (err) {
                     win?.close();
                     throw err;
@@ -542,12 +604,14 @@ function openSheet(app) {
         });
         return el('div', { class: 'tt-form' }, [
             el('div', { class: 'tt-form-head' }, [
-                el('strong', { text: rig ? `Add a person to ${rig.name}` : 'Add a partner (owner)' }),
+                el('strong', { text: rig ? `Add a manager to ${rig.name}` : roles.includes('office') ? 'Add office staff' : 'Add a partner (owner)' }),
                 el('button', { type: 'button', class: 'tt-icon-btn is-sm', 'aria-label': 'Cancel', onclick: onCancel }, [icon('x')])
             ]),
             phoneBlock, emailBlock,
             roles.length > 1 ? el('span', { class: 'tt-mini', text: 'What will they do?' }) : null,
-            roles.length > 1 ? roleCards(`ttRole${uid}`, roles, role, (r) => { role = r; }) : el('p', { class: 'tt-hint', text: ROLE_INFO.owner.text }),
+            roles.length > 1 ? roleCards(`ttRole${uid}`, roles, role, (r) => { role = r; }) : el('p', { class: 'tt-hint', text: ROLE_INFO[roles[0]].text }),
+            perms ? el('span', { class: 'tt-mini', text: 'What can they do?' }) : null,
+            perms,
             el('div', { class: 'tt-acts is-two' }, [btn('Cancel', { onclick: onCancel }), sendBtn]),
             switchBtn
         ]);
@@ -569,7 +633,7 @@ function openSheet(app) {
     /** "How to add your staff": 3 steps (open card the first time, a fold after that). */
     function howToSteps(open) {
         const steps = [
-            ['user-plus', 'Add them here', 'On their rig below, tap "Add person to this rig". Type their mobile number and name, choose Driver or Manager.'],
+            ['user-plus', 'Add them here', 'On their rig below, tap "Add person to this rig". Type their mobile number and name. They join as Manager of that rig.'],
             ['message-circle', 'Send the invite on WhatsApp', 'DrillRig opens WhatsApp with a ready message and link. Tap Send.'],
             ['circle-check', 'They tap Accept', 'They open the link, sign in with their Google account and tap Accept. Their bills then come under your rig, on your phone too.']
         ];
@@ -588,13 +652,13 @@ function openSheet(app) {
 
     function rolesHelp() {
         return fold('circle-help', 'What can each person do?', [
-            ...['owner', 'manager', 'driver'].map((r) => el('div', { class: 'tt-role-line' }, [
+            ...['owner', 'office', 'manager'].map((r) => el('div', { class: 'tt-role-line' }, [
                 el('span', { class: `tt-tile is-${r}` }, [icon(ROLE_INFO[r].icon)]),
                 el('div', {}, [el('strong', { text: ROLE_INFO[r].title }), el('span', { text: ROLE_INFO[r].text })])
             ])),
             el('div', { class: 'tt-example' }, [
                 el('span', { class: 'tt-mini', text: 'Example' }),
-                el('p', { text: 'Your driver Murugan works on TN 28 AB 1234. Tap "Add person to this rig", type his mobile and name, choose Driver, Send. He taps the WhatsApp link, signs in and taps Accept. His bills come under TN 28 AB 1234 with "by Murugan" on them, on your phone too.' })
+                el('p', { text: 'Murugan manages TN 28 AB 1234. Tap "Add person to this rig", type his mobile and name, Send. He taps the WhatsApp link, signs in and taps Accept. His bills come under TN 28 AB 1234 with "by Murugan" on them, on your phone too. Operators and helpers who do not use the app go in Workers instead.' })
             ]),
             el('p', { class: 'tt-hint', text: 'Already using DrillRig for their own business? They keep it. After Accept they can switch between the two in Settings; nothing is mixed.' })
         ]);

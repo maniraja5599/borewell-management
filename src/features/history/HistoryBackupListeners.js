@@ -1,5 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS, storage } from '../../data/storage.js';
+import { allowWipe } from '../../cloud/sync.js';
 
 export class HistoryBackupListeners {
     setupHistoryAndBackupListeners() {
@@ -24,6 +25,7 @@ export class HistoryBackupListeners {
                 requireTypeText: ['CLEAR ALL', 'I CONFIRM'],
                 confirmBtnLabel: 'Clear All Bills',
                 onConfirm: () => {
+                    allowWipe('bill'); // cloud sync's empty-list safety net must let this one through
                     this.history = [];
                     if (this.loadedHistoryBillId) {
                         this.exitSavedBillMode(true);

@@ -270,3 +270,41 @@
 .tt-how strong { display: flex; align-items: center; gap: 4px; font: 700 14px/1.35 Inter, sans-serif; color: #0f172a; }
 .tt-how strong svg { width: 15px; height: 15px; color: #16a34a; }
 .tt-how li > div > span { display: block; font: 500 13px/1.45 Inter, sans-serif; color: #475569; }
+
+/* Office staff permission ticks (teamUI.js permChecks) */
+.tt-perms { display: grid; grid-template-columns: 1fr; gap: 6px; }
+@media (min-width: 560px) { .tt-perms { grid-template-columns: 1fr 1fr; } }
+.tt-perm { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--pp-line); background: #fff; cursor: pointer; }
+.tt-perm input { position: absolute; opacity: 0; pointer-events: none; }
+.tt-perm-box { width: 22px; height: 22px; flex: none; border-radius: 6px; border: 1.5px solid #cbd5e1; display: flex; align-items: center; justify-content: center; color: transparent; background: #fff; }
+.tt-perm-box svg { width: 14px; height: 14px; }
+.tt-perm:has(input:checked) { border-color: var(--pp-pri); background: #f0fdf4; }
+.tt-perm:has(input:checked) .tt-perm-box { background: var(--pp-pri); border-color: var(--pp-pri); color: #fff; }
+.tt-perm:has(input:focus-visible) { outline: 2px solid var(--pp-pri); outline-offset: 2px; }
+.tt-perm-txt { display: flex; flex-direction: column; min-width: 0; }
+.tt-perm-txt strong { font: 700 13px/1.3 Inter, sans-serif; color: #0f172a; }
+.tt-perm-txt small { font: 500 12px/1.35 Inter, sans-serif; color: #64748b; }
+.tt-role.is-office .tt-tile, .tt-pill.is-office { background: #ede9fe; color: #6d28d9; }
+
+/* ===== Rig work: Workers, Bits & Hammers (settings/rigWork.js, ui/sheet.js) ===== */
+.rw-card { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.rw-card[hidden] { display: none; }
+.rw-label { font: 700 11px/1 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #64748b; margin: 4px 2px 0; }
+.tt-tile.is-workers { background: #fef3c7; color: #b45309; }
+.tt-tile.is-tools { background: #e0e7ff; color: #4338ca; }
+.tt-seg.is-wrap { display: flex; flex-wrap: wrap; }
+.tt-seg.is-wrap label { flex: 1 1 calc(33.33% - 3px); min-width: 72px; padding: 0 8px; }
+.tt-seg.is-wrap label span { white-space: nowrap; }
+.tt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tt-stats > div { display: flex; flex-direction: column; gap: 2px; }
+.tt-stats small { font: 600 12px/1.3 Inter, sans-serif; color: #64748b; }
+.tt-stats strong { font: 800 18px/1.2 var(--pp-head, Inter), sans-serif; color: #0f172a; }
+.tt-avatar.is-tool { border-radius: 12px; }
+.tt-avatar.is-tool.is-bit { background: #e0e7ff; color: #4338ca; }
+.tt-avatar.is-tool.is-hammer { background: #fef3c7; color: #b45309; }
+.tt-form.is-inline { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--pp-line); }
+.tt-pill.is-operator { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.tt-pill.is-helper, .tt-pill.is-labour { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.tt-pill.is-office, .tt-pill.is-other { background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.tt-fields.is-half { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.tt-field[hidden], .tt-hint[hidden], .tt-block[hidden] { display: none !important; }

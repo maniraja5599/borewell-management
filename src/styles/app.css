@@ -13695,7 +13695,7 @@ textarea:focus-visible {
    STAFF ROLES (cloud/access.js sets the role class on the html element)
    The server enforces every rule; this only hides controls a role cannot use.
    ========================================================================== */
-html:is(.role-manager, .role-driver) :is(
+html:is(.role-manager, .role-office, .role-driver) :is(
     .hist-del-btn, #clearAllHistoryBtn, #cdmDeleteCustomerBtn, .rpm-hi-del-btn,
     .sec-del-x, .rcr-del-btn, .slab-row-del-btn,
     .b-nav-item[data-tab="tab-rates"],
@@ -13704,8 +13704,15 @@ html:is(.role-manager, .role-driver) :is(
 ) {
     display: none !important;
 }
-html:is(.role-manager, .role-driver) #set-view-support { display: block !important; }
+html:is(.role-manager, .role-office, .role-driver) #set-view-support { display: block !important; }
 html.role-driver #headerDashboardBtn { display: none !important; }
+/* Office staff: only what the owner ticked (cloud/access.js adds no-<perm>). */
+html.no-bills .b-nav-item[data-tab="tab-bill"] { display: none !important; }
+html.no-bills.no-reports .b-nav-item[data-tab="tab-history"],
+html.no-bills.no-reports .b-nav-item[data-tab="tab-customers"] { display: none !important; }
+html.no-reports #headerDashboardBtn { display: none !important; }
+html.no-bills :is(.hist-record-pay-btn, #bdmInlineRecordPayBtn, #bdmFootRecordPayBtn) { display: none !important; }
+html.no-stock .stock-card { display: none !important; }
 
 /* ==========================================================================
    RIGS ON THE BILL SCREEN (features/team/rigBar.js)

@@ -2,7 +2,7 @@
 // after a final bill is saved. Maths: stockMath.js. Owner and managers only (drivers see only
 // their own bills, so their phone cannot know the real balance); single-user phones = owner.
 import { STORAGE_KEYS, storage } from '../../data/storage.js';
-import { getRole, isOwnerOrLocal, visibleRigs, getCurrentRig, onAccessChange } from '../../cloud/access.js';
+import { isOwnerOrLocal, visibleRigs, getCurrentRig, onAccessChange, can } from '../../cloud/access.js';
 import { billRigId, multiRig } from '../team/rigFilter.js';
 import { stockSummary, lowStock, makeStockEntry, STOCK_TYPES } from './stockMath.js';
 
@@ -30,7 +30,7 @@ function readEntries() {
     }
 }
 
-const canUseStock = () => getRole() !== 'driver';
+const canUseStock = () => can('stock');
 
 /** Rigs to show: none (single-user / one rig → company-wide), or each visible rig. */
 function rigsToShow() {

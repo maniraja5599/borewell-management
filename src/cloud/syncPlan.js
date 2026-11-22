@@ -10,6 +10,15 @@
 
 export const SETTING_IDS = ['brand', 'rates', 'rateProfiles', 'savedExtras', 'savedNotes', 'waFormat'];
 
+/**
+ * Record kinds kept as a list on the phone: kind → list name.
+ *   worker — payroll list (operators, helpers, drivers, labour); never sign in (migration 0014)
+ *   tool   — bits and hammers bought for a rig (migration 0014)
+ * A new list kind is added here, in STORAGE_KEYS / BIG_LISTS, and on the server.
+ */
+export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools' });
+export const LIST_NAMES = Object.freeze(Object.values(LIST_KINDS));
+
 /** Fast 53-bit string hash (cyrb53). Plenty for change detection. */
 export function hashString(str) {
     let h1 = 0xdeadbeef ^ 0;
@@ -52,9 +61,7 @@ export function indexLocal(local, hashFor = (kind, data) => hashData(data)) {
             index.set(key, { kind, id, data: item, hash: hashFor(kind, item) });
         }
     };
-    addList(local.customers, 'customer');
-    addList(local.history, 'bill');
-    addList(local.stock, 'stock');
+    for (const [kind, name] of Object.entries(LIST_KINDS)) addList(local[name], kind);
     for (const id of SETTING_IDS) {
         const data = local.settings?.[id];
         if (data === undefined || data === null) continue;
@@ -81,6 +88,34 @@ export function planPush(index, hashes, defaults = null) {
         rows.push({ kind: key.slice(0, sep), id: key.slice(sep + 1), data: {}, deleted: true, key, hash: null });
     }
     return rows;
+}
+
+/**
+ * Safety net: a list that suddenly became empty on this phone (storage failed to load, a bad
+ * restore) must not delete the company's records in the cloud. Deletes of a kind are held back
+ * when this phone now has none of that kind left and it had at least `min` synced before, unless
+ * the owner just chose "Clear all" for that list (allowWipe). Returns { rows, held: [kind] }.
+ */
+export function holdMassDeletes(rows, index, hashes, { min = 20, allowWipe = [] } = {}) {
+    const held = [];
+    const out = [];
+    const known = {};
+    for (const key of Object.keys(hashes || {})) {
+        if (hashes[key] === null) continue;
+        const kind = key.slice(0, key.indexOf(':'));
+        known[kind] = (known[kind] || 0) + 1;
+    }
+    const left = {};
+    for (const rec of index.values()) left[rec.kind] = (left[rec.kind] || 0) + 1;
+    for (const row of rows) {
+        const wiped = row.deleted && row.kind !== 'setting' && !left[row.kind] && (known[row.kind] || 0) >= min;
+        if (wiped && !allowWipe.includes(row.kind)) {
+            if (!held.includes(row.kind)) held.push(row.kind);
+            continue;
+        }
+        out.push(row);
+    }
+    return { rows: out, held };
 }
 
 /**
@@ -157,24 +192,20 @@ export function dropDefaultCloudSettings(rows, local, defaults = {}) {
 
 /** Apply planned cloud rows to plain copies of the phone's lists/settings. Returns which parts changed. */
 export function applyToLocal(local, applyRows) {
-    const out = {
-        customers: [...(local.customers || [])],
-        history: [...(local.history || [])],
-        stock: [...(local.stock || [])],
-        settings: { ...(local.settings || {}) }
-    };
+    const out = { settings: { ...(local.settings || {}) } };
+    const rowsFor = {};
+    for (const name of LIST_NAMES) { out[name] = [...(local[name] || [])]; rowsFor[name] = []; }
     const changed = new Set();
-    const LIST = { customer: 'customers', bill: 'history', stock: 'stock' };
-    const rowsFor = { customers: [], history: [], stock: [] };
     for (const row of applyRows) {
-        if (LIST[row.kind]) { rowsFor[LIST[row.kind]].push(row); changed.add(LIST[row.kind]); }
+        const list = LIST_KINDS[row.kind];
+        if (list) { rowsFor[list].push(row); changed.add(list); }
         else if (row.kind === 'setting' && SETTING_IDS.includes(row.id)) {
             if (row.deleted) delete out.settings[row.id];
             else out.settings[row.id] = row.data;
             changed.add(row.id);
         }
     }
-    for (const name of ['customers', 'history', 'stock']) out[name] = upsertAll(out[name], rowsFor[name]);
+    for (const name of LIST_NAMES) out[name] = upsertAll(out[name], rowsFor[name]);
     if (changed.has('history')) {
         // Newest bill first, the way the bill book always shows it.
         const t = (h) => Date.parse(h?.createdAt || '') || Number(h?.id) || 0;

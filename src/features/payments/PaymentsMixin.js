@@ -1,5 +1,6 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
+import { can } from '../../cloud/access.js';
 
 export class PaymentsMixin {
     ensureBillPaymentsArray(item) {
@@ -108,6 +109,8 @@ export class PaymentsMixin {
     }
 
     openRecordPaymentModal(billId) {
+        // Office staff without "bills" only look at bills (the server would refuse the payment).
+        if (!can('bills')) { this.showToast?.('🔒 Ask the owner for "Make bills & take payments" to record payments.'); return; }
         const item = (this.history || []).find(h => h.id === billId);
         if (!item || !item.snapshot) return;
         const overlay = document.getElementById('recordPaymentModalOverlay');
