@@ -133,7 +133,7 @@ export function initFirstBillGuide(app) {
         ]);
         // Above the whole row (the customer search shares its row with "Add Customer": a tip inside it
         // squeezed the search box).
-        const anchor = target.closest('.wiz-search-add-row, .drilling-depth-row, .proceed-preview-bar') || target;
+        const anchor = target.closest('.wiz-search-add-row, .drilling-depth-row, .proceed-preview-bar, .pre-save-confirm-box') || target;
         anchor.insertAdjacentElement('beforebegin', coachTip);
         const nextLine = card?.querySelector('.fbg-step.is-next small');
         if (nextLine && steps().find((x) => !x.done)?.id === 'bill') nextLine.textContent = `Next: ${step.text.charAt(0).toLowerCase()}${step.text.slice(1)}`;

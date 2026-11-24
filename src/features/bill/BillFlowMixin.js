@@ -113,10 +113,10 @@ export class BillFlowMixin {
         }
         if (previewStatusBadge && previewStatusSub) {
             if (isSavedReady) {
-                previewStatusBadge.textContent = '✅ BILL SAVED — READY TO SHARE';
+                previewStatusBadge.textContent = 'Saved · ready to share';
                 previewStatusSub.textContent = 'Use WhatsApp, Image or PDF buttons below to share';
             } else {
-                previewStatusBadge.textContent = '👁️ BILL PREVIEW';
+                previewStatusBadge.textContent = 'Bill preview';
                 previewStatusSub.textContent = 'Check all bill details below, then tap Save Bill';
             }
         }

@@ -1,0 +1,237 @@
+/* ==========================================================================
+   BILL PAPER + TOP TOTAL STRIP v4 — approved design (24 Nov 2026)
+   1. The top total strip on the New bill tab: dark green, white total, orange due.
+   2. The bill the customer gets (#printableBillCard, and its clone that the image /
+      PDF export renders inside .pdf-a4-export-sheet): white paper, company on top,
+      quiet grey labels, a plain total line, the balance due in an orange box.
+   Plain CSS only (no color-mix): html2canvas draws the exported bill from it.
+   ========================================================================== */
+
+/* ---------- 1. Top total strip ---------- */
+html.ui-v3 .sticky-live-bar {
+    background: #0f2a1d !important;
+    border-bottom: 0 !important;
+}
+html.ui-v3 .live-doc-tag {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    font: 700 11px/1 Inter, sans-serif !important;
+    letter-spacing: 0.06em !important;
+    padding: 6px 10px !important;
+    box-shadow: none !important;
+}
+html.ui-v3 .live-bar-meta { color: #a9c7b6 !important; }
+html.ui-v3 .live-bar-right {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    gap: 10px !important;
+}
+html.ui-v3 .live-bar-amount { color: #ffffff !important; font-family: Inter, sans-serif !important; }
+html.ui-v3 .live-bar-balance,
+html.ui-v3 .live-bar-balance.has-due {
+    background: #fef3e7 !important;
+    color: #8a3a07 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 999px !important;
+    padding: 4px 9px !important;
+    font: 700 11.5px/1.15 Inter, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+}
+html.ui-v3 .live-bar-balance.fully-paid { background: #e8f3ec !important; color: #0f3d27 !important; }
+
+/* Preview top bar (above the bill, not exported) */
+html.ui-v3 .preview-stage-top-bar {
+    background: #ffffff !important;
+    border: 1px solid #e3e8e5 !important;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+}
+html.ui-v3 .pst-badge {
+    background: #e8f3ec !important;
+    color: #0f3d27 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    font: 700 11.5px/1 Inter, sans-serif !important;
+    letter-spacing: 0.04em;
+}
+html.ui-v3 .pst-edit-btn {
+    min-height: 40px;
+    border: 1px solid #d5dcd8 !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    color: #101814 !important;
+    font: 600 13px/1 Inter, sans-serif !important;
+    box-shadow: none !important;
+}
+
+/* ---------- 2. The bill paper ---------- */
+html.ui-v3 .bill-receipt-card {
+    background: #ffffff !important;
+    border: 1px solid #e3e8e5 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 24px rgba(16, 24, 20, 0.06) !important;
+    color: #101814;
+    font-family: Inter, 'Noto Sans Tamil', sans-serif !important;
+}
+html.ui-v3 .pdf-a4-export-sheet .bill-receipt-card { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+
+/* Company */
+html.ui-v3 .bill-receipt-card .receipt-header {
+    background: #ffffff !important;
+    color: #101814 !important;
+    padding: 18px 18px 14px !important;
+    border-bottom: 1px solid #eef2f0 !important;
+}
+html.ui-v3 .bill-receipt-card .receipt-logo-box {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 12px !important;
+    border: 1px solid #e3e8e5 !important;
+    background: #ffffff !important;
+}
+html.ui-v3 .bill-receipt-card .receipt-company-info h2 {
+    color: #101814 !important;
+    font: 800 18px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important;
+    letter-spacing: -0.01em !important;
+}
+html.ui-v3 .bill-receipt-card .receipt-tagline { color: #146c43 !important; font: 600 12px/1.35 Inter, 'Noto Sans Tamil', sans-serif !important; }
+html.ui-v3 .bill-receipt-card :is(.receipt-address, .receipt-phones-row) { color: #5b6660 !important; font: 500 12px/1.4 Inter, 'Noto Sans Tamil', sans-serif !important; }
+html.ui-v3 .bill-receipt-card .receipt-phones-row strong { color: #101814 !important; }
+html.ui-v3 .bill-receipt-card .gst-pill-badge { background: #f7f9f8 !important; color: #3d4842 !important; border: 1px solid #e3e8e5; }
+
+/* Final bill · No · date */
+html.ui-v3 .bill-receipt-card .receipt-meta-strip {
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #eef2f0 !important;
+}
+html.ui-v3 .bill-receipt-card .receipt-doc-badge,
+html.ui-v3 .bill-receipt-card .receipt-doc-badge.doc-is-invoice {
+    background: #e8f3ec !important;
+    color: #0f3d27 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    padding: 5px 10px !important;
+    font: 800 11px/1 Inter, sans-serif !important;
+    letter-spacing: 0.06em;
+}
+html.ui-v3 .bill-receipt-card .receipt-doc-badge.doc-is-quote { background: #fef3e7 !important; color: #8a3a07 !important; border: 0 !important; }
+html.ui-v3 .bill-receipt-card .receipt-meta-right { color: #101814 !important; font: 700 13px/1.2 Inter, sans-serif !important; font-variant-numeric: tabular-nums; }
+html.ui-v3 .bill-receipt-card .meta-pipe { color: #c4cdc8; opacity: 1; }
+
+/* Customer */
+html.ui-v3 .bill-receipt-card .receipt-customer-box {
+    background: #f7f9f8 !important;
+    border-bottom: 1px solid #eef2f0 !important;
+    padding: 12px 18px !important;
+}
+html.ui-v3 .bill-receipt-card .cust-grid { gap: 6px 14px !important; font-size: 13.5px !important; }
+html.ui-v3 .bill-receipt-card .cust-grid .c-lbl { color: #5b6660 !important; font-weight: 500 !important; }
+html.ui-v3 .bill-receipt-card .cust-grid strong { color: #101814 !important; font-weight: 700 !important; }
+
+/* Work type · depth · base rate · casing: quiet label over value */
+html.ui-v3 .bill-receipt-card .receipt-summary-chips {
+    padding: 12px 18px !important;
+    gap: 8px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #eef2f0 !important;
+}
+html.ui-v3 .bill-receipt-card .r-chip {
+    background: #f7f9f8 !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    padding: 8px 10px !important;
+    text-align: left !important;
+}
+html.ui-v3 .bill-receipt-card .r-chip-lbl { color: #5b6660 !important; font: 700 10.5px/1.2 Inter, sans-serif !important; letter-spacing: 0.05em !important; text-transform: uppercase; }
+html.ui-v3 .bill-receipt-card .r-chip-val { color: #101814 !important; font: 700 14px/1.3 Inter, 'Noto Sans Tamil', sans-serif !important; }
+
+/* Slab table */
+html.ui-v3 .bill-receipt-card .receipt-slab-section { padding: 12px 18px 4px !important; }
+html.ui-v3 .bill-receipt-card .slab-table-header {
+    background: #f7f9f8 !important;
+    color: #5b6660 !important;
+    border: 0 !important;
+    border-radius: 8px 8px 0 0 !important;
+    font: 700 10.5px/1.2 Inter, sans-serif !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+}
+html.ui-v3 .bill-receipt-card .slab-row { border-bottom: 1px solid #eef2f0 !important; font-size: 13.5px !important; font-variant-numeric: tabular-nums; }
+html.ui-v3 .bill-receipt-card .slab-row .s-range { color: #3d4842 !important; font-weight: 600 !important; }
+html.ui-v3 .bill-receipt-card .slab-row :is(.s-feet, .s-rate) { color: #5b6660 !important; }
+html.ui-v3 .bill-receipt-card .slab-row .s-cost { color: #101814 !important; font-weight: 700 !important; }
+
+/* Charges */
+html.ui-v3 .bill-receipt-card .receipt-charges-list { padding: 4px 18px 16px !important; }
+html.ui-v3 .bill-receipt-card .charge-line {
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #eef2f0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #3d4842 !important;
+    font-size: 14px !important;
+    font-variant-numeric: tabular-nums;
+}
+html.ui-v3 .bill-receipt-card .charge-line span { color: #3d4842 !important; }
+html.ui-v3 .bill-receipt-card .charge-line strong { color: #101814 !important; font-weight: 700 !important; }
+html.ui-v3 .bill-receipt-card .charge-line.highlight-drilling span,
+html.ui-v3 .bill-receipt-card .charge-line.subtotal-line span { color: #101814 !important; font-weight: 700 !important; }
+html.ui-v3 .bill-receipt-card .charge-line.discount-line strong { color: #b42318 !important; }
+html.ui-v3 .bill-receipt-card .charge-line.grand-total-line {
+    margin-top: 6px !important;
+    padding: 14px 0 10px !important;
+    border-top: 2px solid #101814 !important;
+    border-bottom: 0 !important;
+    background: transparent !important;
+    color: #101814 !important;
+    box-shadow: none !important;
+}
+html.ui-v3 .bill-receipt-card .grand-total-line .gt-title { color: #101814 !important; font: 700 15px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; }
+html.ui-v3 .bill-receipt-card .grand-total-line .gt-sub { color: #5b6660 !important; }
+html.ui-v3 .bill-receipt-card .grand-total-line .gt-value { color: #101814 !important; font: 800 22px/1 Inter, sans-serif !important; letter-spacing: -0.02em; }
+html.ui-v3 .bill-receipt-card .charge-line.advance-line { border-bottom: 0 !important; padding-top: 4px !important; }
+html.ui-v3 .bill-receipt-card .charge-line.advance-line strong { color: #146c43 !important; }
+html.ui-v3 .bill-receipt-card .charge-line.balance-due-line {
+    margin-top: 8px !important;
+    padding: 14px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: #fef3e7 !important;
+}
+html.ui-v3 .bill-receipt-card .charge-line.balance-due-line span { color: #8a3a07 !important; font: 700 14px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; }
+html.ui-v3 .bill-receipt-card .charge-line.balance-due-line strong { color: #8a3a07 !important; font: 800 22px/1 Inter, sans-serif !important; }
+
+/* Footer */
+html.ui-v3 .bill-receipt-card .receipt-footer {
+    border-top: 1px dashed #d5dcd8 !important;
+    background: #ffffff !important;
+    padding: 14px 18px !important;
+}
+html.ui-v3 .bill-receipt-card .receipt-note { color: #3d4842 !important; background: transparent !important; border: 0 !important; }
+html.ui-v3 .bill-receipt-card .rcpt-qr-card { border: 1px solid #e3e8e5 !important; border-radius: 10px !important; background: #ffffff !important; box-shadow: none !important; }
+html.ui-v3 .bill-receipt-card .upi-info-text { color: #3d4842 !important; }
+html.ui-v3 .bill-receipt-card .sign-box { color: #5b6660 !important; }
+html.ui-v3 .bill-receipt-card .sign-box strong { color: #101814 !important; }
+
+/* Save row under the preview: solid brand green, quiet Edit */
+html.ui-v3 #saveBillHistoryBtn {
+    background: var(--v3-pri) !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #preSavePreviewActions > button:not(#saveBillHistoryBtn) {
+    border: 1px solid #d5dcd8 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    color: #101814 !important;
+    box-shadow: none !important;
+}
