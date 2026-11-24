@@ -111,7 +111,7 @@ export class CustomerListeners {
             const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
             const item = (this.history || []).find(h => h.id === billId);
             if (!item) return;
-            const pending = this.getBillPendingAmount(item);
+            const pending = this.getRecordPaymentRoom(item, this.rpmEditingPayId);
             const amtInp = document.getElementById('rpmAmountInput');
             const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
             if (amtInp && pending > 0) {
@@ -137,7 +137,7 @@ export class CustomerListeners {
             if (this.rpmAutoFull) {
                 const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
                 const item = (this.history || []).find(h => h.id === billId);
-                const pending = item ? Math.round(this.getBillPendingAmount(item)) : 0;
+                const pending = item ? this.getRecordPaymentRoom(item, this.rpmEditingPayId) : 0;
                 const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
                 const amtInp = document.getElementById('rpmAmountInput');
                 if (amtInp) amtInp.value = String(Math.max(0, pending - disc));
@@ -171,6 +171,14 @@ export class CustomerListeners {
         });
         document.getElementById('rpmSavePaymentBtn')?.addEventListener('click', () => {
             this.saveNewBillPaymentRecord();
+        });
+        document.getElementById('rpmCancelEditBtn')?.addEventListener('click', () => {
+            this.cancelEditBillPaymentEntry();
+        });
+        // Bill editor: "Advance Paid" is locked once a bill has other payments; this opens them.
+        document.getElementById('advanceLockedHint')?.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.billid || this.loadedHistoryBillId;
+            if (id) this.openRecordPaymentModal(id);
         });
         document.getElementById('rpmAmountInput')?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {

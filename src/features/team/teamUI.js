@@ -12,6 +12,8 @@ import { renewLink, PLANS, isEarlyAccess, earlyAccessDaysLeft } from '../../conf
 import { fetchActivity, renderActivityList } from '../../cloud/activity.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { ROLE_INFO } from './invitations.js';
+import { STORAGE_KEYS } from '../../data/storage.js';
+import { paymentEditSettings, PAYMENT_EDIT_HOUR_CHOICES } from '../payments/paymentEditRules.js';
 
 const ROLE_LABEL = { owner: 'Owner', manager: 'Manager', office: 'Office staff', driver: 'Manager' };
 /** What the owner can tick for office staff (server: drillrig.clean_perms, migration 0014). */
@@ -112,6 +114,44 @@ function roleCards(name, roles, value, onChange) {
         ]));
     });
     return wrap;
+}
+
+/** Team page (owners): may staff change a saved payment, and for how long. Company setting, synced. */
+export function paymentEditCard(app) {
+    const cur = paymentEditSettings(app.brand);
+    const save = (next) => {
+        app.brand.staffPaymentEdit = next;
+        app.saveToStorage(STORAGE_KEYS.brand, app.brand);
+        app.showToast?.(next.on
+            ? `✅ Staff can change a payment for ${next.hours} hours after entering it`
+            : '🔒 Only owners can change payments');
+    };
+    const hoursBlock = el('div', { class: 'tt-block' }, [
+        el('span', { class: 'tt-mini', text: 'For how long after entry' }),
+        el('div', { class: 'tt-seg tt-seg-hours', role: 'radiogroup', 'aria-label': 'Hours' }, PAYMENT_EDIT_HOUR_CHOICES.map((h) => {
+            const input = el('input', { type: 'radio', name: 'ttPayEditHours', value: String(h), checked: h === cur.hours });
+            input.addEventListener('change', () => save({ on: true, hours: h }));
+            return el('label', {}, [input, el('span', { text: `${h} hrs` })]);
+        }))
+    ]);
+    hoursBlock.hidden = !cur.on;
+    const tick = el('input', { type: 'checkbox', id: 'ttPayEditOn', checked: cur.on });
+    tick.addEventListener('change', () => {
+        hoursBlock.hidden = !tick.checked;
+        const hours = Number(hoursBlock.querySelector('input:checked')?.value) || cur.hours;
+        save({ on: tick.checked, hours });
+    });
+    return el('div', { class: 'tt-card' }, [
+        el('label', { class: 'tt-perm' }, [
+            tick,
+            el('span', { class: 'tt-perm-box', 'aria-hidden': 'true' }, [icon('check')]),
+            el('span', { class: 'tt-perm-txt' }, [
+                el('strong', { text: 'Staff can change payments' }),
+                el('small', { text: 'Managers and office staff who take payments can fix a wrong amount, date or mode. Owners can always change any payment.' })
+            ])
+        ]),
+        hoursBlock
+    ]);
 }
 
 export function initTeamUI(app) {
@@ -221,6 +261,8 @@ function openSheet(app) {
             isOwner ? addRigCard() : null,
             isOwner ? label('Office staff') : null,
             isOwner ? officeCard() : null,
+            isOwner ? label('Payments by staff') : null,
+            isOwner ? paymentEditCard(app) : null,
             isOwner ? label('Owners & partners') : null,
             isOwner ? ownersCard() : null,
             noRig.length || noRigInvites.length ? label('Not on a rig yet') : null,

@@ -858,6 +858,7 @@
                             <div class="field-group">
                                 <label for="advancePaidAmount" data-i18n="advanceReceived">Advance Paid (− ₹)</label>
                                 <input type="number" id="advancePaidAmount" value="" placeholder="₹" min="0" inputmode="numeric">
+                                <button type="button" class="advance-locked-hint" id="advanceLockedHint" hidden><span></span> <strong>Payments ›</strong></button>
                             </div>
                         </div>
 
@@ -2898,13 +2899,15 @@
                 <!-- Shown instead of the form when nothing is left to collect -->
                 <div class="rpm-paid-note" id="rpmPaidNote" hidden>
                     <strong>✅ Fully paid</strong>
-                    <span>Nothing more to collect on this bill. To change a payment, remove it below and add it again.</span>
+                    <span>Nothing more to collect on this bill. To change a payment, tap ✏️ next to it below.</span>
                 </div>
+                <p class="rpm-overpaid-note" id="rpmOverpaidNote" hidden></p>
 
                 <!-- 2. Minimal Date + Amount Entry Box -->
                 <div class="rpm-form-card" id="rpmAddPaymentFormCard">
                     <div class="rpm-form-head">
-                        <span>Add Payment</span>
+                        <span id="rpmFormTitle">Add Payment</span>
+                        <button type="button" class="rpm-cancel-edit-btn" id="rpmCancelEditBtn" hidden>Cancel</button>
                         <button type="button" class="rpm-full-fill-chip" id="rpmFillFullBalanceBtn">Full Due</button>
                     </div>
                     <div class="rpm-grid-2">

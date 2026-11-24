@@ -437,3 +437,5 @@
 .wk-open-txt small { font: 500 12.5px/1.35 Inter, sans-serif; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wk-head small.wk-hint { flex: 1; margin: 0; }
 .wk-done { margin-top: 8px; }
+.tt-seg.tt-seg-hours { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.tt-seg.tt-seg-hours label { font-size: 12.5px; }

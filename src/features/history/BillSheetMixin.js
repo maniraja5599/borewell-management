@@ -68,6 +68,7 @@ export class BillSheetMixin {
         const total = Math.round(Number(snap.grandTotal) || 0);
         const paid = isInvoice ? this.getBillPaidAmount(item) : 0;
         const due = isInvoice ? this.getBillPendingAmount(item) : 0;
+        const over = isInvoice ? (this.getBillOverpaidAmount?.(item) || 0) : 0;
         const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((paid / total) * 100))) : 0;
         const site = siteName || item.custLocation || '';
 
@@ -99,7 +100,7 @@ export class BillSheetMixin {
             <div class="bs-hero">
                 <div class="bs-hero-top">
                     <span class="bs-doc">${isInvoice ? 'Final bill' : 'Quotation'} · #${esc(item.billNo || '')}</span>
-                    <span class="bs-status is-${st.kind}">${esc(st.label)}</span>
+                    <span class="bs-status is-${over > 0 ? 'due' : st.kind}">${esc(over > 0 ? `Extra ${this.formatINR(over)}` : st.label)}</span>
                 </div>
                 <div class="bs-total-row">
                     <span class="bs-total">${this.formatINR(total)}</span>
@@ -109,7 +110,9 @@ export class BillSheetMixin {
                 <div class="bs-bar" role="img" aria-label="Received ${this.formatINR(paid)} of ${this.formatINR(total)}"><i style="width:${pct}%"></i></div>
                 <div class="bs-trio">
                     <div><span>Received</span><strong class="is-paid">${this.formatINR(paid)}</strong></div>
-                    <div><span>${due > 0 ? 'Still due' : 'Balance'}</span><strong class="${due > 0 ? 'is-due' : 'is-paid'}">${due > 0 ? this.formatINR(due) : '₹0 · Settled'}</strong></div>
+                    ${over > 0
+                        ? `<div><span>Extra received</span><strong class="is-over">${this.formatINR(over)}</strong></div>`
+                        : `<div><span>${due > 0 ? 'Still due' : 'Balance'}</span><strong class="${due > 0 ? 'is-due' : 'is-paid'}">${due > 0 ? this.formatINR(due) : '₹0 · Settled'}</strong></div>`}
                 </div>` : ''}
             </div>
             <div class="bs-work">

@@ -409,6 +409,12 @@ export class BillFieldBehaviorListeners {
             document.getElementById('customExtraAmount').value = '';
             document.getElementById('discountAmount').value = '';
             document.getElementById('advancePaidAmount').value = '';
+            // A saved bill with several payments keeps showing what was received (the box is locked).
+            const loadedBill = this.loadedHistoryBillId ? (this.history || []).find(h => h.id === this.loadedHistoryBillId) : null;
+            if (loadedBill && this.billAdvanceFieldIsLocked?.(loadedBill)) {
+                const paid = this.getBillPaidAmount(loadedBill);
+                document.getElementById('advancePaidAmount').value = paid > 0 ? paid : '';
+            }
             const custGstEl = document.getElementById('custGstInput');
             if (custGstEl) custGstEl.value = '';
             const gstToggle = document.getElementById('gstEnabledToggle');

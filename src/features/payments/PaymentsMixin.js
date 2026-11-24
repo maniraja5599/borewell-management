@@ -1,8 +1,14 @@
 // Auto-split from the original single-file app.js. Methods are mixed into BoreBillSaaSApp (see app/App.js).
 import { STORAGE_KEYS } from '../../data/storage.js';
-import { can, currentUser } from '../../cloud/access.js';
+import { can, currentUser, isOwnerOrLocal } from '../../cloud/access.js';
+import { paymentEditCheck, paymentEditSettings } from './paymentEditRules.js';
 
 export class PaymentsMixin {
+    /** May the person on this phone change this saved payment now? (paymentEditRules.js) */
+    paymentEditCheckFor(p) {
+        return paymentEditCheck(p, { owner: isOwnerOrLocal(), bills: can('bills') }, this.brand);
+    }
+
     ensureBillPaymentsArray(item) {
         if (!item || !item.snapshot) return [];
         const snap = item.snapshot;
@@ -55,6 +61,44 @@ export class PaymentsMixin {
         return this.getBillPendingAmount(item) > 0;
     }
 
+    /** Money received above the bill total (the bill was made smaller after it was paid). */
+    getBillOverpaidAmount(item) {
+        if (!item || !item.snapshot || (item.snapshot.docType || 'QUOTATION') !== 'INVOICE') return 0;
+        return Math.max(0, this.getBillPaidAmount(item) - Math.round(item.snapshot.grandTotal || 0));
+    }
+
+    /**
+     * How much payment + discount can still go on the bill. While a payment is being edited
+     * (exceptPayId), that payment's own amount and discount are free again.
+     */
+    getRecordPaymentRoom(item, exceptPayId = null) {
+        if (!item || !item.snapshot) return 0;
+        if (!exceptPayId) return Math.round(this.getBillPendingAmount(item));
+        const snap = item.snapshot;
+        const hasBase = snap.totalBeforePaymentDiscount !== undefined && snap.totalBeforePaymentDiscount !== null
+            && Number.isFinite(Number(snap.totalBeforePaymentDiscount));
+        const base = hasBase
+            ? Math.round(Number(snap.totalBeforePaymentDiscount))
+            : Math.round(Number(snap.grandTotal) || 0) + Math.max(0, Math.round(Number(snap.paymentDiscount) || 0));
+        const others = this.getBillPaymentEntries(item).filter((p) => p.id !== exceptPayId);
+        const used = others.reduce((sum, p) => sum + Math.round(Number(p.amount) || 0) + Math.max(0, Math.round(Number(p.discount) || 0)), 0);
+        return Math.max(0, base - used);
+    }
+
+    /** Remember a removed payment, so another phone's copy never brings it back on sync. */
+    markBillPaymentRemoved(item, payId) {
+        if (!item || payId === undefined || payId === null) return;
+        const list = Array.isArray(item.removedPaymentIds) ? item.removedPaymentIds : [];
+        if (!list.includes(payId)) list.push(payId);
+        item.removedPaymentIds = list;
+    }
+
+    unmarkBillPaymentRemoved(item, payId) {
+        if (!item || !Array.isArray(item.removedPaymentIds)) return;
+        item.removedPaymentIds = item.removedPaymentIds.filter((id) => id !== payId);
+        if (!item.removedPaymentIds.length) delete item.removedPaymentIds;
+    }
+
     /** Discount given while recording payments on this bill (not money received). */
     getBillPaymentDiscount(item) {
         if (!item || !item.snapshot || (item.snapshot.docType || 'QUOTATION') !== 'INVOICE') return 0;
@@ -89,7 +133,8 @@ export class PaymentsMixin {
         const pending = this.getBillPendingAmount(item);
         snap.advancePaidAmount = paid;
         snap.balancePayable = pending;
-        item.paymentStatus = (pending <= 0 && (snap.grandTotal || 0) > 0) ? 'paid' : 'unpaid';
+        // Same rule as the Bills list (isBillItemUnpaid): nothing due = paid, also for a ₹0 bill.
+        item.paymentStatus = pending <= 0 ? 'paid' : 'unpaid';
     }
 
     formatPaymentDateDisplay(ymdStr) {
@@ -137,6 +182,9 @@ export class PaymentsMixin {
         const discToggle = document.getElementById('rpmDiscountToggleBtn');
         if (discToggle) discToggle.hidden = false;
         this.rpmAutoFull = false;
+        this.rpmEditingPayId = null;
+        this.resetRecordPaymentModePills();
+        this.setRecordPaymentFormMode(null);
 
         this.renderRecordPaymentModalContent(item);
         this.updateRecordPaymentDiscountHint();
@@ -170,23 +218,42 @@ export class PaymentsMixin {
             discNote.hidden = d <= 0;
             discNote.textContent = d > 0 ? `Bill ${this.formatINR(snap.totalBeforePaymentDiscount || grand + d)} − ${this.formatINR(d)} discount = ${this.formatINR(grand)}` : '';
         }
+        const over = this.getBillOverpaidAmount(item);
         if (paidEl) paidEl.textContent = this.formatINR(paid);
         if (dueEl) {
-            dueEl.textContent = hasDue ? this.formatINR(pending) : '₹0 (Paid)';
-            dueEl.className = `cdm-pt-val ${hasDue ? 'text-danger' : 'text-green'}`;
+            dueEl.textContent = hasDue ? this.formatINR(pending) : (over > 0 ? `${this.formatINR(over)} extra` : '₹0 (Paid)');
+            dueEl.className = `cdm-pt-val ${hasDue || over > 0 ? 'text-danger' : 'text-green'}`;
         }
-        if (dueBox) dueBox.classList.toggle('has-due', hasDue);
-        // Fully paid: no more payments can be typed (remove one below to change it).
+        if (dueBox) dueBox.classList.toggle('has-due', hasDue || over > 0);
+        const overNote = document.getElementById('rpmOverpaidNote');
+        if (overNote) {
+            overNote.hidden = over <= 0;
+            overNote.textContent = over > 0
+                ? `⚠️ Received ${this.formatINR(over)} more than the bill total. Edit a payment below, or give ${this.formatINR(over)} back to the customer.`
+                : '';
+        }
+        // Fully paid: no new payment can be typed, but any payment below can still be edited (✏️).
+        const editing = Boolean(this.rpmEditingPayId);
         const formCard = document.getElementById('rpmAddPaymentFormCard');
-        if (formCard) formCard.hidden = !hasDue;
+        if (formCard) formCard.hidden = !hasDue && !editing;
         const paidNote = document.getElementById('rpmPaidNote');
-        if (paidNote) paidNote.hidden = hasDue;
+        if (paidNote) {
+            paidNote.hidden = hasDue || editing || over > 0;
+            const help = paidNote.querySelector('span');
+            if (help) {
+                const anyEditable = this.getBillPaymentEntries(item).some((p) => this.paymentEditCheckFor(p).ok);
+                help.textContent = anyEditable
+                    ? 'Nothing more to collect on this bill. To change a payment, tap ✏️ next to it below.'
+                    : 'Nothing more to collect on this bill. Only the owner can change these payments now.';
+            }
+        }
 
         const fullBtn = document.getElementById('rpmFillFullBalanceBtn');
+        const room = this.getRecordPaymentRoom(item, this.rpmEditingPayId);
         if (fullBtn) {
-            if (hasDue) {
+            if (room > 0) {
                 fullBtn.style.display = 'inline-flex';
-                fullBtn.textContent = `Full Due: ${this.formatINR(pending)}`;
+                fullBtn.textContent = `Full Due: ${this.formatINR(room)}`;
             } else {
                 fullBtn.style.display = 'none';
             }
@@ -210,25 +277,138 @@ export class PaymentsMixin {
             return;
         }
 
-        listEl.innerHTML = entries.map((p, idx) => `
-            <div class="rpm-hist-item">
+        const staffHours = isOwnerOrLocal() ? null : paymentEditSettings(this.brand).hours;
+        listEl.innerHTML = entries.map((p, idx) => {
+            const ed = this.paymentEditCheckFor(p);
+            // Staff see until when they can still change it ("✏️ till 5:30 PM").
+            const till = ed.ok && ed.until && staffHours
+                ? new Date(ed.until).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' })
+                : '';
+            return `
+            <div class="rpm-hist-item${p.id === this.rpmEditingPayId ? ' is-editing' : ''}">
                 <div class="rpm-hi-date">
                     <span class="rpm-hi-idx">${idx + 1}.</span>
                     <span>📅 ${this.escapeHtml(this.formatPaymentDateDisplay(p.date))}</span>
                     ${p.mode ? `<span class="rpm-hi-mode">${this.escapeHtml(p.mode)}</span>` : ''}
+                    ${till ? `<small class="rpm-hi-till">✏️ till ${this.escapeHtml(till)}</small>` : ''}
                 </div>
                 <div class="rpm-hi-right">
                     <span class="rpm-hi-amt">${Math.round(Number(p.amount) || 0) > 0 ? this.formatINR(p.amount) : 'Discount'}${Number(p.discount) > 0 ? `<small class="rpm-hi-disc">${Math.round(Number(p.amount) || 0) > 0 ? '+ ' : ''}${this.formatINR(p.discount)}${Math.round(Number(p.amount) || 0) > 0 ? ' discount' : ''}</small>` : ''}</span>
-                    <button type="button" class="rpm-hi-del-btn" data-payid="${p.id}" title="Remove">✕</button>
+                    <span class="rpm-hi-acts">${ed.ok ? `<button type="button" class="rpm-hi-edit-btn" data-payid="${this.escapeHtml(String(p.id))}" title="${till ? `Edit (till ${this.escapeHtml(till)})` : 'Edit'}" aria-label="Edit payment ${idx + 1}">✏️</button>` : ''}
+                    <button type="button" class="rpm-hi-del-btn" data-payid="${this.escapeHtml(String(p.id))}" title="Remove" aria-label="Remove payment ${idx + 1}">✕</button></span>
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
 
         listEl.querySelectorAll('.rpm-hi-del-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.deleteBillPaymentEntry(item.id, btn.dataset.payid);
             });
         });
+        listEl.querySelectorAll('.rpm-hi-edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.startEditBillPaymentEntry(item.id, btn.dataset.payid);
+            });
+        });
+    }
+
+    /** Form title / button text for adding (entry = null) or editing one payment. */
+    setRecordPaymentFormMode(entry, idx = 0) {
+        const title = document.getElementById('rpmFormTitle');
+        if (title) title.textContent = entry ? `Edit payment ${idx + 1}` : 'Add Payment';
+        const saveTxt = document.querySelector('#rpmSavePaymentBtn span');
+        if (saveTxt) saveTxt.textContent = entry ? 'Save change' : 'Add Payment';
+        const cancel = document.getElementById('rpmCancelEditBtn');
+        if (cancel) cancel.hidden = !entry;
+    }
+
+    resetRecordPaymentModePills() {
+        document.querySelectorAll('#rpmModePills .rpm-mode-pill').forEach(pill => {
+            const on = pill.dataset.mode === 'Cash';
+            pill.classList.toggle('active', on);
+            pill.setAttribute('aria-checked', on ? 'true' : 'false');
+        });
+    }
+
+    /** Empty form for a new payment (after a save, or when editing is cancelled). */
+    clearRecordPaymentForm() {
+        this.rpmEditingPayId = null;
+        this.rpmAutoFull = false;
+        const amtInp = document.getElementById('rpmAmountInput');
+        if (amtInp) amtInp.value = '';
+        const discInp = document.getElementById('rpmDiscountInput');
+        if (discInp) discInp.value = '';
+        const discWrap = document.getElementById('rpmDiscountWrap');
+        if (discWrap) discWrap.hidden = true;
+        const discToggle = document.getElementById('rpmDiscountToggleBtn');
+        if (discToggle) discToggle.hidden = false;
+        const dateInp = document.getElementById('rpmDateInput');
+        if (dateInp) dateInp.value = this.toLocalYMD(new Date());
+        this.resetRecordPaymentModePills();
+        this.setRecordPaymentFormMode(null);
+    }
+
+    /** Put one saved payment in the form so its amount, date, mode or discount can be fixed. */
+    startEditBillPaymentEntry(billId, payId) {
+        const item = (this.history || []).find(h => h.id === billId);
+        if (!item) return;
+        const entries = this.getBillPaymentEntries(item);
+        const idx = entries.findIndex(p => String(p.id) === String(payId));
+        if (idx === -1) return;
+        const p = entries[idx];
+        const check = this.paymentEditCheckFor(p);
+        if (!check.ok) { this.showToast?.(`🔒 ${check.reason}`); return; }
+        this.rpmEditingPayId = p.id;
+        this.rpmAutoFull = false;
+
+        const dateInp = document.getElementById('rpmDateInput');
+        if (dateInp) dateInp.value = p.date || item.billDate || this.toLocalYMD(new Date());
+        const amtInp = document.getElementById('rpmAmountInput');
+        const amt = Math.round(Number(p.amount) || 0);
+        if (amtInp) amtInp.value = amt > 0 ? String(amt) : '';
+        const disc = Math.max(0, Math.round(Number(p.discount) || 0));
+        const discInp = document.getElementById('rpmDiscountInput');
+        if (discInp) discInp.value = disc > 0 ? String(disc) : '';
+        const discWrap = document.getElementById('rpmDiscountWrap');
+        if (discWrap) discWrap.hidden = disc <= 0;
+        const discToggle = document.getElementById('rpmDiscountToggleBtn');
+        if (discToggle) discToggle.hidden = disc > 0;
+        // Pill of this payment; an Advance or Discount entry shows no pill and keeps its mode
+        // unless one is tapped.
+        document.querySelectorAll('#rpmModePills .rpm-mode-pill').forEach(pill => {
+            const on = pill.dataset.mode === p.mode;
+            pill.classList.toggle('active', on);
+            pill.setAttribute('aria-checked', on ? 'true' : 'false');
+        });
+
+        this.setRecordPaymentFormMode(p, idx);
+        this.renderRecordPaymentModalContent(item);
+        this.updateRecordPaymentDiscountHint();
+        document.getElementById('rpmAddPaymentFormCard')?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+        setTimeout(() => amtInp?.focus(), 60);
+    }
+
+    cancelEditBillPaymentEntry() {
+        this.clearRecordPaymentForm();
+        const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
+        const item = (this.history || []).find(h => h.id === billId);
+        if (item) this.renderRecordPaymentModalContent(item);
+        this.updateRecordPaymentDiscountHint();
+    }
+
+    /** Everything that shows this bill's payments follows a change. */
+    refreshAfterBillPaymentChange(item) {
+        this.renderRecordPaymentModalContent(item);
+        this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+        this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
+        if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
+            this.openBillDetailModal(item.id);
+        }
+        if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
+            this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
+        }
+        this.refreshLoadedBillAfterPaymentChange(item);
     }
 
     saveNewBillPaymentRecord() {
@@ -249,7 +429,24 @@ export class PaymentsMixin {
 
         // Never record more than the bill's balance: a typo (an extra 0) used to be saved
         // as is, e.g. ₹9,99,999 on a ₹1,25,080 bill. Payment + discount count together.
-        const pending = Math.round(this.getBillPendingAmount(item));
+        // While editing, the payment's own old amount is free again.
+        const editing = this.rpmEditingPayId
+            ? this.getBillPaymentEntries(item).find(p => p.id === this.rpmEditingPayId) || null
+            : null;
+        if (this.rpmEditingPayId && !editing) {
+            this.showToast('⚠️ That payment was removed. Add it again.');
+            this.cancelEditBillPaymentEntry();
+            return;
+        }
+        if (editing) {
+            const check = this.paymentEditCheckFor(editing);
+            if (!check.ok) {
+                this.showToast(`🔒 ${check.reason}`);
+                this.cancelEditBillPaymentEntry();
+                return;
+            }
+        }
+        const pending = this.getRecordPaymentRoom(item, editing ? editing.id : null);
         if (pending <= 0) {
             this.showToast('✅ This bill is already fully paid');
             return;
@@ -265,10 +462,34 @@ export class PaymentsMixin {
             return;
         }
 
-        const mode = rawAmt > 0 ? (document.querySelector('#rpmModePills .rpm-mode-pill.active')?.dataset.mode || 'Cash') : 'Discount';
+        const picked = document.querySelector('#rpmModePills .rpm-mode-pill.active')?.dataset.mode;
+        if (editing) {
+            const before = this.describePaymentEntry(editing);
+            const oldMode = editing.mode && editing.mode !== 'Discount' ? editing.mode : 'Cash';
+            editing.date = dateVal;
+            editing.amount = rawAmt;
+            editing.mode = rawAmt > 0 ? (picked || oldMode) : 'Discount';
+            if (rawDisc > 0) editing.discount = rawDisc; else delete editing.discount;
+            if (editing.isAdvance && item.snapshot) item.snapshot.initialAdvanceAmount = rawAmt;
+            // Who took it stays the same; the newest edit wins when two phones merge (syncPlan).
+            editing.editedAt = new Date().toISOString();
+            const me = currentUser();
+            if (me) editing.editedBy = { id: me.id, name: me.name || '' };
+
+            this.syncBillPaymentSnapshot(item);
+            this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
+            this.clearRecordPaymentForm();
+            this.refreshAfterBillPaymentChange(item);
+            this.updateRecordPaymentDiscountHint();
+            this.showToast(`✏️ Changed ${before} → ${this.describePaymentEntry(editing)} (${this.formatPaymentDateDisplay(dateVal)})`);
+            return;
+        }
+
+        const mode = rawAmt > 0 ? (picked || 'Cash') : 'Discount';
         const entries = this.ensureBillPaymentsArray(item);
         const entry = {
             id: 'pay_' + Date.now() + '_' + Math.floor(Math.random() * 100),
+            createdAt: new Date().toISOString(),
             date: dateVal,
             amount: rawAmt,
             mode
@@ -287,17 +508,7 @@ export class PaymentsMixin {
         this.rpmAutoFull = false;
         this.updateRecordPaymentDiscountHint();
 
-        this.renderRecordPaymentModalContent(item);
-        this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-        this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-
-        if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
-            this.openBillDetailModal(item.id);
-        }
-        if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
-            this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
-        }
-        this.refreshLoadedBillAfterPaymentChange(item);
+        this.refreshAfterBillPaymentChange(item);
 
         this.showToast(rawAmt > 0
             ? `✅ Added ${this.formatINR(rawAmt)} ${mode}${rawDisc > 0 ? ` + ${this.formatINR(rawDisc)} discount` : ''} (${this.formatPaymentDateDisplay(dateVal)})`
@@ -310,7 +521,33 @@ export class PaymentsMixin {
         const advEl = document.getElementById('advancePaidAmount');
         if (advEl) advEl.value = item.snapshot.advancePaidAmount > 0 ? item.snapshot.advancePaidAmount : '';
         this.state.paymentDiscount = Math.round(Number(item.snapshot.paymentDiscount) || 0);
+        this.updateAdvanceFieldLock(item);
         this.calculateAndRender();
+    }
+
+    /**
+     * The bill editor's "Advance Paid" box only sets a bill's single advance. Once the bill has
+     * other payments it shows what was received and is locked: payments change in Payments.
+     */
+    billAdvanceFieldIsLocked(item) {
+        const pays = Array.isArray(item?.payments) ? item.payments : [];
+        return pays.length > 1 || (pays.length === 1 && !pays[0].isAdvance);
+    }
+
+    updateAdvanceFieldLock(item = null) {
+        const inp = document.getElementById('advancePaidAmount');
+        if (!inp) return;
+        const locked = Boolean(item && this.billAdvanceFieldIsLocked(item));
+        inp.readOnly = locked;
+        inp.classList.toggle('is-locked', locked);
+        const hint = document.getElementById('advanceLockedHint');
+        if (hint) {
+            hint.hidden = !locked;
+            const n = locked ? item.payments.length : 0;
+            const txt = hint.querySelector('span');
+            if (txt) txt.textContent = locked ? `Received in ${n} payment${n === 1 ? '' : 's'}. Change them in Payments.` : '';
+            hint.dataset.billid = locked ? item.id : '';
+        }
     }
 
     /** Under the amount: "₹5,000 still left — give it as discount" when a part payment is typed. */
@@ -319,7 +556,7 @@ export class PaymentsMixin {
         if (!hint) return;
         const billId = document.getElementById('rpmBillIdInput')?.value || this.activeRecordPayBillId;
         const item = (this.history || []).find(h => h.id === billId);
-        const pending = item ? Math.round(this.getBillPendingAmount(item)) : 0;
+        const pending = item ? this.getRecordPaymentRoom(item, this.rpmEditingPayId) : 0;
         const amt = Math.max(0, Math.round(parseFloat(document.getElementById('rpmAmountInput')?.value) || 0));
         const disc = Math.max(0, Math.round(parseFloat(document.getElementById('rpmDiscountInput')?.value) || 0));
         const left = pending - amt - disc;
@@ -361,35 +598,26 @@ export class PaymentsMixin {
         if (removed.isAdvance && item.snapshot) {
             item.snapshot.initialAdvanceAmount = 0;
         }
+        this.markBillPaymentRemoved(item, removed.id);
+        if (this.rpmEditingPayId === removed.id) this.clearRecordPaymentForm();
         this.syncBillPaymentSnapshot(item);
         this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
-
-        this.renderRecordPaymentModalContent(item);
-        this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-        this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-        this.refreshLoadedBillAfterPaymentChange(item);
-
-        if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
-            this.openBillDetailModal(item.id);
-        }
-        if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
-            this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
-        }
+        this.refreshAfterBillPaymentChange(item);
+        this.updateRecordPaymentDiscountHint();
 
         this.showUndoToast(`🗑️ Removed ${this.describePaymentEntry(removed)}`, () => {
-            entries.splice(idx, 0, removed);
-            this.syncBillPaymentSnapshot(item);
-            this.saveToStorage(STORAGE_KEYS.history, this.history, [item.id]);
-            this.refreshLoadedBillAfterPaymentChange(item);
-            this.renderRecordPaymentModalContent(item);
-            this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
-            this.renderCustomerDirectory(document.getElementById('crmSearchInput')?.value || '');
-            if (this.activeDetailBillId === item.id && document.getElementById('billDetailModalOverlay')?.style.display !== 'none') {
-                this.openBillDetailModal(item.id);
-            }
-            if (this.activeDetailCustomerId && document.getElementById('custDetailModalOverlay')?.style.display !== 'none') {
-                this.openCustomerDetailModal(this.activeDetailCustomerId, null, this.cdmActiveView || 'overview');
-            }
+            // The bill may have been saved again (a new object) since: put it back on the current one.
+            const cur = (this.history || []).find(h => h.id === billId);
+            if (!cur) return;
+            const list = this.ensureBillPaymentsArray(cur);
+            if (list.some(p => p.id === removed.id)) return;
+            list.splice(Math.min(idx, list.length), 0, removed);
+            if (removed.isAdvance && cur.snapshot) cur.snapshot.initialAdvanceAmount = Math.round(Number(removed.amount) || 0);
+            this.unmarkBillPaymentRemoved(cur, removed.id);
+            this.syncBillPaymentSnapshot(cur);
+            this.saveToStorage(STORAGE_KEYS.history, this.history, [cur.id]);
+            this.refreshAfterBillPaymentChange(cur);
+            this.updateRecordPaymentDiscountHint();
         });
     }
 
@@ -397,5 +625,6 @@ export class PaymentsMixin {
         const overlay = document.getElementById('recordPaymentModalOverlay');
         if (overlay) overlay.style.display = 'none';
         this.activeRecordPayBillId = null;
+        if (this.rpmEditingPayId) this.clearRecordPaymentForm();
     }
 }

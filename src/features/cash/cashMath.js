@@ -207,13 +207,21 @@ export function cashEffect(e) {
     }
 }
 
+/**
+ * Money taken in hand: a Cash payment, or the advance typed on the bill (new advances carry who took it;
+ * one received by UPI / bank can be switched to that mode with ✏️ in Payments).
+ */
+export function isCashPayment(p) {
+    return Boolean(p) && (p.mode === 'Cash' || (p.mode === 'Advance' && p.isAdvance === true));
+}
+
 /** Customer payments taken in cash by this person: [{ billId, billNo, custName, date, amount, rigId }]. */
 export function collections(bills, holderId) {
     const out = [];
     for (const b of bills || []) {
         if (!b || !Array.isArray(b.payments)) continue;
         for (const p of b.payments) {
-            if (!p || p.mode !== 'Cash' || p.by?.id !== holderId) continue;
+            if (!p || !isCashPayment(p) || p.by?.id !== holderId) continue;
             const amount = Math.round(Number(p.amount) || 0);
             if (amount > 0) out.push({ billId: b.id, billNo: b.billNo || '', custName: b.custName || '', date: String(p.date || '').slice(0, 10), amount, rigId: b.rigId || null, payId: p.id });
         }
@@ -252,7 +260,7 @@ export function holders(entries, bills, me = null) {
     const names = new Map();
     for (const e of entries || []) if (e && !e.deleted && e.holderId) names.set(e.holderId, e.holderName || names.get(e.holderId) || '');
     for (const b of bills || []) for (const p of (Array.isArray(b?.payments) ? b.payments : [])) {
-        if (p?.mode === 'Cash' && p.by?.id && !names.has(p.by.id)) names.set(p.by.id, p.by.name || '');
+        if (p && isCashPayment(p) && p.by?.id && !names.has(p.by.id)) names.set(p.by.id, p.by.name || '');
     }
     if (me?.id && !names.has(me.id)) names.set(me.id, me.name || '');
     return [...names.entries()].map(([id, name]) => {

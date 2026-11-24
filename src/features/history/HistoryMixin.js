@@ -120,24 +120,38 @@ export class HistoryMixin {
                     setBillNo(this.getNextAutoDocNumber(res.docType));
                     numberNote = ` (was #${fromNo})`;
                 }
-                const existingPayments = Array.isArray(existingItem.payments) ? [...existingItem.payments] : [];
+                const existingPayments = Array.isArray(existingItem.payments) ? existingItem.payments.map((p) => ({ ...p })) : [];
+                const removedPaymentIds = Array.isArray(existingItem.removedPaymentIds) ? [...existingItem.removedPaymentIds] : [];
                 const snapCopy = JSON.parse(JSON.stringify(res));
                 snapCopy.rates = ratesForSnapshot(this.rates);
 
-                if (existingPayments.length === 0 && (snapCopy.advancePaidAmount || 0) > 0) {
+                // The "Advance Paid" box only sets the bill's single advance. With other payments it
+                // is locked (updateAdvanceFieldLock) and the payments stay exactly as they are.
+                const advTyped = Math.round(snapCopy.advancePaidAmount || 0);
+                if (existingPayments.length === 0 && advTyped > 0) {
+                    // A removed advance keeps its id on the "removed" list (sync): a new one needs a new id.
+                    const advId = removedPaymentIds.includes('adv_' + existingItem.id)
+                        ? `adv_${existingItem.id}_${Date.now()}` : 'adv_' + existingItem.id;
+                    const me = currentUser();
                     existingPayments.push({
-                        id: 'adv_' + existingItem.id,
+                        id: advId,
                         date: currentBillDate,
-                        amount: Math.round(snapCopy.advancePaidAmount),
+                        amount: advTyped,
                         mode: 'Advance',
                         note: 'Initial Advance on Bill',
-                        isAdvance: true
+                        isAdvance: true,
+                        createdAt: new Date().toISOString(),
+                        ...(me ? { by: { id: me.id, name: me.name || '' } } : {})
                     });
                 } else if (existingPayments.length === 1 && existingPayments[0].isAdvance) {
-                    if ((snapCopy.advancePaidAmount || 0) > 0) {
-                        existingPayments[0].amount = Math.round(snapCopy.advancePaidAmount);
-                        existingPayments[0].date = currentBillDate;
+                    if (advTyped > 0) {
+                        // Only the amount follows the box; the date it was received stays.
+                        if (Math.round(Number(existingPayments[0].amount) || 0) !== advTyped) {
+                            existingPayments[0].amount = advTyped;
+                            existingPayments[0].editedAt = new Date().toISOString();
+                        }
                     } else {
+                        removedPaymentIds.push(existingPayments[0].id);
                         existingPayments.length = 0;
                     }
                 }
@@ -155,7 +169,10 @@ export class HistoryMixin {
                     payments: existingPayments,
                     snapshot: snapCopy
                 };
+                if (removedPaymentIds.length) this.history[idx].removedPaymentIds = [...new Set(removedPaymentIds)];
+                else delete this.history[idx].removedPaymentIds;
                 this.syncBillPaymentSnapshot(this.history[idx]);
+                const overpaid = this.getBillOverpaidAmount(this.history[idx]);
                 this.saveToStorage(STORAGE_KEYS.history, this.history, []); // replaced, not edited in place
                 this.isBillPreviewOpen = true;
                 this.isBillSavedAndReadyToShare = true;
@@ -171,7 +188,10 @@ export class HistoryMixin {
                 this.calculateAndRender();
                 this.applyBrandToUI();
                 this.persistCurrentSession();
-                this.showToast(`✅ Updated Bill #${currentBillNo}${numberNote} (${cName}) — Ready to Share!`);
+                this.updateAdvanceFieldLock(this.history[idx]);
+                this.showToast(overpaid > 0
+                    ? `⚠️ Updated #${currentBillNo}, but ${this.formatINR(overpaid)} more was received than the new total. Check Payments.`
+                    : `✅ Updated Bill #${currentBillNo}${numberNote} (${cName}) — Ready to Share!`);
                 return;
             }
         }
@@ -186,13 +206,17 @@ export class HistoryMixin {
         const newId = Date.now().toString();
         const initialPayments = [];
         if ((res.advancePaidAmount || 0) > 0) {
+            // Who took the advance: it counts in their cash in hand (cashMath), like a Cash payment.
+            const taker = currentUser();
             initialPayments.push({
                 id: 'adv_' + newId,
                 date: currentBillDate,
                 amount: Math.round(res.advancePaidAmount),
                 mode: 'Advance',
                 note: 'Initial Advance on Bill',
-                isAdvance: true
+                isAdvance: true,
+                createdAt: new Date().toISOString(),
+                ...(taker ? { by: { id: taker.id, name: taker.name || '' } } : {})
             });
         }
         const record = {
@@ -760,6 +784,7 @@ export class HistoryMixin {
         document.getElementById('customExtraAmount').value = s.customExtraAmount > 0 ? s.customExtraAmount : '';
         document.getElementById('discountAmount').value = s.discountAmount > 0 ? s.discountAmount : '';
         document.getElementById('advancePaidAmount').value = s.advancePaidAmount > 0 ? s.advancePaidAmount : '';
+        this.updateAdvanceFieldLock(item);
         const noteEl = document.getElementById('billCustomNoteInput');
         if (noteEl) noteEl.value = s.customNote || '';
         const notesDrawer = document.getElementById('billNotesDrawer');
@@ -866,6 +891,7 @@ export class HistoryMixin {
         this.isBillSavedAndReadyToShare = false;
         this.state.gstEnabled = false;
         this.state.paymentDiscount = 0;
+        this.updateAdvanceFieldLock(null);
         const gstToggle = document.getElementById('gstEnabledToggle');
         if (gstToggle) gstToggle.checked = false;
         const custGstRow = document.getElementById('custGstInlineRow');

@@ -180,12 +180,32 @@ export function planPull(rows, index, hashes, { firstSync = false, defaults = nu
  */
 export function mergeBillPayments(mine, theirs) {
     const keyOf = (p) => (p && p.id !== undefined && p.id !== null ? `id:${p.id}` : `v:${stableStringify(p)}`);
-    const have = new Set((Array.isArray(mine?.payments) ? mine.payments : []).map(keyOf));
-    const extra = (Array.isArray(theirs?.payments) ? theirs.payments : []).filter((p) => p && !have.has(keyOf(p)));
-    if (!extra.length) return null;
-    const payments = [...(mine.payments || []), ...extra]
-        .sort((a, b) => String(a?.date || '').localeCompare(String(b?.date || '')));
-    return { ...mine, payments };
+    const minePays = (Array.isArray(mine?.payments) ? mine.payments : []).filter(Boolean);
+    const theirPays = (Array.isArray(theirs?.payments) ? theirs.payments : []).filter(Boolean);
+    // A payment removed on either phone stays removed (it is not brought back by the other copy).
+    const removedList = [...new Set([
+        ...(Array.isArray(mine?.removedPaymentIds) ? mine.removedPaymentIds : []),
+        ...(Array.isArray(theirs?.removedPaymentIds) ? theirs.removedPaymentIds : [])
+    ])];
+    const removed = new Set(removedList.map((id) => `id:${id}`));
+    // The same payment edited on both phones: the newest edit (editedAt) wins.
+    const byKey = new Map();
+    for (const p of minePays) byKey.set(keyOf(p), p);
+    for (const p of theirPays) {
+        const k = keyOf(p);
+        const have = byKey.get(k);
+        if (!have) byKey.set(k, p);
+        else if (String(p.editedAt || '') > String(have.editedAt || '')) byKey.set(k, p);
+    }
+    const payments = [...byKey.entries()].filter(([k]) => !removed.has(k)).map(([, p]) => p);
+    const mineRemoved = Array.isArray(mine?.removedPaymentIds) ? mine.removedPaymentIds : [];
+    if (stableStringify(payments) === stableStringify(minePays)
+        && stableStringify(removedList) === stableStringify([...new Set(mineRemoved)])) return null;
+    const out = { ...mine, payments };
+    if (removedList.length) out.removedPaymentIds = removedList;
+    else delete out.removedPaymentIds;
+    out.payments = payments.slice().sort((a, b) => String(a?.date || '').localeCompare(String(b?.date || '')));
+    return out;
 }
 
 /**

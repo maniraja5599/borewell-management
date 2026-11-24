@@ -15586,3 +15586,21 @@ html.signin-gate-open, html.signin-gate-open body { overflow: hidden; }
 @keyframes wayPulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .way-pulse { animation: none; } }
 .way-links { flex-wrap: wrap; justify-content: center; gap: 4px 14px; }
+
+/* Payments: edit a saved payment (✏️), more received than the bill, locked advance box */
+.rpm-hi-edit-btn { width: 24px; height: 24px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-size: var(--fs-xs); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.rpm-hi-edit-btn:hover { background: #e2e8f0; }
+.rpm-hist-item.is-editing { outline: 2px solid #10b981; outline-offset: -2px; border-radius: 10px; background: #f0fdf4; }
+.record-payment-modal .rpm-cancel-edit-btn { margin-left: auto; padding: 4px 10px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
+.record-payment-modal .rpm-cancel-edit-btn[hidden], .record-payment-modal .rpm-overpaid-note[hidden] { display: none !important; }
+.record-payment-modal .rpm-overpaid-note { margin: 12px 0 0; padding: 12px 14px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: 0.82rem; font-weight: 700; line-height: 1.4; }
+#advancePaidAmount.is-locked { background: #f1f5f9; color: #475569; cursor: not-allowed; }
+.advance-locked-hint { display: block; width: 100%; margin-top: 4px; padding: 0; border: 0; background: none; text-align: left; font-size: 0.74rem; font-weight: 500; color: #64748b; cursor: pointer; }
+.advance-locked-hint strong { color: #047857; font-weight: 800; }
+.advance-locked-hint[hidden] { display: none !important; }
+.bs-trio strong.is-over { color: #b91c1c; }
+.record-payment-modal .rpm-hist-item { gap: 8px; }
+.record-payment-modal .rpm-hi-date { min-width: 0; }
+.record-payment-modal .rpm-hi-right { gap: 8px; min-width: 0; }
+.record-payment-modal .rpm-hi-acts { display: inline-flex; flex-direction: column; gap: 4px; flex: none; }
+.record-payment-modal .rpm-hi-till { grid-column: 1 / -1; font-size: 0.7rem; font-weight: 600; color: #64748b; white-space: nowrap; }

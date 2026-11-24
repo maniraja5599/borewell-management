@@ -77,7 +77,7 @@
 .rpm-full-fill-chip { min-height: 32px; }
 .rpm-mode-pill { min-height: 36px; }
 .rpm-hi-mode { font-size: 11px !important; }
-.rpm-hi-del-btn { min-width: 32px; min-height: 32px; }
+.rpm-hi-del-btn, .rpm-hi-edit-btn { min-width: 32px; min-height: 32px; }
 /* Report page lists */
 .rc-table-wrap summary { min-height: 32px; display: flex; align-items: center; }
 .rc-row-act { min-height: 32px; }

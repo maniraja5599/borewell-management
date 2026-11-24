@@ -349,6 +349,27 @@ await step('12d record payment checks', async () => {
     await app((id) => window.boreBillApp.openRecordPaymentModal(id), ids.paid); await wait(300);
     const locked = await app(() => ({ form: document.getElementById('rpmAddPaymentFormCard').hidden, note: !document.getElementById('rpmPaidNote').hidden }));
     check('12d a fully paid bill shows "Fully paid" and no payment form', locked.form && locked.note, locked);
+
+    // ✏️ on a paid bill: the payment opens in the form; its old amount is free again; a bigger
+    // amount is blocked; a smaller one saves and the bill shows the new due. Who took it stays.
+    const payBefore = await app((id) => { const b = window.boreBillApp.history.find((x) => x.id === id); const p = b.payments[b.payments.length - 1]; return { id: p.id, amt: p.amount, by: p.by?.id || null, n: b.payments.length }; }, ids.paid);
+    await app(() => { const btns = document.querySelectorAll('#rpmHistoryList .rpm-hi-edit-btn'); btns[btns.length - 1]?.click(); }); await wait(300);
+    const ed = await app(() => ({ form: !document.getElementById('rpmAddPaymentFormCard').hidden, amt: document.getElementById('rpmAmountInput').value, title: document.getElementById('rpmFormTitle').textContent, btn: document.querySelector('#rpmSavePaymentBtn span').textContent }));
+    check('12d ✏️ on a paid bill opens that payment in the form ("Save change")', ed.form && Number(ed.amt) === payBefore.amt && /Edit payment/.test(ed.title) && ed.btn === 'Save change', ed);
+    await p.screenshot({ path: `${OUT}/b3_edit_payment.png` });
+    await app(() => { const i = document.getElementById('rpmAmountInput'); i.value = ''; }); await p.type('#rpmAmountInput', String(payBefore.amt + 1)); await wait(200);
+    const tooBig = await app(() => document.getElementById('rpmSavePaymentBtn').disabled);
+    check('12d editing to more than the bill is blocked', tooBig === true, { tooBig });
+    await app(() => { const i = document.getElementById('rpmAmountInput'); i.value = ''; }); await p.type('#rpmAmountInput', String(payBefore.amt - 1000)); await wait(200);
+    await clickId('rpmSavePaymentBtn'); await wait(500);
+    const edited = await app((args) => { const a = window.boreBillApp; const b = a.history.find((x) => x.id === args.bill); const p = b.payments.find((x) => x.id === args.pay); return { amt: p.amount, by: p.by?.id || null, n: b.payments.length, due: a.getBillPendingAmount(b), formHidden: document.getElementById('rpmAddPaymentFormCard').hidden }; }, { bill: ids.paid, pay: payBefore.id });
+    check('12d saved edit: same payment, new amount, ₹1,000 due again, taker kept', edited.amt === payBefore.amt - 1000 && edited.n === payBefore.n && edited.due === 1000 && edited.by === payBefore.by && !edited.formHidden, edited);
+    // Put it back so the steps below see a paid bill.
+    await app(() => { const btns = document.querySelectorAll('#rpmHistoryList .rpm-hi-edit-btn'); btns[btns.length - 1]?.click(); }); await wait(300);
+    await app(() => { const i = document.getElementById('rpmAmountInput'); i.value = ''; }); await p.type('#rpmAmountInput', String(payBefore.amt)); await wait(200);
+    await clickId('rpmSavePaymentBtn'); await wait(500);
+    const back = await app((id) => window.boreBillApp.getBillPendingAmount(window.boreBillApp.history.find((x) => x.id === id)), ids.paid);
+    check('12d edited back: paid again', back === 0, { back });
     await app(() => window.boreBillApp.closeRecordPaymentModal());
 
     await app((id) => window.boreBillApp.openRecordPaymentModal(id), ids.due); await wait(300);
