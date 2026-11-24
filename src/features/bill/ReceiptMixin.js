@@ -437,7 +437,7 @@ export class ReceiptMixin {
         if (lsaWrap && lsaTitle && lsaTotal && lsaTable) {
             if (res.totalDepth > 0 && res.slabDetails && res.slabDetails.length > 0) {
                 lsaWrap.style.display = 'block';
-                lsaTitle.textContent = `📊 ${res.totalDepth} ft Calculation (${res.slabDetails.length} ${res.slabDetails.length === 1 ? 'Slab' : 'Slabs'})`;
+                lsaTitle.textContent = `${res.totalDepth} ft slab calculation (${res.slabDetails.length} ${res.slabDetails.length === 1 ? 'Slab' : 'Slabs'})`;
                 lsaTotal.textContent = this.formatINR(res.drillingCost);
 
                 lsaTable.innerHTML = `
@@ -611,9 +611,9 @@ export class ReceiptMixin {
                 const firstR = slabDetails[0].rate;
                 const lastR = slabDetails[slabDetails.length - 1].rate;
                 const rateSpanTxt = firstR === lastR ? `₹${firstR}` : `₹${firstR}→₹${lastR}`;
-                triggerTxt.textContent = `📊 ${slabDetails.length} ${slabDetails.length === 1 ? 'Slab' : 'Slabs'} (${rateSpanTxt})`;
+                triggerTxt.textContent = `${slabDetails.length} ${slabDetails.length === 1 ? 'Slab' : 'Slabs'} (${rateSpanTxt})`;
             } else {
-                triggerTxt.textContent = `📊 Slab Rate`;
+                triggerTxt.textContent = `Slab rates`;
             }
         }
 

@@ -5,7 +5,7 @@ export const I18N_DICTIONARY = {
         pillFinalBill: "Final Bill",
         newBore: "New Bore",
         reBore: "Re-Bore",
-        boreSize: "Bore Dia:",
+        boreSize: "Bore size",
         customerDetails: "Customer",
         optionalTapToAdd: "Pick saved customer or Add new",
         pickCustomerBtn: "Pick",

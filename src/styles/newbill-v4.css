@@ -1,0 +1,495 @@
+/* ==========================================================================
+   NEW BILL v4 — approved design (24 Nov 2026, canvas "DrillRig New Bill redesign")
+   Only the New bill tab (#tab-bill), on top of ui-v3. Same markup and ids as before:
+   - each section: a numbered badge + a normal-case title, its amount on the right
+   - one field style: 48 px, label on top, number below; the depth field is the big one
+   - switches are grey tracks with a white selected tab; bore sizes a 5-across row
+   - money colours: brand green = action / received, orange = due, red = discount
+   Colours come from the ui-v3 variables (brand themes keep working).
+   ========================================================================== */
+
+html.ui-v3 #tab-bill {
+    --nb-field: 48px;
+    --nb-ink: var(--v3-ink);
+    --nb-ink2: #3d4842;
+    --nb-mut: #5b6660;
+    --nb-line: var(--v3-line);
+    --nb-line2: var(--v3-line2);
+    --nb-soft: #f7f9f8;
+    --nb-track: #eef2f0;
+    --nb-due: #8a3a07;
+    --nb-due-bg: #fef3e7;
+    --nb-minus: #b42318;
+}
+
+/* ---------- Cards ---------- */
+html.ui-v3 #tab-bill .ui-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+    margin-bottom: 14px !important;
+}
+
+/* ---------- Section heads: [2] Drilling depth ............ ₹43,000 ---------- */
+html.ui-v3 #tab-bill .step-n {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--v3-pri-light);
+    color: var(--v3-pri-d);
+    font: 800 12px/1 Inter, sans-serif;
+}
+html.ui-v3 #tab-bill .wiz-cp-step-tag,
+html.ui-v3 #tab-bill .simple-card-title {
+    gap: 10px;
+    font: 700 15px/1.25 Inter, 'Noto Sans Tamil', sans-serif !important;
+    letter-spacing: -0.01em !important;
+    text-transform: none !important;
+    color: var(--nb-ink) !important;
+}
+html.ui-v3 #tab-bill .simple-card-head { margin-bottom: 14px !important; gap: 12px; }
+html.ui-v3 #tab-bill .simple-card-amount {
+    font: 700 16px/1.2 Inter, sans-serif !important;
+    color: var(--nb-ink) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Bill type card: two full-width switches, then bore size ---------- */
+html.ui-v3 #tab-bill .top-mode-bar {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 10px !important;
+}
+html.ui-v3 #tab-bill .top-mode-bar .seg-pill-group {
+    width: 100% !important;
+    background: var(--nb-track) !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 4px !important;
+}
+html.ui-v3 #tab-bill .top-mode-bar .seg-pill {
+    height: 40px !important;
+    min-height: 40px !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--nb-ink2) !important;
+    font: 600 14px/1 Inter, 'Noto Sans Tamil', sans-serif !important;
+}
+html.ui-v3 #tab-bill .top-mode-bar .seg-pill.active {
+    background: #fff !important;
+    color: var(--v3-pri-d) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 20, 0.12) !important;
+}
+html.ui-v3 #tab-bill .dia-selector-bar {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px !important;
+    margin-top: 14px !important;
+}
+html.ui-v3 #tab-bill .dia-selector-bar .mini-label {
+    grid-column: 1 / -1;
+    padding: 0 0 2px;
+    font: 600 12px/1 Inter, sans-serif !important;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--nb-mut) !important;
+}
+html.ui-v3 #tab-bill .dia-pill {
+    height: 40px !important;
+    font: 600 14px/1 Inter, sans-serif !important;
+    color: var(--nb-ink2) !important;
+}
+html.ui-v3 #tab-bill .dia-pill.active { color: var(--v3-pri-d) !important; font-weight: 700 !important; }
+
+/* ---------- Customer ---------- */
+html.ui-v3 #tab-bill .wiz-search-input-wrap { height: var(--nb-field) !important; min-height: var(--nb-field) !important; }
+html.ui-v3 #tab-bill .wiz-add-cust-btn { min-height: var(--nb-field) !important; border-radius: 12px !important; }
+html.ui-v3 #tab-bill .wiz-scc-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 14px !important;
+    background: var(--v3-pri-light) !important;
+    font: 800 16px/1 Inter, sans-serif !important;
+}
+html.ui-v3 #tab-bill .wiz-scc-name-row h3 { font: 700 16px/1.3 Inter, 'Noto Sans Tamil', sans-serif !important; }
+html.ui-v3 #tab-bill .wiz-scc-actions .btn-chip-outline,
+html.ui-v3 #tab-bill .cust-quick-clear-btn {
+    height: 44px !important;
+    min-height: 44px !important;
+    min-width: 44px;
+    border-radius: 12px !important;
+}
+html.ui-v3 #tab-bill .wiz-scc-loc-pill {
+    min-height: 32px;
+    border-radius: 999px !important;
+    background: var(--nb-soft) !important;
+    border: 1px solid var(--nb-line) !important;
+    color: var(--nb-ink2) !important;
+    font: 600 13px/1 Inter, sans-serif !important;
+}
+html.ui-v3 #tab-bill .site-input-wrap {
+    min-height: var(--nb-field) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--nb-line2) !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Drilling: the big depth field ---------- */
+html.ui-v3 #tab-bill .simple-big-input-wrap.hero {
+    height: 64px !important;
+    min-height: 64px !important;
+    border-radius: 14px !important;
+    border: 2px solid var(--v3-pri) !important;
+    box-shadow: none !important;
+    padding: 0 16px !important;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.hero input {
+    font: 800 28px/1 Inter, sans-serif !important;
+    letter-spacing: -0.02em;
+    color: var(--nb-ink) !important;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.hero input::placeholder {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: #8a948e;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap .sbi-unit { font: 700 15px/1 Inter, sans-serif !important; color: var(--nb-mut) !important; }
+html.ui-v3 #tab-bill .drilling-buffer-pill {
+    border: 1px solid var(--nb-line2) !important;
+    background: var(--nb-soft) !important;
+    color: var(--nb-ink2) !important;
+}
+html.ui-v3 #tab-bill .drilling-buffer-pill :is(.dbp-label, .dbp-sign, .dbp-unit) { color: var(--nb-mut) !important; }
+html.ui-v3 #tab-bill .drilling-buffer-pill input { color: var(--nb-ink) !important; }
+
+/* Rate / bata / date: label on top, number below (one field style) */
+html.ui-v3 #tab-bill .simple-rate-bata-bar { gap: 10px !important; margin-top: 12px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    height: 56px;
+    padding: 0 12px !important;
+    border-color: var(--nb-line2) !important;
+}
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item label {
+    font: 600 11.5px/1 Inter, sans-serif !important;
+    color: var(--nb-mut) !important;
+}
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box {
+    display: flex !important;
+    align-items: center;
+    gap: 3px;
+    flex: none;
+}
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box > span,
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box > small { font: 600 13px/1 Inter, sans-serif; color: var(--nb-mut); }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box input {
+    font: 700 16px/1.1 Inter, sans-serif !important;
+    text-align: left;
+    padding: 0 !important;
+}
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item.date-item { padding: 0 12px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item.date-item input { font-size: 15px !important; }
+html.ui-v3 #tab-bill .smart-slab-dd-trigger {
+    height: 56px !important;
+    min-height: 56px !important;
+    border: 1px solid var(--nb-line2) !important;
+    background: #fff !important;
+    color: var(--nb-ink) !important;
+    font: 600 14px/1.2 Inter, sans-serif !important;
+    padding: 0 12px !important;
+}
+
+/* Slab breakdown: a plain table with a header row and a total row */
+html.ui-v3 #tab-bill .live-slab-accordion {
+    margin-top: 12px !important;
+    border: 1px solid var(--nb-line) !important;
+    background: #fff !important;
+    overflow: hidden;
+}
+html.ui-v3 #tab-bill .lsa-toggle-btn {
+    background: var(--nb-soft) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: var(--nb-ink) !important;
+    font: 600 14px/1.2 Inter, sans-serif !important;
+    padding: 0 12px !important;
+}
+html.ui-v3 #tab-bill .lsa-total-tag {
+    background: transparent !important;
+    border: 0 !important;
+    color: var(--nb-ink) !important;
+    font: 800 15px/1 Inter, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+}
+html.ui-v3 #tab-bill .lsa-content-body { border-top: 1px solid var(--nb-line) !important; background: #fff !important; }
+html.ui-v3 #tab-bill .lsa-table-wrap { font-variant-numeric: tabular-nums; }
+
+/* ---------- Casing pipes ---------- */
+html.ui-v3 #tab-bill .casing-settings-trigger-btn {
+    min-height: 36px;
+    border-radius: 10px !important;
+    border: 1px solid var(--nb-line2) !important;
+    background: #fff !important;
+    color: var(--nb-ink2) !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .simple-pvc-grid { gap: 10px !important; }
+html.ui-v3 #tab-bill .simple-pvc-card {
+    padding: 14px !important;
+    border: 1px solid var(--nb-line) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    gap: 10px !important;
+}
+html.ui-v3 #tab-bill .spvc-top label { font: 700 14px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important; color: var(--nb-ink) !important; }
+html.ui-v3 #tab-bill .spvc-cost {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: var(--v3-pri-d) !important;
+    font: 700 14px/1 Inter, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.pvc {
+    height: var(--nb-field) !important;
+    min-height: var(--nb-field) !important;
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.pvc input { font: 700 17px/1 Inter, sans-serif !important; color: var(--nb-ink) !important; }
+html.ui-v3 #tab-bill .spvc-rate-input-box {
+    min-height: 40px;
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .spvc-rate-input-box input { font: 700 15px/1 Inter, sans-serif !important; color: var(--nb-ink) !important; }
+html.ui-v3 #tab-bill .pvc-quick-stepper-row { gap: 6px !important; }
+html.ui-v3 #tab-bill .pvc-step-chip {
+    flex: 1 1 0;
+    height: 36px !important;
+    min-height: 36px !important;
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 9px !important;
+    background: #fff !important;
+    color: var(--nb-ink2) !important;
+    font: 600 13px/1 Inter, sans-serif !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .pvc-step-chip:active { background: var(--v3-pri-soft) !important; border-color: var(--v3-pri) !important; }
+
+/* Other items + extras row */
+html.ui-v3 #tab-bill .ei-add-btn {
+    min-height: 44px;
+    border: 1px dashed #c4cdc8 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    color: var(--v3-pri-d) !important;
+    font: 600 14px/1 Inter, sans-serif !important;
+}
+html.ui-v3 #tab-bill .simple-extras-bar { gap: 8px !important; }
+html.ui-v3 #tab-bill .simple-extra-btn,
+html.ui-v3 #tab-bill .gst-switch-pill {
+    min-height: 44px !important;
+    border: 1px solid var(--nb-line) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    color: var(--nb-ink2) !important;
+    font: 600 13.5px/1 Inter, 'Noto Sans Tamil', sans-serif !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .tool-active-dot { color: var(--v3-pri) !important; }
+
+/* Extras / notes drawers: same field style as the rest of the bill */
+html.ui-v3 #tab-bill .inline-sheet {
+    border: 1px solid var(--nb-line) !important;
+    border-radius: 14px !important;
+    background: var(--nb-soft) !important;
+    box-shadow: none !important;
+    padding: 14px !important;
+}
+html.ui-v3 #tab-bill .inline-sheet .sheet-head h4 { font: 700 14px/1.3 Inter, 'Noto Sans Tamil', sans-serif !important; color: var(--nb-ink) !important; }
+html.ui-v3 #tab-bill .inline-sheet .field-group label {
+    font: 600 12px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important;
+    color: var(--nb-mut) !important;
+}
+html.ui-v3 #tab-bill .inline-sheet .field-group :is(input, textarea),
+html.ui-v3 #tab-bill .note-input-wrap textarea {
+    min-height: var(--nb-field);
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    font: 600 15px/1.3 Inter, sans-serif !important;
+    color: var(--nb-ink) !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .saved-extras-box,
+html.ui-v3 #tab-bill .manual-extra-highlight-box {
+    border: 1px solid var(--nb-line) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .advance-due-calc-pill {
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: var(--nb-due-bg) !important;
+    min-height: 48px;
+}
+html.ui-v3 #tab-bill .advance-due-calc-pill :is(.adcb-label, .adcb-amount) { color: var(--nb-due) !important; }
+html.ui-v3 #tab-bill .advance-due-calc-pill .adcb-amount { font: 800 18px/1 Inter, sans-serif !important; font-variant-numeric: tabular-nums; }
+html.ui-v3 #tab-bill .cust-gst-inline-row .cgir-input-wrap {
+    min-height: var(--nb-field);
+    border-radius: 12px !important;
+    border: 1px solid var(--nb-line2) !important;
+}
+
+/* ---------- Bottom: New bill + Save (total and due on the button) ---------- */
+html.ui-v3 #tab-bill .btn-fresh-cta { border-color: var(--nb-line2); }
+html.ui-v3 #tab-bill .btn-preview-save-cta {
+    height: 56px !important;
+    min-height: 56px !important;
+    background: var(--v3-pri) !important;
+    border: 0 !important;
+}
+html.ui-v3 #tab-bill .btn-preview-save-cta #previewBtnLiveTotal { font: 800 17px/1 Inter, sans-serif !important; font-variant-numeric: tabular-nums; }
+html.ui-v3 #tab-bill .preview-btn-due-tag {
+    background: var(--nb-due-bg) !important;
+    color: var(--nb-due) !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    font: 700 11.5px/1 Inter, sans-serif !important;
+    padding: 3px 8px !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Narrow phones (360 px): keep the words, smaller ---------- */
+@media (max-width: 379px) {
+    html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item.date-item label { font-size: 11px !important; }
+    html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item.date-item label::before { content: none; }
+    html.ui-v3 #tab-bill .dia-pill { font-size: 13px !important; }
+    html.ui-v3 #tab-bill .pvc-step-chip { font-size: 12.5px !important; padding: 0 !important; }
+}
+
+/* ---------- Casing cards: one under the other; length and rate side by side ---------- */
+html.ui-v3 #tab-bill .simple-pvc-grid { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; }
+html.ui-v3 #tab-bill .simple-pvc-card {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: 10px !important;
+}
+html.ui-v3 #tab-bill .simple-pvc-card > :is(.spvc-top, .spvc-mode, .pvc-quick-stepper-row) { grid-column: 1 / -1; margin: 0 !important; }
+html.ui-v3 #tab-bill .simple-pvc-card > :is(.simple-big-input-wrap.pvc, .spvc-rate-row) { margin: 0 !important; min-width: 0; }
+html.ui-v3 #tab-bill .spvc-top { display: flex !important; align-items: center; justify-content: space-between; gap: 10px; }
+html.ui-v3 #tab-bill .spvc-rate-row {
+    display: flex !important;
+    align-items: center;
+    height: var(--nb-field);
+    padding: 0 12px;
+    border: 1px solid var(--nb-line2);
+    border-radius: 12px;
+    background: #fff;
+    gap: 6px;
+}
+html.ui-v3 #tab-bill .spvc-rate-row .spvc-rate-lbl { font: 600 12px/1 Inter, sans-serif !important; color: var(--nb-mut) !important; }
+html.ui-v3 #tab-bill .spvc-rate-row .spvc-rate-input-box {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+html.ui-v3 #tab-bill .spvc-mode {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px !important;
+    padding: 3px !important;
+    border: 0 !important;
+    border-radius: 11px !important;
+    background: var(--nb-track) !important;
+}
+html.ui-v3 #tab-bill .spvc-mode button {
+    height: 36px !important;
+    min-height: 36px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: var(--nb-ink2) !important;
+    font: 600 13px/1 Inter, sans-serif !important;
+    white-space: nowrap;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .spvc-mode button.is-on {
+    background: #fff !important;
+    color: var(--v3-pri-d) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 2px rgba(16, 24, 20, 0.12) !important;
+}
+
+/* Slab rates button + slab calculation title: one quiet line that never spills */
+html.ui-v3 #tab-bill .smart-slab-dd-trigger { gap: 6px; overflow: hidden; }
+html.ui-v3 #tab-bill #smartSlabDropdownBtnText { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; }
+html.ui-v3 #tab-bill #liveSlabAccordionTitle { color: var(--nb-ink) !important; font: 600 13.5px/1.3 Inter, sans-serif !important; }
+html.ui-v3 #tab-bill .lsa-arrow, html.ui-v3 #tab-bill .ss-dd-arrow { color: var(--nb-mut) !important; flex: none; }
+
+/* Save button: total over a one-line due tag, no boxes around the total */
+html.ui-v3 #tab-bill .btn-preview-save-cta .bps-amounts-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+html.ui-v3 #tab-bill .btn-preview-save-cta #previewBtnLiveTotal {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+}
+html.ui-v3 #tab-bill .preview-btn-due-tag { white-space: nowrap; }
+html.ui-v3 #tab-bill .btn-preview-save-cta .bps-left { flex: 1 1 auto; overflow: hidden; }
+
+/* Numbers start at the left, right after ₹ */
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box input { text-align: left !important; }
+html.ui-v3 #tab-bill #liveSlabAccordionTitle { text-align: left; }
+
+/* Re-bore: old bore flushing in the same quiet box style */
+html.ui-v3 #tab-bill .simple-rebore-box {
+    margin-bottom: 12px !important;
+    padding: 12px !important;
+    border: 1px solid var(--nb-line) !important;
+    border-radius: 12px !important;
+    background: var(--nb-soft) !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .simple-rebore-box label { font: 700 13.5px/1.2 Inter, 'Noto Sans Tamil', sans-serif !important; color: var(--nb-ink) !important; }
+html.ui-v3 #tab-bill .simple-rebore-box .srb-rate-lbl { font: 600 12px/1 Inter, sans-serif !important; color: var(--nb-mut) !important; }
+html.ui-v3 #tab-bill .simple-rebore-box .srb-rate-input-box {
+    min-height: 40px;
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .simple-rebore-box .srb-flush-amt {
+    background: transparent !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: var(--v3-pri-d) !important;
+    font: 700 14px/1 Inter, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.compact {
+    min-height: var(--nb-field) !important;
+    border: 1px solid var(--nb-line2) !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    box-shadow: none !important;
+}
+html.ui-v3 #tab-bill .simple-big-input-wrap.compact input { font: 700 17px/1 Inter, sans-serif !important; color: var(--nb-ink) !important; }

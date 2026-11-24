@@ -306,7 +306,7 @@
 
                 <!-- Bore Diameter Selector Bar + Quick Fresh Bill Button -->
                 <div class="dia-selector-bar">
-                    <span class="mini-label" data-i18n="boreSize">Bore Dia:</span>
+                    <span class="mini-label" data-i18n="boreSize">Bore size</span>
                     <div class="dia-pills" id="boreDiaPills">
                         <button type="button" class="dia-pill" data-dia='4.75"'>4.75"</button>
                         <button type="button" class="dia-pill active" data-dia='6.5"'>6.5"</button>
@@ -521,7 +521,7 @@
                     <!-- Compact Rate, Fixed ₹2000 Bata, Date & Smart Slab Rate Dropdown Trigger (Right below Drilling Depth box) -->
                     <div class="simple-rate-bata-bar" id="drillingRateBataWrap">
                         <div class="srbb-item">
-                            <label for="baseDrillingRate">1–300ft:</label>
+                            <label for="baseDrillingRate">Rate 1–300 ft</label>
                             <div class="srbb-input-box">
                                 <span>₹</span>
                                 <input type="number" id="baseDrillingRate" value="90" min="1" inputmode="numeric" enterkeyhint="next" autocomplete="off">
@@ -530,7 +530,7 @@
                         </div>
                         <div class="srbb-divider"></div>
                         <div class="srbb-item">
-                            <label for="billBoreBataInput">Bata:</label>
+                            <label for="billBoreBataInput">Bore bata</label>
                             <div class="srbb-input-box">
                                 <span>₹</span>
                                 <input type="number" id="billBoreBataInput" value="2000" min="0" inputmode="numeric" tabindex="-1" autocomplete="off">
@@ -538,13 +538,13 @@
                         </div>
                         <div class="srbb-divider"></div>
                         <div class="srbb-item date-item">
-                            <label for="billDateInput">📅 Date:</label>
+                            <label for="billDateInput">Bill date</label>
                             <div class="srbb-input-box date-box">
                                 <input type="date" id="billDateInput" enterkeyhint="next" tabindex="-1" aria-label="Bill Date">
                             </div>
                         </div>
                         <button type="button" class="smart-slab-dd-trigger" id="smartSlabDropdownBtn" tabindex="-1" title="View or Change Slab Rates">
-                            <span id="smartSlabDropdownBtnText">📊 Slab Rate</span>
+                            <span id="smartSlabDropdownBtnText">Slab rates</span>
                             <span class="ss-dd-arrow" id="smartSlabDropdownArrow">▾</span>
                         </button>
                     </div>
@@ -753,7 +753,7 @@
 
                     <!-- Optional Customer GSTIN Input (Opens automatically when GST 18% is turned ON) -->
                     <div class="cust-gst-inline-row" id="custGstInlineRow" style="display: none;">
-                        <label for="custGstInput" class="cgir-label">🧾 Client GST (Optional):</label>
+                        <label for="custGstInput" class="cgir-label">Client GSTIN (optional)</label>
                         <div class="cgir-input-wrap">
                             <input type="text" id="custGstInput" placeholder="Enter Customer GST No (if any)..." maxlength="15" autocapitalize="characters" autocomplete="off" spellcheck="false">
                             <button type="button" class="cgir-clear-btn" id="clearCustGstBtn" style="display: none;" title="Clear GST">✕</button>
@@ -814,7 +814,7 @@
                         <!-- 1-Tap Saved & Previously Used Extra Charges -->
                         <div class="saved-extras-box" id="savedExtrasSection" style="display: none;">
                             <div class="seb-head">
-                                <span>⚡ Saved / Recent Extras (Tap to Use)</span>
+                                <span>Saved extras · tap to add</span>
                             </div>
                             <div class="seb-chips-wrap" id="savedExtrasChipsList">
                                 <!-- Populated dynamically by app.js -->
@@ -824,9 +824,9 @@
                         <!-- Manual Extra Charge (Auto-saves for Next Time!) -->
                         <div class="manual-extra-highlight-box">
                             <div class="meh-top">
-                                <span>➕ Manual / Custom Extra Charge</span>
+                                <span>Custom extra charge</span>
                                 <button type="button" class="meh-save-chip-btn" id="saveCustomExtraPresetBtn" title="Save this Extra Charge for Next Time">
-                                    ＋ Save for Next Time
+                                    Save for next time
                                 </button>
                             </div>
                             <div class="form-row-2">

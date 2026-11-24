@@ -376,7 +376,7 @@ describe('Application Button Handlers & UI Interactions', () => {
         const lsaTable = mockElements.get("liveSlabBreakdownTable");
 
         expect(lsaWrap.style.display).toBe("block");
-        expect(lsaTitle.textContent).toContain("400 ft Calculation");
+        expect(lsaTitle.textContent).toContain("400 ft slab calculation (2 Slabs)");
         expect(lsaTotal.textContent).toBe("₹37000");
         expect(lsaTable.innerHTML).toContain("001–300 ft");
         expect(lsaTable.innerHTML).toContain("301–400 ft");
