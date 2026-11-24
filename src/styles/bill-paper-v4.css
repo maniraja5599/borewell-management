@@ -235,3 +235,9 @@ html.ui-v3 #preSavePreviewActions > button:not(#saveBillHistoryBtn) {
     color: #101814 !important;
     box-shadow: none !important;
 }
+
+/* App header: flat dark green like the approved design (brand themes keep their own dark) */
+html.ui-v3 .app-header {
+    background-image: none !important;
+    background-color: color-mix(in srgb, var(--brand-primary-dark, #14532d) 55%, #000) !important;
+}
