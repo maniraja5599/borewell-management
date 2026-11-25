@@ -79,6 +79,68 @@ export function initBillFold(app) {
         heroWrap.after(mkBump(DEPTH_STEP));
     }
 
+    // ---------- 2b. Rate −1 / +1 & Collapsible Bore Bata ----------
+    const rateInput = $('baseDrillingRate');
+    const rateItem = rateInput?.closest('.srbb-item');
+    const rateBox = rateItem?.querySelector('.srbb-input-box');
+    if (rateInput && rateItem && rateBox && !rateItem.querySelector('.nb-rate-bump')) {
+        rateItem.classList.add('nb-rate-item');
+        const rateRow = make('div', 'nb-rate-row');
+        const bumpRate = (delta) => {
+            const min = parseInt(rateInput.min, 10) || 1;
+            const next = Math.max(min, Math.round((parseFloat(rateInput.value) || 0) + delta));
+            rateInput.value = String(next);
+            rateInput.dispatchEvent(new Event('input', { bubbles: true }));
+            rateInput.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        const mkRateBtn = (delta) => {
+            const b = make('button', 'nb-rate-bump', (delta < 0 ? '−' : '+') + Math.abs(delta));
+            b.type = 'button';
+            b.tabIndex = -1;
+            b.setAttribute('aria-label', `${delta < 0 ? 'Decrease' : 'Increase'} rate by ₹${Math.abs(delta)}`);
+            b.addEventListener('click', () => bumpRate(delta));
+            return b;
+        };
+        rateBox.before(rateRow);
+        rateRow.append(mkRateBtn(-1), rateBox, mkRateBtn(1));
+    }
+
+    const bataInput = $('billBoreBataInput');
+    const bataItem = bataInput?.closest('.srbb-item');
+    let bataToggle = $('nbBataToggleBtn');
+    const setBataOpen = (show) => {
+        if (!bataItem) return;
+        bataItem.classList.toggle('is-bata-hidden', !show);
+        if (bataToggle) {
+            bataToggle.setAttribute('aria-expanded', String(show));
+            bataToggle.classList.toggle('is-open', show);
+        }
+    };
+    if (bataInput && bataItem && !bataToggle) {
+        bataItem.classList.add('nb-bata-item', 'is-bata-hidden');
+        const doneBtn = make('button', 'nb-bata-done', 'Done');
+        doneBtn.type = 'button';
+        doneBtn.tabIndex = -1;
+        doneBtn.addEventListener('click', () => setBataOpen(false));
+        bataItem.querySelector('label')?.after(doneBtn);
+
+        bataToggle = make('button', 'nb-bata-toggle');
+        bataToggle.id = 'nbBataToggleBtn';
+        bataToggle.type = 'button';
+        bataToggle.tabIndex = -1;
+        bataToggle.setAttribute('aria-expanded', 'false');
+        bataToggle.addEventListener('click', () => {
+            const opening = bataItem.classList.contains('is-bata-hidden');
+            setBataOpen(opening);
+            if (opening) {
+                bataInput.focus({ preventScroll: true });
+                try { bataInput.select(); } catch { /* ignore */ }
+            }
+        });
+        bataInput.addEventListener('focusin', () => setBataOpen(true));
+        $('drillingRateBataWrap')?.appendChild(bataToggle);
+    }
+
     // ---------- 3. Folding: 1 Customer · 2 Drilling · 3 Casing · 4 Extras ----------
     // Customer gets the same kind of head as the others (its picker keeps its own search row).
     const cust = $('customerCard');
@@ -224,6 +286,11 @@ export function initBillFold(app) {
 
         const extrasNet = collar + transport + custom - disc + (gstOn ? (Number(res.gstAmount) || 0) : 0);
         extrasAmt.textContent = extrasNet > 0 ? `+${rupee(extrasNet)}` : extrasNet < 0 ? `−${rupee(extrasNet)}` : '₹0';
+
+        if (bataToggle) {
+            const bataVal = num('billBoreBataInput');
+            bataToggle.textContent = bataVal > 0 ? `Bata ${rupee(bataVal)} · Change` : 'No bata · Add';
+        }
     }
 
     // After every recalculation, and after any typing on the bill (summaries follow the fields).
@@ -246,6 +313,7 @@ export function initBillFold(app) {
     for (const id of ['freshBillCtaBtn', 'freshBillQuickBtn', 'startFreshNewBillBtn']) {
         $(id)?.addEventListener('click', () => setTimeout(() => {
             wasReady = hasCustomer() && hasSite();
+            setBataOpen(false);
             setOpen(hasCustomer() ? 'drill' : 'cust');
             refresh();
         }, 0));

@@ -103,3 +103,97 @@ html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input::placeholder
     html.ui-v3 #tab-bill .nb-depth-bump { width: 44px; font-size: 13px; }
     html.ui-v3 #tab-bill .drilling-depth-row { gap: 6px !important; }
 }
+
+/* Rate −1 / +1 stepper (spans full width in drilling bar; Date + Slabs sit side-by-side below) */
+html.ui-v3 #tab-bill .simple-rate-bata-bar .nb-rate-item {
+    grid-column: 1 / -1;
+    height: auto !important;
+    min-height: 58px;
+    padding: 8px 12px !important;
+    gap: 6px !important;
+}
+html.ui-v3 #tab-bill .nb-rate-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+html.ui-v3 #tab-bill .nb-rate-row .srbb-input-box {
+    flex: 1 1 auto !important;
+    justify-content: center;
+}
+html.ui-v3 #tab-bill .nb-rate-row .srbb-input-box input {
+    width: 54px !important;
+    text-align: center !important;
+    font-size: 18px !important;
+}
+html.ui-v3 #tab-bill .nb-rate-bump {
+    flex: none;
+    width: 46px;
+    height: 36px;
+    border: 1px solid var(--nb-line2, #d5dcd8);
+    border-radius: 10px;
+    background: var(--nb-soft, #f7f9f8);
+    color: var(--nb-ink2, #3d4842);
+    font: 700 13.5px/1 Inter, sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background .12s ease, transform .1s ease;
+}
+html.ui-v3 #tab-bill .nb-rate-bump:active {
+    background: var(--v3-pri-light);
+    color: var(--v3-pri-d);
+    transform: scale(0.96);
+}
+
+/* Bore bata hidden by default behind a quiet toggle pill */
+html.ui-v3 #tab-bill .simple-rate-bata-bar .nb-bata-item {
+    grid-column: 1 / -1;
+    position: relative;
+}
+html.ui-v3 #tab-bill .simple-rate-bata-bar .nb-bata-item.is-bata-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    opacity: 0;
+    pointer-events: none;
+}
+html.ui-v3 #tab-bill .nb-bata-done {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    height: 24px;
+    padding: 0 9px;
+    border: 1px solid var(--nb-line2, #d5dcd8);
+    border-radius: 7px;
+    background: var(--nb-soft, #f7f9f8);
+    color: var(--v3-pri-d);
+    font: 700 11.5px/1 Inter, sans-serif;
+    cursor: pointer;
+}
+html.ui-v3 #tab-bill .nb-bata-toggle {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 34px;
+    border: 1px dashed var(--nb-line2, #d5dcd8);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--nb-mut, #5b6660);
+    font: 600 12.5px/1 Inter, sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+html.ui-v3 #tab-bill .nb-bata-toggle.is-open { display: none; }
+html.ui-v3 #tab-bill .nb-bata-toggle:active {
+    background: var(--nb-soft, #f7f9f8);
+    color: var(--nb-ink);
+}
