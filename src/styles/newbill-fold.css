@@ -83,59 +83,77 @@ html.ui-v3 #tab-bill .nb-fold-next {
 html.ui-v3 #tab-bill #proceedToPreviewBar.nb-save-bar { margin: 0 0 10px !important; padding-top: 0 !important; border-top: 0 !important; }
 html.ui-v3 #tab-bill #proceedToPreviewBar.nb-save-bar.nb-hide { display: none !important; }
 
-/* Depth −50 / +50 */
+/* Depth −50 / +50 (compact 44 px) */
 html.ui-v3 #tab-bill .nb-depth-bump {
     flex: none;
-    width: 52px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--nb-line2, #d5dcd8);
-    border-radius: 12px;
+    border-radius: 10px;
     background: #fff;
     color: var(--nb-ink2);
-    font: 700 14px/1 Inter, sans-serif;
+    font: 700 12.5px/1 Inter, sans-serif;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
 }
 html.ui-v3 #tab-bill .nb-depth-bump:active { background: var(--v3-pri-light); color: var(--v3-pri-d); }
-html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input { text-align: center; }
-html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input::placeholder { text-align: center; }
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input {
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 10px !important;
+}
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input {
+    text-align: center;
+    font-size: 18px !important;
+}
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input::placeholder {
+    text-align: center;
+    font-size: 13.5px !important;
+}
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input .sbi-unit {
+    font-size: 13px !important;
+}
+html.ui-v3 #tab-bill .drilling-buffer-pill {
+    min-height: 44px !important;
+    height: 44px !important;
+}
 @media (max-width: 360px) {
-    html.ui-v3 #tab-bill .nb-depth-bump { width: 44px; font-size: 13px; }
-    html.ui-v3 #tab-bill .drilling-depth-row { gap: 6px !important; }
+    html.ui-v3 #tab-bill .nb-depth-bump { width: 40px; font-size: 12px; }
+    html.ui-v3 #tab-bill .drilling-depth-row { gap: 5px !important; }
 }
 
-/* Rate −1 / +1 stepper (spans full width in drilling bar; Date + Slabs sit side-by-side below) */
+/* Rate −1 / +1 stepper (compact full-width row; Date + Slabs sit side-by-side below) */
 html.ui-v3 #tab-bill .simple-rate-bata-bar .nb-rate-item {
     grid-column: 1 / -1;
     height: auto !important;
-    min-height: 58px;
-    padding: 8px 12px !important;
-    gap: 6px !important;
+    min-height: 46px;
+    padding: 6px 10px !important;
+    gap: 3px !important;
 }
 html.ui-v3 #tab-bill .nb-rate-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 html.ui-v3 #tab-bill .nb-rate-row .srbb-input-box {
     flex: 1 1 auto !important;
     justify-content: center;
 }
 html.ui-v3 #tab-bill .nb-rate-row .srbb-input-box input {
-    width: 54px !important;
+    width: 46px !important;
     text-align: center !important;
-    font-size: 18px !important;
+    font-size: 15.5px !important;
 }
 html.ui-v3 #tab-bill .nb-rate-bump {
     flex: none;
-    width: 46px;
-    height: 36px;
+    width: 38px;
+    height: 30px;
     border: 1px solid var(--nb-line2, #d5dcd8);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--nb-soft, #f7f9f8);
     color: var(--nb-ink2, #3d4842);
-    font: 700 13.5px/1 Inter, sans-serif;
+    font: 700 12.5px/1 Inter, sans-serif;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
     transition: background .12s ease, transform .1s ease;
@@ -165,15 +183,15 @@ html.ui-v3 #tab-bill .simple-rate-bata-bar .nb-bata-item.is-bata-hidden {
 }
 html.ui-v3 #tab-bill .nb-bata-done {
     position: absolute;
-    top: 8px;
-    right: 10px;
-    height: 24px;
-    padding: 0 9px;
+    top: 6px;
+    right: 8px;
+    height: 22px;
+    padding: 0 8px;
     border: 1px solid var(--nb-line2, #d5dcd8);
-    border-radius: 7px;
+    border-radius: 6px;
     background: var(--nb-soft, #f7f9f8);
     color: var(--v3-pri-d);
-    font: 700 11.5px/1 Inter, sans-serif;
+    font: 700 11px/1 Inter, sans-serif;
     cursor: pointer;
 }
 html.ui-v3 #tab-bill .nb-bata-toggle {
@@ -183,12 +201,12 @@ html.ui-v3 #tab-bill .nb-bata-toggle {
     justify-content: center;
     gap: 6px;
     width: 100%;
-    height: 34px;
+    height: 30px;
     border: 1px dashed var(--nb-line2, #d5dcd8);
-    border-radius: 10px;
+    border-radius: 9px;
     background: transparent;
     color: var(--nb-mut, #5b6660);
-    font: 600 12.5px/1 Inter, sans-serif;
+    font: 600 12px/1 Inter, sans-serif;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
 }
@@ -197,3 +215,64 @@ html.ui-v3 #tab-bill .nb-bata-toggle:active {
     background: var(--nb-soft, #f7f9f8);
     color: var(--nb-ink);
 }
+
+/* ==========================================================================
+   ULTRA-COMPACT TYPOGRAPHY & SPACING PASS (beta, 25 Nov 2026)
+   ========================================================================== */
+html.ui-v3 #tab-bill { --nb-field: 40px; }
+html.ui-v3 #tab-bill .ui-card { padding: 11px 12px !important; margin-bottom: 8px !important; border-radius: 12px !important; }
+html.ui-v3 #tab-bill .nb-fold.is-folded { padding-top: 9px !important; padding-bottom: 9px !important; }
+html.ui-v3 #tab-bill .simple-card-head { margin-bottom: 8px !important; }
+html.ui-v3 #tab-bill .step-n { width: 20px; height: 20px; border-radius: 6px; font-size: 11px; }
+html.ui-v3 #tab-bill .wiz-cp-step-tag,
+html.ui-v3 #tab-bill .simple-card-title { gap: 7px; font-size: 13.5px !important; }
+html.ui-v3 #tab-bill .simple-card-amount { font-size: 14px !important; }
+html.ui-v3 #tab-bill .nb-fold-sum { padding-left: 27px; font-size: 11.5px !important; }
+
+/* Bill type & bore size */
+html.ui-v3 #tab-bill .top-mode-bar { gap: 6px !important; }
+html.ui-v3 #tab-bill .top-mode-bar .seg-pill { height: 30px !important; min-height: 30px !important; font-size: 12.5px !important; }
+html.ui-v3 #tab-bill .dia-selector-bar { margin-top: 8px !important; gap: 5px !important; }
+html.ui-v3 #tab-bill .dia-selector-bar .mini-label { font-size: 11px !important; }
+html.ui-v3 #tab-bill .dia-pill { height: 30px !important; font-size: 12px !important; border-radius: 8px !important; }
+
+/* Customer */
+html.ui-v3 #tab-bill .wiz-scc-avatar { width: 36px !important; height: 36px !important; border-radius: 10px !important; font-size: 13px !important; }
+html.ui-v3 #tab-bill .wiz-scc-name-row h3 { font-size: 14px !important; }
+html.ui-v3 #tab-bill .wiz-scc-meta,
+html.ui-v3 #tab-bill .wiz-scc-loc-pill { font-size: 11.5px !important; }
+html.ui-v3 #tab-bill .wiz-scc-actions .btn-chip-outline,
+html.ui-v3 #tab-bill .cust-quick-clear-btn { height: 36px !important; min-height: 36px !important; min-width: 36px; font-size: 12px !important; }
+
+/* Drilling rate / date / slabs */
+html.ui-v3 #tab-bill .simple-rate-bata-bar { gap: 6px !important; margin-top: 6px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item { height: 44px; padding: 0 9px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item label { font-size: 10.5px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-input-box input { font-size: 14px !important; }
+html.ui-v3 #tab-bill .simple-rate-bata-bar .srbb-item.date-item input { font-size: 13px !important; }
+html.ui-v3 #tab-bill .smart-slab-dd-trigger { height: 44px !important; min-height: 44px !important; padding: 0 9px !important; }
+html.ui-v3 #tab-bill #smartSlabDropdownBtnText { font-size: 12.5px !important; }
+html.ui-v3 #tab-bill .lsa-toggle-btn { min-height: 36px !important; }
+html.ui-v3 #tab-bill #liveSlabAccordionTitle { font-size: 12.5px !important; }
+html.ui-v3 #tab-bill .lsa-total-tag { font-size: 13px !important; }
+
+/* Casing & Extras */
+html.ui-v3 #tab-bill .simple-pvc-card { padding: 10px !important; gap: 6px !important; }
+html.ui-v3 #tab-bill .spvc-top label,
+html.ui-v3 #tab-bill .spvc-cost { font-size: 13px !important; }
+html.ui-v3 #tab-bill .simple-big-input-wrap.pvc { height: 38px !important; min-height: 38px !important; }
+html.ui-v3 #tab-bill .simple-big-input-wrap.pvc input { font-size: 15px !important; }
+html.ui-v3 #tab-bill .spvc-rate-input-box input { font-size: 13.5px !important; }
+html.ui-v3 #tab-bill .spvc-mode button,
+html.ui-v3 #tab-bill .pvc-step-chip { height: 28px !important; min-height: 28px !important; font-size: 12px !important; }
+html.ui-v3 #tab-bill .ei-add-btn { min-height: 36px; font-size: 12.5px !important; }
+html.ui-v3 #tab-bill .simple-extra-btn,
+html.ui-v3 #tab-bill .gst-switch-pill { min-height: 36px !important; font-size: 12.5px !important; }
+
+/* Next & Save & Work details */
+html.ui-v3 #tab-bill .nb-fold-next { min-height: 38px; margin-top: 8px; font-size: 13px; border-radius: 10px; }
+html.ui-v3 #tab-bill .wk-open { min-height: 44px; padding: 6px 10px; }
+html.ui-v3 #tab-bill .wk-open-txt strong { font-size: 13px; }
+html.ui-v3 #tab-bill .wk-open-txt small { font-size: 11.5px; }
+html.ui-v3 #tab-bill .btn-preview-save-cta { height: 46px !important; min-height: 46px !important; font-size: 14px !important; }
+html.ui-v3 #tab-bill .btn-preview-save-cta #previewBtnLiveTotal { font-size: 15px !important; }
