@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /dashboard.html
+Disallow: /beta/
 
 Sitemap: https://drillrig.in/sitemap.xml

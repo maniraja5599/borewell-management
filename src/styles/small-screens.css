@@ -184,3 +184,20 @@
 .menu-tile-tx small { font: 500 12px/1.35 Inter, sans-serif; color: #475569; }
 /* The new bar marks the active tab with a soft pill; the old top line is not needed */
 .nav-v2 .b-nav-item.active::before { display: none !important; }
+
+/* Test copy (drillrig.in/beta/): a small orange tag on top of every screen. */
+.beta-tag {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2147483000;
+    padding: 2px 10px 3px;
+    border-radius: 0 0 8px 8px;
+    background: #c2410c;
+    color: #fff;
+    font: 800 10.5px/1.3 Inter, system-ui, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    pointer-events: none;
+}

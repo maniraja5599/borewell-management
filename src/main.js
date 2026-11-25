@@ -37,6 +37,18 @@ import { billFooterEnquiryLink, supportWhatsAppDisplay } from './config/plans.js
 
 if (FEATURES.uiV3) document.documentElement.classList.add('ui-v3');
 
+// Test copy at drillrig.in/beta/ (built with VITE_CHANNEL=beta, see .github/workflows/deploy.yml):
+// same bills and cloud as the live app, so it always shows an orange BETA tag.
+if (import.meta.env.VITE_CHANNEL === 'beta') {
+    document.documentElement.classList.add('is-beta');
+    document.title = `BETA · ${document.title}`;
+    const tag = document.createElement('div');
+    tag.className = 'beta-tag';
+    tag.textContent = 'BETA · test copy';
+    tag.setAttribute('role', 'note');
+    document.body.appendChild(tag);
+}
+
 async function boot() {
     try {
         // Bills, customers and stock come from IndexedDB; load them before the app draws anything.

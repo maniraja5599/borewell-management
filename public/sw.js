@@ -1,7 +1,10 @@
 // DrillRig offline service worker.
 // Built JS/CSS files have content hashes in their names (from Vite), so they never go stale;
 // we fetch network-first and fall back to cache when the rig site has no signal.
-const CACHE_NAME = 'drillrig-v2.32';
+// The live app (drillrig.in/) and the test copy (drillrig.in/beta/) share one website, so each
+// keeps its own caches (prefix) and only ever clears its own old ones.
+const CACHE_PREFIX = /\/beta\//.test(new URL(self.registration?.scope || self.location.href).pathname) ? 'drillrig-beta-v' : 'drillrig-v';
+const CACHE_NAME = `${CACHE_PREFIX}2.33`;
 const PRECACHE = [
   './',
   './index.html',
@@ -46,7 +49,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE_NAME && k.startsWith(CACHE_PREFIX)).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });

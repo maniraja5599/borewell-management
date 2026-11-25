@@ -1,8 +1,13 @@
 name: Test & Deploy to GitHub Pages
 
+# drillrig.in/       = the live app, built from main
+# drillrig.in/beta/  = the test copy, built from the beta branch (same bills and cloud as live;
+#                      it shows an orange BETA tag). A push to either branch rebuilds both,
+#                      because GitHub Pages publishes one site at a time.
+
 on:
   push:
-    branches: [main]
+    branches: [main, beta]
   pull_request:
   workflow_dispatch:
 
@@ -19,21 +24,59 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # ---- live app (main) ----
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.ref || 'main' }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npm test
+        if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
       - run: npm run build
+
+      # ---- test copy (beta branch) into dist/beta ----
+      - name: Is there a beta branch?
+        id: beta
+        if: github.event_name != 'pull_request'
+        run: |
+          if git ls-remote --exit-code --heads origin beta > /dev/null; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.beta.outputs.exists == 'true'
+        with:
+          ref: beta
+          path: beta-src
+      - name: Test and build the beta copy
+        if: steps.beta.outputs.exists == 'true'
+        working-directory: beta-src
+        env:
+          VITE_CHANNEL: beta
+        run: |
+          npm ci
+          npm test
+          npm run build
+          node -e "
+            const fs = require('fs');
+            const f = 'dist/manifest.json';
+            const m = JSON.parse(fs.readFileSync(f, 'utf8'));
+            m.id = '/beta/';
+            m.name = 'DrillRig Beta (test copy)';
+            m.short_name = 'DrillRig β';
+            fs.writeFileSync(f, JSON.stringify(m, null, 2));
+          "
+          rm -f dist/CNAME dist/robots.txt dist/sitemap.xml
+          mkdir -p ../dist/beta
+          cp -r dist/. ../dist/beta/
+
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         with:
           path: dist
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
