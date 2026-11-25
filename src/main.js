@@ -6,6 +6,7 @@ import './styles/team-v2.css'; // Team & Rigs, invitation cards, Your businesses
 import './styles/rates-v2.css'; // Rates page, rate popup, rate editor // new look; only applies with FEATURES.uiV3 (html.ui-v3)
 import './styles/newbill-v4.css'; // New bill tab, approved 24 Nov 2026 (on top of ui-v3)
 import './styles/bill-paper-v4.css'; // top total strip + the bill paper (also its image / PDF export)
+import './styles/newbill-fold.css'; // New bill: one section open at a time (25 Nov 2026)
 import './styles/small-screens.css'; // narrow phones + large font/zoom (loaded last)
 import { initFitText } from './ui/fitText.js';
 import { versionLabel, APP_BUILD_DATE } from './config/version.js';
@@ -17,6 +18,7 @@ import { initFirstBillGuide } from './features/onboarding/firstBillGuide.js';
 import { initRigWork } from './features/settings/rigWork.js';
 import { initMenuTiles } from './features/settings/menuTiles.js';
 import { initWorkCard } from './features/work/workCard.js';
+import { initBillFold } from './features/bill/billFold.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
@@ -80,6 +82,7 @@ async function boot() {
         initRigWork(window.boreBillApp); // Rig work tab (bottom bar)
         initMenuTiles(window.boreBillApp); // Menu: Rates, Team & rigs, Company profile, Backup tiles
         initWorkCard(window.boreBillApp); // Bill screen: work details (operator, compressor, bits, hammers)
+        if (FEATURES.uiV3) initBillFold(window.boreBillApp); // New bill: one section open at a time (after the work card: it moves it)
         initFirstBillGuide(window.boreBillApp); // New Bill: "Make your first bill" checklist until the first bill
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)
         applyNavIcons3d(); // bottom bar: 3D icons

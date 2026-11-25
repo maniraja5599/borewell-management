@@ -1,0 +1,105 @@
+/* ==========================================================================
+   NEW BILL — one section open at a time (Idea B, 25 Nov 2026). Logic: features/bill/billFold.js
+   A folded card shows its head (number, title, amount, chevron) and a one-line summary.
+   Its fields are only visually hidden, so they can still take focus (that opens the card).
+   ========================================================================== */
+
+html.ui-v3 #tab-bill .nb-fold { position: relative; transition: border-color .15s ease; }
+html.ui-v3 #tab-bill .nb-fold > .simple-card-head {
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 2px;
+    cursor: pointer;
+}
+html.ui-v3 #tab-bill .nb-fold > .simple-card-head > .simple-card-amount { margin-left: auto; order: 1; }
+html.ui-v3 #tab-bill .nb-fold-btn {
+    order: 2;
+    width: 36px;
+    height: 36px;
+    margin: -6px -8px -6px 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--nb-mut);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: none;
+}
+html.ui-v3 #tab-bill .nb-fold-btn svg { transition: transform .18s ease; }
+html.ui-v3 #tab-bill .nb-fold:not(.is-folded) .nb-fold-btn svg { transform: rotate(180deg); }
+html.ui-v3 #tab-bill .nb-fold-sum {
+    order: 3;
+    flex: 1 0 100%;
+    display: none;
+    padding-left: 30px;
+    font: 500 12.5px/1.35 Inter, 'Noto Sans Tamil', sans-serif;
+    color: var(--nb-mut);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Folded */
+html.ui-v3 #tab-bill .nb-fold.is-folded { padding-top: 12px !important; padding-bottom: 12px !important; }
+html.ui-v3 #tab-bill .nb-fold.is-folded > .simple-card-head { margin-bottom: 0 !important; }
+html.ui-v3 #tab-bill .nb-fold.is-folded .nb-fold-sum { display: block; }
+html.ui-v3 #tab-bill .nb-fold.is-folded .casing-settings-trigger-btn { display: none !important; }
+html.ui-v3 #tab-bill .nb-fold.is-folded > :not(.simple-card-head) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Open (when there is more than one card on screen) */
+html.ui-v3 #tab-bill .nb-fold:not(.is-folded) { border-color: color-mix(in srgb, var(--v3-pri) 55%, var(--nb-line)) !important; }
+
+/* "Next: Casing pipes" at the bottom of an open card */
+html.ui-v3 #tab-bill .nb-fold-next {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 12px;
+    border: 0;
+    border-radius: 11px;
+    background: var(--v3-pri-light);
+    color: var(--v3-pri-d);
+    font: 700 14px/1.2 Inter, 'Noto Sans Tamil', sans-serif;
+    cursor: pointer;
+}
+
+/* Preview & Save now sits under the cards, on its own */
+html.ui-v3 #tab-bill #proceedToPreviewBar.nb-save-bar { margin: 0 0 10px !important; padding-top: 0 !important; border-top: 0 !important; }
+html.ui-v3 #tab-bill #proceedToPreviewBar.nb-save-bar.nb-hide { display: none !important; }
+
+/* Depth −50 / +50 */
+html.ui-v3 #tab-bill .nb-depth-bump {
+    flex: none;
+    width: 52px;
+    height: 56px;
+    border: 1px solid var(--nb-line2, #d5dcd8);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--nb-ink2);
+    font: 700 14px/1 Inter, sans-serif;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+html.ui-v3 #tab-bill .nb-depth-bump:active { background: var(--v3-pri-light); color: var(--v3-pri-d); }
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input { text-align: center; }
+html.ui-v3 #tab-bill .drilling-depth-row .drilling-hero-input input::placeholder { text-align: center; }
+@media (max-width: 360px) {
+    html.ui-v3 #tab-bill .nb-depth-bump { width: 44px; font-size: 13px; }
+    html.ui-v3 #tab-bill .drilling-depth-row { gap: 6px !important; }
+}
