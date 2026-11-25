@@ -1,0 +1,81 @@
+/* ==========================================================================
+   COMPACT PASS v5 (owner, 25 Nov 2026: "konjam UI compact ah vechukalam"). Tried on drillrig.in/beta/.
+   Same markup; only sizes. Targets: bill card ~115 px (was 158-169), customer row ~58 px
+   (was 74), rig work and menu tiles ~90 px (were 131-148), menu rows 50 px (were 62).
+   Loaded last, so these win.
+   ========================================================================== */
+
+/* ---------- Bills & Customers: page head, totals, tabs, search ---------- */
+html.ui-v3 #tab-history .page-head-row,
+html.ui-v3 #tab-customers .page-head-row { margin-bottom: 8px !important; }
+html.ui-v3 #tab-history .page-title,
+html.ui-v3 #tab-customers .page-title { font-size: 20px !important; }
+html.ui-v3 #toggleAddCustomerDrawerBtn { height: 36px !important; padding: 0 12px !important; font-size: 13px !important; }
+html.ui-v3 .kpi-grid-3 { margin-bottom: 8px !important; border-radius: 14px !important; }
+html.ui-v3 .kpi-grid-3 .kpi-card { padding: 8px 10px !important; }
+html.ui-v3 .kpi-grid-3 .kpi-lbl { font-size: 11px !important; }
+html.ui-v3 .kpi-grid-3 .kpi-val { margin-top: 2px !important; font-size: 15px !important; }
+html.ui-v3 #historyDocTabSwitcher { margin-bottom: 8px !important; padding: 3px !important; }
+html.ui-v3 .bq-tab-btn { height: 34px !important; min-height: 34px !important; font-size: 13.5px !important; }
+html.ui-v3 :is(#tab-history, #tab-customers) .search-input-box { height: 42px !important; min-height: 42px !important; }
+html.ui-v3 :is(#tab-history, #tab-customers) .ledger-toolbar { gap: 8px !important; margin-bottom: 8px !important; }
+html.ui-v3 :is(#tab-history, #tab-customers) .ledger-toolbar :is(.filter-chip, .crm-filter-chip, .bqf-chip, button) { min-height: 32px; }
+html.ui-v3 .crm-toolbar-subrow { gap: 6px !important; }
+html.ui-v3 .crm-tool-btn { height: 32px !important; min-height: 32px !important; }
+
+/* ---------- Bill card: name + amount, one detail line, slim action row ---------- */
+html.ui-v3 .bl-card { padding: 10px 12px 9px !important; border-radius: 14px !important; margin-bottom: 0 !important; gap: 0 !important; }
+html.ui-v3 .bl-card .bl-name { font-size: 15px !important; line-height: 1.25 !important; }
+html.ui-v3 .bl-card .bl-main { gap: 1px !important; }
+html.ui-v3 .bl-card .bl-meta { font-size: 12px !important; line-height: 1.35 !important; gap: 4px !important; }
+html.ui-v3 .bl-card .khata-main-amt { font-size: 16.5px !important; }
+html.ui-v3 .bl-card .status-pill { height: 22px; font-size: 11.5px !important; }
+html.ui-v3 .bl-card .bl-actions { margin-top: 8px !important; padding-top: 7px !important; }
+html.ui-v3 .bl-card .khata-Quick-stats { flex-direction: row !important; align-items: baseline; gap: 6px !important; flex-wrap: wrap; }
+html.ui-v3 .bl-card .bl-rec-lbl { font-size: 11px !important; }
+html.ui-v3 .bl-card .khata-Quick-stats strong { font-size: 14px !important; }
+html.ui-v3 .bl-card .khata-btn-group > button { height: 34px !important; min-height: 34px !important; }
+html.ui-v3 .bl-card :is(.hist-wa-btn, .hist-detail-btn, .hist-del-btn) { width: 34px !important; min-width: 34px !important; }
+html.ui-v3 .bl-card .hist-record-pay-btn { padding: 0 10px !important; font-size: 12.5px !important; }
+
+/* ---------- Customer rows ---------- */
+html.ui-v3 .cl-row { padding: 8px 0 !important; gap: 10px !important; }
+html.ui-v3 .cl-avatar { width: 36px !important; height: 36px !important; font-size: 13px !important; }
+html.ui-v3 .cl-name { font-size: 15px !important; }
+html.ui-v3 .cl-row :is(.cl-line2, .cl-phone) { font-size: 12.5px !important; line-height: 1.3 !important; }
+html.ui-v3 .cl-row .cmr-badge:is(.due, .settled, .neutral) { height: 22px; font-size: 11.5px !important; }
+
+/* ---------- Rig work ---------- */
+html.ui-v3 .rw-head { padding-top: 4px !important; padding-bottom: 4px !important; }
+html.ui-v3 .rw-title { font-size: 20px !important; }
+html.ui-v3 .rw-head { padding-left: 4px; }
+html.ui-v3 .rw-today { padding: 12px 14px !important; gap: 10px !important; border-radius: 18px !important; }
+html.ui-v3 .rw-today-stats { gap: 6px !important; }
+html.ui-v3 .rw-today-stats > div { gap: 3px !important; }
+html.ui-v3 .rw-today-stats strong { font-size: 22px !important; }
+html.ui-v3 .rw-tile-txt small { -webkit-line-clamp: 1; }
+html.ui-v3 .rw-quick { margin-top: 8px !important; gap: 6px !important; }
+html.ui-v3 .rw-q { height: 40px !important; min-height: 40px !important; }
+html.ui-v3 .rw-warn { min-height: 42px !important; margin-bottom: 8px !important; }
+.rw-grid { gap: 8px; }
+html.ui-v3 .rw-tile { min-height: 0; padding: 11px 12px; gap: 7px; border-radius: 14px; }
+html.ui-v3 .rw-tile .tt-tile { width: 34px; height: 34px; border-radius: 10px; }
+html.ui-v3 .rw-tile-txt strong { font-size: 13.5px; }
+html.ui-v3 .rw-tile-txt small { font-size: 11.5px; }
+html.ui-v3 .rw-report { min-height: 56px; padding: 8px 12px; margin-top: 8px; }
+
+/* ---------- Menu ---------- */
+html.ui-v3 .menu-tiles { gap: 8px !important; }
+html.ui-v3 .menu-tile { min-height: 0; padding: 11px 12px; gap: 7px; border-radius: 14px; }
+html.ui-v3 .menu-tile-ic { width: 34px; height: 34px; border-radius: 10px; }
+html.ui-v3 .menu-tile-ic svg { width: 19px; height: 19px; }
+html.ui-v3 .menu-tile-tx strong { font-size: 14px; }
+html.ui-v3 .menu-tile-tx small { font-size: 11.5px; }
+html.ui-v3 .settings-menu .set-menu-row { min-height: 50px !important; height: auto !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+html.ui-v3 #accountCard { padding: 12px !important; }
+
+/* ---------- New bill: 1 Customer head (billFold.js) ---------- */
+html.ui-v3 #tab-bill #customerCard.nb-fold .wiz-cp-step-tag { display: none !important; }
+html.ui-v3 #tab-bill #customerCard.nb-fold .wiz-cp-top-row { justify-content: flex-end; min-height: 0; margin-top: -4px; }
+html.ui-v3 #tab-bill #customerCard.nb-fold > .nb-cust-head { margin-bottom: 8px; }
+html.ui-v3 #tab-bill .control-strip-card { padding: 12px 14px !important; }

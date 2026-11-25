@@ -1,4 +1,4 @@
-// New bill: one section open at a time (owner, 25 Nov 2026: "one long page that keeps scrolling
+// New bill: 1 Customer · 2 Drilling · 3 Casing · 4 Extras, one section open at a time (owner, 25 Nov 2026: "one long page that keeps scrolling
 // is hard"; Idea B on the "DrillRig New Bill redesign" canvas).
 //
 // Bore & drilling, Casing pipes and Extras & advance fold up. Only one is open; the others show
@@ -79,13 +79,31 @@ export function initBillFold(app) {
         heroWrap.after(mkBump(DEPTH_STEP));
     }
 
-    // ---------- 3. Folding ----------
+    // ---------- 3. Folding: 1 Customer · 2 Drilling · 3 Casing · 4 Extras ----------
+    // Customer gets the same kind of head as the others (its picker keeps its own search row).
+    const cust = $('customerCard');
+    let custHead = null;
+    if (cust) {
+        custHead = make('div', 'simple-card-head nb-cust-head');
+        const t = make('span', 'simple-card-title');
+        const n1 = make('span', 'step-n', '1');
+        n1.setAttribute('aria-hidden', 'true');
+        t.append(n1, make('span', 'step-t', 'Customer'));
+        custHead.appendChild(t);
+        cust.prepend(custHead);
+    }
+    const hasCustomer = () => !!($('custName')?.value || app.state?.custName || '').trim();
+    const hasSite = () => !!($('custLocation')?.value || app.state?.custLocation || '').trim();
+
     const sections = [
+        ...(cust ? [{ key: 'cust', node: cust }] : []),
         { key: 'drill', node: drill, next: 'casing', nextLabel: 'Next: Casing pipes' },
         { key: 'casing', node: casing, next: 'extras', nextLabel: 'Next: Extras & advance' },
         { key: 'extras', node: extras }
     ];
     let open = 'drill';
+    let wasReady = hasCustomer() && hasSite(); // customer + site picked (then drilling opens)
+    const sec = (key) => sections.find((x) => x.key === key);
 
     for (const s of sections) {
         const h = s.node.querySelector(':scope > .simple-card-head');
@@ -120,7 +138,8 @@ export function initBillFold(app) {
     function setOpen(key) {
         open = key;
         for (const s of sections) {
-            const folded = s.key !== key;
+            // No customer yet: the customer card stays open (its picker is the first step).
+            const folded = s.key !== key && !(s.key === 'cust' && !hasCustomer());
             s.node.classList.toggle('is-folded', folded);
             s.btn.setAttribute('aria-expanded', String(!folded));
             s.btn.setAttribute('aria-label', `${folded ? 'Open' : 'Close'} ${s.node.querySelector('.step-t')?.textContent || 'section'}`);
@@ -149,13 +168,26 @@ export function initBillFold(app) {
         // The extras card and the save bar follow the casing card (shown once a depth is typed).
         extras.style.display = casing.style.display;
         bar.classList.toggle('nb-hide', bar.style.display === 'none');
+        // Customer and site just picked: move on to drilling.
+        const ready = hasCustomer() && hasSite();
+        if (ready && !wasReady && (open === 'cust' || open === '') && shown(drill)) setOpen('drill');
+        wasReady = ready;
         if (!sections.some((s) => s.key === open && shown(s.node))) {
-            if (open !== '' || !shown(casing)) setOpen(shown(drill) ? 'drill' : '');
+            if (open !== '' || !shown(casing)) setOpen(shown(drill) && hasCustomer() ? 'drill' : 'cust');
+        } else {
+            setOpen(open); // the customer card's fold depends on whether a customer is picked
+        }
+
+        if (sec('cust')) {
+            const phone = ($('custPhone')?.value || '').trim();
+            sec('cust').sum.textContent = hasCustomer()
+                ? join([($('custName')?.value || st.custName || '').trim(), ($('custLocation')?.value || '').trim() || 'no site yet', phone])
+                : 'Pick or add a customer';
         }
 
         const depthFt = parseInt($('totalDepth')?.value, 10) || 0;
         const rebore = st.drillingType === 'repair';
-        sections[0].sum.textContent = depthFt
+        sec('drill').sum.textContent = depthFt
             ? join([
                 st.boreDia,
                 `${depthFt} ft`,
@@ -168,7 +200,7 @@ export function initBillFold(app) {
         const name7 = ($('labelPvc7Name')?.textContent || '7"').replace(/\s*casing.*$/i, '');
         const name10 = ($('labelPvc10Name')?.textContent || '10"').replace(/\s*casing.*$/i, '');
         const items = Array.isArray(st.extraItems) ? st.extraItems.filter((x) => x && (x.name || x.qty || x.rate)).length : 0;
-        sections[1].sum.textContent = join([
+        sec('casing').sum.textContent = join([
             num('pvc7Length') ? `${name7} ${num('pvc7Length')} ft` : '',
             num('pvc10Length') ? `${name10} ${num('pvc10Length')} ft` : '',
             items ? `${items} other item${items > 1 ? 's' : ''}` : ''
@@ -180,7 +212,7 @@ export function initBillFold(app) {
         const disc = num('discountAmount');
         const adv = num('advancePaidAmount');
         const gstOn = !!$('gstEnabledToggle')?.checked;
-        sections[2].sum.textContent = join([
+        sec('extras').sum.textContent = join([
             collar ? `Collar ${rupee(collar)}` : '',
             transport ? `Transport ${rupee(transport)}` : '',
             custom ? `${($('customExtraLabel')?.value || 'Extra').trim()} ${rupee(custom)}` : '',
@@ -210,12 +242,16 @@ export function initBillFold(app) {
     form?.addEventListener('change', later);
     form?.addEventListener('click', later);
 
-    // A fresh bill starts on Bore & drilling again.
+    // A fresh bill starts again from 1 Customer (or 2 Drilling when the customer is kept).
     for (const id of ['freshBillCtaBtn', 'freshBillQuickBtn', 'startFreshNewBillBtn']) {
-        $(id)?.addEventListener('click', () => setTimeout(() => { setOpen('drill'); refresh(); }, 0));
+        $(id)?.addEventListener('click', () => setTimeout(() => {
+            wasReady = hasCustomer() && hasSite();
+            setOpen(hasCustomer() ? 'drill' : 'cust');
+            refresh();
+        }, 0));
     }
 
-    setOpen('drill');
+    setOpen(hasCustomer() ? 'drill' : 'cust');
     refresh();
     app.openBillSection = (key) => setOpen(key);
 }

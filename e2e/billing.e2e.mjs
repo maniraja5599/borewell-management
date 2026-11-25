@@ -285,7 +285,7 @@ await step('12c other items + payment discount', async () => {
     // 100 ft × 90 = 9,000 + bata 2,000 + 40 ft × 550 = 22,000 → 33,000
     check('12c "Add other item": 8" MS pipe 40 ft × ₹550 = ₹22,000; bill ₹33,000; shown on the bill',
         live.items === 22000 && live.total === 33000 && /22,000/.test(live.rowAmt || '') && /22,000/.test(live.badge || '')
-        && /8" MS pipe \(40 ft × ₹550\/ft\)/.test(live.rcpt || '') && /other items/i.test(live.title || ''), live);
+        && /8" MS pipe \(40 ft × ₹550\/ft\)/.test(live.rcpt || '') && /^Casing pipes/.test(live.title || ''), live);
     const wa = await app(() => { const a = window.boreBillApp; return a.buildCleanBillWhatsAppMessage({ billNo: 'X', billDate: '2026-11-15', custName: 'Ravi Kumar', custPhone: '', custLocation: '', custGst: '', res: a.lastResult }); });
     if (wa) check('12c WhatsApp text lists the item', /8" MS pipe \(40 ft × ₹550\/ft\) : \*₹22,000\*/.test(wa), wa.slice(0, 300));
 
