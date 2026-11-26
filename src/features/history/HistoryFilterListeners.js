@@ -69,6 +69,13 @@ export class HistoryFilterListeners {
             });
         });
 
+        document.querySelectorAll('#historyPopupBillToPills .bfp-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                this.historyBillToFilter = pill.dataset.billtofilter || 'all';
+                this.renderHistoryList(document.getElementById('historySearchInput')?.value || '');
+            });
+        });
+
         // Date Filter Preset Pills & Custom From/To Date Inputs
         document.querySelectorAll('#historyDatePresetPills .bfp-pill').forEach(pill => {
             pill.addEventListener('click', () => {

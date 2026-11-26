@@ -342,6 +342,7 @@ export class HistoryMixin {
 
     resetHistoryFilters(render = true) {
         this.historyPayFilter = 'all';
+        this.historyBillToFilter = 'all';
         this.historyDatePreset = 'all';
         this.historyDateFrom = '';
         this.historyDateTo = '';
@@ -466,7 +467,11 @@ export class HistoryMixin {
 
         const docFilter = this.historyDocFilter === 'QUOTATION' ? 'QUOTATION' : 'INVOICE';
         const payFilter = this.historyPayFilter || 'all';
+        const billToFilter = this.historyBillToFilter || 'all';
         const q = (query || '').toLowerCase().trim();
+        document.querySelectorAll('#historyPopupBillToPills .bfp-pill').forEach(pill => {
+            pill.classList.toggle('active', (pill.dataset.billtofilter || 'all') === billToFilter);
+        });
         // Several rigs: filter the bill book by rig (hidden for single-rig companies).
         this.historyRigFilter = ensureRigFilterUI(listEl, this.historyRigFilter, (v) => {
             this.historyRigFilter = v;
@@ -478,6 +483,8 @@ export class HistoryMixin {
             const docTag = item.snapshot?.docType || 'QUOTATION';
             if (docTag !== docFilter) return false;
             if (!matchesRigFilter(item, this.historyRigFilter)) return false;
+            const billTo = item.snapshot?.billToType === 'agent' ? 'agent' : 'customer';
+            if (billToFilter !== 'all' && billTo !== billToFilter) return false;
 
             if (docFilter === 'INVOICE') {
                 const isUnpaid = this.isBillItemUnpaid(item);
@@ -567,7 +574,7 @@ export class HistoryMixin {
                             <span class="bl-no">#${this.escapeHtml(item.billNo)}</span>${dateTxt ? `<span class="bl-dot">·</span><span>${this.escapeHtml(dateTxt)}</span>` : ''}
                         </div>
                         ${placeTxt || depthTxt ? `<div class="bl-meta bl-site">${placeTxt ? `<span class="bl-place">${this.escapeHtml(placeTxt)}</span>` : ''}${placeTxt && depthTxt ? '<span class="bl-dot">·</span>' : ''}${depthTxt ? `<span>${this.escapeHtml(depthTxt)}</span>` : ''}</div>` : ''}
-                        ${((b) => b ? `<div class="bl-badges">${b}</div>` : '')(rigBadgeHtml(item, (v) => this.escapeHtml(v)) + makerBadgeHtml(item, (v) => this.escapeHtml(v)))}
+                        ${((b) => b ? `<div class="bl-badges">${b}</div>` : '')(rigBadgeHtml(item, (v) => this.escapeHtml(v)) + makerBadgeHtml(item, (v) => this.escapeHtml(v)) + (snap.billToType === 'agent' ? '<span class="bl-agent-badge">Agent</span>' : ''))}
                     </div>
                     <div class="khata-amounts bl-amt">
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>

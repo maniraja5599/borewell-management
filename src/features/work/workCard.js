@@ -247,9 +247,15 @@ export function initWorkCard(app) {
         });
         const addBit = !ro ? el('button', { type: 'button', class: 'wk-link', text: '+ Bit changed', onclick: () => { draft.bits.push({}); persist(); render(); } }) : null;
 
-        // Water + note
+        // Water + Result + note
         const water = numIn(draft.waterIn, { step: '0.5', placeholder: 'inches', 'aria-label': 'Water in inches' });
         water.addEventListener('input', () => { draft.waterIn = water.value; persist(); });
+        const resultSel = options([
+            { value: 'pending', label: 'Pending' },
+            { value: 'water', label: 'Water Found' },
+            { value: 'dry', label: 'Dry / Low' }
+        ], draft.boreResult || '', 'Select result');
+        resultSel.addEventListener('change', () => { draft.boreResult = resultSel.value; persist(); });
         const note = el('input', { type: 'text', class: 'tt-input', maxlength: '200', value: draft.note || '', placeholder: 'Optional (rock at 300 ft, ...)' });
         note.disabled = ro;
         note.addEventListener('input', () => { draft.note = note.value; persist(); });
@@ -283,7 +289,7 @@ export function initWorkCard(app) {
                 row('Hammer', hm), hmWarn, hm2Wrap, addHm2,
                 ...bitRows, addBit
             ]),
-            el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water & note' }), el('div', { class: 'wk-two' }, [row('Water (inches)', water), row('Note', note)])]),
+            el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water, result & note' }), el('div', { class: 'wk-two' }, [row('Result', resultSel), row('Water (inches)', water)]), row('Note', note)]),
             btn(ro ? 'Close' : 'Done', { kind: 'pri', ic: 'check', cls: 'tt-wide wk-done', onclick: () => page?.close() })
         ].filter(Boolean));
         refreshWarnings();

@@ -39,10 +39,11 @@ export function cleanWork(w) {
         hammer2Id: id(w.hammer2Id),
         bits,
         waterIn: num(w.waterIn),
+        boreResult: ['pending', 'water', 'dry'].includes(w.boreResult) ? w.boreResult : null,
         note: String(w.note || '').trim().slice(0, 200)
     };
     const empty = !out.operatorId && !out.operator2Id && out.compEnd === null && !out.obHammerId && !out.hammerId
-        && !bits.length && out.waterIn === null && !out.note;
+        && !bits.length && out.waterIn === null && !out.boreResult && !out.note;
     return empty ? null : out;
 }
 

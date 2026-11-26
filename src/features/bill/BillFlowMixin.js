@@ -427,6 +427,7 @@ export class BillFlowMixin {
             custName: (document.getElementById('custName')?.value || '').trim(),
             custPhone: rawCustPhone ? this.formatPhoneWithCountryCode(rawCustPhone) : '',
             custLocation: (document.getElementById('custLocation')?.value || '').trim(),
+            billToType: this.state?.billToType === 'agent' ? 'agent' : 'customer',
             currentWizardStep: this.currentWizardStep || 1,
             loadedHistoryBillId: this.loadedHistoryBillId || null,
             isSavedBillReadOnly: Boolean(this.isSavedBillReadOnly)

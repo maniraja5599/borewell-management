@@ -153,7 +153,34 @@ export function initBillFold(app) {
         t.append(n1, make('span', 'step-t', 'Customer'));
         custHead.appendChild(t);
         cust.prepend(custHead);
+
+        // Billed to: Customer | Agent switch
+        const billToBar = make('div', 'nb-billto-bar');
+        billToBar.id = 'billToTypeBar';
+        const mkBillTo = (val, label) => {
+            const b = make('button', 'nb-billto-pill', label);
+            b.type = 'button';
+            b.dataset.billto = val;
+            b.addEventListener('click', () => {
+                if (!app.state) app.state = {};
+                app.state.billToType = val;
+                syncBillToUI();
+                app.persistCurrentSession?.();
+                refresh();
+            });
+            return b;
+        };
+        const btnCust = mkBillTo('customer', 'Customer');
+        const btnAgent = mkBillTo('agent', 'Agent');
+        billToBar.append(make('span', 'nb-billto-lbl', 'Billed to'), make('div', 'nb-billto-track', [btnCust, btnAgent]));
+        custHead.after(billToBar);
     }
+    const syncBillToUI = () => {
+        const cur = app.state?.billToType === 'agent' ? 'agent' : 'customer';
+        document.querySelectorAll('#billToTypeBar .nb-billto-pill').forEach((b) => {
+            b.classList.toggle('active', b.dataset.billto === cur);
+        });
+    };
     const hasCustomer = () => !!($('custName')?.value || app.state?.custName || '').trim();
     const hasSite = () => !!($('custLocation')?.value || app.state?.custLocation || '').trim();
 
@@ -241,9 +268,11 @@ export function initBillFold(app) {
         }
 
         if (sec('cust')) {
+            syncBillToUI();
             const phone = ($('custPhone')?.value || '').trim();
+            const who = app.state?.billToType === 'agent' ? 'Agent' : '';
             sec('cust').sum.textContent = hasCustomer()
-                ? join([($('custName')?.value || st.custName || '').trim(), ($('custLocation')?.value || '').trim() || 'no site yet', phone])
+                ? join([who, ($('custName')?.value || st.custName || '').trim(), ($('custLocation')?.value || '').trim() || 'no site yet', phone])
                 : 'Pick or add a customer';
         }
 
@@ -312,6 +341,7 @@ export function initBillFold(app) {
     // A fresh bill starts again from 1 Customer (or 2 Drilling when the customer is kept).
     for (const id of ['freshBillCtaBtn', 'freshBillQuickBtn', 'startFreshNewBillBtn']) {
         $(id)?.addEventListener('click', () => setTimeout(() => {
+            if (app.state) app.state.billToType = 'customer';
             wasReady = hasCustomer() && hasSite();
             setBataOpen(false);
             setOpen(hasCustomer() ? 'drill' : 'cust');
