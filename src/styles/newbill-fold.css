@@ -324,3 +324,13 @@ html.ui-v3 #tab-bill .nb-billto-pill.active {
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
+/* Billed to Agent: agent name + mobile (agentsUI.js) */
+.bl-agent-badge { text-transform: none; letter-spacing: 0; }
+.nb-agent-box { margin: -2px 0 10px; padding: 10px; border-radius: 12px; border: 1px solid #c7d2fe; background: #eef2ff; }
+.nb-agent-box[hidden] { display: none; }
+.nb-agent-hint { display: block; margin-bottom: 8px; font: 500 11.5px/1.35 Inter, sans-serif; color: #3730a3; }
+.nb-agent-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px; }
+.nb-agent-in { width: 100%; height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid #c7d2fe; background: #fff; color: #0f172a; font: 600 14px/1 Inter, sans-serif; }
+.nb-agent-in:focus { outline: 2px solid #6366f1; outline-offset: 0; }
+.nb-agent-in:disabled { background: #f8fafc; color: #475569; }
+@media (max-width: 360px) { .nb-agent-row { grid-template-columns: 1fr; } }

@@ -478,3 +478,11 @@
 .wk-rod-total { font-weight: 700; color: #0f172a; }
 .wk-rod-total[hidden] { display: none; }
 .wk-acts { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+/* Agents book */
+.tt-stats strong.is-due, .ag-stats strong.is-due { color: #b45309; }
+.ag-stats { margin-bottom: 10px; }
+.ag-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.ag-acts .tt-btn { flex: 1 1 140px; }
+.ag-bills { display: flex; flex-direction: column; gap: 2px; }
+.ag-bill { border-radius: 10px; }
+.ag-chev { display: inline-flex; color: #94a3b8; } .ag-chev svg { width: 16px; height: 16px; }

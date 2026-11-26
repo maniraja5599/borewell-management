@@ -483,7 +483,7 @@ export class HistoryMixin {
             const docTag = item.snapshot?.docType || 'QUOTATION';
             if (docTag !== docFilter) return false;
             if (!matchesRigFilter(item, this.historyRigFilter)) return false;
-            const billTo = item.snapshot?.billToType === 'agent' ? 'agent' : 'customer';
+            const billTo = (item.agent && item.agent.name) || item.snapshot?.billToType === 'agent' ? 'agent' : 'customer';
             if (billToFilter !== 'all' && billTo !== billToFilter) return false;
 
             if (docFilter === 'INVOICE') {
@@ -574,7 +574,7 @@ export class HistoryMixin {
                             <span class="bl-no">#${this.escapeHtml(item.billNo)}</span>${dateTxt ? `<span class="bl-dot">·</span><span>${this.escapeHtml(dateTxt)}</span>` : ''}
                         </div>
                         ${placeTxt || depthTxt ? `<div class="bl-meta bl-site">${placeTxt ? `<span class="bl-place">${this.escapeHtml(placeTxt)}</span>` : ''}${placeTxt && depthTxt ? '<span class="bl-dot">·</span>' : ''}${depthTxt ? `<span>${this.escapeHtml(depthTxt)}</span>` : ''}</div>` : ''}
-                        ${((b) => b ? `<div class="bl-badges">${b}</div>` : '')(rigBadgeHtml(item, (v) => this.escapeHtml(v)) + makerBadgeHtml(item, (v) => this.escapeHtml(v)) + (snap.billToType === 'agent' ? '<span class="bl-agent-badge">Agent</span>' : ''))}
+                        ${((b) => b ? `<div class="bl-badges">${b}</div>` : '')(rigBadgeHtml(item, (v) => this.escapeHtml(v)) + makerBadgeHtml(item, (v) => this.escapeHtml(v)) + (item.agent?.name ? `<span class="bl-agent-badge">Agent · ${this.escapeHtml(item.agent.name)}</span>` : snap.billToType === 'agent' ? '<span class="bl-agent-badge">Agent</span>' : ''))}
                     </div>
                     <div class="khata-amounts bl-amt">
                         <span class="khata-main-amt">${this.formatINR(snap.grandTotal)}</span>

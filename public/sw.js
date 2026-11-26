@@ -4,7 +4,7 @@
 // The live app (drillrig.in/) and the test copy (drillrig.in/beta/) share one website, so each
 // keeps its own caches (prefix) and only ever clears its own old ones.
 const CACHE_PREFIX = /\/beta\//.test(new URL(self.registration?.scope || self.location.href).pathname) ? 'drillrig-beta-v' : 'drillrig-v';
-const CACHE_NAME = `${CACHE_PREFIX}2.37`;
+const CACHE_NAME = `${CACHE_PREFIX}2.38`;
 const PRECACHE = [
   './',
   './index.html',
