@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { describeActivity, activityTime } from '../src/cloud/activity.js';
+import { describeActivity, activityTime, activityDetails } from '../src/cloud/activity.js';
 
 const e = (action, summary, extra = {}) => ({ kind: 'bill', record_id: 'b1', action, actor_name: 'Murugan', actor_is_me: false, summary, ...extra });
 
@@ -26,5 +26,33 @@ describe('activity log wording', () => {
         expect(describeActivity({})).toContain('Someone');
         expect(describeActivity(null)).toContain('Someone');
         expect(activityTime('not a date')).toBe('');
+    });
+
+    it('money and other kinds read in plain words', () => {
+        const a = (kind, action, summary, extra = {}) => ({ kind, action, actor_name: 'Ravi', actor_is_me: false, summary, ...extra });
+        expect(describeActivity(a('cash', 'create', { type: 'expense', amount: 900, category: 'food' }))).toBe('Ravi added expense ₹900 (food)');
+        expect(describeActivity(a('cash', 'delete', { type: 'diesel', amount: 9500 }, { actor_is_me: true }))).toBe('You deleted diesel ₹9,500');
+        expect(describeActivity(a('inv', 'create', { t: 'vpay', amount: 5000 }))).toBe('Ravi added vendor payment ₹5,000');
+        expect(describeActivity(a('breakdown', 'create', { reason: 'compressor' }))).toBe('Ravi reported a breakdown (compressor)');
+        expect(describeActivity(a('vehicle', 'update', { name: 'TN 45 AB 1234' }))).toBe('Ravi edited vehicle TN 45 AB 1234');
+    });
+
+    it('old → new details (0020)', () => {
+        const d = activityDetails({ kind: 'bill', summary: {
+            payAdded: [{ amount: 5000, mode: 'Cash', by: 'Ravi' }],
+            payRemoved: [{ amount: 500, mode: 'UPI' }],
+            payChanged: [{ id: 'p1', changes: [{ f: 'amount', from: 20000, to: 15000 }, { f: 'mode', from: 'Cash', to: 'UPI' }] }],
+            changes: [{ f: 'snapshot.discountAmount', from: 0, to: 1000 }, { f: 'approval.status', from: 'pending', to: 'rejected' }, { f: 'receivedAt', from: null, to: '2026-11-26T10:00:00Z' }]
+        } });
+        expect(d).toEqual([
+            'Payment ₹5,000 Cash added (Ravi)',
+            'Payment ₹500 UPI removed',
+            'Payment changed: Amount ₹20,000 → ₹15,000, Mode Cash → UPI',
+            'Discount ₹0 → ₹1,000',
+            'Approval pending → rejected',
+            'Received no → yes'
+        ]);
+        expect(activityDetails({ summary: {} })).toEqual([]);
+        expect(activityDetails(null)).toEqual([]);
     });
 });

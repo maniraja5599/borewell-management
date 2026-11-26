@@ -17,3 +17,15 @@
 .wl-pending { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 4px; }
 .wl-pending-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 12px; background: #fffbeb; border: 1px solid #fde68a; font: 600 12.5px/1.35 Inter, sans-serif; color: #92400e; }
 .wl-pending-row .tt-btn { flex: none; min-height: 36px; }
+/* Audit log (report/auditUI.js) */
+.au-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.au-person { width: auto; max-width: 200px; height: 34px; padding: 0 10px; }
+.au-list { display: flex; flex-direction: column; padding: 6px 12px; }
+.au-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+.au-row:last-child { border-bottom: 0; }
+.au-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.au-main strong { font: 650 13.5px/1.35 Inter, sans-serif; color: #0f172a; overflow-wrap: anywhere; }
+.au-main small { font: 500 11.5px/1.3 Inter, sans-serif; color: #94a3b8; }
+.au-details, .act-details { list-style: none; margin: 2px 0 0; padding: 6px 8px; border-radius: 8px; background: #f8fafc; display: flex; flex-direction: column; gap: 2px; }
+.au-details li, .act-details li { font: 500 12px/1.35 Inter, sans-serif; color: #334155; overflow-wrap: anywhere; }
+.act-row .act-details { flex-basis: 100%; }

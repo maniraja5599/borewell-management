@@ -27,6 +27,7 @@ import { reasonLabel, fmtHours } from '../rigwork/breakdownMath.js';
 import { openInventory, inventoryTile } from '../inventory/inventoryUI.js';
 import { openApprovals, approvalsTile, approvalsOn } from '../approvals/approvalsUI.js';
 import { openWallet, walletTile, canSeeWallets } from '../cash/walletUI.js';
+import { openAudit } from '../report/auditUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -112,6 +113,7 @@ export function initRigWork(app) {
             const wt = walletTile(app);
             money.push(tile('wallet-cards', 'is-teal', 'Manager wallets', wt.sub, () => openWallet(app, { onSaved: render }), wt.warn));
         }
+        if (can('reports')) money.push(tile('scroll-text', 'is-tools', 'Audit log', 'Who added, changed or deleted money · old → new', () => openAudit(app)));
         if (isOwnerOrLocal() || approvalsOn(app)) {
             const at = approvalsTile(app);
             money.push(tile('badge-check', 'is-amber', 'Approvals', at.sub, () => openApprovals(app, { onSaved: render }), at.warn));
