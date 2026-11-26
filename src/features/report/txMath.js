@@ -23,7 +23,8 @@ export const TX_KINDS = {
     advance: { dir: 'out', label: 'Advance' },
     pipes: { dir: 'out', label: 'Casing pipes' },
     tool: { dir: 'out', label: 'Bits & hammers' },
-    hired: { dir: 'out', label: 'Hired vehicle' }
+    hired: { dir: 'out', label: 'Hired vehicle' },
+    repair: { dir: 'out', label: 'Breakdown repair' }
 };
 
 /**
@@ -83,6 +84,13 @@ export function transactions(src = {}, from = '0000-00-00', to = '9999-12-31', o
         const name = [t.tool === 'bit' ? 'Bit' : 'Hammer', t.size ? `${t.size}″` : '', t.code || t.brand || ''].filter(Boolean).join(' ');
         push({ id: `toolbuy_${t.id}`, date: t.purchasedOn, kind: 'tool', amount: Math.round(Number(t.price) || 0), title: name, sub: t.brand && t.code ? t.brand : '', mode: '' });
         if (t.status === 'sold') push({ id: `toolsell_${t.id}`, date: t.soldOn, kind: 'scrap', amount: Math.round(Number(t.soldAmount) || 0), title: `${name} sold`, sub: t.buyer || '', mode: '' });
+    }
+
+    for (const b of src.breakdowns || []) {
+        if (!b || b.deleted || !b.endAt || !onItem(b)) continue;
+        const d = new Date(b.endAt);
+        const day = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        push({ id: `repair_${b.id}`, date: day, kind: 'repair', amount: Math.round(Number(b.cost) || 0), title: `Repair · ${b.reasonLabel || b.reason || 'breakdown'}`, sub: [b.note, b.fixNote].filter(Boolean).join(' · '), mode: '' });
     }
 
     if (opts.includeVehicles !== false) {

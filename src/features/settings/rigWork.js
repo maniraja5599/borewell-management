@@ -22,6 +22,8 @@ import { openAgents, agentsTileSummary } from '../agents/agentsUI.js';
 import { openPending, pendingTileSummary, pendingTileWarn } from '../payments/pendingUI.js';
 import { openDailyReport, dailyTileSummary } from '../report/dailyUI.js';
 import { openTxLog, txTileSummary } from '../report/txUI.js';
+import { openRigStatus, rigStatusTile, statusNow } from '../rigwork/rigStatusUI.js';
+import { reasonLabel, fmtHours } from '../rigwork/breakdownMath.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -68,6 +70,8 @@ export function initRigWork(app) {
 
     function warnings() {
         const parts = [];
+        const down = can('bills') ? statusNow(app) : null;
+        if (down?.state === 'down') parts.push(`rig DOWN · ${reasonLabel(down.breakdown.reason)} · ${fmtHours(down.hours)}`);
         const pending = can('bills') ? workLogPending(app) : 0;
         if (pending) parts.push(`${pending} bill${pending === 1 ? ' needs' : 's need'} work details`);
         if (can('stock')) {
@@ -86,7 +90,7 @@ export function initRigWork(app) {
         const docAlerts = countExpiringDocs();
         if (docAlerts) parts.push(`${docAlerts} vehicle doc${docAlerts === 1 ? '' : 's'} expiring`);
         if (!parts.length) return null;
-        return el('button', { type: 'button', class: 'rw-warn', onclick: () => (svc.anyWarn ? openServiceAlerts(app, { onSaved: render }) : docAlerts ? openVehicles(app, { onSaved: render }) : pending ? openWorkLog(app) : null) }, [
+        return el('button', { type: 'button', class: 'rw-warn', onclick: () => (down?.state === 'down' ? openRigStatus(app, { onSaved: render }) : svc.anyWarn ? openServiceAlerts(app, { onSaved: render }) : docAlerts ? openVehicles(app, { onSaved: render }) : pending ? openWorkLog(app) : null) }, [
             icon('triangle-alert'), el('span', { text: parts.join(' · ') }), el('span', { class: 'rw-chev', 'aria-hidden': 'true', text: '›' })
         ]);
     }
@@ -102,6 +106,8 @@ export function initRigWork(app) {
         if (can('reports')) tiles.push(tile('arrow-left-right', 'is-cash', 'Transaction log', txTileSummary(app), () => openTxLog(app)));
         if (can('bills')) {
             const pending = workLogPending(app);
+            const rs = rigStatusTile(app);
+            tiles.push(tile('activity', 'is-tools', 'Rig status', rs.sub, () => openRigStatus(app, { onSaved: render }), rs.warn));
             tiles.push(tile('calendar-days', 'is-report', 'Daily site report', dailyTileSummary(app), () => openDailyReport(app)));
             tiles.push(tile('hourglass', 'is-cash', 'Pending payments', pendingTileSummary(app), () => openPending(app, { onSaved: render }), pendingTileWarn(app)));
             tiles.push(tile('handshake', 'is-report', 'Agents', agentsTileSummary(app), () => openAgents(app)));
