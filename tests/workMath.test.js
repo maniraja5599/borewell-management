@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanWork, checkWork, boreSegments, toolUsage, lastMm, lastClosing, toolWarning, halfMm } from '../src/features/work/workMath.js';
+import { cleanWork, checkWork, boreSegments, toolUsage, lastMm, lastClosing, toolWarning, halfMm, cleanBoreLog, boreLayers } from '../src/features/work/workMath.js';
 import { toolLimits } from '../src/features/tools/toolsMath.js';
 
 const bill = (over = {}, work = {}) => ({
@@ -74,5 +74,25 @@ describe('work details', () => {
         expect(toolWarning({ id: 'k9', tool: 'bit', newMm: 165 }, usage, limits)).toBeNull();
         expect(toolWarning({ id: 'h1', tool: 'hammer', size: '6.5' }, usage, limits)).toMatch(/past 10,000/);
         expect(toolWarning({ id: 'hOB', tool: 'hammer', size: '9' }, usage, limits)).toBeNull(); // 15,000 for 9″ OB
+    });
+});
+
+describe('bore log', () => {
+    it('cleans entries: drops empty rows, sorts shallow first, keeps known layers only', () => {
+        expect(cleanBoreLog([{ ft: '' }, { ft: 300, strata: 'hard' }, { ft: '40', strata: 'soil', note: ' red ' }, { ft: 120, strata: 'bogus' }, { ft: 200, water: true }]))
+            .toEqual([{ ft: 40, strata: 'soil', note: 'red' }, { ft: 200, water: true }, { ft: 300, strata: 'hard' }]);
+        expect(cleanWork({ boreLog: [{ ft: 50, strata: 'clay' }] })).toMatchObject({ boreLog: [{ ft: 50, strata: 'clay' }] });
+        expect(cleanWork({ boreLog: [{ ft: 50 }] })).toBeNull();
+    });
+
+    it('turns entries into layers from the previous depth', () => {
+        expect(boreLayers([{ ft: 40, strata: 'soil' }, { ft: 300, strata: 'hard', water: true }]))
+            .toEqual([{ from: 0, to: 40, strata: 'soil', water: false, note: '' }, { from: 40, to: 300, strata: 'hard', water: true, note: '' }]);
+    });
+
+    it('checks: same depth twice, and deeper than the bore', () => {
+        expect(checkWork(cleanWork({ boreLog: [{ ft: 100, strata: 'soil' }, { ft: 100, strata: 'hard' }] }))).toMatch(/twice/);
+        expect(checkWork(cleanWork({ boreLog: [{ ft: 900, strata: 'hard' }] }), { totalDepth: 800 })).toMatch(/deeper than the total/);
+        expect(checkWork(cleanWork({ boreLog: [{ ft: 800, strata: 'hard' }] }), { totalDepth: 800 })).toBeNull();
     });
 });

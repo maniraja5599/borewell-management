@@ -172,7 +172,9 @@ export function initBillFold(app) {
         };
         const btnCust = mkBillTo('customer', 'Customer');
         const btnAgent = mkBillTo('agent', 'Agent');
-        billToBar.append(make('span', 'nb-billto-lbl', 'Billed to'), make('div', 'nb-billto-track', [btnCust, btnAgent]));
+        const track = make('div', 'nb-billto-track');
+        track.append(btnCust, btnAgent); // make() only takes text; the pills go in here
+        billToBar.append(make('span', 'nb-billto-lbl', 'Billed to'), track);
         custHead.after(billToBar);
     }
     const syncBillToUI = () => {

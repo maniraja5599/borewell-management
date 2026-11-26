@@ -8,6 +8,8 @@
 //   bits: [{ toolId, mm, atFt }]  6.5″ bits in order; mm measured before use (0.5 mm steps);
 //                             atFt = depth where this bit went in (the first one starts the section)
 //   waterIn, note             water yield (inches), remark
+//   boreLog: [{ ft, strata, water, note }]  bore log: what came up at each depth, shallow first.
+//                             An entry = the layer from the previous entry's depth down to `ft`.
 //
 // Usage (feet per bit / hammer, mm history) is worked out from all bills, never stored twice.
 
@@ -44,6 +46,44 @@ const cleanPhotos = (arr) => (Array.isArray(arr) ? arr : [])
         };
     });
 
+/** Layers the crew can pick in the bore log (key, label, colour for the strata column). */
+export const STRATA = [
+    { key: 'soil', label: 'Soil / red earth', color: '#b45309' },
+    { key: 'clay', label: 'Clay', color: '#a16207' },
+    { key: 'sand', label: 'Sand / gravel', color: '#ca8a04' },
+    { key: 'murram', label: 'Murram / weathered rock', color: '#d97706' },
+    { key: 'soft', label: 'Soft rock', color: '#78716c' },
+    { key: 'fractured', label: 'Fractured rock', color: '#0e7490' },
+    { key: 'hard', label: 'Hard rock / granite', color: '#334155' },
+    { key: 'other', label: 'Other', color: '#94a3b8' }
+];
+export const strataOf = (key) => STRATA.find((x) => x.key === key) || null;
+
+/** Clean bore log entries: depth > 0, known layer, shallow first, at most 40. */
+export function cleanBoreLog(arr) {
+    return (Array.isArray(arr) ? arr : [])
+        .map((e) => ({
+            ft: num(e?.ft),
+            strata: strataOf(e?.strata) ? e.strata : null,
+            water: e?.water === true,
+            note: String(e?.note || '').trim().slice(0, 80)
+        }))
+        .filter((e) => e.ft !== null && e.ft > 0 && (e.strata || e.water || e.note))
+        .sort((a, b) => a.ft - b.ft)
+        .slice(0, 40)
+        .map((e) => ({ ft: Math.round(e.ft), ...(e.strata ? { strata: e.strata } : {}), ...(e.water ? { water: true } : {}), ...(e.note ? { note: e.note } : {}) }));
+}
+
+/** Bore log as layers: [{ from, to, strata, water, note }] (for the strata column and reports). */
+export function boreLayers(log) {
+    let from = 0;
+    return cleanBoreLog(log).map((e) => {
+        const layer = { from, to: e.ft, strata: e.strata || null, water: !!e.water, note: e.note || '' };
+        from = e.ft;
+        return layer;
+    }).filter((l) => l.to > l.from);
+}
+
 /** Normalise what the card collected. Returns null when nothing was entered. */
 export function cleanWork(w) {
     if (!w || typeof w !== 'object') return null;
@@ -53,6 +93,7 @@ export function cleanWork(w) {
         .slice(0, 8);
     const gps = cleanGps(w.gps);
     const photos = cleanPhotos(w.photos);
+    const boreLog = cleanBoreLog(w.boreLog);
     const out = {
         v: 1,
         operatorId: id(w.operatorId),
@@ -69,10 +110,11 @@ export function cleanWork(w) {
         boreResult: ['pending', 'water', 'dry'].includes(w.boreResult) ? w.boreResult : null,
         gps,
         photos,
+        ...(boreLog.length ? { boreLog } : {}),
         note: String(w.note || '').trim().slice(0, 200)
     };
     const empty = !out.operatorId && !out.operator2Id && out.compEnd === null && !out.obHammerId && !out.hammerId
-        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note;
+        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note && !boreLog.length;
     return empty ? null : out;
 }
 
@@ -87,6 +129,9 @@ export function checkWork(w, { required = false, totalDepth = 0 } = {}) {
     }
     for (let i = 2; i < w.bits.length; i++) if (w.bits[i].atFt <= w.bits[i - 1].atFt) return 'Bit changes must go deeper each time.';
     for (const b of w.bits) if (b.mm !== null && (b.mm < 100 || b.mm > 300)) return 'Bit size should be in mm, for example 164.5.';
+    const log = w.boreLog || [];
+    for (let i = 1; i < log.length; i++) if (log[i].ft === log[i - 1].ft) return `Bore log has ${log[i].ft} ft twice. Keep one entry per depth.`;
+    if (totalDepth && log.length && log[log.length - 1].ft > totalDepth) return `Bore log goes to ${log[log.length - 1].ft} ft, deeper than the total depth (${totalDepth} ft).`;
     if (w.hammer2Id && (w.hammerChangeFt === null || w.hammerChangeFt <= 0)) return 'Enter the depth (ft) where the hammer was changed.';
     if (required) {
         if (!w.operatorId) return 'Choose the operator.';

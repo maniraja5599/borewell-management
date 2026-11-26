@@ -14,7 +14,7 @@ import { workerLabel, typeOf } from '../workers/workersMath.js';
 import { readTools, openTools } from '../tools/toolsUI.js';
 import { openWorkers } from '../workers/workersUI.js';
 import { toolName, toolLimits } from '../tools/toolsMath.js';
-import { cleanWork, checkWork, cachedToolUsage, lastMm, lastClosing, toolWarning, halfMm } from './workMath.js';
+import { cleanWork, checkWork, cachedToolUsage, lastMm, lastClosing, toolWarning, halfMm, STRATA, strataOf, boreLayers } from './workMath.js';
 
 const DRAFT_KEY = 'drillrig_work_draft';
 
@@ -124,6 +124,8 @@ export function initWorkCard(app) {
         if (bt) parts.push(`bit ${toolName(bt)}${bit.mm ? ` ${bit.mm} mm` : ''}`);
         if ((draft?.bits || []).filter((x) => x?.toolId).length > 1) parts.push(`+${draft.bits.filter((x) => x?.toolId).length - 1} bit`);
         if (draft?.waterIn) parts.push(`water ${draft.waterIn}″`);
+        const logN = (draft?.boreLog || []).filter((e) => e && e.ft !== '' && e.ft !== undefined && e.ft !== null).length;
+        if (logN) parts.push(`log ${logN}`);
         if (draft?.gps) parts.push('📍 GPS');
         if (draft?.photos?.length) parts.push(`📷 ${draft.photos.length}`);
         return parts;
@@ -248,6 +250,59 @@ export function initWorkCard(app) {
             ]);
         });
         const addBit = !ro ? el('button', { type: 'button', class: 'wk-link', text: '+ Bit changed', onclick: () => { draft.bits.push({}); persist(); render(); } }) : null;
+
+        // Bore log: depth + what came up (layer), water seen, short note. Shallow first.
+        if (!Array.isArray(draft.boreLog)) draft.boreLog = [];
+        const totalDepth = Math.max(0, Number(app.state?.totalDepth) || 0);
+        const column = el('div', { class: 'wk-strata', 'aria-hidden': 'true' });
+        const drawColumn = () => {
+            const layers = boreLayers(draft.boreLog);
+            const bottom = Math.max(totalDepth, layers.length ? layers[layers.length - 1].to : 0);
+            if (!layers.length || !bottom) { column.hidden = true; column.replaceChildren(); return; }
+            column.hidden = false;
+            const bars = layers.map((l) => {
+                const st = strataOf(l.strata);
+                return el('div', {
+                    class: `wk-layer${l.water ? ' has-water' : ''}`,
+                    style: `flex:${Math.max(1, l.to - l.from)} 1 0;background:${st ? st.color : '#cbd5e1'}`,
+                    title: `${l.from}-${l.to} ft${st ? ` · ${st.label}` : ''}${l.water ? ' · water' : ''}`
+                }, [el('span', { text: `${l.to} ft${st ? ` · ${st.label}` : ''}${l.water ? ' 💧' : ''}` })]);
+            });
+            const rest = bottom - layers[layers.length - 1].to;
+            if (rest > 0) bars.push(el('div', { class: 'wk-layer is-unlogged', style: `flex:${rest} 1 0` }, [el('span', { text: `${bottom} ft · not logged` })]));
+            column.replaceChildren(...bars);
+        };
+        const logRows = el('div', { class: 'wk-log' });
+        const drawLog = () => {
+            logRows.replaceChildren(...draft.boreLog.map((e, i) => {
+                const ft = numIn(e.ft, { step: '1', placeholder: 'ft', class: 'tt-input wk-log-ft', 'aria-label': 'Depth in feet' });
+                ft.addEventListener('input', () => { e.ft = ft.value; persist(); drawColumn(); renderCard(); });
+                const st = options(STRATA.map((x) => ({ value: x.key, label: x.label })), e.strata || '', 'Layer');
+                st.addEventListener('change', () => { e.strata = st.value; persist(); drawColumn(); });
+                const wt = el('label', { class: 'wk-log-water', title: 'Water seen at this depth' }, [
+                    el('input', { type: 'checkbox', checked: !!e.water, disabled: ro, onchange: (ev) => { e.water = ev.target.checked; persist(); drawColumn(); } }),
+                    el('span', { text: '💧' })
+                ]);
+                const nt = el('input', { type: 'text', class: 'tt-input wk-log-note', maxlength: '80', value: e.note || '', placeholder: 'Note (optional)' });
+                nt.disabled = ro;
+                nt.addEventListener('input', () => { e.note = nt.value; persist(); });
+                const del = !ro ? el('button', { type: 'button', class: 'wk-step', 'aria-label': 'Remove depth entry', onclick: () => { draft.boreLog.splice(i, 1); persist(); drawLog(); drawColumn(); renderCard(); } }, [icon('x')]) : null;
+                return el('div', { class: 'wk-log-row' }, [ft, st, wt, del, nt]);
+            }));
+            paintIcons();
+        };
+        drawLog(); drawColumn();
+        const addLog = !ro ? el('button', {
+            type: 'button', class: 'wk-link', text: '+ Add depth entry',
+            onclick: () => {
+                const depths = draft.boreLog.map((e) => Number(e.ft) || 0);
+                const last = depths.length ? Math.max(...depths) : 0;
+                const prev = draft.boreLog[draft.boreLog.length - 1];
+                draft.boreLog.push({ ft: last ? last + 20 : '', strata: prev?.strata || '' });
+                persist(); drawLog(); drawColumn(); renderCard();
+                logRows.lastElementChild?.querySelector('input')?.focus();
+            }
+        }) : null;
 
         // Water + Result + note
         const water = numIn(draft.waterIn, { step: '0.5', placeholder: 'inches', 'aria-label': 'Water in inches' });
@@ -395,6 +450,11 @@ export function initWorkCard(app) {
                 el('h4', { text: repair ? 'Re-bore (6.5″)' : '6.5″ bore' }),
                 row('Hammer', hm), hmWarn, hm2Wrap, addHm2,
                 ...bitRows, addBit
+            ]),
+            el('div', { class: 'wk-sec' }, [
+                el('h4', { text: 'Bore log' }),
+                el('p', { class: 'wk-hint', text: 'Write what came up at each depth: the layer from the last entry down to this depth. Tick 💧 where water was seen.' }),
+                logRows, addLog, column
             ]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water, result & note' }), el('div', { class: 'wk-two' }, [row('Result', resultSel), row('Water (inches)', water)]), row('Note', note)]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'GPS & site photos' }), gpsSlot, photoBtns, photoGrid]),

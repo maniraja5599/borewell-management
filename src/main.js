@@ -8,7 +8,8 @@ import './styles/newbill-v4.css'; // New bill tab, approved 24 Nov 2026 (on top 
 import './styles/bill-paper-v4.css'; // top total strip + the bill paper (also its image / PDF export)
 import './styles/newbill-fold.css'; // New bill: one section open at a time (25 Nov 2026)
 import './styles/small-screens.css'; // narrow phones + large font/zoom
-import './styles/compact-v5.css'; // compact pass, 25 Nov 2026 (loaded last)
+import './styles/compact-v5.css'; // compact pass, 25 Nov 2026
+import './styles/ios-top.css'; // iOS 26 status bar: solid strip + popups below it (loaded last)
 import { initFitText } from './ui/fitText.js';
 import { versionLabel, APP_BUILD_DATE } from './config/version.js';
 import { BoreBillSaaSApp } from './app/App.js';

@@ -1,0 +1,46 @@
+/* iOS top edge (26 Nov 2026). iOS 26 blurs whatever sits under the status bar in a
+   Home Screen app. Two places did that:
+   1. Popups (sheets) used only 16px top padding, so a tall sheet's title slid under the
+      status bar and came out blurred.
+   2. Nothing solid stayed behind the status bar, so the status bar showed blurred page
+      content in some places.
+   Fix: keep every popup below the status bar, and paint a solid strip in the header
+   colour behind the status bar. Loaded last. */
+
+:root { --top-bar-bg: var(--brand-primary, #15803d); }
+html.ui-v3 { --top-bar-bg: color-mix(in srgb, var(--brand-primary-dark, #14532d) 55%, #000); }
+
+/* 1. Popups stay below the status bar (no effect where the inset is 0). */
+.rig-sheet-overlay,
+.tm-overlay,
+.sw-overlay,
+.pwa-install-backdrop {
+    padding-top: calc(16px + var(--safe-top, 0px));
+}
+.tt-sheet {
+    max-height: calc(100dvh - 32px - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+}
+
+/* 2. Home Screen app on iPhone: a solid strip behind the status bar, in the header colour. */
+html.ios-standalone {
+    background-color: var(--top-bar-bg) !important;
+}
+html.ios-standalone body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background-color: var(--top-bar-bg);
+    z-index: 2147482000;
+    pointer-events: none;
+}
+html.ios-standalone .app-top-header-wrap,
+html.ios-standalone .app-header {
+    background-color: var(--top-bar-bg) !important;
+}
+/* a little more room so the iOS 26 edge fade never touches the header text */
+html.ios-standalone .app-header {
+    padding-top: calc(8px + var(--safe-top)) !important;
+}
