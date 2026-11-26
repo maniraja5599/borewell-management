@@ -16,6 +16,7 @@ import { openAttendance, attendanceLine, readAttendance } from '../workers/atten
 import { openPipeStock, pipeStockLine } from '../stock/stockUI.js';
 import { openWorkLog, workLogPending } from '../rigwork/workLog.js';
 import { openServiceAlerts, getRigServiceStatus, serviceTileSummary } from '../rigwork/serviceAlert.js';
+import { openVehicles, countExpiringDocs, vehiclesTileSummary } from '../rigwork/vehiclesUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -77,8 +78,10 @@ export function initRigWork(app) {
         else if (svc.comp.dueSoon) parts.push(`compressor service in ${Math.max(0, svc.comp.left)} h`);
         if (svc.eng.overdue) parts.push('engine service overdue');
         else if (svc.eng.dueSoon) parts.push(`engine service in ${Math.max(0, svc.eng.left)} h`);
+        const docAlerts = countExpiringDocs();
+        if (docAlerts) parts.push(`${docAlerts} vehicle doc${docAlerts === 1 ? '' : 's'} expiring`);
         if (!parts.length) return null;
-        return el('button', { type: 'button', class: 'rw-warn', onclick: () => (svc.anyWarn ? openServiceAlerts(app, { onSaved: render }) : pending ? openWorkLog(app) : null) }, [
+        return el('button', { type: 'button', class: 'rw-warn', onclick: () => (svc.anyWarn ? openServiceAlerts(app, { onSaved: render }) : docAlerts ? openVehicles(app, { onSaved: render }) : pending ? openWorkLog(app) : null) }, [
             icon('triangle-alert'), el('span', { text: parts.join(' · ') }), el('span', { class: 'rw-chev', 'aria-hidden': 'true', text: '›' })
         ]);
     }
@@ -96,6 +99,8 @@ export function initRigWork(app) {
             tiles.push(tile('clipboard-list', 'is-tools', 'Work log', pending ? `${pending} to fill` : 'Operator, compressor, bits per bore', () => openWorkLog(app), pending > 0));
             const svcWarn = getRigServiceStatus(app).anyWarn;
             tiles.push(tile('wrench', 'is-tools', 'Service alerts', serviceTileSummary(app), () => openServiceAlerts(app, { onSaved: render }), svcWarn));
+            const docWarn = countExpiringDocs() > 0;
+            tiles.push(tile('truck', 'is-tools', 'Vehicles & docs', vehiclesTileSummary(), () => openVehicles(app, { onSaved: render }), docWarn));
         }
         if (can('stock') && FEATURES.pipeStock) tiles.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
         if (can('stock')) {
