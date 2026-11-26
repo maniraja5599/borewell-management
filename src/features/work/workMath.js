@@ -19,6 +19,31 @@ const num = (v) => {
 const id = (v) => (typeof v === 'string' && v.length > 0 && v.length <= 120 ? v : null);
 export const halfMm = (v) => { const n = num(v); return n === null ? null : Math.round(n * 2) / 2; };
 
+const cleanGps = (g) => {
+    if (!g || typeof g !== 'object') return null;
+    const lat = num(g.lat); const lng = num(g.lng);
+    if (lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    const acc = num(g.acc); const at = num(g.at);
+    return {
+        lat: Math.round(lat * 1e6) / 1e6,
+        lng: Math.round(lng * 1e6) / 1e6,
+        ...(acc !== null ? { acc: Math.round(acc) } : {}),
+        ...(at !== null ? { at } : {})
+    };
+};
+
+const cleanPhotos = (arr) => (Array.isArray(arr) ? arr : [])
+    .filter((p) => p && typeof p.dataUrl === 'string' && p.dataUrl.startsWith('data:image/') && p.dataUrl.length <= 260000)
+    .slice(0, 3)
+    .map((p) => {
+        const lat = num(p.lat); const lng = num(p.lng); const at = num(p.at);
+        return {
+            dataUrl: p.dataUrl,
+            ...(lat !== null && lng !== null ? { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 } : {}),
+            ...(at !== null ? { at } : {})
+        };
+    });
+
 /** Normalise what the card collected. Returns null when nothing was entered. */
 export function cleanWork(w) {
     if (!w || typeof w !== 'object') return null;
@@ -26,6 +51,8 @@ export function cleanWork(w) {
         .map((b) => ({ toolId: id(b?.toolId), mm: halfMm(b?.mm), atFt: num(b?.atFt) }))
         .filter((b) => b.toolId || b.mm !== null)
         .slice(0, 8);
+    const gps = cleanGps(w.gps);
+    const photos = cleanPhotos(w.photos);
     const out = {
         v: 1,
         operatorId: id(w.operatorId),
@@ -40,10 +67,12 @@ export function cleanWork(w) {
         bits,
         waterIn: num(w.waterIn),
         boreResult: ['pending', 'water', 'dry'].includes(w.boreResult) ? w.boreResult : null,
+        gps,
+        photos,
         note: String(w.note || '').trim().slice(0, 200)
     };
     const empty = !out.operatorId && !out.operator2Id && out.compEnd === null && !out.obHammerId && !out.hammerId
-        && !bits.length && out.waterIn === null && !out.boreResult && !out.note;
+        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note;
     return empty ? null : out;
 }
 

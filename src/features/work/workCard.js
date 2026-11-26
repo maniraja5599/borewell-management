@@ -124,6 +124,8 @@ export function initWorkCard(app) {
         if (bt) parts.push(`bit ${toolName(bt)}${bit.mm ? ` ${bit.mm} mm` : ''}`);
         if ((draft?.bits || []).filter((x) => x?.toolId).length > 1) parts.push(`+${draft.bits.filter((x) => x?.toolId).length - 1} bit`);
         if (draft?.waterIn) parts.push(`water ${draft.waterIn}″`);
+        if (draft?.gps) parts.push('📍 GPS');
+        if (draft?.photos?.length) parts.push(`📷 ${draft.photos.length}`);
         return parts;
     }
 
@@ -260,6 +262,111 @@ export function initWorkCard(app) {
         note.disabled = ro;
         note.addEventListener('input', () => { draft.note = note.value; persist(); });
 
+        // GPS Location Tag + Site Photos (compressed JPEG <= 800px, max 3)
+        const gpsSlot = el('div', { class: 'wk-gps-slot' });
+        const renderGps = () => {
+            if (draft.gps && typeof draft.gps.lat === 'number' && typeof draft.gps.lng === 'number') {
+                const { lat, lng, acc } = draft.gps;
+                const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}${acc ? ` (±${acc}m)` : ''}`;
+                gpsSlot.replaceChildren(el('div', { class: 'wk-gps-pill' }, [
+                    el('span', { class: 'wk-gps-txt', text: `📍 ${coords}` }),
+                    el('a', { href: `https://maps.google.com/?q=${lat},${lng}`, target: '_blank', rel: 'noopener', class: 'wk-gps-map', text: 'Maps ↗' }),
+                    !ro ? el('button', { type: 'button', class: 'wk-gps-clr', 'aria-label': 'Clear GPS', text: '✕', onclick: () => { draft.gps = null; persist(); renderGps(); } }) : null
+                ]));
+            } else {
+                const tagBtn = el('button', {
+                    type: 'button',
+                    class: 'wk-gps-btn',
+                    disabled: ro,
+                    text: '📍 Tag GPS Location',
+                    onclick: () => {
+                        if (!navigator.geolocation) { app.showToast?.('⚠️ GPS not supported on this device'); return; }
+                        tagBtn.disabled = true;
+                        tagBtn.textContent = '📍 Getting GPS…';
+                        navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                                draft.gps = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy || 0), at: Date.now() };
+                                persist();
+                                renderGps();
+                                app.showToast?.('📍 GPS location tagged');
+                            },
+                            () => {
+                                tagBtn.disabled = false;
+                                tagBtn.textContent = '📍 Tag GPS Location';
+                                app.showToast?.('⚠️ Turn on GPS / allow location permission');
+                            },
+                            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                        );
+                    }
+                });
+                gpsSlot.replaceChildren(tagBtn);
+            }
+        };
+        renderGps();
+
+        const compressSitePhoto = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const maxDim = 800;
+                    const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+                    const w = Math.max(1, Math.round(img.width * scale));
+                    const h = Math.max(1, Math.round(img.height * scale));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.65));
+                };
+                img.onerror = reject;
+                img.src = reader.result;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        const photoGrid = el('div', { class: 'wk-photo-grid' });
+        const renderPhotos = () => {
+            const list = Array.isArray(draft.photos) ? draft.photos : [];
+            if (!list.length) {
+                photoGrid.replaceChildren(el('small', { class: 'wk-hint', text: 'No site photos yet (up to 3 geo-tagged photos).' }));
+                return;
+            }
+            photoGrid.replaceChildren(...list.map((p, idx) => el('div', { class: 'wk-photo-thumb' }, [
+                el('img', { src: p.dataUrl, alt: `Site photo ${idx + 1}`, onclick: () => window.open(p.dataUrl, '_blank', 'noopener') }),
+                p.lat ? el('span', { class: 'wk-photo-gps', text: '📍', title: `${p.lat}, ${p.lng}` }) : null,
+                !ro ? el('button', { type: 'button', class: 'wk-photo-del', 'aria-label': 'Remove photo', text: '✕', onclick: () => { draft.photos.splice(idx, 1); persist(); renderPhotos(); } }) : null
+            ])));
+        };
+        const handlePhotoFiles = async (files) => {
+            if (!Array.isArray(draft.photos)) draft.photos = [];
+            for (const f of Array.from(files || [])) {
+                if (draft.photos.length >= 3) { app.showToast?.('⚠️ Up to 3 site photos per borewell'); break; }
+                try {
+                    const dataUrl = await compressSitePhoto(f);
+                    draft.photos.push({
+                        dataUrl,
+                        ...(draft.gps ? { lat: draft.gps.lat, lng: draft.gps.lng } : {}),
+                        at: Date.now()
+                    });
+                } catch { /* ignore unreadable file */ }
+            }
+            persist();
+            renderPhotos();
+        };
+        const camIn = el('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true });
+        const galIn = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
+        camIn.addEventListener('change', (e) => { handlePhotoFiles(e.target.files); e.target.value = ''; });
+        galIn.addEventListener('change', (e) => { handlePhotoFiles(e.target.files); e.target.value = ''; });
+        renderPhotos();
+        const photoBtns = !ro ? el('div', { class: 'wk-photo-acts' }, [
+            el('button', { type: 'button', class: 'wk-photo-btn', text: '📷 Take Photo', onclick: () => camIn.click() }),
+            el('button', { type: 'button', class: 'wk-photo-btn', text: '🖼️ Gallery', onclick: () => galIn.click() }),
+            camIn, galIn
+        ]) : null;
+
         // Owner: required on/off
         const req = isOwnerOrLocal() ? el('label', { class: 'wk-req' }, [
             el('input', { type: 'checkbox', checked: !!app.brand?.workLogRequired, onchange: (e) => { app.brand.workLogRequired = e.target.checked; app.saveToStorage(STORAGE_KEYS.brand, app.brand); app.showToast?.(e.target.checked ? 'Work details are now required on Final Bills' : 'Work details are now optional'); } }),
@@ -290,6 +397,7 @@ export function initWorkCard(app) {
                 ...bitRows, addBit
             ]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water, result & note' }), el('div', { class: 'wk-two' }, [row('Result', resultSel), row('Water (inches)', water)]), row('Note', note)]),
+            el('div', { class: 'wk-sec' }, [el('h4', { text: 'GPS & site photos' }), gpsSlot, photoBtns, photoGrid]),
             btn(ro ? 'Close' : 'Done', { kind: 'pri', ic: 'check', cls: 'tt-wide wk-done', onclick: () => page?.close() })
         ].filter(Boolean));
         refreshWarnings();
