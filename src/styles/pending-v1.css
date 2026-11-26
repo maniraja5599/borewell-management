@@ -1,0 +1,41 @@
+/* Pending payments by age (payments/pendingUI.js), 26 Nov 2026 */
+.pa-head { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pa-head > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pa-head small { font: 600 12px/1.3 Inter, sans-serif; color: #64748b; }
+.pa-head strong { font: 800 17px/1.2 var(--pp-head, Inter), sans-serif; color: #0f172a; overflow-wrap: anywhere; }
+.pa-head strong.is-due { color: #b45309; }
+
+.pa-buckets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.pa-bucket { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; padding: 9px 8px; border-radius: 12px; border: 1px solid var(--pp-line, #e2e8f0); background: #fff; color: #0f172a; text-align: left; font: inherit; cursor: pointer; }
+.pa-bucket small { font: 600 11px/1.2 Inter, sans-serif; color: #64748b; white-space: nowrap; }
+.pa-bucket strong { font: 800 14px/1.2 Inter, sans-serif; overflow-wrap: anywhere; }
+.pa-bucket em { font: 500 11px/1.2 Inter, sans-serif; font-style: normal; color: #64748b; }
+.pa-meter { display: block; width: 100%; height: 5px; border-radius: 3px; background: #f1f5f9; overflow: hidden; }
+.pa-meter span { display: block; height: 100%; border-radius: 3px; }
+.pa-bucket.is-0 .pa-meter span { background: #16a34a; }
+.pa-bucket.is-1 .pa-meter span { background: #ca8a04; }
+.pa-bucket.is-2 .pa-meter span { background: #ea580c; }
+.pa-bucket.is-3 .pa-meter span { background: #dc2626; }
+.pa-bucket.is-on { border-color: #0f172a; box-shadow: 0 0 0 1px #0f172a inset; }
+@media (max-width: 420px) { .pa-buckets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.pa-tools { display: flex; flex-direction: column; gap: 6px; }
+.pa-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pa-chip { min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #334155; font: 600 12.5px/1 Inter, sans-serif; cursor: pointer; }
+.pa-chip.is-on { background: #0f172a; border-color: #0f172a; color: #fff; }
+.pa-filter { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; font: 600 12.5px/1.3 Inter, sans-serif; color: #334155; }
+
+.pa-list { display: flex; flex-direction: column; gap: 8px; }
+.pa-row { border: 1px solid var(--pp-line, #e2e8f0); border-radius: 14px; background: #fff; }
+.pa-row .tt-row-main small.pa-money { color: #475569; }
+.pa-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+.pa-due { font: 800 15px/1.1 Inter, sans-serif; color: #b45309; }
+.pa-age { padding: 2px 7px; border-radius: 999px; font: 700 11px/1.3 Inter, sans-serif; }
+.pa-age.is-0 { background: #dcfce7; color: #166534; }
+.pa-age.is-1 { background: #fef9c3; color: #854d0e; }
+.pa-age.is-2 { background: #ffedd5; color: #9a3412; }
+.pa-age.is-3 { background: #fee2e2; color: #991b1b; }
+.pa-acts { display: flex; gap: 8px; padding: 0 12px 12px; }
+.pa-acts .tt-btn { flex: 1 1 0; min-height: 40px; padding: 0 10px; }
+.pa-acts .tt-btn:disabled { opacity: .5; cursor: default; }
+.pa-remind { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
