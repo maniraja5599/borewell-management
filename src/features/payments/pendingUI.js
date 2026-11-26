@@ -13,7 +13,11 @@ import { AGE_BUCKETS, pendingRows, ageingSummary, SORTS, reminderLink } from './
 
 const REMINDED_KEY = 'drillrig_reminded';
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
-const niceDay = (d) => { const t = new Date(`${d}T00:00:00`); return isNaN(t) ? '' : t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }); };
+const niceDay = (d) => {
+    const t = new Date(`${d}T00:00:00`);
+    if (isNaN(t)) return '';
+    return t.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', ...(t.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) });
+};
 
 const readReminded = () => { try { return JSON.parse(storage.getRaw(REMINDED_KEY) || '{}') || {}; } catch { return {}; } };
 function markReminded(id) {
@@ -94,7 +98,7 @@ export function openPending(app, { onSaved } = {}) {
                     link
                         ? el('a', { class: 'tt-btn pa-remind', href: link, target: '_blank', rel: 'noopener', onclick: () => { markReminded(r.id); setTimeout(render, 300); } }, [icon('message-circle'), el('span', { text: 'Remind' })])
                         : el('button', { type: 'button', class: 'tt-btn', disabled: true, title: 'No mobile number on this bill' }, [icon('message-circle'), el('span', { text: 'No mobile' })]),
-                    el('button', { type: 'button', class: 'tt-btn is-pri', onclick: () => { sheet.close(); app.openRecordPaymentModal?.(r.id); } }, [icon('indian-rupee'), el('span', { text: 'Record payment' })]),
+                    el('button', { type: 'button', class: 'tt-btn is-pri', onclick: () => { sheet.close(); app.openRecordPaymentModal?.(r.id); } }, [icon('indian-rupee'), el('span', { text: 'Payment' })]),
                     el('button', { type: 'button', class: 'tt-icon-btn pa-open', 'aria-label': `Open bill #${r.billNo}`, onclick: () => { sheet.close(); app.loadBillFromHistory(r.id, true, true); } }, [icon('external-link')])
                 ])
             ]);

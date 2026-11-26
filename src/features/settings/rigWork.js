@@ -98,39 +98,44 @@ export function initRigWork(app) {
 
     const render = () => {
         const rig = getCurrentRig();
-        const tiles = [];
-        if (can('workers')) {
-            const wages = readWorkers().filter(isActive).reduce((s, w) => s + payNow(w, readAttendance(), readCash()).toPay, 0);
-            tiles.push(tile('calendar-check', 'is-att', 'Attendance & wages', `${attendanceLine()}${wages ? ` · ${inr(wages)} to pay` : ''}`, () => openAttendance(app)));
+        // Tiles in four groups, so a long list stays easy to scan.
+        const money = []; const work = []; const stock = []; const online = [];
+        if (can('expenses')) money.push(tile('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
+        if (can('bills')) {
+            money.push(tile('hourglass', 'is-amber', 'Pending payments', pendingTileSummary(app), () => openPending(app, { onSaved: render }), pendingTileWarn(app)));
+            money.push(tile('handshake', 'is-teal', 'Agents', agentsTileSummary(app), () => openAgents(app)));
         }
-        if (can('expenses')) tiles.push(tile('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
-        if (can('reports')) tiles.push(tile('arrow-left-right', 'is-cash', 'Transaction log', txTileSummary(app), () => openTxLog(app)));
+        if (can('reports')) money.push(tile('arrow-left-right', 'is-att', 'Transaction log', txTileSummary(app), () => openTxLog(app)));
         if (can('bills')) {
             const pending = workLogPending(app);
             const rs = rigStatusTile(app);
-            tiles.push(tile('activity', 'is-tools', 'Rig status', rs.sub, () => openRigStatus(app, { onSaved: render }), rs.warn));
-            tiles.push(tile('calendar-days', 'is-report', 'Daily site report', dailyTileSummary(app), () => openDailyReport(app)));
-            tiles.push(tile('hourglass', 'is-cash', 'Pending payments', pendingTileSummary(app), () => openPending(app, { onSaved: render }), pendingTileWarn(app)));
-            tiles.push(tile('handshake', 'is-report', 'Agents', agentsTileSummary(app), () => openAgents(app)));
-            tiles.push(tile('clipboard-list', 'is-tools', 'Work log', pending ? `${pending} to fill` : 'Operator, compressor, bits per bore', () => openWorkLog(app), pending > 0));
+            work.push(tile('activity', rs.warn ? 'is-rose' : 'is-cash', 'Rig status', rs.sub, () => openRigStatus(app, { onSaved: render }), rs.warn));
+            work.push(tile('calendar-days', 'is-att', 'Daily site report', dailyTileSummary(app), () => openDailyReport(app)));
+            work.push(tile('clipboard-list', 'is-tools', 'Work log', pending ? `${pending} to fill` : 'Operator, compressor, bits per bore', () => openWorkLog(app), pending > 0));
             const svcWarn = getRigServiceStatus(app).anyWarn;
-            tiles.push(tile('wrench', 'is-tools', 'Service alerts', serviceTileSummary(app), () => openServiceAlerts(app, { onSaved: render }), svcWarn));
+            work.push(tile('wrench', 'is-tools', 'Service alerts', serviceTileSummary(app), () => openServiceAlerts(app, { onSaved: render }), svcWarn));
             const docWarn = countExpiringDocs() > 0;
-            tiles.push(tile('truck', 'is-tools', 'Vehicles & docs', vehiclesTileSummary(), () => openVehicles(app, { onSaved: render }), docWarn));
+            work.push(tile('truck', 'is-tools', 'Vehicles & docs', vehiclesTileSummary(), () => openVehicles(app, { onSaved: render }), docWarn));
             const mkt = readMarketplaceConfig(app);
-            tiles.push(tile('store', 'is-report', 'Online marketplace', mkt.live ? `Live · ${mkt.city} · share link` : 'Go live & let customers compare prices', () => openMarketplaceSheet(app, { onSaved: render })));
+            online.push(tile('store', 'is-rose', 'Online marketplace', mkt.live ? `Live · ${mkt.city} · share link` : 'Go live & let customers compare prices', () => openMarketplaceSheet(app, { onSaved: render })));
         }
-        if (can('stock') && FEATURES.pipeStock) tiles.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
         if (can('stock')) {
             const iv = inventoryTile();
-            tiles.push(tile('boxes', 'is-pipes', 'Stock & vendors', iv.sub, () => openInventory(app, { onSaved: render }), iv.warn));
+            stock.push(tile('boxes', 'is-pipes', 'Stock & vendors', iv.sub, () => openInventory(app, { onSaved: render }), iv.warn));
+        }
+        if (can('stock') && FEATURES.pipeStock) stock.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
+        if (can('stock')) {
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
-            tiles.push(tile('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
+            stock.push(tile('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
         }
         if (can('workers')) {
+            const wages = readWorkers().filter(isActive).reduce((s, w) => s + payNow(w, readAttendance(), readCash()).toPay, 0);
+            stock.push(tile('calendar-check', 'is-att', 'Attendance & wages', `${attendanceLine()}${wages ? ` · ${inr(wages)} to pay` : ''}`, () => openAttendance(app)));
             const n = readWorkers().filter(isActive).length;
-            tiles.push(tile('hard-hat', 'is-workers', 'Workers', n ? `${n} active · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
+            stock.push(tile('hard-hat', 'is-workers', 'Workers', n ? `${n} active · operators, drivers, helpers` : 'Operators, drivers, helpers — for wages', () => openWorkers(app)));
         }
+        const groups = [['Money', money], ['Rig & work', work], ['Stock & crew', stock], ['Online', online]].filter(([, t]) => t.length);
+        const tiles = groups.flatMap(([, t]) => t);
         const month = spendSummary(can('expenses') ? readCash() : [], { start: `${todayYmd().slice(0, 7)}-01` }).total;
         panel.replaceChildren(...[
             el('div', { class: 'rw-head' }, [
@@ -141,7 +146,10 @@ export function initRigWork(app) {
             ]),
             today(),
             warnings(),
-            tiles.length ? el('div', { class: 'rw-grid', id: 'rigWorkCard' }, tiles)
+            tiles.length ? el('div', { id: 'rigWorkCard', class: 'rw-groups' }, groups.map(([name, t]) => el('section', { class: 'rw-group', 'aria-label': name }, [
+                el('h3', { class: 'rw-group-h', text: name }),
+                el('div', { class: 'rw-grid' }, t)
+            ])))
                 : el('p', { class: 'tt-empty', text: 'Nothing here for your role. Ask the owner for access to workers, stock or expenses.' }),
             can('reports') ? el('a', { class: 'rw-report', href: 'dashboard.html#workReport' }, [
                 el('span', { class: 'tt-tile is-report' }, [icon('chart-line')]),

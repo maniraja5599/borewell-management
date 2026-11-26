@@ -1,0 +1,91 @@
+/* UI polish pass (26 Nov 2026): no cut-off text, no squeezed columns, one icon style.
+   Loaded after the feature styles (only ios-top.css comes later). */
+
+/* ---------- Rig work tab: grouped tiles ---------- */
+.rw-groups { display: flex; flex-direction: column; gap: 14px; }
+.rw-group-h { margin: 0 0 7px 2px; font: 800 11.5px/1.2 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
+/* two lines for the tile sub-text, never "Present / absent,…" after a few words */
+html.ui-v3 .rw-tile-txt small,
+.rw-tile-txt small { -webkit-line-clamp: 2; line-clamp: 2; }
+.rw-tile-txt strong { overflow-wrap: anywhere; }
+/* a lone last tile in a 2-column group spans the row (icon beside the text) instead of leaving a hole */
+@media (max-width: 719px) {
+    .rw-grid > .rw-tile:last-child:nth-child(odd) { grid-column: 1 / -1; flex-direction: row; align-items: center; }
+}
+/* wider screens: tiles flow and the last row stretches, so 4 or 5 tiles never leave holes */
+@media (min-width: 720px) {
+    .rw-group .rw-grid { display: flex; flex-wrap: wrap; }
+    .rw-group .rw-grid > .rw-tile { flex: 1 1 240px; min-width: 0; }
+}
+/* light icon boxes for every tile (the dark one stays for the Rig report banner only) */
+.tt-tile.is-amber { background: #fef3c7; color: #b45309; }
+.tt-tile.is-teal { background: #ccfbf1; color: #0f766e; }
+.tt-tile.is-rose { background: #ffe4e6; color: #be123c; }
+
+/* ---------- Bill paper: slab table columns never touch ("FEETRATE/FT") ---------- */
+.slab-table-header,
+.slab-row { column-gap: 8px; }
+.slab-table-header span { white-space: nowrap; }
+.slab-table-header span:first-child { white-space: normal; }
+/* bill summary chips: "New Bore (6.5")" wraps instead of "New Bore (6.…" */
+.r-chip-val { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; overflow-wrap: anywhere; }
+@media (max-width: 360px) {
+    .slab-table-header, .slab-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, .7fr) minmax(0, .75fr) minmax(0, 1fr); column-gap: 6px; }
+    html.ui-v3 .bill-receipt-card .slab-row { font-size: 12.5px !important; }
+}
+
+/* ---------- Saved bill bar: the "FINAL VIEW ONLY" tag stays on one line ---------- */
+.sbmb-badge { white-space: nowrap; }
+@media (max-width: 420px) {
+    .sbmb-info { flex: 1 1 100%; }
+    .sbmb-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ---------- List rows ----------
+   On phones team-v2.css makes every .tt-row a grid that expects an avatar first. Rows built
+   another way (icon / amount / pill, no avatar) stay a simple line: text left, figures right. */
+.tt-row:not(:has(> .tt-avatar)) { display: flex; align-items: center; gap: 10px; }
+.tt-row:not(:has(> .tt-avatar)) > .tt-row-main { flex: 1 1 auto; min-width: 0; }
+.tt-row:not(:has(> .tt-avatar)) > :not(.tt-row-main) { flex: none; }
+/* Pending payments: avatar | name & bill | amount + age, buttons below */
+.pa-row > .tt-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; column-gap: 10px; align-items: center; padding: 12px 12px 8px; }
+.pa-row > .tt-row > .tt-avatar { grid-row: 1; }
+.pa-row > .tt-row > .tt-row-main { grid-column: 2; grid-row: 1; }
+.pa-row > .tt-row > .pa-right { grid-column: 3; grid-row: 1; }
+.pa-row .tt-row-main strong, .pa-row .tt-row-main small { white-space: normal; }
+.pa-acts { align-items: stretch; }
+.pa-acts .pa-open { flex: none; width: 44px; height: auto; min-height: 40px; }
+
+/* ---------- Sheets (all new pages): nothing wider than the screen ---------- */
+.tt-sheet, .tt-body, .tt-content { min-width: 0; }
+.tt-content > * { min-width: 0; max-width: 100%; }
+/* list text wraps to a second line instead of being cut with "…" */
+.tt-row-main strong, .tt-row-main small { white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+/* long button labels wrap inside the sheet instead of running past its edge */
+.tt-content .tt-btn { max-width: 100%; white-space: normal; line-height: 1.2; padding-top: 6px; padding-bottom: 6px; text-align: center; }
+.tt-input { min-width: 0; max-width: 100%; }
+.ag-acts .tt-btn, .pa-acts .tt-btn { white-space: nowrap; min-width: 0; }
+.ag-acts .tt-btn span, .pa-acts .tt-btn span { overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 360px) {
+    .tm-overlay, .rig-sheet-overlay { padding-left: 8px; padding-right: 8px; }
+    .tt-body { padding-left: 10px; padding-right: 10px; }
+    .pa-head { gap: 6px; }
+    .pa-head strong, .dr-stat strong { font-size: 15px; }
+    .ag-acts .tt-btn { flex: 1 1 100%; }
+    .pa-acts { gap: 6px; padding: 0 10px 10px; }
+    .pa-acts .tt-btn { flex: 1 1 auto; padding: 0 8px; gap: 4px; font-size: 13px; }
+    .pa-acts .tt-btn span { overflow: visible; }
+    .pa-acts .pa-open { width: 40px; }
+    .pa-row > .tt-row { padding: 10px 10px 8px; column-gap: 8px; grid-template-columns: 34px minmax(0, 1fr) auto; }
+    .tt-head { padding: 12px 10px 10px 12px; gap: 10px; }
+    .tt-head-txt h2 { font-size: 17px; }
+    .tt-tile.is-head { width: 38px; height: 38px; }
+    .dr-grid { gap: 6px; }
+    .dr-stat { padding: 9px 10px; }
+}
+
+/* ---------- Desktop: sheets and pages use the space calmly ---------- */
+@media (min-width: 900px) {
+    .tt-sheet { max-width: 640px; }
+    .pa-buckets { gap: 8px; }
+}

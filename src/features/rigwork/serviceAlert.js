@@ -97,7 +97,7 @@ export function openServiceAlerts(app, { onSaved } = {}) {
             intIn.addEventListener('change', saveInputs);
             lastIn.addEventListener('change', saveInputs);
 
-            const markBtn = btn(`Mark ${label} Serviced`, {
+            const markBtn = btn(`${label.replace(/ service$/i, "")} serviced today`, {
                 kind: item.dueSoon ? 'pri' : 'sec',
                 ic: 'check',
                 onclick: () => {
