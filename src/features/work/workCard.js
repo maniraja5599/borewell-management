@@ -14,7 +14,7 @@ import { workerLabel, typeOf } from '../workers/workersMath.js';
 import { readTools, openTools } from '../tools/toolsUI.js';
 import { openWorkers } from '../workers/workersUI.js';
 import { toolName, toolLimits } from '../tools/toolsMath.js';
-import { cleanWork, checkWork, cachedToolUsage, lastMm, lastClosing, toolWarning, halfMm, STRATA, strataOf, boreLayers } from './workMath.js';
+import { cleanWork, checkWork, cachedToolUsage, lastMm, lastClosing, toolWarning, halfMm, STRATA, strataOf, boreLayers, cleanRun, runMinutes, fmtMinutes, lateRodsTotal } from './workMath.js';
 
 const DRAFT_KEY = 'drillrig_work_draft';
 
@@ -27,6 +27,7 @@ export function initWorkCard(app) {
     const card = el('section', { class: 'ui-card wk-card wk-row-card', id: 'workCard', hidden: true, 'aria-label': 'Work details' });
     bar.parentNode.insertBefore(card, bar);
     let page = null;     // the open Work details page (sheet), or null
+    let runTimer = null; // ticks the "Drilling since" line while the page is open
 
     let key = null;      // which bill the card is showing: a saved bill's id, or 'new'
     let draft = null;    // what the card holds (raw)
@@ -126,6 +127,10 @@ export function initWorkCard(app) {
         if (draft?.waterIn) parts.push(`water ${draft.waterIn}″`);
         const logN = (draft?.boreLog || []).filter((e) => e && e.ft !== '' && e.ft !== undefined && e.ft !== null).length;
         if (logN) parts.push(`log ${logN}`);
+        const run = cleanRun(draft?.run);
+        if (run) parts.push(run.endAt ? `⏱ ${fmtMinutes(runMinutes(run))}` : '⏱ drilling…');
+        const lr = lateRodsTotal(draft?.lateRods);
+        if (lr.rods) parts.push(`+${lr.rods} late rod${lr.rods > 1 ? 's' : ''}`);
         if (draft?.gps) parts.push('📍 GPS');
         if (draft?.photos?.length) parts.push(`📷 ${draft.photos.length}`);
         return parts;
@@ -203,6 +208,42 @@ export function initWorkCard(app) {
         cs.addEventListener('input', () => { draft.compStart = cs.value; persist(); showHours(); });
         ce.addEventListener('input', () => { draft.compEnd = ce.value; persist(); showHours(); });
         showHours();
+
+        // Drilling run: Start (time) → Stop (time, then closing reading + result)
+        const runBox = el('div', { class: 'wk-run' });
+        const clock = (ms) => new Date(ms).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+        const drawRun = () => {
+            const r = cleanRun(draft.run);
+            const kids = [];
+            if (!r) {
+                kids.push(el('span', { class: 'wk-run-txt', text: 'Not started' }));
+                if (!ro) kids.push(btn('Start drilling', { kind: 'pri', ic: 'play', cls: 'wk-run-btn', onclick: () => {
+                    draft.run = { startAt: Date.now() };
+                    persist(); drawRun(); renderCard();
+                    app.showToast?.('⏱ Drilling started');
+                } }));
+            } else if (!r.endAt) {
+                kids.push(el('span', { class: 'wk-run-txt is-live' }, [el('span', { class: 'wk-run-dot', 'aria-hidden': 'true' }), el('span', { text: `Drilling since ${clock(r.startAt)} · ${fmtMinutes(runMinutes(r))}` })]));
+                if (!ro) kids.push(btn('Stop drilling', { kind: 'danger', ic: 'square', cls: 'wk-run-btn', onclick: () => {
+                    draft.run = { ...r, endAt: Date.now() };
+                    persist(); drawRun(); renderCard();
+                    app.showToast?.('⏱ Drilling stopped. Enter the closing reading and the result.');
+                    setTimeout(() => ce.focus(), 50);
+                } }));
+            } else {
+                kids.push(el('span', { class: 'wk-run-txt is-done', text: `${clock(r.startAt)} → ${clock(r.endAt)} · ${fmtMinutes(runMinutes(r))}` }));
+            }
+            if (r && !ro) kids.push(el('button', { type: 'button', class: 'wk-link is-danger', text: r.endAt ? 'Clear' : 'Cancel', onclick: () => { draft.run = null; persist(); drawRun(); renderCard(); } }));
+            runBox.replaceChildren(...kids);
+            paintIcons();
+        };
+        drawRun();
+        clearInterval(runTimer);
+        runTimer = setInterval(() => {
+            if (!page) { clearInterval(runTimer); return; }
+            const r = cleanRun(draft.run);
+            if (r && !r.endAt) drawRun();
+        }, 30000);
 
         // 9″ OB section
         const obHammer = options(hammerOpts('9'), draft.obHammerId, hammers.length ? 'Choose hammer' : 'No hammers yet');
@@ -303,6 +344,52 @@ export function initWorkCard(app) {
                 logRows.lastElementChild?.querySelector('input')?.focus();
             }
         }) : null;
+
+        // Late rods: extra rods used after the quote. Kept here; "Add to bill" puts them on the bill as an item.
+        if (!Array.isArray(draft.lateRods)) draft.lateRods = [];
+        const rodRows = el('div', { class: 'wk-log' });
+        const rodTotal = el('p', { class: 'wk-hint wk-rod-total' });
+        const drawRodTotal = () => {
+            const t = lateRodsTotal(draft.lateRods);
+            rodTotal.hidden = !t.rods;
+            rodTotal.textContent = t.rods ? `Total ${t.rods} rod${t.rods > 1 ? 's' : ''}${t.amount ? ` · ₹${t.amount.toLocaleString('en-IN')}` : ''}` : '';
+        };
+        const drawRods = () => {
+            rodRows.replaceChildren(...draft.lateRods.map((r, i) => {
+                const n = numIn(r.rods, { step: '1', min: '1', placeholder: 'Rods', 'aria-label': 'Number of rods' });
+                n.addEventListener('input', () => { r.rods = n.value; persist(); drawRodTotal(); renderCard(); });
+                const rate = numIn(r.rate, { step: '1', min: '0', placeholder: '₹ per rod', 'aria-label': 'Rate per rod' });
+                rate.addEventListener('input', () => { r.rate = rate.value; persist(); drawRodTotal(); });
+                const nt = el('input', { type: 'text', class: 'tt-input wk-log-note', maxlength: '80', value: r.note || '', placeholder: 'Why? (hit rock, customer asked …)' });
+                nt.disabled = ro;
+                nt.addEventListener('input', () => { r.note = nt.value; persist(); });
+                const del = !ro ? el('button', { type: 'button', class: 'wk-step', 'aria-label': 'Remove late rods', onclick: () => { draft.lateRods.splice(i, 1); persist(); drawRods(); renderCard(); } }, [icon('x')]) : null;
+                return el('div', { class: 'wk-log-row wk-rod-row' }, [n, rate, del, nt]);
+            }));
+            drawRodTotal();
+            paintIcons();
+        };
+        drawRods();
+        const addRods = !ro ? el('button', { type: 'button', class: 'wk-link', text: '+ Add late rods', onclick: () => {
+            const prev = draft.lateRods[draft.lateRods.length - 1];
+            draft.lateRods.push({ rods: '', rate: prev?.rate || '' });
+            persist(); drawRods();
+            rodRows.lastElementChild?.querySelector('input')?.focus();
+        } }) : null;
+        const rodsToBill = !ro && typeof app.getExtraItemRows === 'function' ? el('button', { type: 'button', class: 'wk-link', text: 'Add to bill as an item', onclick: () => {
+            const t = lateRodsTotal(draft.lateRods);
+            if (!t.rods) { app.showToast?.('⚠️ Enter the number of rods first'); return; }
+            const rows = app.getExtraItemRows();
+            const rateEach = t.amount ? Math.round(t.amount / t.rods) : '';
+            const old = rows.find((x) => String(x.name || '').trim().toLowerCase() === 'late rods');
+            if (old) { old.qty = t.rods; old.unit = 'nos'; old.rate = rateEach; } else {
+                if (rows.length >= 12) { app.showToast?.('⚠️ Up to 12 items on one bill'); return; }
+                rows.push({ id: `it_${Date.now().toString(36)}`, name: 'Late rods', qty: t.rods, unit: 'nos', rate: rateEach });
+            }
+            app.renderExtraItemsUI?.();
+            app.calculateAndRender?.();
+            app.showToast?.(`✅ Late rods on the bill: ${t.rods} nos${rateEach ? ` × ₹${rateEach}` : ''}`);
+        } }) : null;
 
         // Water + Result + note
         const water = numIn(draft.waterIn, { step: '0.5', placeholder: 'inches', 'aria-label': 'Water in inches' });
@@ -437,7 +524,8 @@ export function initWorkCard(app) {
             missing.length ? el('p', { class: 'wk-tip' }, [icon('info'), el('span', { text: 'Add your workers and bits & hammers once, then just pick them here.' }), ...missing]) : null,
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Operator' }), row('Operator', op1), op2Wrap, addOp2]),
             el('div', { class: 'wk-sec' }, [
-                el('h4', { text: 'Compressor hour meter' }),
+                el('h4', { text: 'Drilling run & compressor' }),
+                runBox,
                 el('div', { class: 'wk-two' }, [row('Start', cs), row('Closing', ce)]), hours,
                 draft.compStart === '' || draft.compStart === undefined ? null : el('small', { class: 'wk-hint', text: 'Start = this rig’s last closing reading. Change it if needed.' })
             ]),
@@ -455,6 +543,11 @@ export function initWorkCard(app) {
                 el('h4', { text: 'Bore log' }),
                 el('p', { class: 'wk-hint', text: 'Write what came up at each depth: the layer from the last entry down to this depth. Tick 💧 where water was seen.' }),
                 logRows, addLog, column
+            ]),
+            el('div', { class: 'wk-sec' }, [
+                el('h4', { text: 'Late rods' }),
+                el('p', { class: 'wk-hint', text: 'Extra rods used after the quote. Not on the bill unless you add them.' }),
+                rodRows, rodTotal, el('div', { class: 'wk-acts' }, [addRods, rodsToBill])
             ]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water, result & note' }), el('div', { class: 'wk-two' }, [row('Result', resultSel), row('Water (inches)', water)]), row('Note', note)]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'GPS & site photos' }), gpsSlot, photoBtns, photoGrid]),

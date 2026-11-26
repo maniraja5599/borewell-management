@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanWork, checkWork, boreSegments, toolUsage, lastMm, lastClosing, toolWarning, halfMm, cleanBoreLog, boreLayers } from '../src/features/work/workMath.js';
+import { cleanWork, checkWork, boreSegments, toolUsage, lastMm, lastClosing, toolWarning, halfMm, cleanBoreLog, boreLayers, cleanRun, runMinutes, fmtMinutes, cleanLateRods, lateRodsTotal } from '../src/features/work/workMath.js';
 import { toolLimits } from '../src/features/tools/toolsMath.js';
 
 const bill = (over = {}, work = {}) => ({
@@ -94,5 +94,26 @@ describe('bore log', () => {
         expect(checkWork(cleanWork({ boreLog: [{ ft: 100, strata: 'soil' }, { ft: 100, strata: 'hard' }] }))).toMatch(/twice/);
         expect(checkWork(cleanWork({ boreLog: [{ ft: 900, strata: 'hard' }] }), { totalDepth: 800 })).toMatch(/deeper than the total/);
         expect(checkWork(cleanWork({ boreLog: [{ ft: 800, strata: 'hard' }] }), { totalDepth: 800 })).toBeNull();
+    });
+});
+
+describe('drilling run & late rods', () => {
+    it('run: start only, start + stop, minutes, and a stop before the start is refused', () => {
+        expect(cleanRun({})).toBeNull();
+        expect(cleanRun({ startAt: 1000, endAt: '' })).toEqual({ startAt: 1000 });
+        expect(runMinutes({ startAt: 0 + 60000, endAt: 60000 + 98 * 60000 })).toBe(98);
+        expect(runMinutes({ startAt: 60000 }, 60000 + 30 * 60000)).toBe(30);
+        expect(fmtMinutes(98)).toBe('1 h 38 m');
+        expect(fmtMinutes(5)).toBe('5 m');
+        expect(cleanWork({ run: { startAt: 5000 } })).toMatchObject({ run: { startAt: 5000 } });
+        expect(checkWork(cleanWork({ run: { startAt: 5000, endAt: 4000 } }))).toMatch(/before the start/);
+        expect(checkWork(cleanWork({ operatorId: 'w', compStart: 1, compEnd: 5, bits: [{ toolId: 'a', mm: 165 }], run: { startAt: 5000 } }), { required: true })).toMatch(/Stop drilling/);
+    });
+
+    it('late rods: whole rods, optional rate, totals', () => {
+        expect(cleanLateRods([{ rods: '' }, { rods: '2', rate: '1500', note: ' rock ' }, { rods: 1 }]))
+            .toEqual([{ rods: 2, rate: 1500, note: 'rock' }, { rods: 1 }]);
+        expect(lateRodsTotal([{ rods: 2, rate: 1500 }, { rods: 1 }])).toEqual({ rods: 3, amount: 3000 });
+        expect(cleanWork({ lateRods: [{ rods: 2 }] })).toMatchObject({ lateRods: [{ rods: 2 }] });
     });
 });

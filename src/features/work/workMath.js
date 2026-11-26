@@ -10,6 +10,8 @@
 //   waterIn, note             water yield (inches), remark
 //   boreLog: [{ ft, strata, water, note }]  bore log: what came up at each depth, shallow first.
 //                             An entry = the layer from the previous entry's depth down to `ft`.
+//   run: { startAt, endAt }   drilling run: when Start / Stop drilling was pressed (ms)
+//   lateRods: [{ rods, rate, note }]  extra rods used after the quote; the owner may add them to the bill
 //
 // Usage (feet per bit / hammer, mm history) is worked out from all bills, never stored twice.
 
@@ -84,6 +86,38 @@ export function boreLayers(log) {
     }).filter((l) => l.to > l.from);
 }
 
+/** Drilling run: { startAt, endAt } in ms, or null. endAt only with a startAt. */
+export function cleanRun(r) {
+    if (!r || typeof r !== 'object') return null;
+    const startAt = num(r.startAt);
+    if (startAt === null || startAt <= 0) return null;
+    const endAt = num(r.endAt);
+    return { startAt, ...(endAt !== null && endAt > 0 ? { endAt } : {}) };
+}
+
+/** Minutes of a run (to now while still drilling). */
+export function runMinutes(run, now = Date.now()) {
+    const r = cleanRun(run);
+    if (!r) return 0;
+    return Math.max(0, Math.round(((r.endAt ?? now) - r.startAt) / 60000));
+}
+
+export const fmtMinutes = (m) => (m >= 60 ? `${Math.floor(m / 60)} h ${m % 60} m` : `${m} m`);
+
+/** Late rods: whole rods > 0, rate >= 0, at most 10 rows. */
+export function cleanLateRods(arr) {
+    return (Array.isArray(arr) ? arr : [])
+        .map((r) => ({ rods: num(r?.rods), rate: num(r?.rate), note: String(r?.note || '').trim().slice(0, 80) }))
+        .filter((r) => r.rods !== null && r.rods > 0)
+        .slice(0, 10)
+        .map((r) => ({ rods: Math.round(r.rods), ...(r.rate !== null && r.rate > 0 ? { rate: Math.round(r.rate) } : {}), ...(r.note ? { note: r.note } : {}) }));
+}
+
+/** { rods, amount } over all late rod rows. */
+export function lateRodsTotal(arr) {
+    return cleanLateRods(arr).reduce((t, r) => ({ rods: t.rods + r.rods, amount: t.amount + r.rods * (r.rate || 0) }), { rods: 0, amount: 0 });
+}
+
 /** Normalise what the card collected. Returns null when nothing was entered. */
 export function cleanWork(w) {
     if (!w || typeof w !== 'object') return null;
@@ -94,6 +128,8 @@ export function cleanWork(w) {
     const gps = cleanGps(w.gps);
     const photos = cleanPhotos(w.photos);
     const boreLog = cleanBoreLog(w.boreLog);
+    const run = cleanRun(w.run);
+    const lateRods = cleanLateRods(w.lateRods);
     const out = {
         v: 1,
         operatorId: id(w.operatorId),
@@ -111,10 +147,12 @@ export function cleanWork(w) {
         gps,
         photos,
         ...(boreLog.length ? { boreLog } : {}),
+        ...(run ? { run } : {}),
+        ...(lateRods.length ? { lateRods } : {}),
         note: String(w.note || '').trim().slice(0, 200)
     };
     const empty = !out.operatorId && !out.operator2Id && out.compEnd === null && !out.obHammerId && !out.hammerId
-        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note && !boreLog.length;
+        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note && !boreLog.length && !run && !lateRods.length;
     return empty ? null : out;
 }
 
@@ -129,6 +167,8 @@ export function checkWork(w, { required = false, totalDepth = 0 } = {}) {
     }
     for (let i = 2; i < w.bits.length; i++) if (w.bits[i].atFt <= w.bits[i - 1].atFt) return 'Bit changes must go deeper each time.';
     for (const b of w.bits) if (b.mm !== null && (b.mm < 100 || b.mm > 300)) return 'Bit size should be in mm, for example 164.5.';
+    if (w.run?.endAt && w.run.endAt < w.run.startAt) return 'Drilling stop time is before the start time.';
+    if (w.run && !w.run.endAt && required) return 'Drilling is still running. Press Stop drilling first.';
     const log = w.boreLog || [];
     for (let i = 1; i < log.length; i++) if (log[i].ft === log[i - 1].ft) return `Bore log has ${log[i].ft} ft twice. Keep one entry per depth.`;
     if (totalDepth && log.length && log[log.length - 1].ft > totalDepth) return `Bore log goes to ${log[log.length - 1].ft} ft, deeper than the total depth (${totalDepth} ft).`;
