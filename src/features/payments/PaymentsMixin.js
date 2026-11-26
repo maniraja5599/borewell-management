@@ -44,7 +44,8 @@ export class PaymentsMixin {
             return Math.round(snap.advancePaidAmount || 0);
         }
         const entries = this.getBillPaymentEntries(item);
-        const totalPaid = entries.reduce((sum, p) => sum + (Math.round(Number(p.amount) || 0)), 0);
+        // a payment the owner rejected (approvals) does not count
+        const totalPaid = entries.reduce((sum, p) => sum + (p?.approval?.status === 'rejected' ? 0 : Math.round(Number(p.amount) || 0)), 0);
         return Math.max(0, totalPaid);
     }
 

@@ -13,6 +13,7 @@
 //                           − expenses and diesel paid in cash − hand-overs that were received.
 // Pure functions: no DOM, no storage.
 import { todayYmd } from '../workers/workersMath.js';
+import { cashCounts, isRejected, paymentCounts } from '../approvals/approvalMath.js';
 
 export const CASH_TYPES = [
     { key: 'expense', label: 'Expense' },
@@ -221,7 +222,7 @@ export function collections(bills, holderId) {
     for (const b of bills || []) {
         if (!b || !Array.isArray(b.payments)) continue;
         for (const p of b.payments) {
-            if (!p || !isCashPayment(p) || p.by?.id !== holderId) continue;
+            if (!p || !isCashPayment(p) || p.by?.id !== holderId || !paymentCounts(p)) continue;
             const amount = Math.round(Number(p.amount) || 0);
             if (amount > 0) out.push({ billId: b.id, billNo: b.billNo || '', custName: b.custName || '', date: String(p.date || '').slice(0, 10), amount, rigId: b.rigId || null, payId: p.id });
         }
@@ -234,7 +235,8 @@ export function collections(bills, holderId) {
  * lines: { date, kind: 'entry'|'collection', amount (+in / −out / 0 pending), entry?, bill? }
  */
 export function cashBook(entries, bills, holderId) {
-    const mine = (entries || []).filter((e) => e && !e.deleted && e.holderId === holderId);
+    // a rejected entry never left the person's cash; a pending one did (it shows as pending)
+    const mine = (entries || []).filter((e) => e && !e.deleted && e.holderId === holderId && !isRejected(e));
     const got = collections(bills, holderId);
     const t = { received: 0, collected: 0, spent: 0, handedOver: 0, pending: 0, pendingCount: 0 };
     const lines = [];
@@ -280,7 +282,7 @@ export function pendingHandovers(entries, { to = null } = {}) {
  * or everything (null). { total, count, byCategory: [{ key, label, amount, count }], diesel: { litres, amount, rate, count } }
  */
 export function spendSummary(entries, { rigId = null, start = '', end = '9999-12-31' } = {}) {
-    const list = (entries || []).filter((e) => e && !e.deleted && ['expense', 'diesel', 'advance', 'wage'].includes(e.type)
+    const list = (entries || []).filter((e) => e && !e.deleted && cashCounts(e) && ['expense', 'diesel', 'advance', 'wage'].includes(e.type)
         && e.date >= start && e.date <= end
         && (rigId === null || (rigId === 'office' ? !e.rigId : e.rigId === rigId)));
     const cats = new Map();

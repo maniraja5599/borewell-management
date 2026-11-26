@@ -10,6 +10,7 @@
 // Cash given to a person ('in') and hand-overs move money inside the business, so they are
 // left out (they would count the same rupee twice). Pure functions: lists in, rows out.
 import { isInvoice, billDay } from './reportMath.js';
+import { cashCounts, paymentCounts } from '../approvals/approvalMath.js';
 
 const ymdOk = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}/.test(s);
 const all = () => true;
@@ -44,6 +45,7 @@ export function transactions(src = {}, from = '0000-00-00', to = '9999-12-31', o
     for (const b of src.bills || []) {
         if (!b || !isInvoice(b) || !onBill(b)) continue;
         (Array.isArray(b.payments) ? b.payments : []).forEach((p, i) => {
+            if (!paymentCounts(p)) return;
             const by = b.agent?.name ? `${b.agent.name} (agent)` : (b.custName || 'Customer');
             push({
                 id: `pay_${b.id}_${p?.id || i}`,
@@ -59,7 +61,7 @@ export function transactions(src = {}, from = '0000-00-00', to = '9999-12-31', o
     }
 
     for (const e of src.cash || []) {
-        if (!e || e.deleted || !onItem(e) || !TX_KINDS[e.type] || TX_KINDS[e.type].dir !== 'out') continue;
+        if (!e || e.deleted || !cashCounts(e) || !onItem(e) || !TX_KINDS[e.type] || TX_KINDS[e.type].dir !== 'out') continue;
         const title = e.type === 'expense' ? (e.categoryLabel || e.category || 'Expense')
             : e.type === 'diesel' ? `Diesel ${Number(e.litres) || 0} L`
                 : `${TX_KINDS[e.type].label}${e.workerName ? ` · ${e.workerName}` : ''}`;

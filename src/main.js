@@ -14,6 +14,7 @@ import './styles/daily-v1.css'; // Daily site report
 import './styles/tx-v1.css'; // Transaction log (+ its print view)
 import './styles/rigstatus-v1.css'; // Rig status & breakdowns
 import './styles/inventory-v1.css'; // Stock & vendors
+import './styles/approvals-v1.css'; // Approvals & Manager wallets
 import './styles/polish-v1.css'; // UI polish: no cut-off text, grouped Rig work tiles, one icon style
 import './styles/ios-top.css'; // iOS 26 status bar: solid strip + popups below it (loaded last)
 import { initFitText } from './ui/fitText.js';
@@ -28,6 +29,7 @@ import { initMenuTiles } from './features/settings/menuTiles.js';
 import { initWorkCard } from './features/work/workCard.js';
 import { initBillFold } from './features/bill/billFold.js';
 import { initAgentBill } from './features/agents/agentsUI.js';
+import { initApprovals } from './features/approvals/approvalsUI.js';
 import { applyRoleClass } from './cloud/access.js';
 import { initRigBar } from './features/team/rigBar.js';
 import { initTeamUI } from './features/team/teamUI.js';
@@ -104,6 +106,7 @@ async function boot() {
         initMenuTiles(window.boreBillApp); // Menu: Rates, Team & rigs, Company profile, Backup tiles
         initWorkCard(window.boreBillApp); // Bill screen: work details (operator, compressor, bits, hammers)
         if (FEATURES.uiV3) initBillFold(window.boreBillApp); // New bill: one section open at a time (after the work card: it moves it)
+        initApprovals(window.boreBillApp); // approvals on: a manager's new / edited money entries wait for the owner
         initAgentBill(window.boreBillApp); // Billed to Agent: agent name + mobile under the switch (after billFold: it makes the switch)
         initFirstBillGuide(window.boreBillApp); // New Bill: "Make your first bill" checklist until the first bill
         initComingSoon(); // Settings: "Coming soon" tiles (Expenses, Staff, Stock, Profit & Loss)

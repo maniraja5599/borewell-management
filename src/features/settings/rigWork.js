@@ -5,7 +5,7 @@
 //   Rig report (dashboard.html, "Rig work" section)
 // Each tile shows only for people who may use it (cloud/access.js can()). The tiles keep the
 // #rigWorkCard / .rw-row names the older Settings rows had.
-import { can, onAccessChange, getCurrentRig } from '../../cloud/access.js';
+import { can, onAccessChange, getCurrentRig, isOwnerOrLocal } from '../../cloud/access.js';
 import { STORAGE_KEYS } from '../../data/storage.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { el } from '../../ui/sheet.js';
@@ -25,6 +25,8 @@ import { openTxLog, txTileSummary } from '../report/txUI.js';
 import { openRigStatus, rigStatusTile, statusNow } from '../rigwork/rigStatusUI.js';
 import { reasonLabel, fmtHours } from '../rigwork/breakdownMath.js';
 import { openInventory, inventoryTile } from '../inventory/inventoryUI.js';
+import { openApprovals, approvalsTile, approvalsOn } from '../approvals/approvalsUI.js';
+import { openWallet, walletTile, canSeeWallets } from '../cash/walletUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -106,6 +108,14 @@ export function initRigWork(app) {
             money.push(tile('handshake', 'is-teal', 'Agents', agentsTileSummary(app), () => openAgents(app)));
         }
         if (can('reports')) money.push(tile('arrow-left-right', 'is-att', 'Transaction log', txTileSummary(app), () => openTxLog(app)));
+        if (can('expenses') && canSeeWallets()) {
+            const wt = walletTile(app);
+            money.push(tile('wallet-cards', 'is-teal', 'Manager wallets', wt.sub, () => openWallet(app, { onSaved: render }), wt.warn));
+        }
+        if (isOwnerOrLocal() || approvalsOn(app)) {
+            const at = approvalsTile(app);
+            money.push(tile('badge-check', 'is-amber', 'Approvals', at.sub, () => openApprovals(app, { onSaved: render }), at.warn));
+        }
         if (can('bills')) {
             const pending = workLogPending(app);
             const rs = rigStatusTile(app);

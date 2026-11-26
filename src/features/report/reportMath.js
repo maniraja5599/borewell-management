@@ -18,7 +18,8 @@ export function billDay(b) {
 
 /** Money received on a bill (all payments; old bills only kept the advance). */
 export function paidOf(b) {
-    if (Array.isArray(b?.payments)) return b.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    // a payment the owner rejected (approvals) does not count
+    if (Array.isArray(b?.payments)) return b.payments.reduce((s, p) => s + (p?.approval?.status === 'rejected' ? 0 : (Number(p?.amount) || 0)), 0);
     return Number(b?.snapshot?.advancePaidAmount) || 0;
 }
 export const totalOf = (b) => Math.round(Number(b?.snapshot?.grandTotal) || 0);

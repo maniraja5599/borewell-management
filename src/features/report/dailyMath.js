@@ -4,6 +4,7 @@
 // Pure functions: lists in, figures out. "On this rig" is decided by the caller (onRig* filters).
 import { isInvoice, billDay, totalOf } from './reportMath.js';
 import { runMinutes } from '../work/workMath.js';
+import { cashCounts, paymentCounts } from '../approvals/approvalMath.js';
 
 const r1 = (n) => Math.round(n * 10) / 10;
 const all = () => true;
@@ -51,11 +52,11 @@ export function dayReport({ bills = [], cash = [], attendance = [] } = {}, day, 
     for (const b of finals) {
         for (const p of Array.isArray(b.payments) ? b.payments : []) {
             const amt = Math.round(Number(p?.amount) || 0);
-            if (amt > 0 && payDay(p, b) === day) payments.push({ bill: b, amount: amt, mode: p.mode || '' });
+            if (amt > 0 && paymentCounts(p) && payDay(p, b) === day) payments.push({ bill: b, amount: amt, mode: p.mode || '' });
         }
     }
 
-    const dayCash = (cash || []).filter((e) => e && !e.deleted && e.date === day && onCash(e));
+    const dayCash = (cash || []).filter((e) => e && !e.deleted && cashCounts(e) && e.date === day && onCash(e));
     const diesel = { litres: 0, amount: 0 };
     let spend = 0;
     for (const e of dayCash) {
