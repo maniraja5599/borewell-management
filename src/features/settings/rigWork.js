@@ -20,6 +20,7 @@ import { openVehicles, countExpiringDocs, vehiclesTileSummary } from '../rigwork
 import { openMarketplaceSheet, readMarketplaceConfig } from './marketplaceUI.js';
 import { openAgents, agentsTileSummary } from '../agents/agentsUI.js';
 import { openPending, pendingTileSummary, pendingTileWarn } from '../payments/pendingUI.js';
+import { openDailyReport, dailyTileSummary } from '../report/dailyUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -99,6 +100,7 @@ export function initRigWork(app) {
         if (can('expenses')) tiles.push(tile('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
         if (can('bills')) {
             const pending = workLogPending(app);
+            tiles.push(tile('calendar-days', 'is-report', 'Daily site report', dailyTileSummary(app), () => openDailyReport(app)));
             tiles.push(tile('hourglass', 'is-cash', 'Pending payments', pendingTileSummary(app), () => openPending(app, { onSaved: render }), pendingTileWarn(app)));
             tiles.push(tile('handshake', 'is-report', 'Agents', agentsTileSummary(app), () => openAgents(app)));
             tiles.push(tile('clipboard-list', 'is-tools', 'Work log', pending ? `${pending} to fill` : 'Operator, compressor, bits per bore', () => openWorkLog(app), pending > 0));
