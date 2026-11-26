@@ -132,7 +132,6 @@ export function initWorkCard(app) {
         const lr = lateRodsTotal(draft?.lateRods);
         if (lr.rods) parts.push(`+${lr.rods} late rod${lr.rods > 1 ? 's' : ''}`);
         if (draft?.gps) parts.push('📍 GPS');
-        if (draft?.photos?.length) parts.push(`📷 ${draft.photos.length}`);
         return parts;
     }
 
@@ -404,7 +403,7 @@ export function initWorkCard(app) {
         note.disabled = ro;
         note.addEventListener('input', () => { draft.note = note.value; persist(); });
 
-        // GPS Location Tag + Site Photos (compressed JPEG <= 800px, max 3)
+        // GPS location tag
         const gpsSlot = el('div', { class: 'wk-gps-slot' });
         const renderGps = () => {
             if (draft.gps && typeof draft.gps.lat === 'number' && typeof draft.gps.lng === 'number') {
@@ -445,69 +444,6 @@ export function initWorkCard(app) {
             }
         };
         renderGps();
-
-        const compressSitePhoto = (file) => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const img = new Image();
-                img.onload = () => {
-                    const maxDim = 800;
-                    const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
-                    const w = Math.max(1, Math.round(img.width * scale));
-                    const h = Math.max(1, Math.round(img.height * scale));
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    resolve(canvas.toDataURL('image/jpeg', 0.65));
-                };
-                img.onerror = reject;
-                img.src = reader.result;
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-        const photoGrid = el('div', { class: 'wk-photo-grid' });
-        const renderPhotos = () => {
-            const list = Array.isArray(draft.photos) ? draft.photos : [];
-            if (!list.length) {
-                photoGrid.replaceChildren(el('small', { class: 'wk-hint', text: 'No site photos yet (up to 3 geo-tagged photos).' }));
-                return;
-            }
-            photoGrid.replaceChildren(...list.map((p, idx) => el('div', { class: 'wk-photo-thumb' }, [
-                el('img', { src: p.dataUrl, alt: `Site photo ${idx + 1}`, onclick: () => window.open(p.dataUrl, '_blank', 'noopener') }),
-                p.lat ? el('span', { class: 'wk-photo-gps', text: '📍', title: `${p.lat}, ${p.lng}` }) : null,
-                !ro ? el('button', { type: 'button', class: 'wk-photo-del', 'aria-label': 'Remove photo', text: '✕', onclick: () => { draft.photos.splice(idx, 1); persist(); renderPhotos(); } }) : null
-            ])));
-        };
-        const handlePhotoFiles = async (files) => {
-            if (!Array.isArray(draft.photos)) draft.photos = [];
-            for (const f of Array.from(files || [])) {
-                if (draft.photos.length >= 3) { app.showToast?.('⚠️ Up to 3 site photos per borewell'); break; }
-                try {
-                    const dataUrl = await compressSitePhoto(f);
-                    draft.photos.push({
-                        dataUrl,
-                        ...(draft.gps ? { lat: draft.gps.lat, lng: draft.gps.lng } : {}),
-                        at: Date.now()
-                    });
-                } catch { /* ignore unreadable file */ }
-            }
-            persist();
-            renderPhotos();
-        };
-        const camIn = el('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true });
-        const galIn = el('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
-        camIn.addEventListener('change', (e) => { handlePhotoFiles(e.target.files); e.target.value = ''; });
-        galIn.addEventListener('change', (e) => { handlePhotoFiles(e.target.files); e.target.value = ''; });
-        renderPhotos();
-        const photoBtns = !ro ? el('div', { class: 'wk-photo-acts' }, [
-            el('button', { type: 'button', class: 'wk-photo-btn', text: '📷 Take Photo', onclick: () => camIn.click() }),
-            el('button', { type: 'button', class: 'wk-photo-btn', text: '🖼️ Gallery', onclick: () => galIn.click() }),
-            camIn, galIn
-        ]) : null;
 
         // Owner: required on/off
         const req = isOwnerOrLocal() ? el('label', { class: 'wk-req' }, [
@@ -550,7 +486,7 @@ export function initWorkCard(app) {
                 rodRows, rodTotal, el('div', { class: 'wk-acts' }, [addRods, rodsToBill])
             ]),
             el('div', { class: 'wk-sec' }, [el('h4', { text: 'Water, result & note' }), el('div', { class: 'wk-two' }, [row('Result', resultSel), row('Water (inches)', water)]), row('Note', note)]),
-            el('div', { class: 'wk-sec' }, [el('h4', { text: 'GPS & site photos' }), gpsSlot, photoBtns, photoGrid]),
+            el('div', { class: 'wk-sec' }, [el('h4', { text: 'GPS location' }), gpsSlot]),
             btn(ro ? 'Close' : 'Done', { kind: 'pri', ic: 'check', cls: 'tt-wide wk-done', onclick: () => page?.close() })
         ].filter(Boolean));
         refreshWarnings();
@@ -618,5 +554,26 @@ export function initWorkCard(app) {
         return out;
     };
 
+    dropOldPhotos(app);
     sync();
+}
+
+/**
+ * Site photos were removed (26 Nov 2026): images made a bill too big for the cloud (64 KB per
+ * record). Bills saved with photos in their work details lose them once, so they can sync.
+ */
+function dropOldPhotos(app) {
+    try {
+        const d = readDraft();
+        if (d?.work?.photos) { delete d.work.photos; writeDraft(d); }
+        const list = app.history || [];
+        const changed = [];
+        list.forEach((b, i) => {
+            if (!b?.work || !('photos' in b.work)) return;
+            const { photos, ...work } = b.work;
+            list[i] = { ...b, work };
+            changed.push(b.id);
+        });
+        if (changed.length) app.saveToStorage(STORAGE_KEYS.history, list, changed);
+    } catch (e) { console.warn('[work] photo cleanup', e); }
 }

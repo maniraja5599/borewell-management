@@ -36,18 +36,6 @@ const cleanGps = (g) => {
     };
 };
 
-const cleanPhotos = (arr) => (Array.isArray(arr) ? arr : [])
-    .filter((p) => p && typeof p.dataUrl === 'string' && p.dataUrl.startsWith('data:image/') && p.dataUrl.length <= 260000)
-    .slice(0, 3)
-    .map((p) => {
-        const lat = num(p.lat); const lng = num(p.lng); const at = num(p.at);
-        return {
-            dataUrl: p.dataUrl,
-            ...(lat !== null && lng !== null ? { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 } : {}),
-            ...(at !== null ? { at } : {})
-        };
-    });
-
 /** Layers the crew can pick in the bore log (key, label, colour for the strata column). */
 export const STRATA = [
     { key: 'soil', label: 'Soil / red earth', color: '#b45309' },
@@ -126,7 +114,6 @@ export function cleanWork(w) {
         .filter((b) => b.toolId || b.mm !== null)
         .slice(0, 8);
     const gps = cleanGps(w.gps);
-    const photos = cleanPhotos(w.photos);
     const boreLog = cleanBoreLog(w.boreLog);
     const run = cleanRun(w.run);
     const lateRods = cleanLateRods(w.lateRods);
@@ -145,14 +132,13 @@ export function cleanWork(w) {
         waterIn: num(w.waterIn),
         boreResult: ['pending', 'water', 'dry'].includes(w.boreResult) ? w.boreResult : null,
         gps,
-        photos,
         ...(boreLog.length ? { boreLog } : {}),
         ...(run ? { run } : {}),
         ...(lateRods.length ? { lateRods } : {}),
         note: String(w.note || '').trim().slice(0, 200)
     };
     const empty = !out.operatorId && !out.operator2Id && out.compEnd === null && !out.obHammerId && !out.hammerId
-        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !photos.length && !out.note && !boreLog.length && !run && !lateRods.length;
+        && !bits.length && out.waterIn === null && !out.boreResult && !gps && !out.note && !boreLog.length && !run && !lateRods.length;
     return empty ? null : out;
 }
 
