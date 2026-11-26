@@ -15,6 +15,7 @@ import { transactions, txSummary, byDay, txCsv, TX_KINDS } from './txMath.js';
 import { saveCsv } from './dailyUI.js';
 import { readBreakdowns } from '../rigwork/rigStatusUI.js';
 import { reasonLabel } from '../rigwork/breakdownMath.js';
+import { readInventory } from '../inventory/inventoryUI.js';
 
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
 const signed = (n) => `${n < 0 ? '−' : ''}${inr(Math.abs(n))}`;
@@ -28,7 +29,8 @@ function setup() {
 }
 const sources = (app) => ({
     bills: app.history || [], cash: readCash(), stock: readStock(), tools: readTools(), vehicles: readVehicles(),
-    breakdowns: readBreakdowns().map((b) => ({ ...b, reasonLabel: reasonLabel(b.reason) }))
+    breakdowns: readBreakdowns().map((b) => ({ ...b, reasonLabel: reasonLabel(b.reason) })),
+    ...(() => { const d = readInventory(); return { vendors: d.vendors, vendorPayments: d.payments }; })()
 });
 
 function monthStart(ymd) { return `${ymd.slice(0, 7)}-01`; }
@@ -154,7 +156,7 @@ export function openTxLog(app) {
                 el('button', { type: 'button', class: 'tt-btn', onclick: () => saveCsv(app, txCsv(rowsAll, rig?.name || ''), fileName) }, [icon('download'), el('span', { text: 'CSV (Excel)' })]),
                 el('button', { type: 'button', class: 'tt-btn', onclick: () => printLog({ rows: rowsAll, sum, from, to, rigName: rig?.name || '', company }) }, [icon('printer'), el('span', { text: 'Print / PDF' })])
             ]) : null,
-            el('p', { class: 'ca-note', text: 'In: bill payments and scrap sales. Out: expenses, diesel, wages and advances, casing pipe and bit / hammer purchases, hired vehicle payouts, breakdown repairs. Cash handed between people is not counted (it is the same money).' })
+            el('p', { class: 'ca-note', text: 'In: bill payments and scrap sales. Out: expenses, diesel, wages and advances, casing pipe and bit / hammer purchases, hired vehicle payouts, breakdown repairs, payments to vendors (credit purchases count when paid). Cash handed between people is not counted (it is the same money).' })
         ].filter(Boolean));
         paintIcons();
     }

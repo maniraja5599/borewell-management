@@ -13,6 +13,7 @@ import './styles/pending-v1.css'; // Pending payments by age
 import './styles/daily-v1.css'; // Daily site report
 import './styles/tx-v1.css'; // Transaction log (+ its print view)
 import './styles/rigstatus-v1.css'; // Rig status & breakdowns
+import './styles/inventory-v1.css'; // Stock & vendors
 import './styles/ios-top.css'; // iOS 26 status bar: solid strip + popups below it (loaded last)
 import { initFitText } from './ui/fitText.js';
 import { versionLabel, APP_BUILD_DATE } from './config/version.js';

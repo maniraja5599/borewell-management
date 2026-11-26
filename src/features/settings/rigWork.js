@@ -24,6 +24,7 @@ import { openDailyReport, dailyTileSummary } from '../report/dailyUI.js';
 import { openTxLog, txTileSummary } from '../report/txUI.js';
 import { openRigStatus, rigStatusTile, statusNow } from '../rigwork/rigStatusUI.js';
 import { reasonLabel, fmtHours } from '../rigwork/breakdownMath.js';
+import { openInventory, inventoryTile } from '../inventory/inventoryUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -121,6 +122,8 @@ export function initRigWork(app) {
         }
         if (can('stock') && FEATURES.pipeStock) tiles.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
         if (can('stock')) {
+            const iv = inventoryTile();
+            tiles.push(tile('boxes', 'is-pipes', 'Stock & vendors', iv.sub, () => openInventory(app, { onSaved: render }), iv.warn));
             const inUse = readTools().filter((t) => t && (t.status || 'active') === 'active').length;
             tiles.push(tile('hammer', 'is-tools', 'Bits & Hammers', inUse ? `${inUse} in use · purchases, finished, scrap` : 'Purchases, in use, finished, scrap', () => openTools(app)));
         }

@@ -24,7 +24,8 @@ export const TX_KINDS = {
     pipes: { dir: 'out', label: 'Casing pipes' },
     tool: { dir: 'out', label: 'Bits & hammers' },
     hired: { dir: 'out', label: 'Hired vehicle' },
-    repair: { dir: 'out', label: 'Breakdown repair' }
+    repair: { dir: 'out', label: 'Breakdown repair' },
+    vendor: { dir: 'out', label: 'Vendor payment' }
 };
 
 /**
@@ -84,6 +85,12 @@ export function transactions(src = {}, from = '0000-00-00', to = '9999-12-31', o
         const name = [t.tool === 'bit' ? 'Bit' : 'Hammer', t.size ? `${t.size}″` : '', t.code || t.brand || ''].filter(Boolean).join(' ');
         push({ id: `toolbuy_${t.id}`, date: t.purchasedOn, kind: 'tool', amount: Math.round(Number(t.price) || 0), title: name, sub: t.brand && t.code ? t.brand : '', mode: '' });
         if (t.status === 'sold') push({ id: `toolsell_${t.id}`, date: t.soldOn, kind: 'scrap', amount: Math.round(Number(t.soldAmount) || 0), title: `${name} sold`, sub: t.buyer || '', mode: '' });
+    }
+
+    const vendorName = (id) => (src.vendors || []).find((v) => v && v.id === id)?.name || 'Vendor';
+    for (const p of src.vendorPayments || []) {
+        if (!p || p.deleted || !onItem(p)) continue;
+        push({ id: `vpay_${p.id}`, date: p.date, kind: 'vendor', amount: Math.round(Number(p.amount) || 0), title: vendorName(p.vendorId), sub: p.note || '', mode: p.mode || '' });
     }
 
     for (const b of src.breakdowns || []) {
