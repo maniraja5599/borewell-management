@@ -84,6 +84,53 @@ html.ui-v3 .rw-tile-txt small,
     .dr-stat { padding: 9px 10px; }
 }
 
+/* ---------- Bottom bar on tablets / desktop ----------
+   The old tablet rule laid each item out sideways (icon · label · badge); with the 3D icons that
+   did not fit the 620 px pill — "Menu" fell outside, "New Bill" / "Rig work" broke on two lines.
+   Same layout as the phone now: five equal slots, icon above a one-line label, badge on the icon. */
+@media (min-width: 768px) {
+    .bottom-nav.nav-v2 {
+        max-width: 560px !important;
+        height: 66px !important;
+        padding: 4px 10px !important;
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        align-items: center;
+        border-radius: 22px !important;
+    }
+    .nav-v2 .b-nav-item {
+        flex-direction: column !important;
+        gap: 3px !important;
+        padding: 4px 2px !important;
+        min-width: 0;
+        height: 56px !important;
+        min-height: 56px !important;
+        border-radius: 14px !important;
+        box-shadow: none !important;
+    }
+    .nav-v2 .b-nav-item.active:not(.b-nav-fab) { background: transparent !important; }
+    .nav-v2 .b-nav-item:not(.b-nav-fab):hover { background: #f1f5f9; }
+    .nav-v2 .b-nav-fab, .nav-v2 .b-nav-fab:hover, .nav-v2 .b-nav-fab.active { background: transparent !important; box-shadow: none !important; }
+    .nav-v2 .b-nav-label {
+        font-size: 12px !important;
+        line-height: 1.15 !important;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .nav-v2 .b-nav-badge {
+        position: absolute !important;
+        top: 2px;
+        left: calc(50% + 10px);
+        right: auto !important;
+        margin: 0 !important;
+        padding: 1px 6px !important;
+        font-size: 11px !important;
+    }
+    .nav-v2 .b-nav-fab .b-nav-icon { margin-top: -30px; }
+}
+
 /* ---------- Desktop: sheets and pages use the space calmly ---------- */
 @media (min-width: 900px) {
     .tt-sheet { max-width: 640px; }
