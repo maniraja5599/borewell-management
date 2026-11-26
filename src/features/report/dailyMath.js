@@ -129,7 +129,7 @@ export function periodReport(data, from, to, opts = {}) {
 const csvCell = (v) => {
     const s = String(v ?? '');
     // Excel formula guard + quoting
-    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    const safe = typeof v !== 'number' && /^[=+\-@]/.test(s) ? `'${s}` : s;
     return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };
 

@@ -21,6 +21,7 @@ import { openMarketplaceSheet, readMarketplaceConfig } from './marketplaceUI.js'
 import { openAgents, agentsTileSummary } from '../agents/agentsUI.js';
 import { openPending, pendingTileSummary, pendingTileWarn } from '../payments/pendingUI.js';
 import { openDailyReport, dailyTileSummary } from '../report/dailyUI.js';
+import { openTxLog, txTileSummary } from '../report/txUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -98,6 +99,7 @@ export function initRigWork(app) {
             tiles.push(tile('calendar-check', 'is-att', 'Attendance & wages', `${attendanceLine()}${wages ? ` · ${inr(wages)} to pay` : ''}`, () => openAttendance(app)));
         }
         if (can('expenses')) tiles.push(tile('wallet', 'is-cash', 'Expenses & cash', myCashLine(app), () => openCash(app)));
+        if (can('reports')) tiles.push(tile('arrow-left-right', 'is-cash', 'Transaction log', txTileSummary(app), () => openTxLog(app)));
         if (can('bills')) {
             const pending = workLogPending(app);
             tiles.push(tile('calendar-days', 'is-report', 'Daily site report', dailyTileSummary(app), () => openDailyReport(app)));

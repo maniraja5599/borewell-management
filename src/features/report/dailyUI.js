@@ -33,7 +33,7 @@ export function dailyTileSummary(app) {
     return `Today: ${r.feet.toLocaleString('en-IN')} ft · ${r.boreCount} bore${r.boreCount === 1 ? '' : 's'}${r.collected ? ` · ${inr(r.collected)} in` : ''}`;
 }
 
-async function saveCsv(app, text, fileName) {
+export async function saveCsv(app, text, fileName) {
     const blob = new Blob([`﻿${text}`], { type: 'text/csv;charset=utf-8' });
     try {
         const file = new File([blob], fileName, { type: 'text/csv' });
