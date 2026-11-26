@@ -1,22 +1,23 @@
 // "Rig status" page (Rig work tab): is the rig working, idle or down; report a breakdown; mark it
 // fixed with the repair cost; this month's breakdowns, downtime and repair cost; history.
-// Logic: breakdownMath.js. Saved on this phone (like Vehicles & docs) — not synced yet.
-import { storage } from '../../data/storage.js';
-import { billOnCurrentRig, getCurrentRig, hasRigs } from '../../cloud/access.js';
+// Logic: breakdownMath.js. Synced (kind 'breakdown', migration 0018); only the owner deletes.
+import { storage, STORAGE_KEYS } from '../../data/storage.js';
+import { readMovedList, saveList } from '../../data/movedList.js';
+import { billOnCurrentRig, getCurrentRig, hasRigs, isOwnerOrLocal } from '../../cloud/access.js';
 import { el, openSheet, btn, pill } from '../../ui/sheet.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { todayYmd } from '../workers/workersMath.js';
 import { isInvoice, billDay } from '../report/reportMath.js';
 import { REASONS, reasonLabel, reportBreakdown, fixBreakdown, openBreakdown, downHours, fmtHours, monthSummary, rigStatus, history } from './breakdownMath.js';
 
-const KEY = 'drillrig_breakdowns_v1';
+const OLD_KEY = 'drillrig_breakdowns_v1'; // before 0018 breakdowns lived on one phone under this key
 const inr = (n) => `₹${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
 
 export function readBreakdowns() {
-    try { const a = JSON.parse(storage.getRaw(KEY) || '[]'); return Array.isArray(a) ? a.filter((b) => b && b.id) : []; } catch { return []; }
+    return readMovedList(STORAGE_KEYS.breakdowns, OLD_KEY).filter((b) => b && b.id);
 }
-function writeBreakdowns(list) {
-    try { storage.setRaw(KEY, JSON.stringify((list || []).slice(0, 1000))); return true; } catch { return false; }
+function writeBreakdowns(list, app) {
+    return saveList(app, STORAGE_KEYS.breakdowns, list || []);
 }
 
 const rigKey = () => (hasRigs() ? getCurrentRig()?.id : null) || 'local';
@@ -50,7 +51,7 @@ export function openRigStatus(app, { onSaved } = {}) {
     let mode = null; // null | 'report' | 'fix' | { edit: id }
     const sheet = openSheet({ title: 'Rig status', sub: `${rigName()} · breakdowns, downtime and repair cost`, ic: 'activity', onClose: () => onSaved?.() });
 
-    const save = (list) => { if (!writeBreakdowns(list)) { sheet.say('Could not save on this phone (storage full?).'); return false; } return true; };
+    const save = (list) => { if (!writeBreakdowns(list, app)) { sheet.say('Could not save on this phone (storage full?).'); return false; } return true; };
 
     function reportForm() {
         let reason = '';
@@ -151,7 +152,7 @@ export function openRigStatus(app, { onSaved } = {}) {
                 b.endAt ? el('span', { class: 'bd-side' }, [
                     el('strong', { text: b.cost ? inr(b.cost) : '₹0' }),
                     el('button', { type: 'button', class: 'wk-link', text: 'Edit', onclick: () => { mode = { edit: b.id }; render(); sheet.scroller?.scrollTo({ top: 0, behavior: 'smooth' }); } }),
-                    el('button', { type: 'button', class: 'wk-link is-danger', text: 'Delete', onclick: (e) => {
+                    !isOwnerOrLocal() ? null : el('button', { type: 'button', class: 'wk-link is-danger', text: 'Delete', onclick: (e) => {
                         const t = e.currentTarget;
                         if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Tap again'; setTimeout(() => { t.dataset.sure = ''; t.textContent = 'Delete'; }, 3000); return; }
                         save(readBreakdowns().filter((x) => x.id !== b.id)); render();
@@ -162,7 +163,7 @@ export function openRigStatus(app, { onSaved } = {}) {
 
         sheet.body.replaceChildren(...[
             status, action, form, stats, histBox,
-            el('p', { class: 'ca-note', text: 'Working = a Final Bill today or drilling started in Work details. Saved on this phone.' })
+            el('p', { class: 'ca-note', text: 'Working = a Final Bill today or drilling started in Work details. Shared with your team through the cloud.' })
         ].filter(Boolean));
         paintIcons();
     }

@@ -1,9 +1,11 @@
 // "Stock & vendors" page (Rig work tab). Items: spares, consumables, oil, fittings, tools — stock,
 // minimum, value, low-stock alerts; Add stock / Use / Count. Vendors: purchases (item lines add
 // stock, free lines like bits or service do not), payments, what is still to pay.
-// Logic: inventoryMath.js. Saved on this phone (like Vehicles & docs) — not synced yet.
-// Items belong to the rig picked on this phone; vendors are for the whole business.
-import { storage } from '../../data/storage.js';
+// Logic: inventoryMath.js. Synced as one list (kind 'inv', migration 0018) with a type field `t`;
+// items, moves, purchases and payments belong to a rig, vendors to the whole business.
+// Items belong to the rig picked on this phone; only the owner deletes.
+import { STORAGE_KEYS } from '../../data/storage.js';
+import { readMovedList, saveList } from '../../data/movedList.js';
 import { getCurrentRig, hasRigs, isOwnerOrLocal } from '../../cloud/access.js';
 import { el, openSheet, btn, item as row, pill, avatar } from '../../ui/sheet.js';
 import { icon, paintIcons } from '../../ui/icon.js';
@@ -13,24 +15,25 @@ import {
     makeVendor, makePurchase, makeVendorPayment, vendorBook, totalPayable
 } from './inventoryMath.js';
 
-const KEY = 'drillrig_inventory_v1';
+const OLD_KEY = 'drillrig_inventory_v1'; // before 0018: { items, moves, vendors, purchases, payments } on one phone
 const EMPTY = () => ({ items: [], moves: [], vendors: [], purchases: [], payments: [] });
+// list name in readInventory() ↔ record type `t` in the synced list
+const TYPES = { items: 'item', moves: 'move', vendors: 'vendor', purchases: 'purchase', payments: 'vpay' };
+/** Old one-phone document → flat records with their type. */
+const flatten = (d) => Object.entries(TYPES).flatMap(([name, t]) => (Array.isArray(d?.[name]) ? d[name] : []).filter(Boolean).map((x) => (x.t === t ? x : { ...x, t })));
 const inr = (n) => `${n < 0 ? '−' : ''}₹${Math.abs(Math.round(Number(n) || 0)).toLocaleString('en-IN')}`;
 const qtyTxt = (q, unit) => `${Number(q).toLocaleString('en-IN')} ${unit || 'nos'}`;
 const niceDay = (d) => new Date(`${d}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 const MODES = [{ key: 'cash', label: 'Cash' }, { key: 'upi', label: 'UPI' }, { key: 'bank', label: 'Bank' }, { key: 'cheque', label: 'Cheque' }];
 
 export function readInventory() {
-    try {
-        const d = JSON.parse(storage.getRaw(KEY) || 'null');
-        if (!d || typeof d !== 'object') return EMPTY();
-        const e = EMPTY();
-        for (const k of Object.keys(e)) e[k] = Array.isArray(d[k]) ? d[k] : [];
-        return e;
-    } catch { return EMPTY(); }
+    const list = readMovedList(STORAGE_KEYS.inventory, OLD_KEY, (d) => (Array.isArray(d) ? d : flatten(d)));
+    const e = EMPTY();
+    for (const [name, t] of Object.entries(TYPES)) e[name] = list.filter((x) => x && x.t === t);
+    return e;
 }
-function writeInventory(d) {
-    try { storage.setRaw(KEY, JSON.stringify(d)); return true; } catch { return false; }
+function writeInventory(d, app) {
+    return saveList(app, STORAGE_KEYS.inventory, flatten(d));
 }
 const rigKey = () => (hasRigs() ? getCurrentRig()?.id : null) || 'local';
 const mine = (x) => (x?.rigId || 'local') === rigKey() || !hasRigs();
@@ -68,7 +71,7 @@ export function openInventory(app, { start = 'items', onSaved } = {}) {
     function commit(mutator, toast) {
         const d = readInventory();
         mutator(d);
-        if (!writeInventory(d)) { sheet.say('Could not save on this phone (storage full?).'); return false; }
+        if (!writeInventory(d, app)) { sheet.say('Could not save on this phone (storage full?).'); return false; }
         if (toast) app.showToast?.(toast);
         form = null;
         render();
@@ -348,7 +351,7 @@ export function openInventory(app, { start = 'items', onSaved } = {}) {
             tabs,
             formEl,
             ...(view === 'items' ? itemsView(d) : vendorsView(d)),
-            el('p', { class: 'ca-note', text: 'Casing pipes and bits & hammers have their own pages. Vendor purchases on credit are not money out until you pay; payments show in the Transaction log. Saved on this phone.' })
+            el('p', { class: 'ca-note', text: 'Casing pipes and bits & hammers have their own pages. Vendor purchases on credit are not money out until you pay; payments show in the Transaction log. Shared with your team through the cloud.' })
         ].filter(Boolean));
         paintIcons();
     }

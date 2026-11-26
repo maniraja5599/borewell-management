@@ -1,21 +1,20 @@
 // Vehicles, Hired Vehicle Owners & Vehicle Document Expiry Alerts (RC, Insurance, Permit, Fitness).
-import { storage } from '../../data/storage.js';
+import { STORAGE_KEYS } from '../../data/storage.js';
+import { readMovedList, saveList as saveSynced } from '../../data/movedList.js';
 import { el, openSheet, btn, pill, seg } from '../../ui/sheet.js';
 import { icon, paintIcons } from '../../ui/icon.js';
 import { todayYmd } from '../workers/workersMath.js';
 import { inr } from '../cash/cashMath.js';
 
-const VEHICLES_KEY = 'drillrig_vehicles_v1';
+// Synced list (kind 'vehicle', migration 0018) — before that it lived on one phone under this key.
+const OLD_KEY = 'drillrig_vehicles_v1';
 
 export function readVehicles() {
-    try {
-        const arr = JSON.parse(storage.getRaw(VEHICLES_KEY) || '[]');
-        return Array.isArray(arr) ? arr.filter((v) => v && v.name) : [];
-    } catch { return []; }
+    return readMovedList(STORAGE_KEYS.vehicles, OLD_KEY).filter((v) => v && v.name);
 }
 
-export function writeVehicles(list) {
-    try { storage.setRaw(VEHICLES_KEY, JSON.stringify(list || [])); } catch { /* ignore */ }
+export function writeVehicles(list, app) {
+    return saveSynced(app, STORAGE_KEYS.vehicles, list || []);
 }
 
 function daysBetween(fromYmd, toYmd) {
@@ -70,7 +69,7 @@ export function openVehicles(app, { onSaved } = {}) {
     let settling = null; // null | vehicle object
 
     function saveList(next) {
-        writeVehicles(next);
+        writeVehicles(next, app);
         onSaved?.();
         render();
     }
@@ -175,10 +174,11 @@ export function openVehicles(app, { onSaved } = {}) {
                         const all = readVehicles();
                         const target = all.find((x) => x.id === v.id);
                         if (target) {
-                            target.settlements = [{ id: `st_${Date.now().toString(36)}`, date: todayYmd(), amount, note: noteIn.value.trim() }, ...(target.settlements || [])];
-                            settling = target;
+                            // a new object (not an edit in place), so the change is seen and synced
+                            const next = { ...target, settlements: [{ id: `st_${Date.now().toString(36)}`, date: todayYmd(), amount, note: noteIn.value.trim() }, ...(target.settlements || [])] };
+                            settling = next;
                             app?.showToast?.(`✅ Recorded ${inr(amount)} payout`);
-                            saveList(all);
+                            saveList(all.map((x) => (x.id === next.id ? next : x)));
                         }
                     }
                 })

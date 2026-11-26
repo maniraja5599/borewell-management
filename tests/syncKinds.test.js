@@ -9,7 +9,7 @@ import { BIG_LISTS } from '../src/data/bigStore.js';
 import { STORAGE_KEYS } from '../src/data/storage.js';
 
 const KINDS = Object.keys(LIST_KINDS);
-const caps = ['stock', 'workers', 'tools', 'cash', 'attendance'];
+const caps = ['stock', 'workers', 'tools', 'cash', 'attendance', 'vehicles', 'breakdowns', 'inventory'];
 
 describe('every list kind goes all the way through sync', () => {
     it('the sanitizer, storage and IndexedDB know every kind', () => {
@@ -40,7 +40,7 @@ describe('every list kind goes all the way through sync', () => {
     });
 
     it('the server migration accepts each kind', () => {
-        const sql = readFileSync(new URL('../supabase/drillrig/0017_attendance.sql', import.meta.url), 'utf8');
+        const sql = readFileSync(new URL('../supabase/drillrig/0018_vehicles_breakdowns_inventory.sql', import.meta.url), 'utf8'); // the newest migration
         const line = sql.split(/\r?\n/).find((l) => l.includes('add constraint record_kind_check')) || '';
         for (const k of [...KINDS, 'setting']) expect(line, k).toContain(`'${k}'`);
     });

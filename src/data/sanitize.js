@@ -80,7 +80,7 @@ export function sanitizeList(list, idPrefix = 'item') {
 }
 
 /** Clean one downloaded sync record's data. Returns null to drop the record. */
-export const LIST_RECORD_KINDS = Object.freeze(['customer', 'bill', 'stock', 'worker', 'tool', 'cash', 'attendance']);
+export const LIST_RECORD_KINDS = Object.freeze(['customer', 'bill', 'stock', 'worker', 'tool', 'cash', 'attendance', 'vehicle', 'breakdown', 'inv']);
 
 export function sanitizeRecordData(kind, data) {
     // Every list kind (cloud/syncPlan.js LIST_KINDS). A kind missing here is dropped on download

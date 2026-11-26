@@ -16,9 +16,10 @@ export const SETTING_IDS = ['brand', 'rates', 'rateProfiles', 'savedExtras', 'sa
  *   tool   — bits and hammers bought for a rig (migration 0014)
  *   cash   — expenses, diesel, cash in, hand-overs (migration 0016)
  *   attendance — one worker, one day (migration 0017)
+ *   vehicle, breakdown, inv — vehicles & docs, rig breakdowns, stock & vendors (migration 0018)
  * A new list kind is added here, in STORAGE_KEYS / BIG_LISTS, and on the server.
  */
-export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash', attendance: 'attendance' });
+export const LIST_KINDS = Object.freeze({ customer: 'customers', bill: 'history', stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash', attendance: 'attendance', vehicle: 'vehicles', breakdown: 'breakdowns', inv: 'inventory' });
 export const LIST_NAMES = Object.freeze(Object.values(LIST_KINDS));
 
 /** Fast 53-bit string hash (cyrb53). Plenty for change detection. */

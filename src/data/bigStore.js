@@ -24,8 +24,8 @@
 // rate card share one copy in memory. The bills themselves look exactly the same to the app.
 import { hashData } from '../cloud/syncPlan.js';
 
-export const BIG_LISTS = ['history', 'customers', 'stock', 'workers', 'tools', 'cash', 'attendance'];
-export const IDB_VERSION = 4;
+export const BIG_LISTS = ['history', 'customers', 'stock', 'workers', 'tools', 'cash', 'attendance', 'vehicles', 'breakdowns', 'inventory'];
+export const IDB_VERSION = 5; // 5: vehicles, breakdowns, inventory (synced from 0018)
 const CHUNK = 400;          // records per transaction
 const URGENT_MAX = 50;      // a save touching up to this many records goes to the front
 

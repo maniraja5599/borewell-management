@@ -161,12 +161,12 @@ export function initRigWork(app) {
     };
 
     onAccessChange(render);
-    for (const ev of ['workers', 'tools', 'cash', 'attendance', 'stock']) window.addEventListener(`drillrig:${ev}-changed`, render);
+    for (const ev of ['workers', 'tools', 'cash', 'attendance', 'stock', 'vehicles', 'breakdowns', 'inventory']) window.addEventListener(`drillrig:${ev}-changed`, render);
     const origSave = app.saveToStorage?.bind(app);
     if (origSave) {
         app.saveToStorage = (key, data, changed) => {
             const ok = origSave(key, data, changed);
-            if ([STORAGE_KEYS.workers, STORAGE_KEYS.tools, STORAGE_KEYS.cash, STORAGE_KEYS.history, STORAGE_KEYS.attendance, STORAGE_KEYS.stock, STORAGE_KEYS.brand].includes(key)) {
+            if ([STORAGE_KEYS.workers, STORAGE_KEYS.tools, STORAGE_KEYS.cash, STORAGE_KEYS.history, STORAGE_KEYS.attendance, STORAGE_KEYS.stock, STORAGE_KEYS.brand, STORAGE_KEYS.vehicles, STORAGE_KEYS.breakdowns, STORAGE_KEYS.inventory].includes(key)) {
                 try { render(); } catch { /* ignore */ }
             }
             return ok;

@@ -54,6 +54,8 @@ function readLocal() {
     return local;
 }
 
+/** Lists with their own screens (told with drillrig:<list>-changed when the cloud changes them). */
+const OWN_SCREEN_LISTS = ['stock', 'workers', 'tools', 'cash', 'attendance', 'vehicles', 'breakdowns', 'inventory'];
 const LIST_KEY = Object.fromEntries(Object.entries(LIST_KINDS).map(([kind, name]) => [kind, STORAGE_KEYS[name]]));
 /** Record hashes: the big lists reuse the hash saved with each record instead of re-hashing 50,000 bills. */
 const hashFor = (kind, data) => (LIST_KEY[kind] ? storage.hashOf(LIST_KEY[kind], data, hashData) : hashData(data));
@@ -87,7 +89,7 @@ function writeLocal(app, local, changed) {
         app.history = local.history;
     }
     // Lists with their own screens: save and tell those screens (drillrig:<list>-changed).
-    for (const name of ['stock', 'workers', 'tools', 'cash', 'attendance']) {
+    for (const name of OWN_SCREEN_LISTS) {
         if (!changed.has(name)) continue;
         storage.setList(STORAGE_KEYS[name], local[name]);
         try { window.dispatchEvent(new CustomEvent(`drillrig:${name}-changed`)); } catch { /* ignore */ }
@@ -232,7 +234,7 @@ export function setPreferredCompany(id) {
  * Role, rigs or permissions changed: drop the per-rig lists on this phone (bills, pipe stock,
  * workers, bits & hammers) and download what is visible now.
  */
-const RIG_KINDS = ['bill', 'stock', 'worker', 'tool', 'cash', 'attendance'];
+const RIG_KINDS = ['bill', 'stock', 'worker', 'tool', 'cash', 'attendance', 'vehicle', 'breakdown', 'inv'];
 function reloadVisibleBills(app) {
     const st = ctx.state;
     for (const kind of RIG_KINDS) storage.setList(STORAGE_KEYS[LIST_KINDS[kind]], []);
@@ -240,7 +242,7 @@ function reloadVisibleBills(app) {
     const isRigKey = (key) => RIG_KINDS.some((k) => key.startsWith(`${k}:`));
     for (const key of Object.keys(st.hashes)) if (isRigKey(key)) delete st.hashes[key];
     if (st.rejected) for (const key of Object.keys(st.rejected)) if (isRigKey(key)) delete st.rejected[key];
-    for (const name of ['stock', 'workers', 'tools', 'cash', 'attendance']) {
+    for (const name of OWN_SCREEN_LISTS) {
         try { window.dispatchEvent(new CustomEvent(`drillrig:${name}-changed`)); } catch { /* ignore */ }
     }
     st.lastRev = 0;
@@ -266,7 +268,7 @@ function allowedWipes() {
  * Stock, workers, tools and cash wait on the phone until the server supports them (0005 / 0014 / 0016 / 0017);
  * drivers (retired role) never upload them.
  */
-const KIND_CAP = { stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash', attendance: 'attendance' };
+const KIND_CAP = { stock: 'stock', worker: 'workers', tool: 'tools', cash: 'cash', attendance: 'attendance', vehicle: 'vehicles', breakdown: 'breakdowns', inv: 'inventory' };
 export function filterPushable(rows, role, rejected = {}, caps = []) {
     return rows.filter((r) => {
         if (KIND_CAP[r.kind] && (!caps.includes(KIND_CAP[r.kind]) || role === 'driver')) return false;
