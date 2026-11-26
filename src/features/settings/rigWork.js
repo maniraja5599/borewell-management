@@ -17,6 +17,7 @@ import { openPipeStock, pipeStockLine } from '../stock/stockUI.js';
 import { openWorkLog, workLogPending } from '../rigwork/workLog.js';
 import { openServiceAlerts, getRigServiceStatus, serviceTileSummary } from '../rigwork/serviceAlert.js';
 import { openVehicles, countExpiringDocs, vehiclesTileSummary } from '../rigwork/vehiclesUI.js';
+import { openMarketplaceSheet, readMarketplaceConfig } from './marketplaceUI.js';
 import { FEATURES } from '../../config/features.js';
 import { cashBook, spendSummary, inr } from '../cash/cashMath.js';
 import { daySummary, isActive, payNow } from '../workers/attendanceMath.js';
@@ -101,6 +102,8 @@ export function initRigWork(app) {
             tiles.push(tile('wrench', 'is-tools', 'Service alerts', serviceTileSummary(app), () => openServiceAlerts(app, { onSaved: render }), svcWarn));
             const docWarn = countExpiringDocs() > 0;
             tiles.push(tile('truck', 'is-tools', 'Vehicles & docs', vehiclesTileSummary(), () => openVehicles(app, { onSaved: render }), docWarn));
+            const mkt = readMarketplaceConfig(app);
+            tiles.push(tile('store', 'is-report', 'Online marketplace', mkt.live ? `Live · ${mkt.city} · share link` : 'Go live & let customers compare prices', () => openMarketplaceSheet(app, { onSaved: render })));
         }
         if (can('stock') && FEATURES.pipeStock) tiles.push(tile('cylinder', 'is-pipes', 'Casing pipes', pipeStockLine(app), () => openPipeStock(app), /⚠/.test(pipeStockLine(app))));
         if (can('stock')) {

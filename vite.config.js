@@ -20,7 +20,8 @@ export default defineConfig({
             input: {
                 main: resolve(import.meta.dirname, 'index.html'),
                 dashboard: resolve(import.meta.dirname, 'dashboard.html'),
-                admin: resolve(import.meta.dirname, 'admin.html')
+                admin: resolve(import.meta.dirname, 'admin.html'),
+                marketplace: resolve(import.meta.dirname, 'marketplace.html')
             }
         }
     },
